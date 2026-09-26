@@ -49,9 +49,11 @@ export class UI {
   set('#opt-motion',`✦ Motion: ${this.renderer.calm?'calm':'full'}`);
   set('#opt-grid',`▦ Grid: ${this.renderer.grid?'on':'off'}`);}
  cancel(){this.renderer.placing=null;this.renderer.moving=null;this.selectedTroop=null;this.placementHint();this.refresh();}
+ tap(x,y){const w=this.game.world;if(w.effects.length<48)w.effects.push({x,y,tx:x,ty:y,kind:'sparkle',life:.4});}
  placementHint(){const type=this.renderer.placing;document.querySelector('#cancel').hidden=!type;document.querySelector('#placement-hint').textContent=type?`${this.renderer.moving?'Move':'Place'} ${this.game.data.buildings[type].name} · choose a tile · Esc cancels`:'Tap a building to inspect it';}
  selectCell(cell){
   const r=this.renderer,g=this.game;
+  this.tap(cell.x+.5,cell.y+.5);
   if(r.placing){if(r.moving){if(g.relocate(r.moving,cell.x,cell.y))this.cancel();}else{const b=g.build(r.placing,cell.x,cell.y);if(b){this.selected=b.id;r.selection=b.id;}}}
   else{
    const clickedTroop=g.world.troops.find(t=>t.hp>0&&Math.hypot(t.x-(cell.x+.5),t.y-(cell.y+.5))<.8);
