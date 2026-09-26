@@ -3,6 +3,7 @@
 // numbers below are gentle pacing constants, not content.
 import {levelForXp, EXPANSION, auras, housing, center, stats} from '../model.js';
 import {sfx} from './audio.js';
+import {makeTradeName} from './story.js';
 
 const CHILD_SECONDS = 75;      // surplus + free bed grows a villager this fast
 const UPKEEP_EACH = 0.03;      // food per second per villager
@@ -39,7 +40,9 @@ function completeQuest(state, data, quest, notify) {
   push(w, {x:at.x, y:at.y, tx:at.x, ty:at.y - 1.1, kind:'float', text:`+${quest.xp} XP`, color:'#ffe9a8', life:.9});
   sfx.quest();
   const rewardText = Object.entries(quest.rewards || {}).map(([k, v]) => `+${v} ${k}`).join(', ');
-  notify(`Quest complete: ${quest.name}! +${quest.xp} XP${rewardText ? ` · ${rewardText}` : ''}.`);
+  // Optional flavor fields (data/quests.json): old entries without them read unchanged.
+  const flavor = quest.flavor ? ` ${quest.flavor}` : '';
+  notify(`Quest complete: ${quest.name}! +${quest.xp} XP${rewardText ? ` · ${rewardText}` : ''}.${flavor}`);
 }
 
 function applyExpansion(state, data, notify) {
@@ -91,11 +94,17 @@ function tickPopulation(state, data, dt, notify) {
     const existing = w.troops.length;
     const s = data.troops[type];
     const child = {id:crypto.randomUUID(), type, level:1, hp:s.base.hp, gear:s.defaultGear, owned:[s.defaultGear], x:8 + (existing % 5) * .65, y:10.8, attackTimer:0, abilityTimer:0, carry:0, phase:'gather', animation:0, workplace:null};
+    // Every 10th arrival comes down the road with a trade-name (data/names.json).
+    if ((existing + 1) % 10 === 0) {
+      const tradeName = makeTradeName(data.names);
+      if (tradeName) child.name = tradeName;
+    }
     w.troops.push(child);
     push(w, {x:child.x, y:child.y, tx:child.x, ty:child.y - 1.1, kind:'float', text:'+ new villager!', color:'#bfe3a8', life:1.2});
     push(w, {x:child.x, y:child.y, tx:child.x, ty:child.y, kind:'fanfare', life:.8});
     sfx.birth();
-    notify(`A child has grown into a ${s.name}! Beds ${housing(w, data).used}/${housing(w, data).beds}.`);
+    if (child.name) notify(`${child.name} has come down the road, tools in hand! Beds ${housing(w, data).used}/${housing(w, data).beds}.`);
+    else notify(`A child has grown into a ${s.name}! Beds ${housing(w, data).used}/${housing(w, data).beds}.`);
   }
 }
 

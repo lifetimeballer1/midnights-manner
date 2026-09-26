@@ -1,0 +1,13 @@
+{
+  "given": [
+    "Bram", "Wren", "Fen", "Issa", "Pella", "Maro", "Sella", "Tomm",
+    "Hob", "Kess", "Dren", "Berra", "Colm", "Essie", "Lark", "Rill",
+    "Tansy", "Wick", "Hollis", "Joren", "Mara", "Cotter", "Dill", "Sanna"
+  ],
+  "trade": [
+    "Ash", "Waterwise", "Second-Lantern", "Longaxe", "Salt",
+    "the mason", "the shepherd", "the smith", "the thatcher", "the tinker",
+    "the midwife", "the net-mender", "the beekeeper", "the drover", "the roofer",
+    "the charcoal-burner", "the lamp-trimmer", "the miller", "Bell", "Cutler"
+  ]
+}

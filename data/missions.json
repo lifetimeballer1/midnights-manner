@@ -3,6 +3,13 @@
     "id": "first-harvest",
     "name": "The First Harvest",
     "chapter": "01",
+    "act": "III",
+    "beat": "Pure build sprint; the village learns it can finish something.",
+    "ceremony": {
+      "warning": "Dust on the west road is only dust — this time. Fill the granary before dusk.",
+      "victory": "The granary stands full and the bell rings long. The Manner has finished something.",
+      "defeat": "The stores ran short and the bell rang thin. Eat, sleep, walk the road again."
+    },
     "description": "A village begins with a full granary. Raise farms and bring home the first harvest.",
     "timeLimit": 180,
     "troopLimit": 5,
@@ -50,6 +57,13 @@
     "id": "timber-line",
     "name": "Hold the Timber Line",
     "chapter": "02",
+    "act": "III",
+    "beat": "First blood; gather under pressure.",
+    "ceremony": {
+      "warning": "Polemen on the Timber Line. Cut fast and keep the tower manned.",
+      "victory": "The road crews broke on our walls. The timber piles high.",
+      "defeat": "The toll-gangs took their cut in timber. Mend the walls and go again."
+    },
     "description": "Raiders have found the road. Gather timber while keeping the manor standing.",
     "timeLimit": 210,
     "troopLimit": 6,
@@ -114,6 +128,13 @@
     "id": "long-night",
     "name": "The Long Night",
     "chapter": "03",
+    "act": "III",
+    "beat": "Small garrison, two raids, moonstone hunger.",
+    "ceremony": {
+      "warning": "Two bands out tonight, hungry for moonstone. Light every lamp.",
+      "victory": "Dawn comes grey and the coffers shine. The village endures.",
+      "defeat": "The night outlasted our stores. The manor stands — barely. Try again fed."
+    },
     "description": "Secure moonstone before dawn. Defend the manor through two raids with a small garrison.",
     "timeLimit": 240,
     "troopLimit": 5,
@@ -189,6 +210,13 @@
     "id": "ember-road",
     "name": "The Ember Road",
     "chapter": "04",
+    "act": "IV",
+    "beat": "Tight clock, a long quiet stretch, then one late raid.",
+    "ceremony": {
+      "warning": "Charcoal pads and quiet woods. Mind the clock — something walks at dusk.",
+      "victory": "The forge-fire eats and the road is ours one more night.",
+      "defeat": "The kilns went cold before the carts filled. Walk it again, faster."
+    },
     "description": "A forge-fire needs feeding. Cut timber fast on a tight clock while a single late raid tests the new watchfire.",
     "timeLimit": 200,
     "troopLimit": 6,
@@ -211,6 +239,13 @@
     "id": "moonwell",
     "name": "Moonwell Plenty",
     "chapter": "05",
+    "act": "IV",
+    "beat": "Split economy; foragers earn their keep.",
+    "ceremony": {
+      "warning": "Bread for the tables, ore for the coffers. Two hungers, one night.",
+      "victory": "Full tables, heavy coffers. The Hollow gives to those who dig.",
+      "defeat": "One hunger or the other went unfed. Balance the crews and return."
+    },
     "description": "Two hungers at once: bread for the tables, moonstone for the coffers. Foragers earn their keep while raiders circle twice.",
     "timeLimit": 260,
     "troopLimit": 7,
@@ -234,6 +269,13 @@
     "id": "last-stand",
     "name": "The Last Stand",
     "chapter": "06",
+    "act": "IV",
+    "beat": "Skeleton crew, three waves before dawn, finale.",
+    "ceremony": {
+      "warning": "Three waves before dawn, five souls to hold them. Ring the bell.",
+      "victory": "Three waves broke and the bell still rings. Carve your name on it.",
+      "defeat": "The third wave took the night. The village crawls back with salvage — as always."
+    },
     "description": "Three waves before dawn with a skeleton crew. Hold the manor, keep the gold flowing, and prove the village endures.",
     "timeLimit": 300,
     "troopLimit": 5,

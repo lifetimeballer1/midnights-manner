@@ -1,0 +1,16 @@
+[
+  { "id": "market-wagons", "text": "Grey Market wagons past the Sunken Steeple — salt and nails, fair but sharp.", "weight": 2 },
+  { "id": "wick-thieves", "text": "Lantern crows stole the wicks again. The wayfinder pays buttons for white tail feathers.", "weight": 1 },
+  { "id": "masons-seek", "text": "The masons seek 200 wood — the east wall remembers.", "weight": 1 },
+  { "id": "moth-deer", "text": "Moth-deer sign in the high clearings. Good luck for a year, says the butcher.", "weight": 1 },
+  { "id": "bridge-toll", "text": "Dren Salt's carters mending the west bridge. Toll is up a nail a wheel.", "weight": 1 },
+  { "id": "moth-night", "text": "Moon-moths thick on the Grove — a good picking night, say the foragers.", "weight": 1 },
+  { "id": "fire-taps", "text": "A poacher tapped the watchfire twice last night. Bread, not chain, says the mooncleric.", "weight": 1 },
+  { "id": "bent-clapper", "text": "Old Bell's bent clapper still on the market stall. Touch it for luck — one button.", "weight": 1 },
+  { "id": "boar-trouble", "text": "Bristle boars rooting the south kiln-pads. The mason complains. The butcher smiles.", "weight": 1 },
+  { "id": "grey-day", "text": "Grey light coming. The builders say grey days set mortar best.", "weight": 1 },
+  { "id": "tollman-hat", "text": "Joren's hat still hangs by the hall door. Nobody touches it. Everybody checks.", "weight": 1 },
+  { "id": "hollow-knocks", "text": "Two knocks answered by two knocks in the treeline. Grandmothers hurry the children home.", "weight": 1 },
+  { "id": "lantern-price", "text": "The Lantern Towns pay premium for blue-veined timber. Everybody sells. Nobody forgot.", "weight": 1 },
+  { "id": "dark-pond", "text": "Pond gone dark three nights running? Rest it. Overdrawn land goes pale.", "weight": 1 }
+]

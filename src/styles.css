@@ -15,3 +15,4 @@
 .resource[data-resource="food"] img{border-radius:50%}
 .resource[data-resource="gold"] img{border-radius:8px;transform:rotate(45deg)}
 .resource[data-resource="wood"] img{border-radius:8px}
+.notice-board{margin:4px 0 14px;padding:10px 12px;border:1px dashed #a4b39088;border-radius:12px;background:#1c302cee}.notice-board span{font-size:9px;letter-spacing:2px;color:#d6c68e}.notice-board p{font-size:12px;line-height:1.6;color:#ffe9a8;margin:4px 0 0}.title-legend{font-size:11px;line-height:1.6;color:#c6c7a0;font-style:italic;max-width:340px;margin:0 auto 12px}.quest .qflavor{display:block;font-size:11px;font-style:italic;color:#c6c7a0;margin-top:3px}.quest .qgiver{display:block;font-size:10px;letter-spacing:.6px;color:#d6c68e;margin-top:3px}.mission-beat{font-size:11px;font-style:italic;color:#c6c7a0;margin:6px 0 0}.ceremony{font-size:12px;line-height:1.6;color:#ffe9a8;margin:8px 0 0}
