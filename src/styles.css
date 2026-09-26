@@ -150,3 +150,11 @@ body.raid-active #day{color:#fff}
 .raid-stats>div{display:flex;justify-content:space-between;align-items:center;background:#ede8d7;padding:10px 14px;font-size:12.5px;font-weight:700}
 .raid-stats>div:nth-child(even){background:#f7f6ee}
 @media(max-width:760px){.tabs{position:sticky;top:0;z-index:5}.inspector{padding:14px}.inspector h2{font-size:22px}.raid-card{padding:20px}.raid-card h2{font-size:24px}.build-card img{width:56px;height:56px}.mission-card h3{font-size:20px}}
+
+.title-overlay{position:fixed;inset:0;background:rgba(10,18,24,.72);display:flex;align-items:center;justify-content:center;z-index:50}
+.title-overlay[hidden]{display:none}
+.title-card{max-width:420px;margin:16px;padding:28px 30px;background:#1c302c;border:3px solid #f2c96e;border-radius:12px;text-align:center;color:#f6ecbb;box-shadow:0 12px 48px #000a}
+.title-card h1{font-size:44px;letter-spacing:4px;margin:8px 0;color:#ffe9a8}
+.title-card p{color:#e8dcc0}
+.title-controls{font-size:12px;color:#9db87a;margin:12px 0}
+.title-card .primary{font-size:17px;padding:10px 22px}

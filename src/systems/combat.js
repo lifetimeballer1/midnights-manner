@@ -68,6 +68,7 @@ export function tickCombat(world,data,dt) {
    target.hp=Math.max(0,target.hp-enemy.damage*(1-Math.min(.8,reduction)));enemy.attackTimer=1.3;effect(world,enemy,targetPoint,'slash');push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y,kind:'hit',life:.18});sfx.hit();
   }
  }
+ for(const e of world.enemies)if(e.hp<=0)push(world,{x:e.x,y:e.y,tx:e.x,ty:e.y,kind:'poof',life:.4});
  const dead=world.enemies.filter(e=>e.hp<=0).length;world.raidKills=(world.raidKills??0)+dead;const loot=dead*5;world.raidLoot=(world.raidLoot??0)+loot;world.resources.gold+=loot;
  world.enemies=world.enemies.filter(e=>e.hp>0);world.raidAge=(world.raidAge??0)+dt;
  if(world.enemies.length&&world.raidAge>240){
