@@ -9,11 +9,20 @@ export class UI {
  constructor(game,renderer){this.game=game;this.renderer=renderer;this.tab='build';this.selected=null;this.selectedTroop=null;this.clock=0;this.panel=document.querySelector('#panel');this.guide=loadGuide();this.prevRes={...game.world.resources};this.bind();this.refresh();}
  bind(){
   document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{this.tab=b.dataset.tab;document.querySelectorAll('[data-tab]').forEach(t=>t.classList.toggle('active',t===b));this.refresh();});
-  document.querySelector('#pause').onclick=()=>{this.game.paused=!this.game.paused;document.querySelector('#pause').textContent=this.game.paused?'▶ Resume':'Ⅱ Pause';};
+  document.querySelector('#pause').onclick=()=>{if(this.game.paused)this.closePause();else this.openPause();};
+  try{if(typeof localStorage!=='undefined'&&localStorage.getItem('midnights-manner-calm')==='on')this.renderer.calm=true;}catch{}
+  const overlay2=document.querySelector('#pause-overlay');
+  if(overlay2)overlay2.onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;
+   if(b.id==='resume')this.closePause();
+   else if(b.id==='opt-sound'){const muted=toggleMute();this.syncSound(muted);}
+   else if(b.id==='opt-motion'){this.renderer.calm=!this.renderer.calm;try{localStorage.setItem('midnights-manner-calm',this.renderer.calm?'on':'off');}catch{}this.syncPauseOverlay();}
+   else if(b.id==='opt-grid'){this.renderer.grid=!this.renderer.grid;this.syncPauseOverlay();}
+   else if(b.id==='opt-save'){if(this.game.persist())this.game.notify('Village saved on this browser.');}
+   this.refresh();};
   document.querySelector('#save').onclick=()=>{if(this.game.persist())this.game.notify('Village saved on this browser.');this.refresh();};
   document.querySelector('#grid').onclick=()=>{this.renderer.grid=!this.renderer.grid;};
   document.querySelector('#cancel').onclick=()=>this.cancel();
-  const sound=document.querySelector('#sound');if(sound){sound.textContent=isMuted()?'🔇 Sound':'🔊 Sound';sound.onclick=()=>{sound.textContent=toggleMute()?'🔇 Sound':'🔊 Sound';};}
+  const sound=document.querySelector('#sound');if(sound){sound.textContent=isMuted()?'🔇 Sound':'🔊 Sound';sound.onclick=()=>{this.syncSound(toggleMute());};}
   const guideEl=document.querySelector('#guide');if(guideEl)guideEl.onclick=e=>{if(e.target.closest('[data-skip]')){skipGuide(this.guide);this.refresh();}};
   const overlay=document.querySelector('#raid-overlay');if(overlay)overlay.onclick=e=>{const b=e.target.closest('button');if(!b)return;
    if(b.dataset.repairAll)this.game.repairAll();
@@ -32,6 +41,13 @@ export class UI {
   };
   this.panel.onchange=e=>{const s=e.target.closest('select[data-assign]');if(!s)return;this.game.assign(s.dataset.assign,s.value||null);this.refresh();};
  }
+ openPause(){this.game.paused=true;document.querySelector('#pause').textContent='▶ Resume';const o=document.querySelector('#pause-overlay');if(o){o.hidden=false;this.syncPauseOverlay();}this.refresh();}
+ closePause(){this.game.paused=false;document.querySelector('#pause').textContent='Ⅱ Pause';const o=document.querySelector('#pause-overlay');if(o)o.hidden=true;this.refresh();}
+ syncSound(muted){const s=document.querySelector('#sound');if(s)s.textContent=muted?'🔇 Sound':'🔊 Sound';this.syncPauseOverlay();}
+ syncPauseOverlay(){const set=(id,text)=>{const el=document.querySelector(id);if(el)el.textContent=text;};
+  set('#opt-sound',`${isMuted()?'🔇':'🔊'} Sound: ${isMuted()?'off':'on'}`);
+  set('#opt-motion',`✦ Motion: ${this.renderer.calm?'calm':'full'}`);
+  set('#opt-grid',`▦ Grid: ${this.renderer.grid?'on':'off'}`);}
  cancel(){this.renderer.placing=null;this.renderer.moving=null;this.selectedTroop=null;this.placementHint();this.refresh();}
  placementHint(){const type=this.renderer.placing;document.querySelector('#cancel').hidden=!type;document.querySelector('#placement-hint').textContent=type?`${this.renderer.moving?'Move':'Place'} ${this.game.data.buildings[type].name} · choose a tile · Esc cancels`:'Tap a building to inspect it';}
  selectCell(cell){
