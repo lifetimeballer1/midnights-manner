@@ -1,5 +1,7 @@
 # Midnights Manner
 
+▶ **Play it here:** https://lifetimeballer1.github.io/midnights-manner/
+
 A browser-based village builder with an isometric HTML5 Canvas map, farming economy, equippable pixel-art tools, tactical defenses, and a data-driven frontier campaign. Vanilla JavaScript modules; no runtime dependencies, backend, API keys, or build framework.
 
 **Status:** first playable prototype. The systems below are implemented; balancing, deeper combat AI, final art, audio, multiplayer, and cloud saves are future work. Progress is saved locally in the browser every five seconds and on page exit. Hidden tabs pause simulation; there is no offline production. Campaign expeditions use separate maps and preserve the home village.
