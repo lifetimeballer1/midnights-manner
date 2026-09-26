@@ -11,8 +11,10 @@ def canvas():
 def save(im,name):
  # Consistent dark outline + two-tone moonlit shading, applied generically so every
  # sprite keeps its distinct silhouette and palette (multiplicative shade only).
- px=im.load(); w,h=im.size
- solid=lambda x,y: 0<=x<w and 0<=y<h and px[x,y][3]>=200
+ # Outline mask is an IMMUTABLE copy: stamping ink must not count as solid,
+ # or the ring cascades outward in +x/+y (see generate_art_pass.py::finish).
+ original=im.copy().load(); px=im.load(); w,h=im.size
+ solid=lambda x,y: 0<=x<w and 0<=y<h and original[x,y][3]>=200
  for y in range(h):
   for x in range(w):
    if px[x,y][3]<40 and (solid(x+1,y)or solid(x-1,y)or solid(x,y+1)or solid(x,y-1)):

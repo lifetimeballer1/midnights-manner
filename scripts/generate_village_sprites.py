@@ -15,6 +15,9 @@ def canvas():
     return im, ImageDraw.Draw(im)
 
 def save(im, name):
+    # Immutable-mask outline: read solidity from a copy so fresh ink never
+    # counts as solid (fixes the +x/+y cascade; see generate_art_pass.py).
+    original = im.copy().load()
     px = im.load(); w, h = im.size
     solid = lambda x, y: 0 <= x < w and 0 <= y < h and px[x, y][3] >= 200
     for y in range(h):

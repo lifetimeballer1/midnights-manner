@@ -32,19 +32,41 @@ try{
  const result=await evaluate(`(()=>{
  const click=s=>{const el=document.querySelector(s);if(!el)throw Error('Missing '+s);el.click();};
  const snap=()=>window.midnightsManner.snapshot();const n=snap().world.buildings.length;
- click('[data-build="farm"]');const c=document.querySelector('#world'),r=c.getBoundingClientRect();c.dispatchEvent(new MouseEvent('click',{bubbles:true,clientX:r.left+510/1100*r.width,clientY:r.top+174/740*r.height}));
- if(snap().world.buildings.length!==n+1)throw Error('placement failed');click('#cancel');
+ const tap=(x,y)=>{const c=document.querySelector('#world');for(const kind of ['pointerdown','pointerup']){c.dispatchEvent(new PointerEvent(kind,{bubbles:true,pointerId:1,pointerType:'mouse',clientX:x,clientY:y}));}};
+ const drag=(x1,y1,x2,y2)=>{const c=document.querySelector('#world');c.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,pointerId:1,pointerType:'mouse',clientX:x1,clientY:y1}));c.dispatchEvent(new PointerEvent('pointermove',{bubbles:true,pointerId:1,pointerType:'mouse',clientX:x2,clientY:y2}));c.dispatchEvent(new PointerEvent('pointerup',{bubbles:true,pointerId:1,pointerType:'mouse',clientX:x2,clientY:y2}));};
+ // Two-step placement: first tap stages a ghost (no spend), second tap commits once.
+ click('[data-build="farm"]');const tile=window.midnightsManner.freeTile('farm');if(!tile)throw Error('no free tile');const pt=window.midnightsManner.tileScreen(tile.x,tile.y);
+ const woodBefore=snap().world.resources.wood;tap(pt.x,pt.y);
+ if(!window.midnightsManner.preview())throw Error('preview not staged');
+ if(snap().world.buildings.length!==n)throw Error('preview spent resources');
+ if(snap().world.resources.wood!==woodBefore)throw Error('preview changed wallet');
+ if(document.querySelector('#confirm-place').hidden)throw Error('confirm hidden');
+ tap(pt.x,pt.y);
+ if(snap().world.buildings.length!==n+1)throw Error('confirm built wrong count');click('#cancel');
+ // Touch camera: one-finger drag pans, pinch raises zoom.
+ const camBefore=window.midnightsManner.cam();const rc=document.querySelector('#world').getBoundingClientRect();drag(rc.left+rc.width/2,rc.top+rc.height/2,rc.left+rc.width/2+60,rc.top+rc.height/2);const camAfter=window.midnightsManner.cam();
+ if(camBefore.x===camAfter.x&&camBefore.y===camAfter.y)throw Error('drag did not pan');
+ const zoomBefore=camAfter.zoom;const pc=document.querySelector('#world');const pp=(kind,id,x,y)=>pc.dispatchEvent(new PointerEvent(kind,{bubbles:true,pointerId:id,pointerType:'touch',clientX:x,clientY:y}));
+ pp('pointerdown',10,200,300);pp('pointerdown',11,260,300);pp('pointermove',10,170,300);pp('pointermove',11,290,300);pp('pointerup',10,170,300);pp('pointerup',11,290,300);
+ if(!(window.midnightsManner.cam().zoom>zoomBefore))throw Error('pinch did not zoom');click('#cancel');
  click('[data-tab="troops"]');click('[data-gear="axe"]');if(snap().world.troops[0].gear!=='axe')throw Error('equip failed');click('[data-level]');if(snap().world.troops[0].level!==2)throw Error('training failed');click('#save');
  click('[data-tab="story"]');click('[data-mission="first-harvest"]');if(!snap().mission)throw Error('mission failed');click('[data-home]');if(snap().mission)throw Error('return failed');click('#raid');if(!snap().world.enemies.length)throw Error('raid failed');click('#pause');if(!window.midnightsManner.paused)throw Error('pause failed');click('#save');return {placement:true,equipment:true,training:true,campaign:true,raid:true,pause:true};})()`);
  await call('Page.reload');
  await new Promise(r=>setTimeout(r,800));
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[0].level'),2,'level restored');
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[0].gear'),'axe','gear restored');
- await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
+ await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:2,mobile:true});
+ await new Promise(r=>setTimeout(r,600));
  await evaluate("document.querySelector('[data-tab=build]').click()");
- await screenshot('mobile');
+ await screenshot('mobile-390x844');
  assert.equal(await evaluate('document.documentElement.scrollWidth > innerWidth'),false,'no mobile horizontal overflow');
- const ratio=await evaluate('(()=>{const c=document.querySelector("canvas"),r=c.getBoundingClientRect();return (r.width/r.height)/(c.width/c.height)})()');assert.ok(Math.abs(ratio-1)<.01,'mobile canvas input coordinates match display');
+ const backing=await evaluate('(()=>{const c=document.querySelector("canvas"),r=c.getBoundingClientRect();return {cssW:r.width,bufW:c.width,dpr:window.devicePixelRatio||1};})()');
+ assert.ok(Math.abs(backing.bufW-backing.cssW*Math.min(2,backing.dpr))<2,'canvas backing matches CSS size x capped DPR');
+ const frameStats=await evaluate('new Promise(res=>{const t0=performance.now();requestAnimationFrame(function f(){if(performance.now()-t0>1200)res(window.midnightsManner.frameReport());else requestAnimationFrame(f);});})');
+ await writeFile('artifacts/frame-stats-390x844-dpr2.json',JSON.stringify({viewport:'390x844',dpr:2,...frameStats}));
+ await call('Emulation.setDeviceMetricsOverride',{width:320,height:568,deviceScaleFactor:1,mobile:true});await new Promise(r=>setTimeout(r,400));await screenshot('mobile-320x568');
+ await call('Emulation.setDeviceMetricsOverride',{width:430,height:932,deviceScaleFactor:2,mobile:true});await new Promise(r=>setTimeout(r,400));await screenshot('mobile-430x932');
+ await call('Emulation.setDeviceMetricsOverride',{width:844,height:390,deviceScaleFactor:2,mobile:true});await new Promise(r=>setTimeout(r,400));await screenshot('mobile-844x390-landscape');
  assert.deepEqual(errors,[],'no browser errors');
  console.log(JSON.stringify({...result,saveReload:true,mobileLayout:true,consoleErrors:errors}));
 }finally{ws?.close();chrome.kill();server.close();await new Promise(r=>setTimeout(r,300));await rm(profile,{recursive:true,force:true,maxRetries:3,retryDelay:100});}

@@ -10,6 +10,16 @@ export class Game {
  get world(){return this.state.world;}
  notify(message){this.message=message;this.dirty=true;}
  locked(id){return this.data.world.locked.includes(id)&&!this.state.unlocks.includes(id);}
+ // Pure pre-flight for the two-step placement preview (no spend, no notify).
+ canBuild(type,x,y,movingId){
+  if(this.locked(type))return {ok:false,reason:'locked'};
+  if(!inBounds(this.world,this.data,type,x,y))return {ok:false,reason:'wild'};
+  if(!canPlace(this.world,this.data,type,x,y,movingId))return {ok:false,reason:'space'};
+  const cost=buildingCost(type,1,this.world,this.data);
+  const afford=Object.entries(cost).every(([k,v])=>(this.world.resources[k]??0)>=v);
+  if(!afford)return {ok:false,reason:'cost'};
+  return {ok:true};
+ }
  build(type,x,y){
   if(this.paused)return this.notify('Resume the village to build.');
   if(this.locked(type))return this.notify('Complete campaign chapters to unlock this.');
@@ -67,6 +77,7 @@ export class Game {
  mission(id){if(startMission(this.state,this.data,id))this.notify('Expedition begun. Your home village is safely paused.');else this.notify('Finish the current raid or unlock the previous chapter first.');}
  returnHome(){const result=finishMission(this.state,this.data);this.notify(result?.first?'Victory! Rewards and unlocks delivered to your village.':'Returned home. First-clear rewards can only be claimed once.');this.persist();}
  persist(){const ok=save(this.state);if(!ok)this.notify('Browser storage is unavailable. Progress cannot be saved here.');return ok;}
+ importState(state){this.state=state;this.paused=false;this.saveTimer=0;this.dirty=true;this.notify('Save restored. Welcome back to the village.');}
  tick(dt){if(this.paused||this.state.mission?.status&&this.state.mission.status!=='active')return;
   if(this.world.raidPending&&!this.state.mission){this.world.raidPending.timer-=dt;
    if(this.world.raidPending.timer<=0){const {count}=this.world.raidPending;this.world.raidPending=null;spawnRaid(this.world,count);this.notify(`Wave ${this.world.wave} — ${count} raiders! Defend the manor!`);}}

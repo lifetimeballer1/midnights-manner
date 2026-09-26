@@ -91,6 +91,14 @@ export function peekVersion() {
     return JSON.parse(raw)?.version ?? 1;
   } catch { return null; }
 }
+export function validateSave(value, data) {
+  function valid(w){return w&&['wood','food','gold'].every(k=>Number.isFinite(w.resources?.[k])&&w.resources[k]>=0)&&Array.isArray(w.buildings)&&w.buildings.every(b=>data.buildings[b.type]&&Number.isInteger(b.level)&&b.level>=1&&b.level<=data.buildings[b.type].tiers.length&&Number.isFinite(b.hp)&&Number.isFinite(b.x)&&Number.isFinite(b.y))&&Array.isArray(w.troops)&&w.troops.every(t=>data.troops[t.type]&&data.items[t.gear]&&Number.isInteger(t.level)&&t.level>=1&&t.level<=data.troops[t.type].maxLevel&&Array.isArray(t.owned))&&Array.isArray(w.enemies)&&Array.isArray(w.effects);}
+  if(!value||typeof value!=='object')return false;
+  if(!valid(value.world)||!Array.isArray(value.completed)||!Array.isArray(value.unlocks))return false;
+  if(value.mission&&(!valid(value.home)||!data.missions.some(m=>m.id===value.mission.id)))return false;
+  if(!Array.isArray(value.questsCompleted)||!Number.isFinite(value.xp))return false;
+  return true;
+}
 export function load(data) {
  try {
   let raw = null;
@@ -100,10 +108,26 @@ export function load(data) {
   if (!value) return null;
   if ((value.version ?? 1) < VERSION) value = migrateToLatest(value, data);
   if (!value || value.version !== VERSION) return null;
-  function valid(w){return w&&['wood','food','gold'].every(k=>Number.isFinite(w.resources?.[k])&&w.resources[k]>=0)&&Array.isArray(w.buildings)&&w.buildings.every(b=>data.buildings[b.type]&&Number.isInteger(b.level)&&b.level>=1&&b.level<=data.buildings[b.type].tiers.length&&Number.isFinite(b.hp)&&Number.isFinite(b.x)&&Number.isFinite(b.y))&&Array.isArray(w.troops)&&w.troops.every(t=>data.troops[t.type]&&data.items[t.gear]&&Number.isInteger(t.level)&&t.level>=1&&t.level<=data.troops[t.type].maxLevel&&Array.isArray(t.owned))&&Array.isArray(w.enemies)&&Array.isArray(w.effects);}
-  if(!valid(value.world)||!Array.isArray(value.completed)||!Array.isArray(value.unlocks))return null;
-  if(value.mission&&(!valid(value.home)||!data.missions.some(m=>m.id===value.mission.id)))return null;
-  if(!Array.isArray(value.questsCompleted)||!Number.isFinite(value.xp))return null;
+  if(!validateSave(value,data))return null;
   return value;
  }catch{return null;}
+}
+// Phase D: portable save blob for moving between devices. Never wipes:
+// bad blobs fail with a readable message, and imports run the same
+// versioned migrations as local loads.
+export function exportSave(state) {
+  try { return JSON.stringify({...state, version: VERSION}); }
+  catch { return null; }
+}
+export function importSaveBlob(text, data) {
+  let value = null;
+  try { value = JSON.parse(text); }
+  catch { return {ok:false, error:'That text is not a village save — import needs the exact text from Export.'}; }
+  if (!value || typeof value !== 'object') return {ok:false, error:'That text is not a village save — import needs the exact text from Export.'};
+  const v = value.version ?? 1;
+  if (v > VERSION) return {ok:false, error:`This save is version ${v}, but this village reads up to version ${VERSION}. Update the game, then import again.`};
+  if (v < VERSION) value = migrateToLatest(value, data);
+  if (!value || value.version !== VERSION) return {ok:false, error:`Could not migrate this save (version ${v}) to version ${VERSION}. It may be from an incompatible build.`};
+  if (!validateSave(value, data)) return {ok:false, error:'This save failed validation — a building, troop or mission in it is unknown. Nothing was changed.'};
+  return {ok:true, state:value};
 }

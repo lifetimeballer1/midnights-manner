@@ -1,6 +1,7 @@
 import {stats,unlockedAbilities,buildingCost,housing,levelForXp,XP_LEVELS,center,assignedWorkers,workplaceCapacity} from './model.js';
 import {currentQuest,questProgress} from './systems/village.js';
 import {loadGuide,updateGuide,skipGuide} from './systems/tutorial.js';
+import {exportSave,importSaveBlob,peekVersion} from './storage.js';
 import {sfx,isMuted,toggleMute} from './systems/audio.js';
 const icons={wood:'▰',food:'♧',gold:'◆'};
 const cost=c=>Object.entries(c).map(([k,v])=>`${icons[k]} ${Math.ceil(v)} ${k}`).join(' · ')||'Included';
@@ -8,7 +9,8 @@ const img=name=>`<img src="./assets/sprites/${name}" alt="">`;
 export class UI {
  constructor(game,renderer){this.game=game;this.renderer=renderer;this.tab='build';this.selected=null;this.selectedTroop=null;this.clock=0;this.panel=document.querySelector('#panel');this.guide=loadGuide();this.prevRes={...game.world.resources};this.bind();this.refresh();}
  bind(){
-  document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{this.tab=b.dataset.tab;document.querySelectorAll('[data-tab]').forEach(t=>t.classList.toggle('active',t===b));this.refresh();});
+  const switchTab=name=>{this.tab=name;document.querySelectorAll('[data-tab]').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));this.refresh();try{document.querySelector('#panel')?.scrollIntoView({block:'nearest'});}catch{}};
+  document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
   document.querySelector('#pause').onclick=()=>{if(this.game.paused)this.closePause();else this.openPause();};
   try{if(typeof localStorage!=='undefined'&&localStorage.getItem('midnights-manner-calm')==='on')this.renderer.calm=true;}catch{}
   const overlay2=document.querySelector('#pause-overlay');
@@ -20,8 +22,18 @@ export class UI {
    else if(b.id==='opt-save'){if(this.game.persist())this.game.notify('Village saved on this browser.');}
    this.refresh();};
   document.querySelector('#save').onclick=()=>{if(this.game.persist())this.game.notify('Village saved on this browser.');this.refresh();};
-  document.querySelector('#grid').onclick=()=>{this.renderer.grid=!this.renderer.grid;};
+  document.querySelector('#grid').onclick=()=>{this.renderer.grid=!this.renderer.grid;document.querySelector('#grid').setAttribute('aria-pressed',String(this.renderer.grid));};
+  document.querySelector('#export-save').onclick=async()=>{const blob=exportSave(this.game.state);if(!blob){this.game.notify('Export failed in this browser.');this.refresh();return;}
+   const label=`village save v${peekVersion()??2}`;
+   try{if(navigator.clipboard&&navigator.clipboard.writeText){await navigator.clipboard.writeText(blob);this.game.notify(`Village copied (${label}). Paste it into Import on your other device.`);}else throw Error('no clipboard');}
+   catch{try{const ta=document.createElement('textarea');ta.value=blob;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();this.game.notify(`Village copied (${label}).`);}catch{window.prompt(`Copy your ${label} (Ctrl+C, Enter):`,blob);}}
+   this.refresh();};
+  document.querySelector('#import-save').onclick=()=>{const text=window.prompt('Paste a village save (Export on your other device):','');if(text==null)return;
+   const result=importSaveBlob(text,this.game.data);
+   if(!result.ok){this.game.notify(`Import failed: ${result.error}`);this.refresh();return;}
+   this.game.importState(result.state);this.cancel();this.refresh();};
   document.querySelector('#cancel').onclick=()=>this.cancel();
+  const confirm=document.querySelector('#confirm-place');if(confirm)confirm.onclick=()=>this.confirmPreview();
   const sound=document.querySelector('#sound');if(sound){sound.textContent=isMuted()?'🔇 Sound':'🔊 Sound';sound.onclick=()=>{this.syncSound(toggleMute());};}
   const guideEl=document.querySelector('#guide');if(guideEl)guideEl.onclick=e=>{if(e.target.closest('[data-skip]')){skipGuide(this.guide);this.refresh();}};
   const overlay=document.querySelector('#raid-overlay');if(overlay)overlay.onclick=e=>{const b=e.target.closest('button');if(!b)return;
@@ -30,7 +42,7 @@ export class UI {
    this.refresh();};
   document.querySelector('#inspector').onclick=e=>{const b=e.target.closest('button');if(!b)return;const action=b.dataset.action;if(b.id==='raid')this.game.raid();else if(action==='upgrade')this.game.upgrade(this.selected);else if(action==='repair')this.game.repair(this.selected);else if(action==='hold'&&this.selectedTroop)this.game.commandHold(this.selectedTroop);else if(action==='resume'&&this.selectedTroop){this.game.clearOrder(this.selectedTroop);this.selectedTroop=null;this.renderer.selection=null;}else if(action==='move'){const selected=this.game.world.buildings.find(b=>b.id===this.selected);if(selected){this.renderer.moving=selected.id;this.renderer.placing=selected.type;this.placementHint();}}this.refresh();};
   this.panel.onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;
-   if(b.dataset.build){this.renderer.placing=b.dataset.build;this.renderer.moving=null;this.renderer.grid=true;this.placementHint();}
+   if(b.dataset.build){this.renderer.placing=b.dataset.build;this.renderer.moving=null;this.renderer.preview=null;this.renderer.grid=true;this.placementHint();}
    if(b.dataset.recruit)this.game.recruit(b.dataset.recruit);
    if(b.dataset.level)this.game.level(b.dataset.level);
    if(b.dataset.gear)this.game.equip(b.dataset.unit,b.dataset.gear);
@@ -48,13 +60,36 @@ export class UI {
   set('#opt-sound',`${isMuted()?'🔇':'🔊'} Sound: ${isMuted()?'off':'on'}`);
   set('#opt-motion',`✦ Motion: ${this.renderer.calm?'calm':'full'}`);
   set('#opt-grid',`▦ Grid: ${this.renderer.grid?'on':'off'}`);}
- cancel(){this.renderer.placing=null;this.renderer.moving=null;this.selectedTroop=null;this.placementHint();this.refresh();}
+ cancel(){this.renderer.placing=null;this.renderer.moving=null;this.renderer.preview=null;this.selectedTroop=null;this.placementHint();this.refresh();}
+ // Two-step placement: first tap only stages a ghost preview (no spend).
+ // A second tap on the same tiles, or #confirm-place, commits exactly once.
+ confirmPreview(){
+  const r=this.renderer,g=this.game,p=r.preview;if(!p)return false;
+  let done=false;
+  if(p.moving){done=!!g.relocate(p.moving,p.x,p.y);}
+  else{const b=g.build(p.type,p.x,p.y);if(b){this.selected=b.id;r.selection=b.id;done=true;}}
+  if(done){r.preview=null;this.placementHint();this.refresh();}
+  else this.syncConfirm();
+  return done;
+ }
+ syncConfirm(){
+  const r=this.renderer,el=document.querySelector('#confirm-place');if(!el)return;
+  const p=r.preview;
+  if(!p||!r.placing){el.hidden=true;return;}
+  const ok=p.moving?true:this.game.canBuild(p.type,p.x,p.y).ok;
+  el.hidden=false;el.textContent=ok?`Build ${this.game.data.buildings[p.type].name} ✓`:'Cannot build here';el.disabled=!ok;
+ }
  tap(x,y){const w=this.game.world;if(w.effects.length<48)w.effects.push({x,y,tx:x,ty:y,kind:'sparkle',life:.4});}
- placementHint(){const type=this.renderer.placing;document.querySelector('#cancel').hidden=!type;document.querySelector('#placement-hint').textContent=type?`${this.renderer.moving?'Move':'Place'} ${this.game.data.buildings[type].name} · choose a tile · Esc cancels`:'Tap a building to inspect it';}
+ placementHint(){const r=this.renderer,type=r.placing;document.querySelector('#cancel').hidden=!type;document.querySelector('#placement-hint').textContent=!type?'Tap a building to inspect it':r.preview?`Review the ghost — tap again or Confirm to ${r.moving?'move':'build'} ${this.game.data.buildings[type].name}`:`${r.moving?'Move':'Place'} ${this.game.data.buildings[type].name} · choose a tile · Esc cancels`;this.syncConfirm();}
  selectCell(cell){
   const r=this.renderer,g=this.game;
   this.tap(cell.x+.5,cell.y+.5);
-  if(r.placing){if(r.moving){if(g.relocate(r.moving,cell.x,cell.y))this.cancel();}else{const b=g.build(r.placing,cell.x,cell.y);if(b){this.selected=b.id;r.selection=b.id;}}}
+  if(r.placing){
+   const p=r.preview;
+   if(p&&p.type===r.placing&&p.x===cell.x&&p.y===cell.y&&(p.moving||null)===(r.moving||null)){this.confirmPreview();return;}
+   r.preview={type:r.placing,x:cell.x,y:cell.y,moving:r.moving||null};
+   this.placementHint();this.syncConfirm();sfx.click();this.refresh();return;
+  }
   else{
    const clickedTroop=g.world.troops.find(t=>t.hp>0&&Math.hypot(t.x-(cell.x+.5),t.y-(cell.y+.5))<.8);
    const clickedEnemy=g.world.enemies.find(e=>e.hp>0&&Math.hypot(e.x-(cell.x+.5),e.y-(cell.y+.5))<.9);
@@ -77,9 +112,12 @@ export class UI {
   const g=this.game,w=g.world,d=g.data;
   const gained={};for(const k of ['wood','food','gold']){gained[k]=Math.floor(w.resources[k])>Math.floor(this.prevRes[k]??0);}
   this.prevRes={...w.resources};
-  document.querySelector('#resources').innerHTML=Object.entries(w.resources).map(([key,value])=>`<div class="resource${value<30?' low':''}${gained[key]?' gain':''}" title="${value<30?'Running low — gather more':key}"><span class="symbol">${icons[key]}</span><div><b>${Math.floor(value).toLocaleString()}</b><small>${key.toUpperCase()}</small></div></div>`).join('');
+  document.querySelector('#resources').innerHTML=Object.entries(w.resources).map(([key,value])=>`<div class="resource${value<30?' low':''}${gained[key]?' gain':''}" data-res="${key}" title="${value<30?'Running low — gather more':key}"><span class="symbol">${icons[key]}</span><div><b>${Math.floor(value).toLocaleString()}</b><small>${key.toUpperCase()}</small></div></div>`).join('');
   document.body.classList.toggle('raid-active',w.enemies.length>0||!!w.raidPending);
   document.querySelector('#status').textContent=g.message;
+  // Phase E: game events (build / raid / save / import) narrate through a
+  // polite live region so canvas-only events reach screen readers.
+  if(g.message!==this._lastAnnounced){this._lastAnnounced=g.message;const log=document.querySelector('#event-log');if(log)log.textContent=g.message;}
   document.querySelector('#day').textContent=w.raidPending?`⚠ ${w.raidPending.count} raiders incoming…`:`Day ${Math.floor(w.elapsed/180)+1} · ${w.enemies.length?`⚔ ${w.enemies.length} left · ${w.raidKills??0} slain`:g.state.mission?'Expedition':'Homestead'}`;
   const hint=g.state.mission?null:updateGuide(this.guide,g);
   const guideEl=document.querySelector('#guide');
