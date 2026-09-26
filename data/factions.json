@@ -1,0 +1,71 @@
+{
+  "ashwood": {
+    "id": "ashwood",
+    "name": "Ashwood Poachers",
+    "summary": "Timber crews from two failed clearings. Not hate — arithmetic.",
+    "min": -3,
+    "max": 3,
+    "driftPerDay": -0.05,
+    "positiveActions": ["ransom", "leaveFood"],
+    "negativeActions": ["killCaptives", "burnCamp"],
+    "effects": {
+      "+2": { "raidWarningChance": 0.35, "rumorPool": "ashwood-friendly" },
+      "+1": { "raidWarningChance": 0.15 },
+      "0": {},
+      "-1": { "raidAggression": 0.1 },
+      "-2": { "raidAggression": 0.25, "rumorPool": "ashwood-hostile" },
+      "-3": { "raidAggression": 0.4, "extraRaiders": 1 }
+    }
+  },
+  "tollgangs": {
+    "id": "tollgangs",
+    "name": "Westroad Toll-Gangs",
+    "summary": "Kess Longaxe and Dren Salt share the Timber Line by uneasy rota.",
+    "min": -3,
+    "max": 3,
+    "driftPerDay": -0.03,
+    "positiveActions": ["payToll", "buyRoadNews"],
+    "negativeActions": ["skipToll", "attackGang"],
+    "effects": {
+      "+2": { "traderDiscount": 0.1, "roadNewsChance": 0.4 },
+      "+1": { "roadNewsChance": 0.2 },
+      "0": {},
+      "-1": { "tollMarkup": 0.15 },
+      "-2": { "tollMarkup": 0.3, "probeChance": 0.2 },
+      "-3": { "tollMarkup": 0.5, "probeChance": 0.4 }
+    }
+  },
+  "greymarket": {
+    "id": "greymarket",
+    "name": "Grey Market Caravans",
+    "summary": "Traveling traders out of the Lantern Towns. Fair but sharp.",
+    "min": -2,
+    "max": 3,
+    "driftPerDay": -0.02,
+    "positiveActions": ["fairDeal", "payOnTime"],
+    "negativeActions": ["refuseDeal", "insultTrader"],
+    "effects": {
+      "+2": { "offerQuality": 1, "visitChance": 0.3 },
+      "+1": { "offerQuality": 0.5 },
+      "0": {},
+      "-1": { "offerQuality": -0.5 },
+      "-2": { "visitChance": -0.2 }
+    }
+  },
+  "moonwardens": {
+    "id": "moonwardens",
+    "name": "Moonwardens",
+    "summary": "Scattered wayfinders and moonclerics who keep the old charts.",
+    "min": -1,
+    "max": 3,
+    "driftPerDay": 0,
+    "positiveActions": ["completeChart", "followSurvey"],
+    "negativeActions": ["ignoreSurvey"],
+    "effects": {
+      "+2": { "rareRumorChance": 0.15, "smallGiftChance": 0.05 },
+      "+1": { "rareRumorChance": 0.08 },
+      "0": {},
+      "-1": {}
+    }
+  }
+}

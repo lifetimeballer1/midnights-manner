@@ -1,0 +1,130 @@
+{
+  "mara": {
+    "id": "mara",
+    "name": "Mara the Mason",
+    "workplace": "mason_yard",
+    "troopHint": "mason",
+    "summary": "Laid half the current walls and still complains about green timber.",
+    "wants": "Straight courses and dry stone that will outlast her.",
+    "needs": "To believe the walls she lays will still stand when she is gone.",
+    "relationships": ["old-bell", "sarella"],
+    "dialogue": {
+      "default": "The courses are true enough. For now.",
+      "afterRaid": "The courses held. Good.",
+      "afterGreenTimber": "That wood will twist before winter. I told you.",
+      "afterGrowth": "New hands. Give them a trowel that fits."
+    }
+  },
+  "old-bell": {
+    "id": "old-bell",
+    "name": "Old Bell",
+    "workplace": "pasture",
+    "troopHint": "shepherd",
+    "summary": "Counts the flocks by bell, not by dog, and keeps the bent-clapper story alive.",
+    "wants": "Every sheep accounted for at grey dawn.",
+    "needs": "Someone younger to learn the three-clack warning before the owls go silent.",
+    "relationships": ["mooncleric", "tomm"],
+    "dialogue": {
+      "default": "Three clacks means the owls have gone quiet. Listen.",
+      "afterRaid": "Three clacks and the owls went quiet. You heard it too.",
+      "afterGrowth": "New hands. Teach them the bells before the next dark.",
+      "afterPastureThreat": "Count the bells twice. Something walked the fence."
+    }
+  },
+  "issa": {
+    "id": "issa",
+    "name": "Second-Lantern Issa",
+    "workplace": "scriptorium",
+    "troopHint": "scholar",
+    "summary": "Keeps Sella’s old seed stories and the Chart Log.",
+    "wants": "Every useful plant and every useful chart written down before it is forgotten.",
+    "needs": "Proof that the Long Dusk is still a place where things can be saved, not only endured.",
+    "relationships": ["wayfinder", "mooncleric", "tomm"],
+    "dialogue": {
+      "default": "The charts remember what the living forget. Write it down.",
+      "afterMissionReturn": "A new page for the Chart Log. The road gave us something worth keeping.",
+      "afterFailedHarvest": "Sella carried worse through three dead manners. We can carry this.",
+      "afterGrowth": "New names for the book. Beds before bodies still holds."
+    }
+  },
+  "tomm": {
+    "id": "tomm",
+    "name": "Tomm Waterwise",
+    "workplace": "pasture",
+    "troopHint": "shepherd",
+    "summary": "Keeps the family teaching: water is older than walls.",
+    "wants": "Full ponds and steady flocks.",
+    "needs": "The village to remember that water is older than walls.",
+    "relationships": ["old-bell", "issa", "fisherman-crew"],
+    "dialogue": {
+      "default": "Rest the node when it pales. Land remembers overdrawing.",
+      "afterPondUpgrade": "Deeper. Good. The glimmerfish will notice.",
+      "afterDrySpell": "The ponds are thinking. Give them a night.",
+      "afterGrowth": "More mouths. More water first."
+    }
+  },
+  "sarella": {
+    "id": "sarella",
+    "name": "Sarella of the Forge",
+    "workplace": "forge",
+    "troopHint": "weaponsmith",
+    "summary": "Keeps the Emberforge hot and the blades honest.",
+    "wants": "Steel that does not fail the hand that holds it.",
+    "needs": "Enough moonstone and charcoal that she never has to choose which warrior goes short.",
+    "relationships": ["armorer", "mara"],
+    "dialogue": {
+      "default": "Bring me the notched ones. The rest can wait.",
+      "afterRaidLowCasualties": "The edges held. Bring me the notched ones.",
+      "afterScarcity": "I can sharpen three more. After that we are choosing.",
+      "afterGrowth": "New hands at the bellows. Teach them heat before haste."
+    }
+  },
+  "mooncleric": {
+    "id": "mooncleric",
+    "name": "The Mooncleric",
+    "workplace": "chapel",
+    "troopHint": "healer",
+    "summary": "Lights the ward-lantern and teaches that light steadies; it does not smite.",
+    "wants": "Every watchfire and every cottage lamp kept trimmed.",
+    "needs": "The village to understand that ransom and mercy are also forms of strength.",
+    "relationships": ["old-bell", "issa", "wayfinder"],
+    "dialogue": {
+      "default": "Light steadies. The rest is hands and timber.",
+      "afterRansom": "They tapped the watchfire twice this time. The warning held.",
+      "afterBrutalDefense": "The light did its part. The rest was hands and timber.",
+      "afterGrowth": "New lamps to trim. The chapel has room."
+    }
+  },
+  "wayfinder": {
+    "id": "wayfinder",
+    "name": "The Wayfinder",
+    "workplace": "scout_post",
+    "troopHint": "scout",
+    "summary": "Walks the Timber Line charts and marks the failed hearths so no one rebuilds on a dry well.",
+    "wants": "Accurate charts and no more lost manners.",
+    "needs": "The village to treat every new clearing as temporary until the water is proven.",
+    "relationships": ["issa", "mara", "mooncleric"],
+    "dialogue": {
+      "default": "The charts still show the failed hearths. Do not build on a dry well.",
+      "afterMissionReturn": "New marks on the chart. The road is still there.",
+      "afterRaid": "The western road held. The toll-gangs will remember.",
+      "afterGrowth": "More feet on the Timber Line. Watch the water first."
+    }
+  },
+  "armorer": {
+    "id": "armorer",
+    "name": "The Armorer",
+    "workplace": "armory",
+    "troopHint": "armorer",
+    "summary": "Fits the ward-plates and keeps the village from bleeding for nothing.",
+    "wants": "Every fighter who walks out to come back heavier by the plates, not lighter by blood.",
+    "needs": "Enough metal that the next raid does not find anyone in soft leather.",
+    "relationships": ["sarella", "mara"],
+    "dialogue": {
+      "default": "Plates first. Pride later.",
+      "afterRaid": "Count the dents. The ones that held can be worked again.",
+      "afterScarcity": "I can plate four more. After that the roster gets thin.",
+      "afterGrowth": "New shoulders to fit. Bring them before the next horn."
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "ransom": { "ashwood": 1 },
+  "leaveFood": { "ashwood": 1 },
+  "killCaptives": { "ashwood": -2 },
+  "burnCamp": { "ashwood": -2 },
+  "payToll": { "tollgangs": 1 },
+  "buyRoadNews": { "tollgangs": 1 },
+  "skipToll": { "tollgangs": -1 },
+  "attackGang": { "tollgangs": -2 },
+  "fairDeal": { "greymarket": 1 },
+  "payOnTime": { "greymarket": 1 },
+  "refuseDeal": { "greymarket": -1 },
+  "insultTrader": { "greymarket": -2 },
+  "completeChart": { "moonwardens": 1 },
+  "followSurvey": { "moonwardens": 1 },
+  "ignoreSurvey": { "moonwardens": -1 }
+}
