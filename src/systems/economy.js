@@ -40,6 +40,7 @@ function sourceFor(world, data, spec, unit) {
   return alive[0];
 }
 export function tickEconomy(world,data,dt) {
+ if(!Number.isFinite(dt)||dt<=0)return;
  const bonus=builderBonuses(world,data);
  const aura=auras(world,data);
  for(const b of world.buildings) {
@@ -63,7 +64,11 @@ export function tickEconomy(world,data,dt) {
   if(u.hp<=0)continue;
   const spec=data.troops[u.type];if(spec.role!=='collector')continue;
   const source=sourceFor(world,data,spec,u);if(!source)continue;
-  const item=data.items[u.gear].stats,capacity=(item.carry||spec.carry)+aura.carry;
+  const gear=data.items[u.gear];if(!gear)continue;
+  const item=gear.stats||{};
+  let capacity=(item.carry||spec.carry||0)+(aura.carry||0);
+  if(!Number.isFinite(capacity)||capacity<=0)capacity=1;
+  if(!Number.isFinite(u.carry)||u.carry<0)u.carry=0;
   if(u.carry>=capacity)u.phase='return';
   const target=u.phase==='return'?hall:source;
   const speed = stats(u,data).speed;
@@ -71,8 +76,10 @@ export function tickEconomy(world,data,dt) {
    if(u.phase==='return'){addResource(world,spec.gatherResource,u.carry);const cp=center(hall,data);floatText(world,cp.x,cp.y,`+${Math.floor(u.carry)} ${GLYPH[spec.gatherResource]}`,'#ffe9a8');sparkle(world,cp.x,cp.y);sfx.collect();u.carry=0;u.phase='gather';}
    else {
     const bonus=unlockedAbilities(u,data).filter(a=>a.effect==='gather').reduce((n,a)=>n+a.value,1);
-    const rate = 3*(item.gather||1)*bonus*(1+aura.gather)*gatherBonus(u,world,data);
-    const room = capacity - u.carry, fill = Math.min(room, rate*dt*reserveMult(source));
+    const rate = 3*(item.gather||1)*bonus*(1+(aura.gather||0))*gatherBonus(u,world,data);
+    const room = Math.max(0,capacity-u.carry);
+    let fill=Math.min(room,rate*dt*reserveMult(source));
+    if(!Number.isFinite(fill)||fill<0)fill=0;
     drain(source, fill);
     u.carry+=fill;
     // Assigned fishers make a visible splash while they work the pond.

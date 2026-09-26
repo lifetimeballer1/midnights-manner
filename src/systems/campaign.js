@@ -8,6 +8,9 @@ export function startMission(game,data,id) {
 export function tickMission(game,data) {
  if(!game.mission||game.mission.status!=='active')return;
  const m=data.missions.find(m=>m.id===game.mission.id),w=game.world;
+ if(!m||!w)return;
+ game.mission.fired=game.mission.fired||[];
+ if(!Number.isFinite(w.elapsed)||w.elapsed<0)w.elapsed=0;
  for(const [i,raid] of m.raids.entries())if(w.elapsed>=raid.at&&!game.mission.fired.includes(i)){spawnRaid(w,raid.count);game.mission.fired.push(i);}
  const hall=w.buildings.find(b=>b.type==='hall');
  if(!hall||hall.hp<=0){game.mission.status='lost';return;}
