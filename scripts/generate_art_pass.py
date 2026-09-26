@@ -202,8 +202,9 @@ def rod(d, cx):
 
 
 def crook(d, cx):
-    d.line((cx + 5, 10, cx + 5, 26), fill=TIMBER, width=2)
-    d.arc((cx + 2, 6, cx + 8, 12), 180, 360, fill=TIMBER, width=2)
+    d.line((cx + 5, 10, cx + 5, 26), fill=TIMBER, width=3)
+    d.arc((cx + 1, 5, cx + 9, 13), 180, 360, fill=TIMBER, width=3)
+    d.point((cx + 5, 5), fill=GOLD)
 
 
 def felling_axe(d, cx):
@@ -395,14 +396,16 @@ def i_scythe(d):
 
 
 def i_rod(d):
-    d.line((8, 28, 24, 4), fill=TIMBER, width=2)
-    d.line((24, 4, 24, 12), fill=STRAW, width=1)
-    d.arc((22, 12, 26, 16), 0, 180, fill=GOLD, width=1)
+    d.line((8, 28, 24, 4), fill=TIMBER, width=3)
+    d.line((24, 4, 24, 12), fill=GLOW, width=2)
+    d.arc((21, 11, 27, 17), 0, 180, fill=GOLD, width=2)
 
 
 def i_crook(d):
-    d.line((14, 28, 14, 10), fill=TIMBER, width=3)
-    d.arc((10, 4, 18, 12), 180, 360, fill=TIMBER, width=3)
+    d.line((14, 28, 14, 10), fill=TIMBER, width=4)
+    d.arc((9, 3, 19, 13), 180, 360, fill=TIMBER, width=4)
+    d.arc((9, 3, 19, 13), 180, 360, fill=STRAW, width=1)
+    d.line((13, 24, 15, 24), fill=GOLD, width=3)
 
 
 def i_cleaver(d):
@@ -465,9 +468,9 @@ def i_awl(d):
 
 
 def i_trowel(d):
-    d.line((12, 28, 15, 20), fill=TIMBER, width=3)
-    d.polygon([(15, 8), (22, 20), (8, 20)], fill=STONE)
-    d.line((15, 10, 19, 18), fill=FOAM, width=1)
+    d.line((12, 28, 15, 20), fill=TIMBER, width=4)
+    d.polygon([(15, 6), (23, 20), (7, 20)], fill=STONE)
+    d.line((15, 8, 20, 18), fill=FOAM, width=2)
 
 
 def i_fellingaxe(d):
@@ -622,8 +625,12 @@ def b_trap(d, t):
     d.ellipse((6, 20, 26, 29), fill=INK)  # the pit is always there
     if t == 1:
         d.ellipse((8, 21, 24, 27), fill=DARK)
-        for x in range(9, 24, 4):
-            d.line((x, 21, x + 2, 27), fill=STRAW, width=1)
+        d.ellipse((11, 22, 21, 26), fill=INK)  # open dark pit mouth
+        for x in range(12, 21, 4):
+            d.polygon([(x, 26), (x + 1, 20), (x + 2, 26)], fill=STONE)
+            d.point((x + 1, 21), fill=FOAM)  # spike glints
+        d.line((8, 21, 13, 21), fill=TIMBER, width=2)  # broken cover planks
+        d.line((19, 21, 24, 21), fill=TIMBER, width=2)
     elif t == 2:
         for x in range(8, 25, 4):
             d.polygon([(x, 27), (x + 2, 16), (x + 4, 27)], fill=STONE)
@@ -638,12 +645,15 @@ def b_trap(d, t):
 
 
 def b_farm(d, t):
+    d.polygon([(4, 15), (28, 15), (28, 29), (4, 29)], fill='#4a3826')  # soil bed
+    d.line((4, 15, 28, 15), fill=STRAW, width=1)  # sunlit bed edge
     for r in range(3 + t):  # furrows multiply per tier
-        y = 16 + r * 3
+        y = 18 + r * 3
         d.line((5, y, 27, y), fill=DARK, width=2)
         for x in range(7, 26, 4):
-            h = 1 + (t > 1) + (t > 2 and (x + r) % 2)
-            d.line((x, y, x, y - h - 1), fill=LEAF if t < 3 else GOLD, width=1)
+            h = 2 + (t > 1) + (t > 2 and (x + r) % 2)
+            d.line((x, y, x, y - h - 1), fill=LEAF if t < 3 else GOLD, width=2)
+            d.point((x, y - h - 1), fill=GLOW if t >= 2 else LEAF)
     if t >= 2:  # fence
         for x in (4, 28):
             d.line((x, 12, x, 28), fill=TIMBER, width=2)
@@ -673,6 +683,9 @@ def b_lumber(d, t):
 def b_mine(d, t):
     d.polygon([(8, 29), (12, 16), (20, 16), (24, 29)], fill=INK)  # shaft
     d.polygon([(10, 29), (13, 19), (19, 19), (22, 29)], fill=DARK)
+    d.polygon([(4, 22), (8, 12), (12, 12), (10, 24)], fill=STONE)  # lit rock face
+    d.polygon([(28, 22), (24, 12), (20, 12), (22, 24)], fill=shade(STONE, .7))
+    d.point((6, 16), fill=FOAM); d.point((26, 16), fill=GOLD)  # glints at T1
     d.line((8, 16, 24, 16), fill=TIMBER, width=2)  # lintel
     for x in (8, 24):
         d.line((x, 16, x, 29), fill=TIMBER, width=2)
@@ -746,8 +759,10 @@ def b_watchfire(d, t):
     if t == 1:
         d.line((14, 24, 14, 18), fill=TIMBER, width=2)
         d.line((18, 24, 18, 18), fill=TIMBER, width=2)
-        d.polygon([(14, 18), (16, 12), (18, 18)], fill=EMBER)
-        d.point((16, 15), fill=GLOW)
+        d.polygon([(13, 19), (16, 10), (19, 19)], fill=EMBER)
+        d.polygon([(14, 18), (16, 13), (18, 18)], fill=GOLD)
+        d.point((16, 14), fill=GLOW)
+        d.point((12, 16), fill=GLOW); d.point((20, 16), fill=GLOW)  # spark halo
     else:  # beacon tower
         d.line((13, 25, 13, 10), fill=TIMBER, width=2)
         d.line((19, 25, 19, 10), fill=TIMBER, width=2)
