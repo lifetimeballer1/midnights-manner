@@ -40,8 +40,8 @@ try{
  await tap(await evaluate('window.midnightsManner.project(2.5,2.5)'));
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.buildings.length'),count,'preview does not spend');
  await click('#confirm-place');assert.equal(await evaluate('window.midnightsManner.snapshot().world.buildings.length'),count+1,'confirm builds once');
- await click('[data-action="close"]');await click('[data-tab="troops"]');await click('[data-gear="axe"]');await click('[data-level]');
- assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[0].gear'),'axe','equipment applies');
+ await click('[data-action="close"]');await click('[data-tab="troops"]');await click('[data-gear="cart"]');await click('[data-level]');
+ assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[2].gear'),'cart','equipment applies');
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[0].level'),2,'training applies');
  await click('#close-panel');await click('[data-tab="story"]');await click('[data-mission="first-harvest"]');
  assert.ok(await evaluate('window.midnightsManner.snapshot().mission'),'expedition starts');
@@ -50,7 +50,7 @@ try{
  await click('#pause');assert.equal(await evaluate('window.midnightsManner.paused'),true);await click('#opt-save');await click('#resume');
  await call('Page.reload');await waitFor('Boolean(window.midnightsManner)');await click('#begin');
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[0].level'),2,'level restored');
- assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[0].gear'),'axe','gear restored');
+ assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[2].gear'),'cart','gear restored');
  await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:2,mobile:true});await new Promise(r=>setTimeout(r,200));
  await click('#recenter');
  assert.equal(await evaluate('document.documentElement.scrollWidth > innerWidth || document.documentElement.scrollHeight > innerHeight'),false,'phone canvas fills viewport without scrolling');
