@@ -89,7 +89,9 @@ export class UI {
  }
  setPanelHTML(html){if(this.lastPanel===html||this.panel.contains(document.activeElement)&&document.activeElement.tagName==='SELECT')return;const scroll=this.panel.scrollTop;this.panel.innerHTML=html;this.panel.scrollTop=scroll;this.lastPanel=html;}
  refresh(){const g=this.game,w=g.world,d=g.data;
-  const resourceHTML=Object.entries(w.resources).map(([key,value])=>`<div class="resource ${value<30?'low':''}" data-resource="${key}" title="${key}">${img(resourceSprites[key])}<div><b>${Math.floor(value).toLocaleString()}</b><small>${key}</small></div></div>`).join('');if($('#resources').innerHTML!==resourceHTML)$('#resources').innerHTML=resourceHTML;
+  const visibleResources=Object.entries(w.resources).filter(([key,value])=>['wood','food','gold'].includes(key)||value>0||w.buildings.some(b=>d.buildings[b.type].production===key));
+  document.body.classList.toggle('many-resources',visibleResources.length>3);
+  const resourceHTML=visibleResources.map(([key,value])=>`<div class="resource ${value<30?'low':''}" data-resource="${key}" title="${key}">${img(resourceSprites[key])}<div><b>${Math.floor(value).toLocaleString()}</b><small>${key}</small></div></div>`).join('');if($('#resources').innerHTML!==resourceHTML)$('#resources').innerHTML=resourceHTML;
   document.body.classList.toggle('raid-active',w.enemies.length>0||!!w.raidPending);
   const seasonName=seasonFor(d.calendar,new Date())?.season?.name;
   $('#day').textContent=`Day ${Math.floor(w.elapsed/180)+1} · ${g.state.mission?'Expedition':(seasonName||'Homestead')}`;
