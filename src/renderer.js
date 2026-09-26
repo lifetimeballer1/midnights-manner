@@ -31,6 +31,8 @@ export class Renderer {
    this.diamond(x,y,edge?['#22392e','#1f342a','#263e33'][Math.abs(n)%3]:(usable?inner:wild),this.grid&&!edge?(usable?'#9db87a':'#c9766a'):null);
    if(!usable&&!edge&&n%11===0){const p=this.project(x+.5,y+.5);c.fillStyle='#c9766a88';c.font='bold 9px Arial';c.textAlign='center';c.fillText('✦',p.x,p.y+3);c.textAlign='left';}
    if(!edge&&n%9===0){const p=this.project(x+.5,y+.5);c.fillStyle='#6fae7a88';c.fillRect(p.x,p.y,2,3);c.fillRect(p.x+3,p.y-1,1,3);}
+   if(!edge&&n%7===0){const p=this.project(x+.5,y+.5);c.fillStyle='#7e93a855';c.fillRect(p.x-4,p.y+1,2,1);c.fillRect(p.x+3,p.y-2,1,1);}
+   if(!edge&&n%13===0){const p=this.project(x+.5,y+.5);c.fillStyle='#0b122022';c.beginPath();c.ellipse(p.x,p.y+2,6,2.5,0,0,Math.PI*2);c.fill();}
   }
   // Moonlit stream outside the settlement; a readable cool border for the map.
   for(let i=-2;i<W+1;i++){this.diamond(i,H+1+(i%4===0?1:0),'#2e6b7a');const p=this.project(i+.5,H+1.5);c.fillStyle='#7fc4d4';c.fillRect(p.x-6,p.y+2,8,1);}
@@ -45,7 +47,8 @@ export class Renderer {
     const spec=this.data.buildings[b.type],cp=center(b,this.data),size=spec.size===2?93:66;
     const gp=this.project(cp.x,cp.y);
     // Ground shadow anchors every building to the map.
-    c.fillStyle='#2c3a2c33';c.beginPath();c.ellipse(gp.x,gp.y+9,size*.42,10,0,0,Math.PI*2);c.fill();
+    c.fillStyle='#0b122022';c.beginPath();c.ellipse(gp.x,gp.y+9,size*.5,12,0,0,Math.PI*2);c.fill();
+    c.fillStyle='#0b122030';c.beginPath();c.ellipse(gp.x,gp.y+9,size*.36,8,0,0,Math.PI*2);c.fill();
     // Pond shimmer: the water breathes so fishing spots read at a glance.
     if(b.type==='pond'&&b.hp>0){c.save();c.globalAlpha=this.calm?.45:.45+Math.sin(time/600)*.2;c.strokeStyle='#7fc4d4';c.lineWidth=1.5;c.beginPath();c.ellipse(gp.x,gp.y+4,20+(this.calm?0:Math.sin(time/600)*3),7,0,0,Math.PI*2);c.stroke();c.restore();}
     if(this.selection===b.id){
@@ -76,6 +79,7 @@ export class Renderer {
    }else{
     const unit=kind==='unit';if(b.hp<=0){if(!this.calm){const age=time-(this.deadAt.get((unit?'u':'e')+b.id)??time);if(age<450)this.sprite(unit?this.data.troops[b.type].sprite:'raider.png',b.x,b.y,39,1-age/450);}continue;}
     const up=this.project(b.x,b.y);
+    c.fillStyle='#0b122018';c.beginPath();c.ellipse(up.x,up.y+7,unit?18:20,7,0,0,Math.PI*2);c.fill();
     c.fillStyle=unit?'#2c3a2c2e':'#5a232633';c.beginPath();c.ellipse(up.x,up.y+7,unit?13:15,5,0,0,Math.PI*2);c.fill();
     if(!unit){c.strokeStyle='#d96a5e';c.lineWidth=1.5;c.beginPath();c.ellipse(up.x,up.y+7,16,6,0,0,Math.PI*2);c.stroke();}
     this.sprite(unit?this.data.troops[b.type].sprite:'raider.png',b.x,b.y,39);
@@ -109,6 +113,10 @@ export class Renderer {
    for(let y=2;y<16;y+=2){const p=this.project(.6,y+.5);c.fillText('▶',p.x-30+(this.calm?0:Math.sin(time/250+y)*5),p.y);}
    c.textAlign='left';
   }
+ // Cheap day/night grade: slow 3-minute cycle, static per frame (motion-safe).
+  {const dayT=((world.elapsed||0)%180)/180;let tc=null,ta=0;
+   if(dayT<.15){tc='#f2c96e';ta=.07;}else if(dayT>=.55&&dayT<.7){tc='#c05a4e';ta=.08;}else if(dayT>=.7){tc='#1a2c4e';ta=.12;}
+   if(tc){c.globalAlpha=ta;c.fillStyle=tc;c.fillRect(0,0,1100,740);c.globalAlpha=1;}}
   // Raid event banners: incoming warning, then wave + live kill counter.
   const banner=(line,sub,color)=>{c.fillStyle=color;c.fillRect(280,52,540,66);c.strokeStyle='#f2c96e';c.lineWidth=3;c.strokeRect(280,52,540,66);c.lineWidth=1;c.strokeStyle='#f2c96e88';c.strokeRect(286,58,528,54);c.fillStyle='#f6ecbb';c.font='bold 20px Arial';c.textAlign='center';c.fillText(line,550,80);c.font='bold 13px Arial';c.fillStyle='#e8dcc0';c.fillText(sub,550,103);c.textAlign='left';};
   if(world.raidPending)banner('⚠ RAIDERS INCOMING ⚠',`${world.raidPending.count} raiders from the west — ${Math.ceil(world.raidPending.timer)}…`,'#7a2e26ee');
