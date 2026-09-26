@@ -1,12 +1,16 @@
 import {Game} from './game.js';
 import {Renderer} from './renderer.js';
 import {UI} from './ui.js';
+import {unlock} from './systems/audio.js';
 async function boot(){
  const names=['world','troops','items','abilities','buildings','missions'];
  const data=Object.fromEntries(await Promise.all(names.map(async name=>{const response=await fetch(new URL(`../data/${name}.json`,import.meta.url));if(!response.ok)throw Error(`Could not load ${name}`);return [name,await response.json()];})));
  const sprites=[...Object.values(data.buildings).flatMap(b=>b.tiers.map(t=>t.sprite)),...Object.values(data.troops).map(t=>t.sprite),...Object.values(data.items).map(i=>i.sprite),'raider.png'];
  const images=Object.fromEntries(await Promise.all(sprites.map(name=>new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve([name,image]);image.onerror=()=>reject(Error(`Missing sprite: ${name}`));image.src=new URL(`../assets/sprites/${name}`,import.meta.url).href;}))));
  const canvas=document.querySelector('#world'),game=new Game(data),renderer=new Renderer(canvas,data,images),ui=new UI(game,renderer);
+ const unlockAudio=()=>unlock();
+ window.addEventListener('pointerdown',unlockAudio,{once:false});
+ window.addEventListener('keydown',unlockAudio,{once:false});
  canvas.addEventListener('pointermove',event=>{renderer.hover=renderer.cell(event);});
  canvas.addEventListener('pointerleave',()=>{renderer.hover=null;});
  canvas.addEventListener('click',event=>{renderer.hover=renderer.cell(event);ui.selectCell(renderer.hover);});

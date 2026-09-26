@@ -1,6 +1,6 @@
 import {center,canPlace,stats} from './model.js';
 export class Renderer {
- constructor(canvas,data,images){this.canvas=canvas;this.ctx=canvas.getContext('2d');this.data=data;this.images=images;this.grid=false;this.hover=null;this.selection=null;this.placing=null;this.moving=null;this.tw=43;this.th=22;this.ox=510;this.oy=97;}
+ constructor(canvas,data,images){this.canvas=canvas;this.ctx=canvas.getContext('2d');this.data=data;this.images=images;this.grid=false;this.hover=null;this.selection=null;this.placing=null;this.moving=null;this.tw=43;this.th=22;this.ox=510;this.oy=97;this.shake=0;try{this.calm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch{this.calm=false;}}
  project(x,y){return {x:this.ox+(x-y)*this.tw/2,y:this.oy+(x+y)*this.th/2};}
  unproject(x,y){return {x:Math.floor((x-this.ox)/this.tw+(y-this.oy)/this.th),y:Math.floor((y-this.oy)/this.th-(x-this.ox)/this.tw)};}
  cell(event){const r=this.canvas.getBoundingClientRect();return this.unproject((event.clientX-r.left)*this.canvas.width/r.width,(event.clientY-r.top)*this.canvas.height/r.height);}
@@ -9,6 +9,7 @@ export class Renderer {
  tree(x,y,n){const c=this.ctx,p=this.project(x,y),h=26+n%3*8;c.fillStyle='#0e1f1833';c.beginPath();c.ellipse(p.x+8,p.y+7,14,5,0,0,Math.PI*2);c.fill();c.fillStyle='#4a3826';c.fillRect(p.x-2,p.y-h/3,4,h/3+6);for(let l=0;l<3;l++){c.fillStyle=['#1f4a34','#2a5f42','#3a7a52'][l];const top=p.y-h+l*8;c.beginPath();c.moveTo(p.x,top);c.lineTo(p.x+14-l*2,top+20);c.lineTo(p.x-14+l*2,top+20);c.closePath();c.fill();}}
  draw(world,time){
   const c=this.ctx;c.clearRect(0,0,1100,740);c.imageSmoothingEnabled=false;
+  if(!this.calm&&this.shake>0.2){c.save();c.translate((Math.random()-.5)*this.shake,(Math.random()-.5)*this.shake);this.shake*=.88;}
   // Ambient moonlit clearing over deep night soil.
   c.fillStyle='#16281f45';c.beginPath();c.ellipse(543,385,410,190,0,0,Math.PI*2);c.fill();
   for(let y=-3;y<20;y++)for(let x=-3;x<24;x++){
@@ -61,7 +62,12 @@ export class Renderer {
    }
   }
   if(this.placing&&this.hover){const size=this.data.buildings[this.placing].size,tier=this.data.buildings[this.placing].tiers[0];this.sprite(tier.sprite,this.hover.x+size/2,this.hover.y+size/2,size===2?93:66,.55);if(tier.damage){const gp=this.project(this.hover.x+size/2,this.hover.y+size/2);c.save();c.globalAlpha=.85;c.strokeStyle='#f2e2a8';c.lineWidth=1.5;c.setLineDash([6,4]);c.beginPath();c.ellipse(gp.x,gp.y,tier.range*this.tw*.72,tier.range*this.th*.72,0,0,Math.PI*2);c.stroke();c.restore();}}
-  for(const e of world.effects){const a=this.project(e.x,e.y),b=this.project(e.tx,e.ty);if(e.kind==='place'){const t=1-Math.max(0,e.life)/.6;c.globalAlpha=Math.max(0,e.life)/.6;c.strokeStyle='#ffe9a8';c.lineWidth=3;c.beginPath();c.ellipse(b.x,b.y-6,8+t*34,4+t*15,0,0,Math.PI*2);c.stroke();c.globalAlpha=1;continue;}c.globalAlpha=e.life/.3;c.strokeStyle=e.kind==='heal'?'#e4efb0':e.kind==='arrow'?'#f6ecbb':'#f5d78d';c.lineWidth=e.kind==='slam'?5:2;c.beginPath();if(e.kind==='heal'||e.kind==='slam'){c.ellipse(b.x,b.y-8,25,12,0,0,Math.PI*2);}else{c.moveTo(a.x,a.y-12);c.lineTo(b.x,b.y-12);}c.stroke();c.globalAlpha=1;}
+  for(const e of world.effects){const a=this.project(e.x,e.y),b=this.project(e.tx,e.ty);if(e.kind==='place'){const t=1-Math.max(0,e.life)/.6;c.globalAlpha=Math.max(0,e.life)/.6;c.strokeStyle='#ffe9a8';c.lineWidth=3;c.beginPath();c.ellipse(b.x,b.y-6,8+t*34,4+t*15,0,0,Math.PI*2);c.stroke();c.globalAlpha=1;if(e.life>.5)this.shake=Math.max(this.shake,4);continue;}
+   if(e.kind==='float'||e.kind==='dmg'){const rise=1-Math.max(0,e.life)/(e.kind==='float'?.9:.7);c.globalAlpha=Math.min(1,e.life*2.2);c.font=`bold ${e.kind==='dmg'?13:14}px Arial`;c.textAlign='center';c.fillStyle='#1c302c';c.fillText(e.text,b.x+1,b.y-30-rise*22+1);c.fillStyle=e.kind==='dmg'?'#ffd9a8':(e.color||'#ffe9a8');c.fillText(e.text,b.x,b.y-30-rise*22);c.textAlign='left';c.globalAlpha=1;continue;}
+   if(e.kind==='sparkle'){c.globalAlpha=Math.max(0,e.life)/.4;c.strokeStyle='#fff3c0';c.lineWidth=2;for(let s=0;s<4;s++){const ang=s*Math.PI/2+time/300,l=4+(0.4-Math.max(0,e.life))*30;c.beginPath();c.moveTo(b.x+Math.cos(ang)*l,b.y-14+Math.sin(ang)*l*.6);c.lineTo(b.x+Math.cos(ang)*(l+5),b.y-14+Math.sin(ang)*(l+5)*.6);c.stroke();}c.globalAlpha=1;continue;}
+   if(e.kind==='fanfare'){c.globalAlpha=Math.min(1,e.life*1.5);c.fillStyle='#f2c96e';for(let s=0;s<6;s++){const rise=(0.8-Math.max(0,e.life))*46;c.fillRect(b.x-14+s*6,b.y-44-rise-(s%3)*7,3,3);}c.globalAlpha=1;continue;}
+   if(e.kind==='hit'){c.globalAlpha=Math.max(0,e.life)/.18;c.fillStyle='#fff';c.beginPath();c.arc(b.x,b.y-10,9,0,Math.PI*2);c.fill();c.globalAlpha=1;continue;}
+   if(e.kind==='slam')this.shake=Math.max(this.shake,3);c.globalAlpha=e.life/.3;c.strokeStyle=e.kind==='heal'?'#e4efb0':e.kind==='arrow'?'#f6ecbb':'#f5d78d';c.lineWidth=e.kind==='slam'?5:2;c.beginPath();if(e.kind==='heal'||e.kind==='slam'){c.ellipse(b.x,b.y-8,25,12,0,0,Math.PI*2);}else{c.moveTo(a.x,a.y-12);c.lineTo(b.x,b.y-12);}c.stroke();c.globalAlpha=1;}
   // Raid readability: red western edge + marching chevrons while raiders live.
   if(world.enemies.length){
    const pulse=.14+Math.sin(time/300)*.05;
@@ -71,7 +77,11 @@ export class Renderer {
    for(let y=2;y<16;y+=2){const p=this.project(.6,y+.5);c.fillText('▶',p.x-30+Math.sin(time/250+y)*5,p.y);}
    c.textAlign='left';
   }
-  // Fireflies and chimney smoke are decorative only.
+  // Raid event banners: incoming warning, then wave + live kill counter.
+  const banner=(line,sub,color)=>{c.fillStyle=color;c.fillRect(300,58,500,54);c.strokeStyle='#f2c96e';c.lineWidth=2;c.strokeRect(300,58,500,54);c.fillStyle='#f6ecbb';c.font='bold 17px Arial';c.textAlign='center';c.fillText(line,550,80);c.font='12px Arial';c.fillStyle='#e8dcc0';c.fillText(sub,550,100);c.textAlign='left';};
+  if(world.raidPending)banner('⚠ RAIDERS INCOMING ⚠',`${world.raidPending.count} raiders from the west — ${Math.ceil(world.raidPending.timer)}…`,'#7a2e26ee');
+  else if(world.enemies.length&&(world.raidAge??99)<5)banner(`WAVE ${world.wave} — FIGHT!`,`${world.enemies.length} raiders remain · ${world.raidKills??0} slain`,'#3d3220ee');
+  if(!this.calm&&this.shake>0.2)c.restore();else this.shake=0;
   for(let i=0;i<8;i++){const p=this.project(4+i*1.8,4+(i*3)%9);c.globalAlpha=.25+Math.sin(time/1000+i)*.2;c.fillStyle='#fcf4c0';c.fillRect(p.x+Math.sin(time/1500+i)*8,p.y-25,2,2);}c.globalAlpha=1;
  }
  bar(x,y,fraction,width,color){const c=this.ctx;c.fillStyle='#43573d66';c.fillRect(x-width/2,y,width,3);c.fillStyle=color;c.fillRect(x-width/2,y,width*Math.max(0,Math.min(1,fraction)),3);}

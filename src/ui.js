@@ -1,15 +1,23 @@
 import {stats,unlockedAbilities,buildingCost} from './model.js';
+import {loadGuide,updateGuide,skipGuide} from './systems/tutorial.js';
+import {sfx,isMuted,toggleMute} from './systems/audio.js';
 const icons={wood:'▰',food:'♧',gold:'◆'};
 const cost=c=>Object.entries(c).map(([k,v])=>`${icons[k]} ${Math.ceil(v)} ${k}`).join(' · ')||'Included';
 const img=name=>`<img src="./assets/sprites/${name}" alt="">`;
 export class UI {
- constructor(game,renderer){this.game=game;this.renderer=renderer;this.tab='build';this.selected=null;this.clock=0;this.panel=document.querySelector('#panel');this.bind();this.refresh();}
+ constructor(game,renderer){this.game=game;this.renderer=renderer;this.tab='build';this.selected=null;this.clock=0;this.panel=document.querySelector('#panel');this.guide=loadGuide();this.prevRes={...game.world.resources};this.bind();this.refresh();}
  bind(){
   document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{this.tab=b.dataset.tab;document.querySelectorAll('[data-tab]').forEach(t=>t.classList.toggle('active',t===b));this.refresh();});
   document.querySelector('#pause').onclick=()=>{this.game.paused=!this.game.paused;document.querySelector('#pause').textContent=this.game.paused?'▶ Resume':'Ⅱ Pause';};
   document.querySelector('#save').onclick=()=>{if(this.game.persist())this.game.notify('Village saved on this browser.');this.refresh();};
   document.querySelector('#grid').onclick=()=>{this.renderer.grid=!this.renderer.grid;};
   document.querySelector('#cancel').onclick=()=>this.cancel();
+  const sound=document.querySelector('#sound');if(sound){sound.textContent=isMuted()?'🔇 Sound':'🔊 Sound';sound.onclick=()=>{sound.textContent=toggleMute()?'🔇 Sound':'🔊 Sound';};}
+  const guideEl=document.querySelector('#guide');if(guideEl)guideEl.onclick=e=>{if(e.target.closest('[data-skip]')){skipGuide(this.guide);this.refresh();}};
+  const overlay=document.querySelector('#raid-overlay');if(overlay)overlay.onclick=e=>{const b=e.target.closest('button');if(!b)return;
+   if(b.dataset.repairAll)this.game.repairAll();
+   if(b.dataset.repairAll||b.dataset.dismiss){this.game.world.raidResult=null;}
+   this.refresh();};
   document.querySelector('#inspector').onclick=e=>{const b=e.target.closest('button');if(!b)return;const action=b.dataset.action;if(b.id==='raid')this.game.raid();else if(action==='upgrade')this.game.upgrade(this.selected);else if(action==='repair')this.game.repair(this.selected);else if(action==='move'){const selected=this.game.world.buildings.find(b=>b.id===this.selected);if(selected){this.renderer.moving=selected.id;this.renderer.placing=selected.type;this.placementHint();}}this.refresh();};
   this.panel.onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;
    if(b.dataset.build){this.renderer.placing=b.dataset.build;this.renderer.moving=null;this.renderer.grid=true;this.placementHint();}
@@ -28,20 +36,31 @@ export class UI {
   const r=this.renderer,g=this.game;
   if(r.placing){if(r.moving){if(g.relocate(r.moving,cell.x,cell.y))this.cancel();}else{const b=g.build(r.placing,cell.x,cell.y);if(b){this.selected=b.id;r.selection=b.id;}}}
   else{const b=g.world.buildings.find(b=>cell.x>=b.x&&cell.x<b.x+g.data.buildings[b.type].size&&cell.y>=b.y&&cell.y<b.y+g.data.buildings[b.type].size);this.selected=b?.id;r.selection=b?.id;}
+  sfx.click();
   this.refresh();
  }
  refresh(){
   const g=this.game,w=g.world,d=g.data;
-  document.querySelector('#resources').innerHTML=Object.entries(w.resources).map(([key,value])=>`<div class="resource${value<30?' low':''}" title="${value<30?'Running low — gather more':key}"><span class="symbol">${icons[key]}</span><div><b>${Math.floor(value).toLocaleString()}</b><small>${key.toUpperCase()}</small></div></div>`).join('');
-  document.body.classList.toggle('raid-active',w.enemies.length>0);
+  const gained={};for(const k of ['wood','food','gold']){gained[k]=Math.floor(w.resources[k])>Math.floor(this.prevRes[k]??0);}
+  this.prevRes={...w.resources};
+  document.querySelector('#resources').innerHTML=Object.entries(w.resources).map(([key,value])=>`<div class="resource${value<30?' low':''}${gained[key]?' gain':''}" title="${value<30?'Running low — gather more':key}"><span class="symbol">${icons[key]}</span><div><b>${Math.floor(value).toLocaleString()}</b><small>${key.toUpperCase()}</small></div></div>`).join('');
+  document.body.classList.toggle('raid-active',w.enemies.length>0||!!w.raidPending);
   document.querySelector('#status').textContent=g.message;
-  document.querySelector('#day').textContent=`Day ${Math.floor(w.elapsed/180)+1} · ${w.enemies.length?`${w.enemies.length} raiders`:g.state.mission?'Expedition':'Homestead'}`;
+  document.querySelector('#day').textContent=w.raidPending?`⚠ ${w.raidPending.count} raiders incoming…`:`Day ${Math.floor(w.elapsed/180)+1} · ${w.enemies.length?`⚔ ${w.enemies.length} left · ${w.raidKills??0} slain`:g.state.mission?'Expedition':'Homestead'}`;
+  const hint=g.state.mission?null:updateGuide(this.guide,g);
+  const guideEl=document.querySelector('#guide');
+  if(guideEl){if(hint){guideEl.hidden=false;guideEl.innerHTML=`<span class="guide-step">${hint.index+1}/${hint.total}</span><span>${hint.text}</span><button data-skip="true" title="Hide this guide">Skip ×</button>`;}else guideEl.hidden=true;}
   document.querySelector('#world-title').innerHTML=g.state.mission?d.missions.find(m=>m.id===g.state.mission.id).name:'A small beginning.<br>A world of your own.';
   document.querySelector('#chapter-count').textContent=`${g.state.completed.length}/${d.missions.length}`;
   const scroll=this.panel.scrollTop;
   if(this.tab==='build')this.renderBuild();else if(this.tab==='troops')this.renderTroops();else this.renderStory();
-  this.panel.scrollTop=scroll;this.renderInspector();g.dirty=false;
+  this.panel.scrollTop=scroll;this.renderInspector();this.renderRaidOverlay();g.dirty=false;
  }
+ renderRaidOverlay(){const g=this.game,w=g.world,el=document.querySelector('#raid-overlay');if(!el)return;
+  const r=w.raidResult;
+  if(!r||w.enemies.length||w.raidPending||g.state.mission){el.hidden=true;el.innerHTML='';return;}
+  el.hidden=false;
+  el.innerHTML=`<div class="raid-card" role="dialog" aria-label="Raid result"><div class="eyebrow">${r.won?'VICTORY':'DEFEAT'} · WAVE ${w.wave}</div><h2>${r.won?'The village stands!':'The manor has fallen.'}</h2><p>⚔ ${r.kills} raiders slain · ◆ +${r.loot} gold loot<br>${r.damaged?`🔨 ${r.damaged} building${r.damaged>1?'s':''} damaged — repairs cost ${r.repairWood} wood`:'No buildings damaged.'}</p><div class="actions"><button class="primary" data-repair-all="true" ${r.damaged&&w.resources.wood>=r.repairWood?'':'disabled'}>Repair all · ${r.repairWood} wood</button><button data-dismiss="true">Back to the village</button></div></div>`;
  renderBuild(){const g=this.game;
   const blurb=(id,b)=>g.locked(id)?'Finish the story to unlock':b.production?`+${b.rate*b.tiers[0].rateMultiplier} ${b.production} / second`:b.tiers[0].damage?`${b.tiers[0].damage} damage · ${b.tiers[0].range.toFixed(1)} tiles`:id==='barracks'?'Recruit and train people':id==='wall'?'Blocks raider paths':'Upgrade at the hall';
   this.panel.innerHTML=`<div class="panel-heading"><span>MAKE ROOM TO GROW</span><span>Select, then place</span></div><div class="build-list">${Object.entries(g.data.buildings).filter(([id])=>id!=='hall').map(([id,b])=>`<button class="build-card ${this.renderer.placing===id?'selected':''}" data-build="${id}" ${g.locked(id)?'disabled':''}><span class="tag">${g.locked(id)?'LOCKED':b.size+' × '+b.size}</span>${img(b.tiers[0].sprite)}<strong>${b.name}</strong><span class="blurb">${blurb(id,b)}</span><span class="tiers" title="${b.tiers.length} tiers">${'●'.repeat(b.tiers.length)}</span><span class="cost">${cost(buildingCost(id,1,g.world,g.data))}</span></button>`).join('')}</div><p class="cost" style="margin-top:14px">Collectors add deliveries to building production.<br>Walls block movement. Towers cover nearby tiles.<br>Complete chapter 2 to unlock spike traps.</p>`;

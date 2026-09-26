@@ -7,6 +7,8 @@ import {tickCombat,spawnRaid,activateAbility} from '../src/systems/combat.js';
 import {startMission,tickMission,finishMission} from '../src/systems/campaign.js';
 import {nextStep,blocked} from '../src/systems/pathfinding.js';
 import {Game} from '../src/game.js';
+import {loadGuide,updateGuide,STEPS} from '../src/systems/tutorial.js';
+import {isMuted,toggleMute,sfx} from '../src/systems/audio.js';
 const data=Object.fromEntries(await Promise.all(['world','troops','items','abilities','buildings','missions'].map(async n=>[n,JSON.parse(await readFile(new URL(`../data/${n}.json`,import.meta.url)))])));
 test('all data references and unique sprite assets resolve',async()=>{
  const sprites=[];

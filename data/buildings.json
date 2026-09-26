@@ -36,7 +36,7 @@
     "cost": {
       "wood": 55
     },
-    "buildSeconds": 6,
+    "buildSeconds": 4,
     "production": "food",
     "rate": 2,
     "tiers": [
@@ -70,7 +70,7 @@
       "wood": 40,
       "gold": 15
     },
-    "buildSeconds": 6,
+    "buildSeconds": 4,
     "production": "wood",
     "rate": 2,
     "tiers": [
@@ -104,7 +104,7 @@
       "wood": 75,
       "food": 25
     },
-    "buildSeconds": 6,
+    "buildSeconds": 4,
     "production": "gold",
     "rate": 2,
     "tiers": [
@@ -138,7 +138,7 @@
       "wood": 110,
       "gold": 55
     },
-    "buildSeconds": 6,
+    "buildSeconds": 5,
     "production": null,
     "rate": 0,
     "tiers": [
@@ -171,7 +171,7 @@
     "cost": {
       "wood": 12
     },
-    "buildSeconds": 6,
+    "buildSeconds": 4,
     "production": null,
     "rate": 0,
     "tiers": [
@@ -205,7 +205,7 @@
       "wood": 80,
       "gold": 45
     },
-    "buildSeconds": 6,
+    "buildSeconds": 5,
     "production": null,
     "rate": 0,
     "tiers": [
@@ -239,7 +239,7 @@
       "wood": 20,
       "gold": 15
     },
-    "buildSeconds": 6,
+    "buildSeconds": 5,
     "production": null,
     "rate": 0,
     "tiers": [

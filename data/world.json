@@ -28,11 +28,6 @@
       "y": 5
     },
     {
-      "type": "barracks",
-      "x": 7,
-      "y": 5
-    },
-    {
       "type": "tower",
       "x": 5,
       "y": 7
@@ -54,43 +49,8 @@
     },
     {
       "type": "barracks",
-      "x": 12,
-      "y": 10
-    },
-    {
-      "type": "wall",
-      "x": 14,
-      "y": 8
-    },
-    {
-      "type": "tower",
-      "x": 13,
-      "y": 6
-    },
-    {
-      "type": "tower",
-      "x": 4,
-      "y": 10
-    },
-    {
-      "type": "wall",
-      "x": 6,
-      "y": 11
-    },
-    {
-      "type": "wall",
       "x": 7,
-      "y": 11
-    },
-    {
-      "type": "wall",
-      "x": 8,
-      "y": 11
-    },
-    {
-      "type": "wall",
-      "x": 14,
-      "y": 7
+      "y": 5
     }
   ],
   "troops": [

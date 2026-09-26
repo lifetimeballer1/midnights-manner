@@ -4,6 +4,24 @@
 @media(max-width:1050px){main{grid-template-columns:minmax(0,1fr) 300px}.sidebar{padding:30px 18px}.topbar{padding:0 22px}.resources{gap:15px}.resource{min-width:65px}.brand{font-size:13px;letter-spacing:1px}.brand small{font-size:7px;letter-spacing:1.5px}.village{padding:25px 24px 0}h1{font-size:27px}.day-tag{font-size:8px}.canvas-wrap{margin:20px -18px}.map-label{left:20px;top:8px}.compass{top:8px;right:20px}.map-tools{bottom:0;right:16px}.placement-hint{bottom:4px;left:20px;font-size:8px}.inspector{flex-wrap:wrap}.resource b{font-size:16px}}
 @media(max-width:760px){.topbar{height:auto;min-height:116px;padding:17px 18px;flex-wrap:wrap;gap:17px}.brand{flex:1}.moon{font-size:32px}.resources{order:3;width:100%;justify-content:space-between;gap:5px}.resource{gap:8px}.resource b{font-size:17px}.resource small{font-size:7px}.topbar .quiet{font-size:9px}main{display:block}.village{padding:24px 18px 0}.village-heading{align-items:flex-start}h1{font-size:27px}.day-tag{padding-top:3px}.canvas-wrap{margin:5px -17px 7px}canvas{height:auto}.map-label{top:17px;left:22px;font-size:6px}.compass{font-size:14px;top:20px}.placement-hint{bottom:12px;left:22px}.map-tools{bottom:10px}.map-tools button{font-size:8px}.village-footer{font-size:9px}.village-footer button{font-size:9px;padding-right:0}.sidebar{border-left:0;border-top:1px solid var(--border);padding:25px 18px}.side-title p{margin-bottom:13px}.side-title h2{font-size:22px}.side-title .eyebrow{font-size:8px}.build-list{grid-template-columns:repeat(4,1fr);gap:6px}.build-card{padding:8px;min-height:119px}.build-card strong{font-size:9px}.build-card img{width:45px;height:45px}.cost{font-size:8px}.build-card .tag{font-size:7px}.page-footer{padding:15px 18px;font-size:6px}.page-footer span:last-child{font-size:9px}#panel{max-height:none}.person-card{display:inline-block;vertical-align:top;width:calc(50% - 6px);margin-right:6px}.person-head{flex-wrap:wrap}.person-head button{margin-left:0}.person-head img{width:35px}.gear{min-width:40px}.field-note{margin-top:18px}.inspector{padding:20px 0}.inspector h2{font-size:21px}}
 @media(prefers-reduced-motion:reduce){button{transition:none}}
+/* --- Gameplay pass: guide bar, raid overlay, income flash --- */
+.guide{position:absolute;top:12px;left:50%;transform:translateX(-50%);max-width:min(92%,560px);display:flex;align-items:center;gap:10px;background:#1c302cee;color:#f3eddc;font-size:12px;padding:10px 12px;border:2px solid #c1a570;border-radius:10px;box-shadow:0 4px 14px #00000066;z-index:5}
+.guide-step{background:#c1a570;color:#1c302c;font-weight:700;font-size:10px;border-radius:8px;padding:3px 8px;white-space:nowrap}
+.guide button{margin-left:auto;font-size:10px;color:#d9dfd0;border-color:#536257;padding:8px 10px;white-space:nowrap}
+.raid-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#101a1688;z-index:6}
+.raid-card{background:#f5f3ea;border:3px solid #c1a570;border-radius:12px;padding:24px 28px;max-width:min(90%,420px);text-align:center;box-shadow:0 8px 30px #00000088}
+.raid-card h2{font-size:24px;margin:8px 0}
+.raid-card p{font-size:12px;color:#55614f}
+.raid-card .actions{display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.raid-card .actions button{min-height:44px}
+.resource.gain{animation:respulse .5s ease-out}
+@keyframes respulse{0%{box-shadow:0 0 0 3px #f2c96e}100%{box-shadow:0 2px 6px #00000055}}
+@media(prefers-reduced-motion:reduce){.resource.gain{animation:none}}
+@media(max-width:480px){
+.guide{font-size:11px;top:8px;padding:8px 10px}
+.recruit button,.gear,.ability button,.tabs button,.inspector .actions button{min-height:44px}
+.recruit button,.gear{font-size:10px}
+}
 /* --- Look-and-feel pass: readability + game feel --- */
 .build-card .blurb{display:block;font-size:8px;color:#6c7d62;line-height:1.5;margin-bottom:4px}
 .build-card .tiers{display:block;font-size:7px;color:#c69d51;letter-spacing:2px;margin-bottom:4px}
