@@ -49,7 +49,7 @@
       "gold": 90
     },
     "unlocks": [
-      "tower"
+      "trap"
     ],
     "requires": []
   },
@@ -232,7 +232,7 @@
     },
     "raids": [{ "at": 120, "count": 5 }],
     "rewards": { "wood": 200, "gold": 150 },
-    "unlocks": ["grove"],
+    "unlocks": ["watchfire"],
     "requires": ["long-night"]
   },
   {
@@ -262,7 +262,7 @@
     },
     "raids": [{ "at": 60, "count": 4 }, { "at": 150, "count": 6 }],
     "rewards": { "food": 200, "gold": 250 },
-    "unlocks": ["watchfire"],
+    "unlocks": ["grove"],
     "requires": ["ember-road"]
   },
   {

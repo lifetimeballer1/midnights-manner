@@ -86,7 +86,7 @@ tests/                 Node simulation/data regression tests
 
 Add a unique key in `data/troops.json`. Supply `name`, `role` (`combat`, `collector`, or `builder`), `sprite`, `maxLevel`, `base` stats, `growth`, costs, `defaultGear`, `carry`, `gatherResource`, and a level-to-ability map. The stat curve is `base × (1 + growth × (level − 1))`, followed by equipment and passive modifiers. Add new thresholds at levels 30/35/etc and raise `maxLevel` to extend progression. Add the sprite to `assets/sprites/` and compatible items to `items.json`. The People panel discovers entries automatically. Add the troop ID to a starting roster or recruit it at a barracks.
 
-Abilities at levels 5, 10, 15, 20 and 25 reference entries in `data/abilities.json`. Existing effects are `splash`, `armor`, `heal`, `damage`, and `gather`. Active healing uses radius, value and cooldown data. Adding another ability using an existing effect only needs JSON. A genuinely new behavior requires a generic effect handler in the appropriate system; do not add troop-specific conditionals.
+Abilities at levels 5, 10, 15, 20 and 25 reference entries in `data/abilities.json`. Existing effects are `splash`, `armor`, `heal`, `damage`, and `gather`. Active healing uses radius, value and cooldown data. Adding another ability using an existing effect only needs JSON. A genuinely new behavior requires a generic effect handler in the appropriate system; do not add troop-specific conditionals. Kits are per-role on purpose: combat cleaves, collectors gather, keepers mend, builders endure — a farmer never gets cleave.
 
 ### Add equipment
 
@@ -102,7 +102,7 @@ Give the troop a `job` (`workplace` building type, `effect`, flavor `text`) and 
 
 ### Add a quest
 
-Append to `data/quests.json`: `id`, `name`, `text`, `task` (`build`/`recruit`/`assign`/`population`/`level`/`gather` with counts), `xp`, `rewards`. Optional flavor: `giver` (who asks), `flavor` (one rumor-grade line shown on completion), `act` (`I` village-path, `II` growth). Old entries without them load unchanged — never a migration for flavor. The first incomplete quest auto-completes with fanfare. XP thresholds (`XP_LEVELS`) and map sizes (`EXPANSION`) live in `src/model.js`.
+Append to `data/quests.json`: `id`, `name`, `text`, `task` (`build`/`recruit`/`assign`/`population`/`level`/`gather` with counts), `xp`, `rewards`. Optional flavor: `giver` (who asks), `flavor` (one rumor-grade line shown on completion), `act` (`I` village-path, `II` growth). Old entries without them load unchanged — never a migration for flavor. The first incomplete quest auto-completes with fanfare. XP thresholds (`XP_LEVELS`) and map sizes (`EXPANSION`) live in `src/model.js`; per-level resource caches live in `data/levels.json` (level → rewards + flavor line, granted on every level-up, even multi-level jumps).
 
 ### Add a mission
 

@@ -68,11 +68,11 @@
   {
     "id": "east-field",
     "name": "Clearing the East Field",
-    "text": "The treeline retreats as the village proves itself. Reach village level 3 to open new rows.",
+    "text": "The treeline retreats axe-stroke by axe-stroke. Fell and haul 100 wood to clear the east rows.",
     "giver": "Fen the wayfinder",
     "flavor": "He marked the east rows fallow on his chart. Prove his chalk wrong.",
     "act": "II",
-    "task": { "kind": "level", "level": 3 },
+    "task": { "kind": "gather", "resource": "wood", "amount": 100 },
     "xp": 120,
     "rewards": { "wood": 80 }
   },

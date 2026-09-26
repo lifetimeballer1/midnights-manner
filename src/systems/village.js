@@ -5,11 +5,16 @@ import {levelForXp, EXPANSION, auras, housing, center, stats} from '../model.js'
 import {sfx} from './audio.js';
 import {makeTradeName} from './story.js';
 
-const CHILD_SECONDS = 75;      // surplus + free bed grows a villager this fast
+export const CHILD_SECONDS = 75;      // surplus + free bed grows a villager this fast
 const UPKEEP_EACH = 0.03;      // food per second per villager
 const SURVEY_FIND = 50;        // survey points that shake out a wild harvest
 const WILD_HARVEST = 25;
-const START_CHILD_TYPES = ['lumberjack', 'farmer', 'miner', 'fisherman'];
+// Growth rotation: first 8 arrivals are food/wood/gold hands so the
+// pop-8 and pop-12 quests never stall; combat, keepers and crafters join
+// once the village can feed them. Indexed by roster size, deterministic.
+const START_CHILD_TYPES = ['lumberjack', 'farmer', 'miner', 'fisherman', 'shepherd', 'lumberjack', 'farmer', 'miner', 'butcher', 'builder', 'shepherd', 'forager', 'healer', 'archer', 'mason', 'scout', 'warrior', 'scholar'];
+// Visible growth state for the HUD: percent toward the next arrival plus
+// the reason when progress is paused (never a silent stall).
 
 function push(world, effect) { if (world.effects.length < 140) world.effects.push(effect); }
 export function gainXp(state, amount) { state.xp = Math.max(0, (state.xp || 0) + amount); }
@@ -72,7 +77,10 @@ function tickPopulation(state, data, dt, notify) {
   w.foodIncome = income; w.foodUpkeep = upkeep;
   const starving = w.resources.food <= 0.5;
   if (starving) {
-    w.childTimer = 0;
+    // Hunger stalls growth the same gentle way crowding does — progress
+    // decays instead of snapping to zero, so a short famine never wipes
+    // a nearly-grown villager.
+    w.childTimer = Math.max(0, w.childTimer - dt * 0.5);
     w._starveWarn = (w._starveWarn || 0) + dt;
     if (w._starveWarn > 30) {
       w._starveWarn = 0;
@@ -148,7 +156,18 @@ export function tickVillage(state, data, dt, notify) {
   if (now > before) {
     state.vlevel = now;
     sfx.win();
-    notify(`Village level ${now}! The frontier respects a growing village.`);
+    // Level rewards are data (data/levels.json), one grant per level even
+    // when a big XP drop skips several. Old saves keep their level and
+    // claim nothing retroactively — no duplicate payouts, no migration.
+    const notes = [];
+    for (let lvl = before + 1; lvl <= now; lvl++) {
+      const entry = (data.levels || []).find(l => l.level === lvl);
+      const rewards = entry?.rewards || {};
+      for (const [k, v] of Object.entries(rewards)) w.resources[k] = (w.resources[k] || 0) + v;
+      const text = Object.entries(rewards).map(([k, v]) => `+${v} ${k}`).join(', ');
+      if (text) notes.push(`Lvl ${lvl} (${text})`);
+    }
+    notify(`Village level ${now}! The frontier respects a growing village.${notes.length ? ` Cache: ${notes.join(' · ')}.` : ''}`);
   }
   if (!state.mission) applyExpansion(state, data, notify);
   tickPopulation(state, data, dt, notify);
@@ -163,4 +182,27 @@ export function questProgress(task, state) {
   if (task.kind === 'level') return {have: state.vlevel || 1, need: task.level};
   if (task.kind === 'gather') return {have: Math.floor(w.gathered[task.resource] || 0), need: task.amount};
   return {have: 0, need: 1};
+}
+
+// HUD-facing growth state: percent toward the next villager plus the
+// plain-word reason when progress is paused. Keeps the glimmer of growth
+// visible instead of a silent timer.
+export function growthStatus(state, data) {
+  const w = state.world;
+  const pct = Math.max(0, Math.min(100, Math.floor(((w.childTimer || 0) / CHILD_SECONDS) * 100)));
+  if (state.mission) return {pct: 0, note: 'expeditions raise no families'};
+  if ((w.resources.food || 0) <= 0.5) return {pct, note: 'hungry — grow food'};
+  const {beds, free} = housing(w, data);
+  if (beds === 0 || free <= 0) return {pct, note: 'no free beds'};
+  let income = 0;
+  for (const b of w.buildings) {
+    if (b.hp <= 0 || b.remaining > 0) continue;
+    const spec = data.buildings[b.type];
+    if (spec.production === 'food') income += spec.rate * spec.tiers[b.level - 1].rateMultiplier;
+  }
+  income += auras(w, data).food;
+  const mouths = w.troops.filter(t => t.hp >= 0).length;
+  if (income <= mouths * UPKEEP_EACH) return {pct, note: 'food barely covers mouths'};
+  if ((w.resources.food || 0) < 20) return {pct, note: 'keeping a pantry first'};
+  return {pct, note: pct >= 100 ? 'a new villager any moment' : 'growing'};
 }

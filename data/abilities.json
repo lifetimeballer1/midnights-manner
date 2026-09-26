@@ -32,5 +32,44 @@
     "effect": "gather",
     "value": 0.3,
     "description": "30% faster gathering."
+  },
+  "ward": {
+    "name": "Work ward",
+    "effect": "armor",
+    "value": 0.15,
+    "description": "Reduces damage received by 15%."
+  },
+  "second-wind": {
+    "name": "Second wind",
+    "effect": "heal",
+    "radius": 2.5,
+    "value": 12,
+    "cooldown": 15,
+    "active": true,
+    "description": "Actively heal nearby allies; 15s cooldown."
+  },
+  "steady-hands": {
+    "name": "Steady hands",
+    "effect": "gather",
+    "value": 0.15,
+    "description": "15% faster gathering."
+  },
+  "harvest-master": {
+    "name": "Harvest master",
+    "effect": "gather",
+    "value": 0.35,
+    "description": "35% faster gathering."
+  },
+  "warlord": {
+    "name": "Warlord",
+    "effect": "damage",
+    "value": 0.5,
+    "description": "50% more attack damage."
+  },
+  "focus": {
+    "name": "Focus",
+    "effect": "damage",
+    "value": 0.15,
+    "description": "15% more attack damage."
   }
 }

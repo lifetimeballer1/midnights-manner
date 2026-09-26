@@ -1,5 +1,18 @@
 # Midnights Manner — Extended Pass Changelog
 
+## Progression fixes — DeepSeek review (2026-09-26)
+
+Credit: the 7 findings below come from the DeepSeek progression review. Choice on #1 was payouts over re-tuning: thresholds stay put (market opens at L2, expansion rows, quest pacing and old saves untouched) and levels 5–7 now pay data-driven caches instead.
+
+- 1. XP ladder: new `data/levels.json` (loaded in `main.js`, granted in `tickVillage`). L2 +30 wood, L3 +40 food, L4 +60 gold, L5 +100 wood/+80 gold, L6 +150 food/+120 gold, L7 +200 wood/+150 food/+200 gold. Quests total 710 XP (level 5); 6–7 are now earned through scholars, surveys, traders and growth, not empty. Multi-level jumps grant every skipped level. Old saves keep their level and claim nothing retroactively — no dupes, no migration.
+- 2. Role kits (`data/troops.json`, 7 new `data/abilities.json` entries reusing existing effects only — no new handlers): combat = cleave/armor/heal/veteran/warlord; collectors = haste/ward/steady-hands/second-wind/harvest-master; keepers = second-wind/ward/heal/armor/focus; builders = ward/steady-hands/second-wind/haste/armor. No splash outside combat, no big damage outside combat. New abilities: ward (armor 0.15), second-wind (heal 12, 15s), steady-hands (gather 0.15), harvest-master (gather 0.35), warlord (damage 0.5), focus (damage 0.15). Combat keeps heal at 15 so the existing active-heal test still holds.
+- 3. First reward: `first-harvest` now unlocks `trap` (was the free `tower`). One line; new players meet traps before the chapter-2 raids. `timber-line` still lists `trap` too (duplicate is harmless — unlocks merge by Set) — deliberately left for a later pass to re-deal chapter-2's unlock.
+- 4. Unlock swap: `ember-road` (showcases a watchfire) now unlocks `watchfire`; `moonwell` (pre-places a grove + forager) now unlocks `grove`.
+- 5. `east-field`: was `reach level 3` (auto-done at level 4). Now `gather 100 wood` — undone work with the same frontier-clearing teaching intent. `game.test.js` tower-unlock assertion updated to trap; quest-chain compat tests untouched.
+- 6. Starvation no longer hard-resets `childTimer` to 0 — it decays at the same 0.5×/s as bed-blocking, so a short famine never wipes a nearly-grown villager. HUD: village strip shows `🌱 NN%` growth plus the plain-word stall reason (hungry / no free beds / food barely covers mouths / keeping a pantry first) and the next level cache (`🎁`) via new `growthStatus()` in `village.js`.
+- 7. Growth rotation widened 4 → 18 (`START_CHILD_TYPES`): indices 0–7 stay food/wood/gold hands (pop-8/12 pacing safe — every birth counts toward population quests), builders/crafters join at 8+, healer at 12, archers/scouts/warriors/scholars after. Deterministic roster-size index, no save impact.
+- Verify: `npm test` 93/93 green (7 new `tests/progression.test.js`), `npm run build` green (133 precached). No save-version bump (still v3, no migration — all changes additive or data-only). Balance numbers above are starting points; watch whether L5–L7 caches trivialize the mid-game slowdown before tuning further.
+
 Running log for Jesce's extended autonomous pass. One entry per item. Judgment calls flagged with **[JUDGMENT]** for Jesce's review.
 
 ---
