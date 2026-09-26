@@ -4,7 +4,9 @@
   "startingResources": {
     "wood": 320,
     "food": 180,
-    "gold": 210
+    "gold": 210,
+    "frostwood": 0,
+    "plate": 0
   },
   "buildings": [
     {
@@ -79,7 +81,18 @@
     "pikewoman",
     "stonewall",
     "pike",
-    "kite-shield"
+    "kite-shield",
+    "woodward",
+    "frostaxe",
+    "smelter",
+    "iron-cap",
+    "diver",
+    "net",
+    "sapper",
+    "glasspick",
+    "market",
+    "haggler",
+    "scales"
   ],
   "homeRaids": {
     "firstAt": 300,

@@ -1,8 +1,20 @@
 import {createWorld} from '../model.js';
 import {spawnRaid} from './combat.js';
+// Branch reconvergence (coin-and-cinder onward): a mission may list
+// `requiresAny` — an OR-gate of chapter ids, open when at least one is
+// completed — beside the classic AND-gate `requires`. Both ride the same
+// completed list; missions with neither gate stay open. No chapter ids
+// live here: every gate is data on the mission object.
+export function missionLocked(mission,completed) {
+ if(!mission)return true;
+ const andOk=(mission.requires||[]).every(id=>completed.includes(id));
+ const orList=mission.requiresAny||[];
+ const orOk=!orList.length||orList.some(id=>completed.includes(id));
+ return !(andOk&&orOk);
+}
 export function startMission(game,data,id) {
  const mission=data.missions.find(m=>m.id===id);
- if(!mission||game.mission||game.world.enemies.length||!mission.requires.every(id=>game.completed.includes(id)))return false;
+ if(!mission||game.mission||game.world.enemies.length||missionLocked(mission,game.completed))return false;
  game.home=game.world;game.world=createWorld(data,mission);game.mission={id,fired:[],status:'active'};return true;
 }
 export function tickMission(game,data) {

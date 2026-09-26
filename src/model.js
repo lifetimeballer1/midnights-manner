@@ -26,6 +26,12 @@ export function stats(unit,data) {
     if(gs.hp) result.hp+=gs.hp;
     if(gs.speed) result.speed*=gs.speed;
   }
+  // Ward-inked armor (Ember Ward onward): an armor-slot piece can hone
+  // damage multiplicatively through the same generic axis. Main-hand damage
+  // already rode the gear line above, so only the armor piece reads here —
+  // no per-troop logic, old wardrobes multiply by nothing new.
+  const ward=(unit.armor&&data.items[unit.armor]&&data.items[unit.armor].stats)||{};
+  if(ward.damage) result.damage*=ward.damage;
   if(unit.buffs&&unit.buffs.damage) result.damage*=1+unit.buffs.damage.value;
   if(unit.buffs&&unit.buffs.range) result.range+=unit.buffs.range.value;
   return result;
@@ -50,7 +56,7 @@ export function createWorld(data,layout=data.world) {
   const full = {w:data.world.width,h:data.world.height};
   const bounds = copy(layout.bounds || (layout.map ? full : START_BOUNDS));
   const cfg = data.world.homeRaids || {};
-  return {resources:copy(layout.startingResources),bounds,survey:0,childTimer:0,buildings:(layout.buildings||layout.map.buildings).map(b=>makeBuilding(b.type,b.x,b.y,data,b.level||1)),troops:(layout.troops||layout.map.troops).map((t,i)=>makeUnit(t,data,i)),enemies:[],effects:[],elapsed:0,gathered:{wood:0,food:0,gold:0},wave:0,raidTimer:0,nextRaidAt:Number.isFinite(cfg.firstAt)?cfg.firstAt:300};
+  return {resources:copy(layout.startingResources),bounds,survey:0,childTimer:0,buildings:(layout.buildings||layout.map.buildings).map(b=>makeBuilding(b.type,b.x,b.y,data,b.level||1)),troops:(layout.troops||layout.map.troops).map((t,i)=>makeUnit(t,data,i)),enemies:[],effects:[],elapsed:0,gathered:{wood:0,food:0,gold:0,frostwood:0,plate:0},wave:0,raidTimer:0,nextRaidAt:Number.isFinite(cfg.firstAt)?cfg.firstAt:300};
 }
 export function afford(resources,cost) { return Object.entries(cost).every(([k,v])=>resources[k]>=v); }
 export function pay(resources,cost) {if(!afford(resources,cost)) return false; for(const [k,v] of Object.entries(cost)) resources[k]-=v; return true;}
@@ -66,7 +72,15 @@ export function assignmentValid(world, data, unit, building) {
 }
 // Combined aura of every assigned keeper at a finished workplace. Caps keep numbers gentle.
 export function auras(world, data) {
-  const out = {damage:0,armor:0,gather:0,carry:0,build:0,discount:0,heal:0,xp:0,survey:0,food:0,produce:0,beds:0};
+  const out = {damage:0,armor:0,gather:0,carry:0,build:0,discount:0,heal:0,xp:0,survey:0,food:0,plate:0,produce:0,beds:0,trade:0};
+  // Attuned bearers ('aura'-effect abilities: attune, veteran-x) amplify
+  // their own share of whatever their workplace provides — keeper auras
+  // above and the smokehouse-pattern pour below read the same helper.
+  const share = u => {
+    let m = 1;
+    try { for (const a of unlockedAbilities(u, data)) if (a.effect === 'aura') m += a.value; } catch {}
+    return m;
+  };
   for (const b of world.buildings) {
     if (b.hp <= 0 || b.remaining > 0) continue;
     const spec = data.buildings[b.type];
@@ -80,23 +94,20 @@ export function auras(world, data) {
     // aura per bearer (damage/armor/gather/heal/carry). Empty stats (the
     // old keeper tomes) contribute exactly the pre-gear values.
     const gearOf = u => (data.items[u.gear] && data.items[u.gear].stats) || {};
-    // Attuned bearers ('aura'-effect abilities: attune, veteran-x)
-    // amplify their own share of whatever this workplace provides.
-    const share = u => {
-      let m = 1;
-      try { for (const a of unlockedAbilities(u, data)) if (a.effect === 'aura') m += a.value; } catch {}
-      return m;
-    };
     if (spec.damageAura) out.damage += spec.damageAura * tier * crew.reduce((s, u) => s + share(u), 0);
     if (spec.armorAura) out.armor += spec.armorAura * tier * crew.reduce((s, u) => s + share(u), 0);
     if (spec.gatherAura) out.gather += spec.gatherAura * tier * crew.reduce((s, u) => s + share(u), 0);
+    // Wild-market pattern, generalized: a workplace can carry a trade aura
+    // the same way a forge carries a damage aura — posted keepers sharpen
+    // their own share, tier multiplies, the cap below holds the ceiling.
+    if (spec.tradeAura) out.trade += spec.tradeAura * tier * crew.reduce((s, u) => s + share(u), 0);
     if (spec.carryBonus) out.carry += spec.carryBonus * n;
     if (spec.buildAura) { out.build += spec.buildAura * n; out.discount += 0.05 * n; }
     if (spec.healRate) out.heal += spec.healRate * tier * crew.reduce((s, u) => s + share(u), 0);
     if (spec.xpRate) out.xp += spec.xpRate * tier * crew.reduce((s, u) => s + share(u) * (gearOf(u).xpMult ?? 1), 0)
       + crew.reduce((s, u) => s + (gearOf(u).xpAura ?? 0), 0);
     if (spec.surveyRate) out.survey += spec.surveyRate * tier * crew.reduce((s, u) => s + share(u) * (gearOf(u).survey ?? 1), 0);
-    for (const [statKey, auraKey] of [['damageAura', 'damage'], ['armorAura', 'armor'], ['gatherAura', 'gather'], ['healAura', 'heal'], ['carryAura', 'carry']]) {
+    for (const [statKey, auraKey] of [['damageAura', 'damage'], ['armorAura', 'armor'], ['gatherAura', 'gather'], ['healAura', 'heal'], ['carryAura', 'carry'], ['tradeAura', 'trade']]) {
       const add = crew.reduce((s, u) => s + (gearOf(u)[statKey] ?? 0), 0);
       if (add) out[auraKey] += add;
     }
@@ -114,7 +125,14 @@ export function auras(world, data) {
     if (!b || b.hp <= 0 || b.remaining > 0) continue;
     const job = data.troops[u.type].job;
     if (!job || job.workplace !== b.type) continue;
-    if (job.effect === 'produce') out.food += (job.rate || 0.8) * spec_tier(b, data);
+    // Smokehouse pattern, generalized: the job names its own resource
+    // (the old shops smoke food, the new pour-house pours plate) and
+    // attuned bearers ('aura'-effect abilities) quicken their own share.
+    // Old crews carry no aura abilities, so their output is unchanged.
+    if (job.effect === 'produce') {
+      const key = job.resource || 'food';
+      if (key in out) out[key] += (job.rate || 0.8) * spec_tier(b, data) * share(u);
+    }
   }
   // Living-world sky: the day's season + modifier blessings ride here as a
   // transient world.calendarBonus set by game orchestration. Only known aura
@@ -130,6 +148,7 @@ export function auras(world, data) {
   out.gather = Math.min(.45, out.gather);
   out.build = Math.min(.75, out.build);
   out.discount = Math.min(.2, out.discount);
+  out.trade = Math.min(.3, out.trade);
   out.beds = Math.min(3, out.beds);
   return out;
 }
@@ -145,7 +164,11 @@ export function gatherBonus(unit, world, data) {
 export function builderBonuses(world,data) {
   const aura = auras(world, data);
   const crew=world.troops.filter(t=>data.troops[t.type].role==='builder'&&t.hp>0);
-  return {speed:1+aura.build+crew.reduce((n,t)=>n+(data.items[t.gear].stats.buildSpeed||1)-1,0),discount:Math.min(.5,aura.discount+Math.max(0,...crew.map(t=>data.items[t.gear].stats.costReduction||0)))};
+  // Wardrobe read-through, generalized: every builder's main gear and armor
+  // piece both speak — 'discount' rides beside the old
+  // 'costReduction' key, best piece wins, the 0.5 ceiling never moves.
+  const price=gid=>{const s=(gid&&data.items[gid]&&data.items[gid].stats)||{};return s.discount||s.costReduction||0;};
+  return {speed:1+aura.build+crew.reduce((n,t)=>n+(data.items[t.gear].stats.buildSpeed||1)-1,0),discount:Math.min(.5,aura.discount+Math.max(0,...crew.flatMap(t=>[price(t.gear),price(t.armor)])))};
 }
 export function housing(world, data) {
   let beds = 0;

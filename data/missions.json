@@ -356,5 +356,36 @@
     "rewards": { "food": 250, "gold": 200 },
     "unlocks": ["stonewall"],
     "requires": ["last-stand"]
+  },
+  {
+    "id": "coin-and-cinder",
+    "name": "Coin and Cinder",
+    "chapter": "09",
+    "act": "VI",
+    "beat": "Two roads meet at one market; coin for the crossing, cinder for the forge.",
+    "ceremony": {
+      "warning": "Two roads, one market. Sarella Emberwright's coin backs every stall — fill the coffers and the cold piles before the second horn.",
+      "victory": "Coin counted, cinder banked. Sarella's stalls stand and the wild market is open — the Manner trades on its own terms now.",
+      "defeat": "The stalls stood empty and the raiders took their toll. Sarella keeps the ledger — walk the road again and settle it."
+    },
+    "description": "Sarella Emberwright stakes a wild market where the forked roads rejoin. Hold the crossing, keep moonstone and frostwood flowing through two raids, and open the stalls.",
+    "timeLimit": 300,
+    "troopLimit": 7,
+    "objectives": [{ "resource": "gold", "amount": 250 }, { "resource": "frostwood", "amount": 150 }],
+    "startingResources": { "wood": 280, "food": 160, "gold": 140, "frostwood": 60 },
+    "map": {
+      "buildings": [
+        { "type": "hall", "x": 9, "y": 7 },
+        { "type": "mine", "x": 7, "y": 9 },
+        { "type": "frostgrove", "x": 11, "y": 5 },
+        { "type": "tower", "x": 6, "y": 7 }
+      ],
+      "troops": ["warrior", "warden", "miner", "woodward", "builder", "haggler"]
+    },
+    "raids": [{ "at": 80, "count": 5 }, { "at": 190, "count": 7 }],
+    "rewards": { "gold": 300, "wood": 250 },
+    "unlocks": ["market", "haggler", "scales"],
+    "requires": [],
+    "requiresAny": ["ashen-ford", "hollow-dam"]
   }
 ]

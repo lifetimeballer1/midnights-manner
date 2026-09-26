@@ -488,5 +488,286 @@
     },
     "animation": "tap",
     "sprite": "item-kite-shield.png"
+  },
+  "frostaxe": {
+    "name": "Frostaxe",
+    "roles": [
+      "woodward"
+    ],
+    "cost": {
+      "gold": 70,
+      "frostwood": 20
+    },
+    "stats": {
+      "gather": 1.4,
+      "carry": 14
+    },
+    "animation": "sweep",
+    "sprite": "item-frostaxe.png"
+  },
+  "winter-coat": {
+    "name": "Winter Coat",
+    "slot": "armor",
+    "roles": [
+      "miner",
+      "farmer",
+      "fisherman",
+      "shepherd",
+      "lumberjack",
+      "butcher",
+      "forager",
+      "woodward"
+    ],
+    "cost": {
+      "gold": 60,
+      "frostwood": 25
+    },
+    "stats": {
+      "armor": 0.1,
+      "gather": 1.1
+    },
+    "animation": "tap",
+    "sprite": "item-winter-coat.png"
+  },
+  "tongs": {
+    "name": "Smelter tongs",
+    "roles": [
+      "smelter"
+    ],
+    "cost": {},
+    "stats": {
+      "buildSpeed": 1.3,
+      "costReduction": 0.05
+    },
+    "animation": "tap",
+    "sprite": "item-tongs.png"
+  },
+  "iron-cap": {
+    "name": "Iron Cap",
+    "slot": "armor",
+    "roles": [
+      "warrior",
+      "archer",
+      "miner",
+      "builder",
+      "farmer",
+      "fisherman",
+      "shepherd",
+      "lumberjack",
+      "butcher",
+      "scholar",
+      "scout",
+      "healer",
+      "weaponsmith",
+      "armorer",
+      "toolsmith",
+      "leatherworker",
+      "mason",
+      "warden",
+      "ranger",
+      "forager",
+      "apprentice",
+      "pikewoman",
+      "woodward",
+      "smelter"
+    ],
+    "cost": {
+      "gold": 40
+    },
+    "stats": {
+      "armor": 0.1
+    },
+    "animation": "tap",
+    "sprite": "item-iron-cap.png"
+  },
+  "studded-vest": {
+    "name": "Studded Vest",
+    "slot": "armor",
+    "roles": [
+      "miner",
+      "builder",
+      "farmer",
+      "fisherman",
+      "shepherd",
+      "lumberjack",
+      "butcher",
+      "mason",
+      "forager",
+      "woodward",
+      "smelter"
+    ],
+    "cost": {
+      "gold": 70,
+      "frostwood": 20
+    },
+    "stats": {
+      "armor": 0.15,
+      "carry": 4
+    },
+    "animation": "tap",
+    "sprite": "item-studded-vest.png"
+  },
+  "knights-plate": {
+    "name": "Knight's Plate",
+    "slot": "armor",
+    "roles": [
+      "warrior",
+      "archer",
+      "warden",
+      "ranger",
+      "pikewoman"
+    ],
+    "cost": {
+      "gold": 120,
+      "plate": 8
+    },
+    "stats": {
+      "armor": 0.25
+    },
+    "animation": "tap",
+    "sprite": "item-knights-plate.png"
+  },
+  "net": {
+    "name": "Weighted Net",
+    "roles": [
+      "diver"
+    ],
+    "cost": {
+      "gold": 75,
+      "wood": 40
+    },
+    "stats": {
+      "gather": 1.6,
+      "carry": 18
+    },
+    "animation": "sweep",
+    "sprite": "item-net.png"
+  },
+  "oilskin-coat": {
+    "name": "Oilskin Coat",
+    "slot": "armor",
+    "roles": [
+      "miner",
+      "farmer",
+      "fisherman",
+      "shepherd",
+      "lumberjack",
+      "butcher",
+      "forager",
+      "woodward",
+      "diver",
+      "sapper"
+    ],
+    "cost": {
+      "gold": 65,
+      "food": 45
+    },
+    "stats": {
+      "armor": 0.12,
+      "speed": 1.1
+    },
+    "animation": "tap",
+    "sprite": "item-oilskin-coat.png"
+  },
+  "glasspick": {
+    "name": "Glasspick",
+    "roles": [
+      "sapper"
+    ],
+    "cost": {
+      "gold": 80,
+      "wood": 50
+    },
+    "stats": {
+      "gather": 1.6,
+      "carry": 16
+    },
+    "animation": "tap",
+    "sprite": "item-glasspick.png"
+  },
+  "ember-ward": {
+    "name": "Ember Ward",
+    "slot": "armor",
+    "roles": [
+      "warrior",
+      "archer",
+      "miner",
+      "builder",
+      "farmer",
+      "fisherman",
+      "shepherd",
+      "lumberjack",
+      "butcher",
+      "scholar",
+      "scout",
+      "healer",
+      "weaponsmith",
+      "armorer",
+      "toolsmith",
+      "leatherworker",
+      "mason",
+      "warden",
+      "ranger",
+      "forager",
+      "apprentice",
+      "pikewoman",
+      "woodward",
+      "smelter",
+      "diver",
+      "sapper"
+    ],
+    "cost": {
+      "gold": 90,
+      "plate": 4
+    },
+    "stats": {
+      "armor": 0.12,
+      "damage": 1.05
+    },
+    "animation": "tap",
+    "sprite": "item-ember-ward.png"
+  },
+  "scales": {
+    "name": "Merchant Scales",
+    "roles": [
+      "haggler"
+    ],
+    "cost": {
+      "gold": 90,
+      "wood": 30
+    },
+    "stats": {
+      "tradeAura": 0.1
+    },
+    "animation": "tap",
+    "sprite": "item-scales.png"
+  },
+  "coinmail": {
+    "name": "Coinmail",
+    "slot": "armor",
+    "roles": [
+      "scholar",
+      "scout",
+      "healer",
+      "weaponsmith",
+      "armorer",
+      "toolsmith",
+      "leatherworker",
+      "apprentice",
+      "haggler",
+      "builder",
+      "mason",
+      "smelter"
+    ],
+    "cost": {
+      "gold": 80,
+      "wood": 40
+    },
+    "stats": {
+      "armor": 0.15,
+      "discount": 0.05
+    },
+    "animation": "tap",
+    "sprite": "item-coinmail.png"
   }
 }

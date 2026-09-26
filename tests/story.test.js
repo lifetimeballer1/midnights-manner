@@ -15,11 +15,11 @@ function freshState(d) {
 }
 
 test('story item 1: every quest carries giver, flavor and act', () => {
-  assert.equal(data.quests.length, 12);
+  assert.equal(data.quests.length, 16);
   for (const q of data.quests) {
     assert.ok(typeof q.giver === 'string' && q.giver.length > 0, `${q.id} giver`);
     assert.ok(typeof q.flavor === 'string' && q.flavor.length > 0, `${q.id} flavor`);
-    assert.ok(['I', 'II', 'V'].includes(q.act), `${q.id} act`);
+    assert.ok(['I', 'II', 'V', 'VI'].includes(q.act), `${q.id} act`);
   }
   assert.deepEqual(data.quests.slice(0, 5).map(q => q.act), ['I', 'I', 'I', 'I', 'I']);
   assert.deepEqual(data.quests.slice(5, 8).map(q => q.act), ['II', 'II', 'II']);
@@ -31,12 +31,20 @@ test('story item 1: every quest carries giver, flavor and act', () => {
   assert.equal(data.quests[10].act, 'V');
   assert.equal(data.quests[11].id, 'sarella-s-standard');
   assert.equal(data.quests[11].act, 'V');
+  assert.equal(data.quests[12].id, 'west-of-the-chalk');
+  assert.equal(data.quests[12].act, 'VI');
+  assert.equal(data.quests[13].id, 'first-pour');
+  assert.equal(data.quests[13].act, 'VI');
+  assert.equal(data.quests[14].id, 'down-dark-water');
+  assert.equal(data.quests[14].act, 'VI');
+  assert.equal(data.quests[15].id, 'glass-under-stone');
+  assert.equal(data.quests[15].act, 'VI');
 });
 
 test('story item 1: every mission carries act, beat and ceremony lines', () => {
-  assert.equal(data.missions.length, 8);
+  assert.equal(data.missions.length, 9);
   for (const m of data.missions) {
-    assert.ok(['III', 'IV', 'V'].includes(m.act), `${m.id} act`);
+    assert.ok(['III', 'IV', 'V', 'VI'].includes(m.act), `${m.id} act`);
     assert.ok(typeof m.beat === 'string' && m.beat.length > 0, `${m.id} beat`);
     for (const key of ['warning', 'victory', 'defeat'])
       assert.ok(typeof m.ceremony?.[key] === 'string' && m.ceremony[key].length > 0, `${m.id} ceremony.${key}`);

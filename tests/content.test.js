@@ -35,5 +35,5 @@ test('extended content: chapters 04-06 chain correctly', ()=>{
   }
   const chain = ['long-night','ember-road','moonwell','last-stand'];
   for (let i=1;i<chain.length;i++) assert.ok(data.missions.find(m=>m.id===chain[i]).requires.includes(chain[i-1]));
-  assert.equal(data.missions.length, 8);
+  assert.equal(data.missions.length, 9);
 });

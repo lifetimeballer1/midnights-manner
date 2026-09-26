@@ -124,5 +124,72 @@
     "value": 0.1,
     "radius": 1.5,
     "description": "Shoulder to shoulder: adjacent allies take 10% less damage."
+  },
+  "swift": {
+    "name": "Swift hands",
+    "effect": "gather",
+    "value": 0.15,
+    "description": "Fleet on the cold paths: 15% faster gathering."
+  },
+  "sturdy": {
+    "name": "Sturdy frame",
+    "effect": "armor",
+    "value": 0.15,
+    "description": "Weathered by the treeline: reduces damage received by 15%."
+  },
+  "rich": {
+    "name": "Rich hauls",
+    "effect": "gather",
+    "value": 0.2,
+    "description": "Knows the heavy limbs: 20% faster gathering."
+  },
+  "harvest-lord": {
+    "name": "Harvest-lord",
+    "effect": "gather",
+    "value": 0.3,
+    "description": "Lord of the cold harvest: 30% faster gathering."
+  },
+  "master": {
+    "name": "Master of the treeline",
+    "effect": "aura",
+    "value": 0.08,
+    "description": "Old hands on the split: +8% to this workplace's aura."
+  },
+  "brisk": {
+    "name": "Brisk hands",
+    "effect": "gather",
+    "value": 0.15,
+    "description": "Quick at the crucible: 15% faster gathering."
+  },
+  "discount": {
+    "name": "Tight crucible",
+    "effect": "aura",
+    "value": 0.05,
+    "description": "Wastes nothing at the workplace: +5% to its aura."
+  },
+  "foreman": {
+    "name": "Foreman",
+    "effect": "guard",
+    "value": 0.08,
+    "radius": 1.5,
+    "description": "Keeps the crew shoulder to shoulder: adjacent allies take 8% less damage."
+  },
+  "master-builder": {
+    "name": "Master-builder",
+    "effect": "aura",
+    "value": 0.08,
+    "description": "Old hands on the pour: +8% to this workplace's aura."
+  },
+  "haggle": {
+    "name": "Haggle",
+    "effect": "aura",
+    "value": 0.05,
+    "description": "Sharp dealing: +5% to this workplace's aura."
+  },
+  "appraise": {
+    "name": "Appraise",
+    "effect": "aura",
+    "value": 0.05,
+    "description": "True weights, true prices: +5% to this workplace's aura."
   }
 }

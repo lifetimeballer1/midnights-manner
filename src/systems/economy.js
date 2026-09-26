@@ -1,8 +1,11 @@
 import {builderBonuses,center,unlockedAbilities,stats,auras,gatherBonus} from '../model.js';
 import {move} from './pathfinding.js';
 import {sfx} from './audio.js';
-export function addResource(world,resource,amount) {world.resources[resource]+=amount;world.gathered[resource]+=amount;}
-const GLYPH={wood:'▰',food:'♧',gold:'◆'};
+// Open resource maps: new keys (frostwood onward) ride without a schema
+// change, and pre-frostwood saves (no frostwood key yet) haul without NaN-ing.
+export function addResource(world,resource,amount) {world.resources[resource]=(world.resources[resource]||0)+amount;world.gathered[resource]=(world.gathered[resource]||0)+amount;}
+const GLYPH={wood:'▰',food:'♧',gold:'◆',frostwood:'❄',plate:'▣'};
+const INK={wood:'#e8c98a',food:'#bfe3a8',gold:'#f2d878',frostwood:'#cfe6f5',plate:'#e8a87c'};
 function push(world,effect){if(world.effects.length<140)world.effects.push(effect);}
 export function floatText(world,x,y,text,color){push(world,{x,y,tx:x,ty:y-1.1,kind:'float',text,color,life:.9});}
 function sparkle(world,x,y){push(world,{x,y,tx:x,ty:y,kind:'sparkle',life:.4});}
@@ -61,7 +64,8 @@ export function tickEconomy(world,data,dt) {
    // Batch passive income into visible +N popups on the producing building.
    world._incAcc=world._incAcc||{};const key=spec.production;
    world._incAcc[key]=(world._incAcc[key]||0)+made;
-   if(world._incAcc[key]>=5){const shown=Math.floor(world._incAcc[key]);world._incAcc[key]-=shown;const cp=center(b,data);floatText(world,cp.x,cp.y,`+${shown} ${GLYPH[key]}`,key==='food'?'#bfe3a8':key==='wood'?'#e8c98a':'#f2d878');}}
+   // Unknown future keys still pop a glyph instead of 'undefined'.
+   if(world._incAcc[key]>=5){const shown=Math.floor(world._incAcc[key]);world._incAcc[key]-=shown;const cp=center(b,data);floatText(world,cp.x,cp.y,`+${shown} ${GLYPH[key]||'◈'}`,INK[key]||'#f2d878');}}
  }
  const hall=world.buildings.find(b=>b.type==='hall'&&b.hp>0);if(!hall)return;
  for(const u of world.troops) {
@@ -72,7 +76,12 @@ export function tickEconomy(world,data,dt) {
   const source=sourceFor(world,data,spec,u);if(!source)continue;
   const gear=data.items[u.gear];if(!gear)continue;
   const item=gear.stats||{};
-  let capacity=(item.carry||spec.carry||0)+(aura.carry||0);
+  // Armor-slot pieces (Winter Coat onward) can carry gather/carry stats:
+  // gather multiplies onto the main hand, carry adds, same generic axis
+  // as the hp/speed wardrobe read-through in stats(). No per-troop logic.
+  const worn=(u.armor&&data.items[u.armor]&&data.items[u.armor].stats)||{};
+  const gatherMult=(item.gather||1)*(worn.gather||1);
+  let capacity=(item.carry||spec.carry||0)+(worn.carry||0)+(aura.carry||0);
   if(!Number.isFinite(capacity)||capacity<=0)capacity=1;
   if(!Number.isFinite(u.carry)||u.carry<0)u.carry=0;
   if(u.carry>=capacity)u.phase='return';
@@ -83,7 +92,7 @@ export function tickEconomy(world,data,dt) {
    else {
     const bonus=unlockedAbilities(u,data).filter(a=>a.effect==='gather').reduce((n,a)=>n+a.value,1);
     const midC = (world.elapsed||0) > 300 ? 0.85 : 1;
-    const rate = 3*(item.gather||1)*bonus*(1+(aura.gather||0))*gatherBonus(u,world,data)*midC;
+    const rate = 3*gatherMult*bonus*(1+(aura.gather||0))*gatherBonus(u,world,data)*midC;
     const room = Math.max(0,capacity-u.carry);
     let fill=Math.min(room,rate*dt*reserveMult(source));
     if(!Number.isFinite(fill)||fill<0)fill=0;

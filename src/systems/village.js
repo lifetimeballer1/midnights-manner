@@ -143,9 +143,14 @@ export function tickVillage(state, data, dt, notify) {
         u.hp = Math.min(u.hp + aura.heal * dt, stats(u, data).hp);
       }
     }
-    if (aura.food > 0) {
-      w.resources.food += aura.food * dt;
-      w.gathered.food += aura.food * dt;
+    // Hearth trickles, generalized: posted crews pour straight into the
+    // stores through the same channel (the old shops smoke food, the new
+    // pour-house pours plate). Future shop-resources ride this list.
+    for (const key of ['food', 'plate']) {
+      if ((aura[key] || 0) > 0) {
+        w.resources[key] = (w.resources[key] || 0) + aura[key] * dt;
+        w.gathered[key] = (w.gathered[key] || 0) + aura[key] * dt;
+      }
     }
     if (aura.xp > 0) gainXp(state, aura.xp * dt);
     // Sage wisdom: 'xp'-effect abilities (the K1/K2 capstone) trickle

@@ -6,8 +6,8 @@ import {Game} from '../src/game.js';
 import {migrateToLatest, VERSION} from '../src/storage.js';
 const data = Object.fromEntries(await Promise.all(['world','troops','items','abilities','buildings','missions','quests','levels','calendar','traders'].map(async n=>[n,JSON.parse(await readFile(new URL(`../data/${n}.json`,import.meta.url)))])));
 
-test('unlock chain: all eight chapters grant something real, nothing dead or doubled', ()=>{
-  assert.equal(data.missions.length, 8);
+test('unlock chain: all nine chapters grant something real, nothing dead or doubled', ()=>{
+  assert.equal(data.missions.length, 9);
   const granted = [];
   for (const m of data.missions) {
     assert.ok(Array.isArray(m.unlocks) && m.unlocks.length > 0, `${m.id} grants an unlock`);

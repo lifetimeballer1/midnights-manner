@@ -139,5 +139,57 @@
     "xp": 140,
     "rewards": { "gold": 60 },
     "unlocks": [ "runed-forgehammer", "etched-armorkit", "fine-tinkerkit", "oiled-awl", "brass-chalice" ]
+  },
+  {
+    "id": "west-of-the-chalk",
+    "name": "West of the Chalk",
+    "text": "Fen's chalk map finally opens west of the treeline, where the frostwood stands white. Raise a Frostwood Grove and haul 150 frostwood from the cold rows.",
+    "giver": "Fen the wayfinder",
+    "flavor": "He chalked the west rows himself, then handed you the chalk. Prove the map true.",
+    "log": "Fen unrolled the west half of his chalk map and inked the frostwood rows in white. The cold treeline is yours — wardens, axes, and all.",
+    "act": "VI",
+    "task": { "kind": "gather", "resource": "frostwood", "amount": 150 },
+    "xp": 150,
+    "rewards": {},
+    "unlocks": [ "woodward", "frostaxe" ]
+  },
+  {
+    "id": "first-pour",
+    "name": "First Pour",
+    "text": "Maro has chalked a new foundation by the cold piles: raise an Ember Smeltery and pour 10 plate for the armor racks.",
+    "giver": "Maro the mason",
+    "flavor": "He held the first white-hot pour up to the moon like a lantern. Said the Manner finally has a spine.",
+    "log": "Maro chalked the first pour inside the hall door: ten plate, white-hot, held up like a lantern. Hide and plate — the Armory earns its name.",
+    "act": "VI",
+    "task": { "kind": "gather", "resource": "plate", "amount": 10 },
+    "xp": 140,
+    "rewards": {},
+    "unlocks": [ "smelter", "iron-cap" ]
+  },
+  {
+    "id": "down-dark-water",
+    "name": "Down Dark Water",
+    "text": "Wren has been sounding the pond's black middle since she was small. Raise the Stillwater Pond to tier 3 and sink the first Deephole — the deep water will feed us if we learn its manners.",
+    "giver": "Wren Waterwise",
+    "flavor": "Her grandfather taught her the still water; the dark water she taught herself. She came up smiling every single time.",
+    "log": "Wren chalked the deep mark on the pond posts: three tiers down, and further yet. Divers wanted — the dark water keeps its own larder.",
+    "act": "VI",
+    "task": { "kind": "upgrade", "type": "pond", "level": 3 },
+    "xp": 130,
+    "rewards": {},
+    "unlocks": [ "deephole", "diver", "net" ]
+  },
+  {
+    "id": "glass-under-stone",
+    "name": "Glass Under Stone",
+    "text": "Pella dreamed of lanterns burning inside the rock. Raise the Moonstone Mine to tier 3 and cut the first Emberglass shaft — gold that glows, for steady hands only.",
+    "giver": "Pella Second-Lantern",
+    "flavor": "She blessed the door of every house on the lane. Now she means to bless what lies under them.",
+    "log": "Pella hung a second lantern at the mine mouth and blessed the shaft by name. Emberglass, she called it — the stone that kept a little of the forge-fire.",
+    "act": "VI",
+    "task": { "kind": "upgrade", "type": "mine", "level": 3 },
+    "xp": 140,
+    "rewards": {},
+    "unlocks": [ "emberglass", "sapper", "glasspick" ]
   }
 ]

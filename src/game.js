@@ -42,6 +42,16 @@ export class Game {
   if(this.locked(type))return this.notify('Complete campaign chapters to unlock this.');
   const spec=this.data.buildings[type];
   if(spec&&(spec.minLevel||1)>(this.state.vlevel||1))return this.notify(`The ${spec.name} needs village level ${spec.minLevel}. Earn XP — quests, scholars, surveys.`);
+  // Building-chain gates (data `requiresBuilding: {type, level}`): the new
+  // work waits on the old work at tier — first the pour-house behind a
+  // tier-2 cold grove, later wonders the same generic way. No per-building
+  // conditionals; the shop panel reads the same field.
+  const req=spec&&spec.requiresBuilding;
+  if(req&&req.type){
+   const need=req.level||1;
+   const ready=this.world.buildings.some(b=>b.type===req.type&&b.hp>0&&(b.level||1)>=need);
+   if(!ready){const rn=this.data.buildings[req.type]?.name||req.type;return this.notify(`The ${spec.name} needs a tier-${need} ${rn} first. Raise the old work before the new fire.`);}
+  }
   if(!inBounds(this.world,this.data,type,x,y))return this.notify('That land is still wild. Earn village XP (quests, scholars, surveys) to open new rows.');
   if(!canPlace(this.world,this.data,type,x,y))return this.notify('Too close — roomy buildings need a one-tile gap. Villages breathe; clutter burns.');
   if(!pay(this.world.resources,buildingCost(type,1,this.world,this.data)))return this.notify('Not enough resources. Let your village gather more.');
@@ -128,12 +138,12 @@ export class Game {
   const key=dayKey(date);
   this.world.calendarBonus=calendarEffects(this.data.calendar,date);
   if(this.state.calendarDay===key)return false;
-  const g=this.world.gathered||{wood:0,food:0,gold:0};
+  const g=this.world.gathered||{wood:0,food:0,gold:0,frostwood:0,plate:0};
   const prev=this.state.gatheredAtBell;
   this.state.calendarDay=key;
   this.state.tradeDay=key;
   this.state.tradesUsed={};
-  this.state.gatheredAtBell={wood:g.wood||0,food:g.food||0,gold:g.gold||0};
+  this.state.gatheredAtBell={wood:g.wood||0,food:g.food||0,gold:g.gold||0,frostwood:g.frostwood||0,plate:g.plate||0};
   const s=seasonFor(this.data.calendar,date),m=modifierFor(this.data.calendar,date);
   let line=`🔔 The night bell rings. ${s?`${s.season.name}, day ${s.dayOfCycle} of 28. `:''}${m?`${m.name}: ${m.text}`:'A quiet night on the frontier.'}`;
   if(prev){
@@ -145,7 +155,7 @@ export class Game {
   this.persist();
   return true;
  }
- harvest(id){const b=this.world.buildings.find(b=>b.id===id),spec=b&&this.data.buildings[b.type];if(this.paused||!b||!spec.production||b.hp<=0||b.remaining>0)return false;const amount=Math.floor(b.harvestBonus||0);if(amount<1)return false;b.harvestBonus-=amount;this.world.resources[spec.production]+=amount;this.world.gathered[spec.production]+=amount;const at=center(b,this.data);this.world.effects.push({x:at.x,y:at.y,tx:at.x,ty:at.y,kind:'float',text:`+${amount} ${spec.production}`,color:'#ffe595',life:.9});sfx.collect();this.notify(`Collected ${amount} bonus ${spec.production}.`);return amount;}
+ harvest(id){const b=this.world.buildings.find(b=>b.id===id),spec=b&&this.data.buildings[b.type];if(this.paused||!b||!spec.production||b.hp<=0||b.remaining>0)return false;const amount=Math.floor(b.harvestBonus||0);if(amount<1)return false;b.harvestBonus-=amount;this.world.resources[spec.production]=(this.world.resources[spec.production]||0)+amount;this.world.gathered[spec.production]=(this.world.gathered[spec.production]||0)+amount;const at=center(b,this.data);this.world.effects.push({x:at.x,y:at.y,tx:at.x,ty:at.y,kind:'float',text:`+${amount} ${spec.production}`,color:'#ffe595',life:.9});sfx.collect();this.notify(`Collected ${amount} bonus ${spec.production}.`);return amount;}
  persist(){const ok=save(this.state);if(!ok)this.notify('Browser storage is unavailable. Progress cannot be saved here.');return ok;}
  importState(state){this.state=state;this.paused=false;this.saveTimer=0;this.dirty=true;this.notify('Save restored. Welcome back to the village.');}
  tick(dt){if(this.paused||this.state.mission?.status&&this.state.mission.status!=='active')return;
