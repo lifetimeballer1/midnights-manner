@@ -1,4 +1,4 @@
-import {center,canPlace,stats} from './model.js';
+import {center,canPlace,stats,housing,assignedWorkers} from './model.js';
 export class Renderer {
  constructor(canvas,data,images){this.canvas=canvas;this.ctx=canvas.getContext('2d');this.data=data;this.images=images;this.grid=false;this.hover=null;this.selection=null;this.placing=null;this.moving=null;this.tw=43;this.th=22;this.ox=510;this.oy=97;this.shake=0;try{this.calm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch{this.calm=false;}}
  project(x,y){return {x:this.ox+(x-y)*this.tw/2,y:this.oy+(x+y)*this.th/2};}
@@ -15,9 +15,14 @@ export class Renderer {
   for(let y=-3;y<20;y++)for(let x=-3;x<24;x++){
    const n=((x*67+y*113+10000)*17)%101, checker=(x+y)%2===0;
    const edge=x<0||y<0||x>=20||y>=16;
+   const bounds=world.bounds||{w:20,h:16};
+   // Wild rows: inside the map but outside the settled bounds — darker, red grid.
+   const usable=edge||(x>=1&&y>=1&&x<=bounds.w-2&&y<=bounds.h-2);
    // Moonlit-night checkerboard: deep pine vs moonlit moss; edges fall off darker.
    const inner=checker?['#2f5240','#335844','#38604a','#2c4e3d'][Math.abs(n)%4]:['#3f6b4e','#45755a','#4c805f','#3a6547'][Math.abs(n)%4];
-   this.diamond(x,y,edge?['#22392e','#1f342a','#263e33'][Math.abs(n)%3]:inner,this.grid&&!edge?'#9db87a':null);
+   const wild=checker?'#24382c':'#2c4433';
+   this.diamond(x,y,edge?['#22392e','#1f342a','#263e33'][Math.abs(n)%3]:(usable?inner:wild),this.grid&&!edge?(usable?'#9db87a':'#c9766a'):null);
+   if(!usable&&!edge&&n%11===0){const p=this.project(x+.5,y+.5);c.fillStyle='#c9766a88';c.font='bold 9px Arial';c.textAlign='center';c.fillText('✦',p.x,p.y+3);c.textAlign='left';}
    if(!edge&&n%9===0){const p=this.project(x+.5,y+.5);c.fillStyle='#6fae7a88';c.fillRect(p.x,p.y,2,3);c.fillRect(p.x+3,p.y-1,1,3);}
   }
   // Moonlit stream outside the settlement; a readable cool border for the map.
@@ -34,14 +39,27 @@ export class Renderer {
     const gp=this.project(cp.x,cp.y);
     // Ground shadow anchors every building to the map.
     c.fillStyle='#2c3a2c33';c.beginPath();c.ellipse(gp.x,gp.y+9,size*.42,10,0,0,Math.PI*2);c.fill();
+    // Pond shimmer: the water breathes so fishing spots read at a glance.
+    if(b.type==='pond'&&b.hp>0){c.save();c.globalAlpha=.45+Math.sin(time/600)*.2;c.strokeStyle='#7fc4d4';c.lineWidth=1.5;c.beginPath();c.ellipse(gp.x,gp.y+4,20+Math.sin(time/600)*3,7,0,0,Math.PI*2);c.stroke();c.restore();}
     if(this.selection===b.id){
-     for(let y=0;y<spec.size;y++)for(let x=0;x<spec.size;x++)this.diamond(b.x+x,b.y+y,'#f0d47e99','#fff3c0');
+     for(let y=0;y<spec.size;y++)for(let x=0;x<spec.size;x++)this.diamond(b.x+x,b.y+y,'#f0d47e66','#f2c96e');
+     for(let y=0;y<spec.size;y++)for(let x=0;x<spec.size;x++)this.diamond(b.x+x,b.y+y,'#ffffff22','#fff3c0');
+     // Pulsing selection marker — readable on phones in bright light.
+     c.fillStyle='#fff3c0';c.beginPath();c.arc(gp.x,gp.y-size-6+Math.sin(time/300)*2,3.2,0,Math.PI*2);c.fill();
+     c.fillStyle='#1c302c';c.beginPath();c.arc(gp.x,gp.y-size-6+Math.sin(time/300)*2,1.4,0,Math.PI*2);c.fill();
      // Range preview for defenses so layout choices read at a glance.
      const range=spec.tiers[b.level-1].range;
      if(spec.tiers[b.level-1].damage){c.save();c.globalAlpha=.9;c.strokeStyle='#f2e2a8';c.lineWidth=1.5;c.setLineDash([6,4]);c.beginPath();c.ellipse(gp.x,gp.y,range*this.tw*.72,range*this.th*.72,0,0,Math.PI*2);c.stroke();c.restore();}
     }
     this.sprite(spec.tiers[b.level-1].sprite,cp.x,cp.y,size,b.hp<=0?.3:b.remaining>0?.65:1);
-    const p=this.project(cp.x,cp.y);
+    // Living-village readouts: beds on cottages, gold crew pips on workplaces,
+    // and a thin reserve bar on nodes draining below two-thirds.
+    const p=this.project(cp.x,cp.y);const p2=p;
+    if(spec.housing&&b.hp>0){const hh=housing(world,this.data);c.fillStyle='#1c302cee';c.font='bold 9px Arial';c.textAlign='center';c.fillText(`🛏 ${hh.used}/${hh.beds}`,p2.x,p2.y-size-10);c.textAlign='left';}
+    if(spec.workplace&&b.hp>0){const crew=assignedWorkers(world,b.id).length;
+     for(let i=0;i<crew;i++){c.fillStyle='#f2c96e';c.beginPath();c.arc(p2.x-(crew*8)/2+i*8+4,p2.y-size-10,3,0,Math.PI*2);c.fill();c.strokeStyle='#1c302c';c.lineWidth=1;c.stroke();}}
+    if(b.maxReserve&&b.hp>0){const frac=Math.max(0,Math.min(1,b.reserve/b.maxReserve));
+     if(frac<0.66)this.bar(p2.x,p2.y+20,frac,36,frac>0.35?'#c9a44e':'#c9766a');}
     // Tier pips: filled gold per tier so upgrades read instantly.
     for(let i=0;i<spec.tiers.length;i++){c.fillStyle=i<b.level?'#e9c46a':'#5a6b5533';c.beginPath();c.arc(p.x-(spec.tiers.length*7)/2+i*7+3,p.y-size+4,2.6,0,Math.PI*2);c.fill();}
     if(b.hp<=0){c.fillStyle='#3d2c22ee';const w=52;c.fillRect(p.x-w/2,p.y+16,w,15);c.fillStyle='#ffd9a8';c.font='bold 10px Arial';c.textAlign='center';c.fillText('REPAIR',p.x,p.y+27);c.textAlign='left';}
@@ -63,6 +81,7 @@ export class Renderer {
   }
   if(this.placing&&this.hover){const size=this.data.buildings[this.placing].size,tier=this.data.buildings[this.placing].tiers[0];this.sprite(tier.sprite,this.hover.x+size/2,this.hover.y+size/2,size===2?93:66,.55);if(tier.damage){const gp=this.project(this.hover.x+size/2,this.hover.y+size/2);c.save();c.globalAlpha=.85;c.strokeStyle='#f2e2a8';c.lineWidth=1.5;c.setLineDash([6,4]);c.beginPath();c.ellipse(gp.x,gp.y,tier.range*this.tw*.72,tier.range*this.th*.72,0,0,Math.PI*2);c.stroke();c.restore();}}
   for(const e of world.effects){const a=this.project(e.x,e.y),b=this.project(e.tx,e.ty);if(e.kind==='place'){const t=1-Math.max(0,e.life)/.6;c.globalAlpha=Math.max(0,e.life)/.6;c.strokeStyle='#ffe9a8';c.lineWidth=3;c.beginPath();c.ellipse(b.x,b.y-6,8+t*34,4+t*15,0,0,Math.PI*2);c.stroke();c.globalAlpha=1;if(e.life>.5)this.shake=Math.max(this.shake,4);continue;}
+   if(e.kind==='splash'){const t=1-Math.max(0,e.life)/.5;c.globalAlpha=Math.max(0,e.life)/.5;c.strokeStyle='#7fc4d4';c.lineWidth=2;for(let s=0;s<2;s++){c.beginPath();c.ellipse(b.x,b.y-8,6+t*(10+s*7),3+t*(4+s*3),0,Math.PI,Math.PI*2);c.stroke();}c.fillStyle='#dff3f8';c.fillRect(b.x-1,b.y-14-t*8,2,3);c.globalAlpha=1;continue;}
    if(e.kind==='float'||e.kind==='dmg'){const rise=1-Math.max(0,e.life)/(e.kind==='float'?.9:.7);c.globalAlpha=Math.min(1,e.life*2.2);c.font=`bold ${e.kind==='dmg'?13:14}px Arial`;c.textAlign='center';c.fillStyle='#1c302c';c.fillText(e.text,b.x+1,b.y-30-rise*22+1);c.fillStyle=e.kind==='dmg'?'#ffd9a8':(e.color||'#ffe9a8');c.fillText(e.text,b.x,b.y-30-rise*22);c.textAlign='left';c.globalAlpha=1;continue;}
    if(e.kind==='sparkle'){c.globalAlpha=Math.max(0,e.life)/.4;c.strokeStyle='#fff3c0';c.lineWidth=2;for(let s=0;s<4;s++){const ang=s*Math.PI/2+time/300,l=4+(0.4-Math.max(0,e.life))*30;c.beginPath();c.moveTo(b.x+Math.cos(ang)*l,b.y-14+Math.sin(ang)*l*.6);c.lineTo(b.x+Math.cos(ang)*(l+5),b.y-14+Math.sin(ang)*(l+5)*.6);c.stroke();}c.globalAlpha=1;continue;}
    if(e.kind==='fanfare'){c.globalAlpha=Math.min(1,e.life*1.5);c.fillStyle='#f2c96e';for(let s=0;s<6;s++){const rise=(0.8-Math.max(0,e.life))*46;c.fillRect(b.x-14+s*6,b.y-44-rise-(s%3)*7,3,3);}c.globalAlpha=1;continue;}

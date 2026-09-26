@@ -143,5 +143,101 @@
     },
     "animation": "sweep",
     "sprite": "item-scythe.png"
+  },
+  "rod": {
+    "name": "Willow rod",
+    "roles": ["fisherman"],
+    "cost": {},
+    "stats": { "gather": 1.2, "carry": 12 },
+    "animation": "sweep",
+    "sprite": "item-rod.png"
+  },
+  "crook": {
+    "name": "Shepherd crook",
+    "roles": ["shepherd"],
+    "cost": {},
+    "stats": { "gather": 1.1, "carry": 12 },
+    "animation": "sweep",
+    "sprite": "item-crook.png"
+  },
+  "cleaver": {
+    "name": "Smokehouse cleaver",
+    "roles": ["butcher"],
+    "cost": {},
+    "stats": { "gather": 1, "carry": 12 },
+    "animation": "slash",
+    "sprite": "item-cleaver.png"
+  },
+  "tome": {
+    "name": "Moonchart tome",
+    "roles": ["scholar"],
+    "cost": {},
+    "stats": {},
+    "animation": "tap",
+    "sprite": "item-tome.png"
+  },
+  "compass": {
+    "name": "Wayfinder compass",
+    "roles": ["scout"],
+    "cost": {},
+    "stats": {},
+    "animation": "tap",
+    "sprite": "item-compass.png"
+  },
+  "chalice": {
+    "name": "Moonchalice",
+    "roles": ["healer"],
+    "cost": {},
+    "stats": {},
+    "animation": "tap",
+    "sprite": "item-chalice.png"
+  },
+  "forgehammer": {
+    "name": "Forgehammer",
+    "roles": ["weaponsmith"],
+    "cost": {},
+    "stats": {},
+    "animation": "slam",
+    "sprite": "item-forgehammer.png"
+  },
+  "armorkit": {
+    "name": "Ward-plate kit",
+    "roles": ["armorer"],
+    "cost": {},
+    "stats": {},
+    "animation": "tap",
+    "sprite": "item-armorkit.png"
+  },
+  "tinkerkit": {
+    "name": "Tinker kit",
+    "roles": ["toolsmith"],
+    "cost": {},
+    "stats": {},
+    "animation": "tap",
+    "sprite": "item-tinkerkit.png"
+  },
+  "awl": {
+    "name": "Stitching awl",
+    "roles": ["leatherworker"],
+    "cost": {},
+    "stats": { "carry": 14 },
+    "animation": "tap",
+    "sprite": "item-awl.png"
+  },
+  "trowel": {
+    "name": "Mason trowel",
+    "roles": ["mason"],
+    "cost": {},
+    "stats": { "buildSpeed": 1.5, "costReduction": 0.1 },
+    "animation": "tap",
+    "sprite": "item-trowel.png"
+  },
+  "fellingaxe": {
+    "name": "Felling axe",
+    "roles": ["lumberjack"],
+    "cost": {},
+    "stats": { "gather": 1.3, "carry": 12 },
+    "animation": "sweep",
+    "sprite": "item-fellingaxe.png"
   }
 }

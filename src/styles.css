@@ -29,6 +29,23 @@
 .role-combat{background:#e5c3b3;color:#7a3b28}
 .role-collector{background:#cfe0c0;color:#3d6034}
 .role-builder{background:#eddcac;color:#7a5f22}
+.role-keeper{background:#d8cfec;color:#4a3f73}
+.village-strip{background:#1c302c;color:#f3eddc;border-radius:12px;padding:12px 14px;margin-bottom:14px;box-shadow:0 2px 5px #00000022}
+.village-strip .vlevel{font-size:12px;font-weight:700;letter-spacing:1px;margin-bottom:8px}
+.village-xp{background:#f3eddc33;margin:0 0 8px;min-width:0}
+.village-xp>div{background:#f2c96e}
+.vstats{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:#d9dfd0}
+.quests{margin-bottom:16px}
+.quest{border:1px solid #d7ddcd;background:#f7f6ee;padding:10px 12px;margin-bottom:8px;border-radius:10px;font-size:11px}
+.quest b{display:block;font-size:12px;margin-bottom:2px}
+.quest span{display:block;color:#768568;line-height:1.5}
+.quest .qprog{font-weight:700;color:#3d6034;margin-top:2px}
+.quest.qdone{opacity:.65}
+.quest.qdone b{color:#3d6034}
+.quest.qactive{border-color:#c69d51;box-shadow:0 0 0 1px #c69d51}
+.job{margin-top:10px;font-size:11px;font-weight:700}
+.job select{font:inherit;font-size:11px;max-width:100%;margin:4px 0;padding:8px 10px;min-height:44px;border-radius:10px;background:#fff}
+.job small{display:block;font-weight:400;color:#7d896f;line-height:1.5;margin-top:2px}
 .levelbar{height:4px;background:#dfe4d5;border-radius:2px;margin-top:4px;overflow:hidden;min-width:90px}
 .levelbar>div{height:100%;background:#708d5e}
 .hpbar-inspector{height:6px;background:#dde2d2;border-radius:3px;overflow:hidden;margin:8px 0 2px;max-width:280px}

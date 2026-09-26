@@ -1,4 +1,4 @@
-import {distance,center,stats,unlockedAbilities} from '../model.js';
+import {distance,center,stats,unlockedAbilities,auras} from '../model.js';
 import {move} from './pathfinding.js';
 import {sfx} from './audio.js';
 export function spawnRaid(world,count=4) {
@@ -15,6 +15,7 @@ export function activateAbility(world,data,unit,id) {
  unit.abilityTimer=a.cooldown;effect(world,unit,unit,'heal');return true;
 }
 export function tickCombat(world,data,dt) {
+ const aura=auras(world,data);
  for(const e of world.effects)e.life-=dt;
  world.effects=world.effects.filter(e=>e.life>0);
  for(const unit of world.troops) {
@@ -25,7 +26,8 @@ export function tickCombat(world,data,dt) {
   const enemy=world.enemies.filter(e=>e.hp>0).sort((a,b)=>distance(unit,a)-distance(unit,b))[0];if(!enemy)continue;
   const s=stats(unit,data);
   if(move(world,data,unit,enemy,s.speed,dt,s.range)&&unit.attackTimer<=0){
-   enemy.hp-=s.damage;unit.attackTimer=1;unit.animation=.4;effect(world,unit,enemy,data.items[unit.gear].animation);dmgNum(world,enemy,s.damage);
+   const dealt=s.damage*(1+aura.damage);
+   enemy.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,enemy,data.items[unit.gear].animation);dmgNum(world,enemy,dealt);
    for(const a of unlockedAbilities(unit,data)) if(a.effect==='splash')for(const other of world.enemies)if(other!==enemy&&distance(other,enemy)<a.radius)other.hp-=s.damage*a.factor;
   }
  }
@@ -42,7 +44,7 @@ export function tickCombat(world,data,dt) {
   const target=targetUnit||buildings[0];if(!target)continue;
   const targetPoint=targetUnit?target:center(target,data),range=targetUnit?1.1:data.buildings[target.type].size/2+.7;
   if(move(world,data,enemy,targetPoint,.95,dt,range)&&enemy.attackTimer<=0){
-   let reduction=0;if(targetUnit) reduction=unlockedAbilities(target,data).filter(a=>a.effect==='armor').reduce((n,a)=>n+a.value,0);
+   let reduction=aura.armor;if(targetUnit) reduction+=unlockedAbilities(target,data).filter(a=>a.effect==='armor').reduce((n,a)=>n+a.value,0);
    target.hp=Math.max(0,target.hp-enemy.damage*(1-Math.min(.8,reduction)));enemy.attackTimer=1.3;effect(world,enemy,targetPoint,'slash');push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y,kind:'hit',life:.18});sfx.hit();
   }
  }

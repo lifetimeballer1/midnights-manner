@@ -23,10 +23,10 @@ There are no npm dependencies to install. Serve over HTTP; opening `index.html` 
 
 - **Build:** select a card, then tap/click an empty grid tile. Escape or Cancel leaves placement mode. Walls can be placed repeatedly. Select any building to upgrade, move, or repair it. No relocation during raids.
 - **Keyboard:** focus the map, use arrow keys to choose a tile, Enter to place/select, Escape to cancel.
-- **People:** recruit at a finished barracks, train to level 25, buy/equip visible tools, and cast unlocked active abilities. Equipment is individually owned; switching owned gear is free.
-- **Economy:** farms, timber yards and mines produce each second. Farmers and miners walk to a matching building, fill their carried load and deliver it to the manor for bonus production. Builders' gear speeds all construction and discounts costs; discounts cap at 50%.
+- **People:** twelve frontier professions (fisher, shepherd, butcher, scholar, wayfinder, mooncleric, smiths, mason, lumberjack) plus the original five. Assign each to its matching workplace from the People panel. Surplus food plus free cottage beds grows new villagers over time; hunger or crowding pauses it.
+- **Economy:** farms, timber yards, mines, ponds, pastures and smokehouses produce each second from living nodes that visibly drain and refill. Collectors walk to matching buildings (fishermen need ponds, shepherds need pastures) and deliver to the manor. Assigned specialists work 25% faster; keepers at workplaces grant auras (sharper weapons, ward-plate, faster gathering, mending, XP, surveys).
 - **Defense:** Test your defenses spawns an increasingly large raid from the west. Warriors/archers auto-engage, towers fire, and reusable traps trigger on cooldown. Walls block routes. Destroyed buildings remain for repair. Defeated troops revive after a raid. If the home manor falls, the raid ends and salvaged wood allows recovery.
-- **Story:** three linear chapters with fresh starting layouts, time limits, recruitment caps and scheduled raids. Meet collection targets, defeat scheduled waves, and keep the manor alive. Return home explicitly to claim a chapter's one-time reward and unlocks. Replays cannot farm first-clear rewards; abandoning never changes the home village.
+- **Story:** an 8-step village-path quest chain (quests.json) teaches build order and pays XP that levels the village; each level can open new buildable map rows. Plus three linear campaign chapters with fresh starting layouts, time limits, recruitment caps and scheduled raids. Meet collection targets, defeat scheduled waves, and keep the manor alive. Return home explicitly to claim a chapter's one-time reward and unlocks. Replays cannot farm first-clear rewards; abandoning never changes the home village.
 - **Saving:** local to this browser and origin; private browsing/clearing browser data can remove saves. A storage failure is shown in the status strip. Use the same browser/device to resume.
 
 ## Repository structure
@@ -41,13 +41,14 @@ src/
   storage.js           versioned local save/load
   styles.css           responsive interface
   systems/
-    economy.js         production, collectors, builder effects
+    economy.js         production, collectors, builder effects, living reserves
+    village.js         quests/XP/levels, housing/population, expansion, job trickles
     pathfinding.js     grid routing and collision
     combat.js          raids, damage, towers, traps, ability handlers
     campaign.js        mission lifecycle, constraints, rewards
-assets/sprites/        40 original 32×32 transparent PNG placeholders
+assets/sprites/        88 original 32×32 transparent PNG placeholders
 assets/favicon.svg
-data/                  editable game configuration JSON
+data/                  editable game configuration JSON (buildings, troops, items, quests, missions, world)
 scripts/
   build.mjs            creates deployable dist/ from public files only
   generate_sprites.py  optional Pillow-based sprite source
@@ -70,6 +71,14 @@ Add an item in `data/items.json` with a distinct `sprite`, `roles` listing compa
 ### Add a building
 
 Add an entry in `data/buildings.json`: `name`, tile `size`, `cost`, `buildSeconds`, optional resource `production`, base `rate`, and a `tiers` array. Every tier needs its own `sprite`, `hp`, `rateMultiplier`, `damage`, and `range`. Nonzero damage enables a stationary defense. Provide a distinct sprite for every tier; do not simply recolor it. Tier count is read from data. The Build panel automatically includes every entry except the unique manor. Traps are passable; other buildings obstruct movement. Special mechanics beyond production, ordinary defenses and traps need a system extension.
+
+### Add a profession and workplace
+
+Give the troop a `job` (`workplace` building type, `effect`, flavor `text`) and give the building a matching `workplace` (troop id) plus an aura field (`damageAura`, `armorAura`, `gatherAura`, `carryBonus`, `buildAura`, `healRate`, `xpRate`, `surveyRate`) or `production`. Collectors can scope to one building type with `gatherFrom`. Assign in the People panel; effects apply only while posted at a finished building, capped in `auras()` (model.js). Provide a distinct sprite and default gear item.
+
+### Add a quest
+
+Append to `data/quests.json`: `id`, `name`, `text`, `task` (`build`/`recruit`/`assign`/`population`/`level`/`gather` with counts), `xp`, `rewards`. The first incomplete quest auto-completes with fanfare. XP thresholds (`XP_LEVELS`) and map sizes (`EXPANSION`) live in `src/model.js`.
 
 ### Add a mission
 

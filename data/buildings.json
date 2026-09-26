@@ -39,6 +39,8 @@
     "buildSeconds": 4,
     "production": "food",
     "rate": 2,
+    "reserve": 400,
+    "workplace": "farmer",
     "tiers": [
       {
         "sprite": "farm-1.png",
@@ -73,6 +75,8 @@
     "buildSeconds": 4,
     "production": "wood",
     "rate": 2,
+    "reserve": 500,
+    "workplace": "lumberjack",
     "tiers": [
       {
         "sprite": "lumber-1.png",
@@ -107,6 +111,8 @@
     "buildSeconds": 4,
     "production": "gold",
     "rate": 2,
+    "reserve": 600,
+    "workplace": "miner",
     "tiers": [
       {
         "sprite": "mine-1.png",
@@ -264,6 +270,173 @@
         "damage": 135,
         "range": 0.75
       }
+    ]
+  },
+  "cottage": {
+    "name": "Moonlit Cottage",
+    "size": 2,
+    "cost": { "wood": 80, "gold": 20 },
+    "buildSeconds": 5,
+    "production": null,
+    "rate": 0,
+    "housing": [6, 10],
+    "tiers": [
+      { "sprite": "cottage-1.png", "hp": 200, "rateMultiplier": 1, "damage": 0, "range": 0.75 },
+      { "sprite": "cottage-2.png", "hp": 420, "rateMultiplier": 2, "damage": 0, "range": 0.75 }
+    ]
+  },
+  "pond": {
+    "name": "Stillwater Pond",
+    "size": 2,
+    "cost": { "wood": 60 },
+    "buildSeconds": 4,
+    "production": "food",
+    "rate": 1,
+    "reserve": 300,
+    "workplace": "fisherman",
+    "tiers": [
+      { "sprite": "pond-1.png", "hp": 160, "rateMultiplier": 1, "damage": 0, "range": 0.75 },
+      { "sprite": "pond-2.png", "hp": 320, "rateMultiplier": 2, "damage": 0, "range": 0.75 }
+    ]
+  },
+  "pasture": {
+    "name": "Night Pasture",
+    "size": 2,
+    "cost": { "wood": 70, "food": 20 },
+    "buildSeconds": 4,
+    "production": "food",
+    "rate": 1.5,
+    "reserve": 400,
+    "workplace": "shepherd",
+    "tiers": [
+      { "sprite": "pasture-1.png", "hp": 180, "rateMultiplier": 1, "damage": 0, "range": 0.75 },
+      { "sprite": "pasture-2.png", "hp": 360, "rateMultiplier": 2, "damage": 0, "range": 0.75 }
+    ]
+  },
+  "butchery": {
+    "name": "Smokehouse Butchery",
+    "size": 1,
+    "cost": { "wood": 60, "gold": 30 },
+    "buildSeconds": 4,
+    "production": "food",
+    "rate": 1,
+    "reserve": 300,
+    "workplace": "butcher",
+    "tiers": [
+      { "sprite": "butchery-1.png", "hp": 150, "rateMultiplier": 1, "damage": 0, "range": 0.75 },
+      { "sprite": "butchery-2.png", "hp": 300, "rateMultiplier": 2, "damage": 0, "range": 0.75 }
+    ]
+  },
+  "scriptorium": {
+    "name": "Scriptorium",
+    "size": 1,
+    "cost": { "wood": 70, "gold": 40 },
+    "buildSeconds": 5,
+    "production": null,
+    "rate": 0,
+    "workplace": "scholar",
+    "xpRate": 0.12,
+    "tiers": [
+      { "sprite": "scriptorium-1.png", "hp": 150, "rateMultiplier": 1, "damage": 0, "range": 0.75 },
+      { "sprite": "scriptorium-2.png", "hp": 300, "rateMultiplier": 2, "damage": 0, "range": 0.75 }
+    ]
+  },
+  "scout_post": {
+    "name": "Wayfinder Post",
+    "size": 1,
+    "cost": { "wood": 60, "gold": 20 },
+    "buildSeconds": 4,
+    "production": null,
+    "rate": 0,
+    "workplace": "scout",
+    "surveyRate": 1,
+    "tiers": [
+      { "sprite": "scout_post-1.png", "hp": 150, "rateMultiplier": 1, "damage": 0, "range": 0.75 },
+      { "sprite": "scout_post-2.png", "hp": 300, "rateMultiplier": 2, "damage": 0, "range": 0.75 }
+    ]
+  },
+  "chapel": {
+    "name": "Moonchapel",
+    "size": 2,
+    "cost": { "wood": 90, "gold": 40 },
+    "buildSeconds": 5,
+    "production": null,
+    "rate": 0,
+    "workplace": "healer",
+    "healRate": 1.5,
+    "tiers": [
+      { "sprite": "chapel-1.png", "hp": 220, "rateMultiplier": 1, "damage": 0, "range": 0.75 },
+      { "sprite": "chapel-2.png", "hp": 440, "rateMultiplier": 2, "damage": 0, "range": 0.75 }
+    ]
+  },
+  "forge": {
+    "name": "Emberforge",
+    "size": 2,
+    "cost": { "wood": 100, "gold": 60 },
+    "buildSeconds": 5,
+    "production": null,
+    "rate": 0,
+    "workplace": "weaponsmith",
+    "damageAura": 0.1,
+    "tiers": [
+      { "sprite": "forge-1.png", "hp": 240, "rateMultiplier": 1, "damage": 0, "range": 0.75 },
+      { "sprite": "forge-2.png", "hp": 480, "rateMultiplier": 2, "damage": 0, "range": 0.75 }
+    ]
+  },
+  "armory": {
+    "name": "Wardarmory",
+    "size": 1,
+    "cost": { "wood": 80, "gold": 50 },
+    "buildSeconds": 5,
+    "production": null,
+    "rate": 0,
+    "workplace": "armorer",
+    "armorAura": 0.1,
+    "tiers": [
+      { "sprite": "armory-1.png", "hp": 170, "rateMultiplier": 1, "damage": 0, "range": 0.75 },
+      { "sprite": "armory-2.png", "hp": 340, "rateMultiplier": 2, "damage": 0, "range": 0.75 }
+    ]
+  },
+  "workshop": {
+    "name": "Tinker Workshop",
+    "size": 1,
+    "cost": { "wood": 80, "gold": 50 },
+    "buildSeconds": 5,
+    "production": null,
+    "rate": 0,
+    "workplace": "toolsmith",
+    "gatherAura": 0.15,
+    "tiers": [
+      { "sprite": "workshop-1.png", "hp": 170, "rateMultiplier": 1, "damage": 0, "range": 0.75 },
+      { "sprite": "workshop-2.png", "hp": 340, "rateMultiplier": 2, "damage": 0, "range": 0.75 }
+    ]
+  },
+  "tannery": {
+    "name": "Hide Tannery",
+    "size": 1,
+    "cost": { "wood": 60, "gold": 30 },
+    "buildSeconds": 4,
+    "production": null,
+    "rate": 0,
+    "workplace": "leatherworker",
+    "carryBonus": 6,
+    "tiers": [
+      { "sprite": "tannery-1.png", "hp": 150, "rateMultiplier": 1, "damage": 0, "range": 0.75 },
+      { "sprite": "tannery-2.png", "hp": 300, "rateMultiplier": 2, "damage": 0, "range": 0.75 }
+    ]
+  },
+  "mason_yard": {
+    "name": "Mason Yard",
+    "size": 2,
+    "cost": { "wood": 90, "gold": 30 },
+    "buildSeconds": 5,
+    "production": null,
+    "rate": 0,
+    "workplace": "mason",
+    "buildAura": 0.25,
+    "tiers": [
+      { "sprite": "mason_yard-1.png", "hp": 220, "rateMultiplier": 1, "damage": 0, "range": 0.75 },
+      { "sprite": "mason_yard-2.png", "hp": 440, "rateMultiplier": 2, "damage": 0, "range": 0.75 }
     ]
   }
 }

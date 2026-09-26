@@ -55,4 +55,8 @@ export const sfx = {
   win() { [523, 659, 784, 1046].forEach((f, i) => tone(f, 0.14, { type: 'triangle', delay: i * 0.1, vol: 0.14 })); },
   lose() { [392, 330, 262, 196].forEach((f, i) => tone(f, 0.18, { type: 'triangle', delay: i * 0.13, vol: 0.12 })); },
   click() { tone(660, 0.04, { vol: 0.06 }); },
+  splash() { tone(900, 0.08, { type: 'sine', slide: -500, vol: 0.07 }); tone(1400, 0.06, { delay: 0.05, vol: 0.05 }); },
+  birth() { [660, 830, 990, 1320].forEach((f, i) => tone(f, 0.12, { type: 'triangle', delay: i * 0.09, vol: 0.12 })); },
+  quest() { [523, 659, 784].forEach((f, i) => tone(f, 0.12, { type: 'triangle', delay: i * 0.07, vol: 0.13 })); tone(1046, 0.2, { type: 'triangle', delay: 0.22, vol: 0.12 }); },
+  unlock() { [392, 523, 659, 784, 1046].forEach((f, i) => tone(f, 0.14, { type: 'triangle', delay: i * 0.08, vol: 0.12 })); },
 };

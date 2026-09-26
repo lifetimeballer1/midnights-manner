@@ -1,0 +1,66 @@
+[
+  {
+    "id": "second-field",
+    "name": "A Second Field",
+    "text": "One farm feeds a few. Two farms feed a future. Raise a second Wheat Farm.",
+    "task": { "kind": "build", "type": "farm", "count": 2 },
+    "xp": 60,
+    "rewards": { "wood": 40 }
+  },
+  {
+    "id": "still-water",
+    "name": "Still Water",
+    "text": "Fish shine like fallen stars in the dark. Dig a Stillwater Pond.",
+    "task": { "kind": "build", "type": "pond", "count": 1 },
+    "xp": 60,
+    "rewards": { "food": 30 }
+  },
+  {
+    "id": "first-cast",
+    "name": "First Cast",
+    "text": "A pond without a fisher is just a puddle. Recruit a Fisherman from the People panel.",
+    "task": { "kind": "recruit", "type": "fisherman", "count": 1 },
+    "xp": 60,
+    "rewards": { "gold": 30 }
+  },
+  {
+    "id": "roof-for-night",
+    "name": "A Roof for the Night",
+    "text": "Cold nights make short tempers. Build a Moonlit Cottage so new blood has a bed.",
+    "task": { "kind": "build", "type": "cottage", "count": 1 },
+    "xp": 80,
+    "rewards": { "food": 40 }
+  },
+  {
+    "id": "every-hand",
+    "name": "A Place for Every Hand",
+    "text": "Idle hands, empty bellies. Assign 2 villagers to workplaces from the People panel.",
+    "task": { "kind": "assign", "count": 2 },
+    "xp": 80,
+    "rewards": { "gold": 30 }
+  },
+  {
+    "id": "new-blood",
+    "name": "New Blood",
+    "text": "Full bellies and warm beds — the village grows on its own. Reach 8 villagers.",
+    "task": { "kind": "population", "count": 8 },
+    "xp": 100,
+    "rewards": { "gold": 60 }
+  },
+  {
+    "id": "east-field",
+    "name": "Clearing the East Field",
+    "text": "The treeline retreats as the village proves itself. Reach village level 3 to open new rows.",
+    "task": { "kind": "level", "level": 3 },
+    "xp": 120,
+    "rewards": { "wood": 80 }
+  },
+  {
+    "id": "full-crew",
+    "name": "A Full Crew",
+    "text": "Twelve souls under one moon. Reach 12 villagers and the frontier is truly yours.",
+    "task": { "kind": "population", "count": 12 },
+    "xp": 150,
+    "rewards": { "gold": 100, "food": 60 }
+  }
+]
