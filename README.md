@@ -49,7 +49,7 @@ data/                  editable game configuration JSON
 scripts/
   build.mjs            creates deployable dist/ from public files only
   generate_sprites.py  optional Pillow-based sprite source
- tests/                Node simulation/data regression tests
+tests/                 Node simulation/data regression tests
 .github/workflows/pages.yml
 ```
 

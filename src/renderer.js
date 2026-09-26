@@ -38,7 +38,7 @@ export class Renderer {
     this.sprite(unit?this.data.troops[b.type].sprite:'raider.png',b.x,b.y,39);
     const p=this.project(b.x,b.y);
     if(unit){
-     const item=this.data.items[b.gear];c.save();c.translate(p.x+12,p.y-8);if(b.animation>0)c.rotate(item.animation==='slam'?-1.2:Math.sin(b.animation*14)*1.1);c.drawImage(this.images[item.sprite],-8,-24,29,29);c.restore();
+     const item=this.data.items[b.gear];c.save();c.translate(p.x+12,p.y-8);if(b.animation>0)c.rotate(item.animation==='slam'?-1.2:item.animation==='sweep'?(b.animation/.4)*Math.PI-Math.PI/2:Math.sin(b.animation*14)*.7);c.drawImage(this.images[item.sprite],-8,-24,29,29);c.restore();
      if(b.carry>0){c.fillStyle='#d3ae61';c.fillRect(p.x-14,p.y-10,4,5);}
      if(b.hp<stats(b,this.data).hp)this.bar(p.x,p.y+10,b.hp/stats(b,this.data).hp,20,'#80a56b');
     }else this.bar(p.x,p.y+9,b.hp/b.maxHp,22,'#bd7770');

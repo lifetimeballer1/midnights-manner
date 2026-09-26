@@ -23,7 +23,7 @@ export function createWorld(data,layout=data.world) {
 export function afford(resources,cost) { return Object.entries(cost).every(([k,v])=>resources[k]>=v); }
 export function pay(resources,cost) {if(!afford(resources,cost)) return false; for(const [k,v] of Object.entries(cost)) resources[k]-=v; return true;}
 export function builderBonuses(world,data) {
-  const crew=world.troops.filter(t=>t.type==='builder'&&t.hp>0);
+  const crew=world.troops.filter(t=>data.troops[t.type].role==='builder'&&t.hp>0);
   return {speed:1+crew.reduce((n,t)=>n+(data.items[t.gear].stats.buildSpeed||1)-1,0),discount:Math.min(.5,Math.max(0,...crew.map(t=>data.items[t.gear].stats.costReduction||0)))};
 }
 export function buildingCost(type,level,world,data) {
