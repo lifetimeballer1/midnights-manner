@@ -1,5 +1,6 @@
+import {wallRowQuote,wallLine,isWall} from './systems/walls.js';
 import {nextStep,blocked} from './systems/pathfinding.js';
-import {createWorld,makeBuilding,makeUnit,canPlace,inBounds,pay,stats,buildingCost,center,assignmentValid,promotionOptions} from './model.js';
+import {createWorld,makeBuilding,makeUnit,canPlace,inBounds,pay,afford,stats,buildingCost,center,assignmentValid,promotionOptions} from './model.js';
 import {tickVillage,gainXp} from './systems/village.js';
 import {tickEconomy} from './systems/economy.js';
 import {tickCombat,spawnRaid,activateAbility} from './systems/combat.js';
@@ -19,7 +20,7 @@ function raidConfig(data) {
     baseCount: Number.isFinite(c.baseCount) ? c.baseCount : 3,
     perWave: Number.isFinite(c.perWave) ? c.perWave : 1,
     maxCount: Number.isFinite(c.maxCount) ? c.maxCount : 8,
-    warningLines: Array.isArray(c.warningLines) && c.warningLines.length ? c.warningLines : ['Horns in the west — {count} raiders, {seconds} to the walls!'],
+    warningLines: Array.isArray(c.warningLines) && c.warningLines.length ? c.warningLines : ['Horns around the village — {count} raiders, {seconds} to the walls!'],
     attackLines: Array.isArray(c.attackLines) && c.attackLines.length ? c.attackLines : ['Wave {wave} — {count} raiders! Defend the manor!'],
     victoryLines: Array.isArray(c.victoryLines) && c.victoryLines.length ? c.victoryLines : ['Raid repelled! {kills} raiders fell · +{loot} gold loot.'],
     defeatLines: Array.isArray(c.defeatLines) && c.defeatLines.length ? c.defeatLines : ['The manor fell. Salvaged wood is available for repairs.']
@@ -71,6 +72,26 @@ export class Game {
   // the building is the blessing it keeps, at half strength, ever after.
   if(this.data.buildings[type]?.moonDial){try{const s=seasonFor(this.data.calendar,new Date());if(s?.season?.id)b.dialSeason=s.season.id;}catch{}}
   this.world.buildings.push(b);const cp=center(b,this.data);this.world.effects.push({x:cp.x,y:cp.y,tx:cp.x,ty:cp.y,kind:'place',life:.6});sfx.place();this.notify(`${this.data.buildings[type].name} construction started.`);return b;
+ }
+ buildWallRow(type,start,end){
+  if(this.paused||!isWall({type})||this.locked(type))return false;
+  const cells=wallLine(start,end),spec=this.data.buildings[type];
+  if(!cells.length||(spec.minLevel||1)>(this.state.vlevel||1))return false;
+  if(!cells.every(p=>canPlace(this.world,this.data,type,p.x,p.y))){this.notify('Wall row blocked. Choose a clear line inside your land.');return false;}
+  const unitCost=buildingCost(type,1,this.world,this.data),cost=Object.fromEntries(Object.entries(unitCost).map(([k,v])=>[k,v*cells.length]));
+  if(!afford(this.world.resources,cost)){this.notify('Not enough resources for this wall row.');return false;}
+  for(const p of cells)this.build(type,p.x,p.y);
+  this.notify(`${cells.length} wall segments under construction.`);return true;
+ }
+ upgradeWallRow(id,axis='x'){
+  if(this.paused)return false;
+  const quote=wallRowQuote(this.world,this.data,id,axis,this.state.vlevel||1);
+  if(!quote.eligible.length){this.notify('No finished walls in this row are ready to upgrade.');return false;}
+  // Preflight the entire price so insufficient funds never leave a partial row.
+  if(!afford(this.world.resources,quote.cost)){this.notify('Not enough resources to upgrade this row.');return false;}
+  for(const b of quote.eligible)this.upgrade(b.id);
+  this.notify(`${quote.eligible.length} wall segments upgrading. ${quote.row.length-quote.eligible.length} unchanged (busy, ruined, gated or max tier).`);
+  return true;
  }
  upgrade(id){
   const b=this.world.buildings.find(b=>b.id===id);if(!b||b.hp<=0||b.remaining>0)return;
@@ -258,7 +279,7 @@ export class Game {
    }
   }
   if(this.world.raidPending&&!this.state.mission){this.world.raidPending.timer-=dt;
-   if(this.world.raidPending.timer<=0){const {count,scheduled}=this.world.raidPending;this.world.raidPending=null;spawnRaid(this.world,count);
+   if(this.world.raidPending.timer<=0){const {count,scheduled}=this.world.raidPending;this.world.raidPending=null;spawnRaid(this.world,count,null,this.data);
     this.notify(scheduled?fillLine(pickLine(cfg.attackLines,this.world.wave),{count,wave:this.world.wave}):`Wave ${this.world.wave} — ${count} raiders! Defend the manor!`);}}
   const raided=!this.state.mission&&(this.world.enemies.length>0||this.world.raidPending);
   for(const b of this.world.buildings){const spec=this.data.buildings[b.type];if(spec.harvest&&b.hp>0&&b.remaining<=0)b.harvestBonus=Math.min(spec.harvest.capacity,Math.max(0,Number.isFinite(b.harvestBonus)?b.harvestBonus:0)+spec.harvest.bonusRate*b.level*dt);}

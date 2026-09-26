@@ -1,3 +1,11 @@
+## 0.1.1 — All-side raids and wall controls
+
+- Home, test and campaign raids enter from rotating perimeter sides; four-or-more raiders cover all four sides. Countdown warnings list the sides.
+- Dragging in wall build mode previews a connected straight row with a combined cost; confirmation builds the whole line or nothing.
+- Build/Move previews slide with one finger; two fingers pan and zoom. Release never commits a build or move. Relocation previews preserve the current tier.
+- Connected timber/stone wall rows can upgrade along either grid axis with a combined price and all-or-nothing affordability check. Gaps stop a row; unavailable segments are skipped.
+- Unreachable defenders no longer keep raiders idle beside a wall; adjacent barriers can be breached.
+
 # Midnights Manner — Extended Pass Changelog
 
 ## 20-phase: Act VIII Legends (2026-09-26)

@@ -13,7 +13,8 @@ function box(r,x,y,w,d,h,palette){
  polygon(c,top,palette.top);
  c.strokeStyle=palette.trim;c.lineWidth=Math.max(.6,z*.5);c.beginPath();c.moveTo(top[3].x,top[3].y);c.lineTo(top[2].x,top[2].y);c.lineTo(top[1].x,top[1].y);c.stroke();
 }
-export const isWall=b=>b.type==='wall'||b.type==='stonewall';
+import {isWall} from './systems/walls.js';
+export {isWall};
 export function wallNeighbors(b,world){return [[0,-1],[-1,0],[1,0],[0,1]].filter(([dx,dy])=>world.buildings.some(n=>isWall(n)&&n.hp>0&&n.x===b.x+dx&&n.y===b.y+dy));}
 export function drawWall(r,b,world){
  const c=r.ctx,p=PALETTES[Math.min(2,b.level-1+(b.type==='stonewall'?1:0))],height=10+b.level*5+(b.type==='stonewall'?4:0);

@@ -48,7 +48,7 @@ export function tickMission(game,data) {
  if(!m||!w)return;
  game.mission.fired=game.mission.fired||[];
  if(!Number.isFinite(w.elapsed)||w.elapsed<0)w.elapsed=0;
- for(const [i,raid] of m.raids.entries())if(w.elapsed>=raid.at&&!game.mission.fired.includes(i)){spawnRaid(w,raid.count,m.scaling||raid.scaling||null);game.mission.fired.push(i);}
+ for(const [i,raid] of m.raids.entries())if(w.elapsed>=raid.at&&!game.mission.fired.includes(i)){spawnRaid(w,raid.count,m.scaling||raid.scaling||null,game.data);game.mission.fired.push(i);}
  const hall=w.buildings.find(b=>b.type==='hall');
  if(!hall||hall.hp<=0){game.mission.status='lost';return;}
  if(m.objectives.every(o=>w.gathered[o.resource]>=o.amount)&&game.mission.fired.length===m.raids.length&&w.enemies.length===0)game.mission.status='won';
