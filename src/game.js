@@ -23,7 +23,10 @@ export class Game {
   if(b.level>=this.data.buildings[b.type].tiers.length)return this.notify('This building is at its highest tier.');
   const cost=b.type==='hall'?{wood:200*b.level,gold:150*b.level}:buildingCost(b.type,b.level+1,this.world,this.data);
   if(!pay(this.world.resources,cost))return this.notify('Not enough resources for this upgrade.');
-  b.level++;b.hp=this.data.buildings[b.type].tiers[b.level-1].hp;b.remaining=6*b.level;const cp=center(b,this.data);this.world.effects.push({x:cp.x,y:cp.y,tx:cp.x,ty:cp.y,kind:'fanfare',life:.8});sfx.upgrade();this.notify('Upgrade started. Your builders are on it.');
+  b.level++;b.hp=this.data.buildings[b.type].tiers[b.level-1].hp;
+  // Mid-game pacing: upgrades after the first 5 minutes take 50% longer.
+  // Early snappy builds (4-6s new construction, fast first upgrades) untouched.
+  b.remaining=6*b.level*((this.world.elapsed||0)>300?1.5:1);const cp=center(b,this.data);this.world.effects.push({x:cp.x,y:cp.y,tx:cp.x,ty:cp.y,kind:'fanfare',life:.8});sfx.upgrade();this.notify('Upgrade started. Your builders are on it.');
  }
  repair(id){const b=this.world.buildings.find(b=>b.id===id);if(!b)return;const max=this.data.buildings[b.type].tiers[b.level-1].hp;if(b.hp>=max)return;
   if(!pay(this.world.resources,{wood:Math.ceil((max-b.hp)/15)}))return this.notify('Gather more wood to repair.');b.hp=max;const cp=center(b,this.data);this.world.effects.push({x:cp.x,y:cp.y,tx:cp.x,ty:cp.y,kind:'heal',life:.3});sfx.repair();this.notify('Building repaired.');}
@@ -51,7 +54,7 @@ export class Game {
   if(!pay(this.world.resources,this.data.troops[type].recruitCost))return this.notify('Not enough food or gold.');
   this.world.troops.push(makeUnit(type,this.data,this.world.troops.length%5));sfx.upgrade();this.notify(`${this.data.troops[type].name} recruited.`);
  }
- level(id){const u=this.world.troops.find(t=>t.id===id);if(!u||u.level>=this.data.troops[u.type].maxLevel)return;const cost=Object.fromEntries(Object.entries(this.data.troops[u.type].levelCost).map(([k,v])=>[k,Math.ceil(v*u.level)]));if(!pay(this.world.resources,cost))return this.notify('Not enough food or gold to train.');u.level++;u.hp=stats(u,this.data).hp;this.notify(`Level ${u.level} reached${u.level%5===0?' — new ability unlocked!':'.'}`);}
+ level(id){const u=this.world.troops.find(t=>t.id===id);if(!u||u.level>=this.data.troops[u.type].maxLevel)return;const curve=u.level>=5?1.5:1;const cost=Object.fromEntries(Object.entries(this.data.troops[u.type].levelCost).map(([k,v])=>[k,Math.ceil(v*u.level*curve)]));if(!pay(this.world.resources,cost))return this.notify('Not enough food or gold to train.');u.level++;u.hp=stats(u,this.data).hp;this.notify(`Level ${u.level} reached${u.level%5===0?' — new ability unlocked!':'.'}`);}
  equip(id,itemId){const u=this.world.troops.find(t=>t.id===id),item=this.data.items[itemId];if(!u||!item||!item.roles.includes(u.type)||this.locked(itemId))return;
   if(!u.owned.includes(itemId)){if(!pay(this.world.resources,item.cost))return this.notify('Not enough resources for this equipment.');u.owned.push(itemId);}u.gear=itemId;this.notify(`${item.name} equipped.`);}
  ability(id,ability){const u=this.world.troops.find(t=>t.id===id);if(u)this.notify(activateAbility(this.world,this.data,u,ability)?'Rallying light restores nearby allies.':'Ability is not ready.');}

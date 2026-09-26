@@ -107,7 +107,10 @@ export function housing(world, data) {
 }
 export function buildingCost(type,level,world,data) {
   const discount=builderBonuses(world,data).discount;
-  return Object.fromEntries(Object.entries(data.buildings[type].cost).map(([k,v])=>[k,Math.ceil(v*level*(1-discount))]));
+  // Mid-game pacing: tier-3 price tags run 50% hot. Tier 1-2 (the snappy
+  // opening) and 2-tier buildings are untouched.
+  const tier3 = level>=3 ? 1.5 : 1;
+  return Object.fromEntries(Object.entries(data.buildings[type].cost).map(([k,v])=>[k,Math.ceil(v*level*tier3*(1-discount))]));
 }
 export function inBounds(world, data, type, x, y) {
   const size = data.buildings[type].size, b = world.bounds || {w:data.world.width,h:data.world.height};

@@ -51,7 +51,11 @@ export function tickEconomy(world,data,dt) {
   if (b.maxReserve && b.reserve < b.maxReserve) b.reserve = Math.min(b.maxReserve, b.reserve + b.maxReserve * REGEN_FRACTION * dt);
   if(spec.production) {
    const mult = reserveMult(b);
-   const made = spec.rate*spec.tiers[b.level-1].rateMultiplier*mult*dt;
+   // Mid-game pacing: first 5 minutes run full tilt (snappy opening);
+   // after that passive nodes yield 75% so expansion must come from
+   // collectors, upgrades and new buildings instead of idle income.
+   const mid = (world.elapsed||0) > 300 ? 0.75 : 1;
+   const made = spec.rate*spec.tiers[b.level-1].rateMultiplier*mult*mid*dt;
    drain(b, made);
    addResource(world,spec.production,made);
    // Batch passive income into visible +N popups on the producing building.
@@ -78,7 +82,8 @@ export function tickEconomy(world,data,dt) {
    if(u.phase==='return'){addResource(world,spec.gatherResource,u.carry);const cp=center(hall,data);floatText(world,cp.x,cp.y,`+${Math.floor(u.carry)} ${GLYPH[spec.gatherResource]}`,'#ffe9a8');sparkle(world,cp.x,cp.y);sfx.collect();u.carry=0;u.phase='gather';}
    else {
     const bonus=unlockedAbilities(u,data).filter(a=>a.effect==='gather').reduce((n,a)=>n+a.value,1);
-    const rate = 3*(item.gather||1)*bonus*(1+(aura.gather||0))*gatherBonus(u,world,data);
+    const midC = (world.elapsed||0) > 300 ? 0.85 : 1;
+    const rate = 3*(item.gather||1)*bonus*(1+(aura.gather||0))*gatherBonus(u,world,data)*midC;
     const room = Math.max(0,capacity-u.carry);
     let fill=Math.min(room,rate*dt*reserveMult(source));
     if(!Number.isFinite(fill)||fill<0)fill=0;
