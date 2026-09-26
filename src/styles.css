@@ -21,3 +21,36 @@ body.raid-active .canvas-wrap{box-shadow:inset 0 0 0 3px #b23c32;border-radius:4
 body.raid-active #day{color:#b23c32;font-weight:700}
 .inspector small{color:#939c8a}
 @media(prefers-reduced-motion:reduce){body.raid-active .canvas-wrap{box-shadow:inset 0 0 0 3px #b23c32}}
+/* --- Visual pass: game chrome --- */
+.resource{background:#24382f;border:1px solid #c1a570;border-radius:999px;padding:6px 14px 6px 10px;box-shadow:0 2px 6px #00000055}
+.resource .symbol{font-size:19px}
+.resource b{color:#f3eddc}
+#raid{font-size:14px;padding:14px 22px;background:linear-gradient(180deg,#c65a3e,#a53f2a);border:2px solid #f2c96e;box-shadow:0 0 0 2px #1c302c,0 4px 14px #a53f2a88;animation:raidpulse 2.2s ease-in-out infinite}
+#raid:hover{background:linear-gradient(180deg,#d56a4a,#b34a32)}
+@keyframes raidpulse{0%,100%{box-shadow:0 0 0 2px #1c302c,0 4px 14px #a53f2a88}50%{box-shadow:0 0 0 2px #f2c96e,0 4px 22px #f2c96ecc}}
+button.primary{background:linear-gradient(180deg,#3f6d50,#2c4f3a);border:2px solid #c1a570;box-shadow:0 3px 8px #00000044}
+.build-card{border-width:2px;box-shadow:0 2px 5px #00000022}
+.build-card:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 5px 12px #00000033;border-color:#c69d51}
+.build-card.selected{border-color:#f2c96e;box-shadow:0 0 0 2px #f2c96e,0 4px 12px #00000033}
+.tabs button.active{border-bottom-width:3px}
+.person-card,.mission-card{border-width:2px;box-shadow:0 2px 5px #00000022}
+/* --- Visual pass: phone layout (canvas hero at 390px) --- */
+@media(max-width:480px){
+h1{font-size:22px;margin-top:8px}
+.village{padding:16px 12px 0}
+.village-heading{margin-bottom:2px}
+.canvas-wrap{margin:4px -12px 6px}
+.map-label{left:14px;top:10px}
+.compass{display:none}
+.map-tools{right:10px;bottom:10px}
+.map-tools button{min-height:44px;min-width:44px;font-size:11px}
+.placement-hint{left:14px;bottom:14px}
+#panel .build-list{grid-template-columns:1fr 1fr}
+.person-card{width:100%;margin-right:0}
+.inspector{flex-direction:column;align-items:flex-start;min-height:0}
+.inspector img{width:52px}
+#raid{width:100%;min-height:48px}
+.resource{padding:5px 10px 5px 8px;min-width:0}
+.resource b{font-size:15px}
+}
+@media(prefers-reduced-motion:reduce){#raid{animation:none}}

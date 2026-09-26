@@ -6,24 +6,24 @@ export class Renderer {
  cell(event){const r=this.canvas.getBoundingClientRect();return this.unproject((event.clientX-r.left)*this.canvas.width/r.width,(event.clientY-r.top)*this.canvas.height/r.height);}
  diamond(x,y,color,stroke){const c=this.ctx,p=this.project(x,y);c.beginPath();c.moveTo(p.x,p.y);c.lineTo(p.x+this.tw/2,p.y+this.th/2);c.lineTo(p.x,p.y+this.th);c.lineTo(p.x-this.tw/2,p.y+this.th/2);c.closePath();c.fillStyle=color;c.fill();if(stroke){c.strokeStyle=stroke;c.lineWidth=.6;c.stroke();}}
  sprite(name,x,y,size=56,alpha=1){const p=this.project(x,y),img=this.images[name];if(!img)return;this.ctx.globalAlpha=alpha;this.ctx.drawImage(img,Math.round(p.x-size/2),Math.round(p.y-size+12),size,size);this.ctx.globalAlpha=1;}
- tree(x,y,n){const c=this.ctx,p=this.project(x,y),h=26+n%3*8;c.fillStyle='#7d826553';c.beginPath();c.ellipse(p.x+8,p.y+7,14,5,0,0,Math.PI*2);c.fill();c.fillStyle='#766a4b';c.fillRect(p.x-2,p.y-h/3,4,h/3+6);for(let l=0;l<3;l++){c.fillStyle=['#5f7856','#6e875e','#80966a'][l];const top=p.y-h+l*8;c.beginPath();c.moveTo(p.x,top);c.lineTo(p.x+14-l*2,top+20);c.lineTo(p.x-14+l*2,top+20);c.closePath();c.fill();}}
+ tree(x,y,n){const c=this.ctx,p=this.project(x,y),h=26+n%3*8;c.fillStyle='#0e1f1833';c.beginPath();c.ellipse(p.x+8,p.y+7,14,5,0,0,Math.PI*2);c.fill();c.fillStyle='#4a3826';c.fillRect(p.x-2,p.y-h/3,4,h/3+6);for(let l=0;l<3;l++){c.fillStyle=['#1f4a34','#2a5f42','#3a7a52'][l];const top=p.y-h+l*8;c.beginPath();c.moveTo(p.x,top);c.lineTo(p.x+14-l*2,top+20);c.lineTo(p.x-14+l*2,top+20);c.closePath();c.fill();}}
  draw(world,time){
   const c=this.ctx;c.clearRect(0,0,1100,740);c.imageSmoothingEnabled=false;
-  // Ambient paper and a raised, diamond-shaped clearing.
-  c.fillStyle='#a3ac7c25';c.beginPath();c.ellipse(543,385,410,190,0,0,Math.PI*2);c.fill();
+  // Ambient moonlit clearing over deep night soil.
+  c.fillStyle='#16281f45';c.beginPath();c.ellipse(543,385,410,190,0,0,Math.PI*2);c.fill();
   for(let y=-3;y<20;y++)for(let x=-3;x<24;x++){
    const n=((x*67+y*113+10000)*17)%101, checker=(x+y)%2===0;
    const edge=x<0||y<0||x>=20||y>=16;
-   // Checkerboard light/dark pair keeps adjacent tiles distinguishable; edges fall off darker.
-   const inner=checker?['#aebd8d','#b3c48f','#b8c795','#a9ba86'][Math.abs(n)%4]:['#c3d19e','#c7d4a4','#cbd7a8','#bfd09c'][Math.abs(n)%4];
-   this.diamond(x,y,edge?['#c9d0ac','#c6cea6','#ced4b5'][Math.abs(n)%3]:inner,this.grid&&!edge?'#6f8a62':null);
-   if(!edge&&n%9===0){const p=this.project(x+.5,y+.5);c.fillStyle='#91a77688';c.fillRect(p.x,p.y,2,3);c.fillRect(p.x+3,p.y-1,1,3);}
+   // Moonlit-night checkerboard: deep pine vs moonlit moss; edges fall off darker.
+   const inner=checker?['#2f5240','#335844','#38604a','#2c4e3d'][Math.abs(n)%4]:['#3f6b4e','#45755a','#4c805f','#3a6547'][Math.abs(n)%4];
+   this.diamond(x,y,edge?['#22392e','#1f342a','#263e33'][Math.abs(n)%3]:inner,this.grid&&!edge?'#9db87a':null);
+   if(!edge&&n%9===0){const p=this.project(x+.5,y+.5);c.fillStyle='#6fae7a88';c.fillRect(p.x,p.y,2,3);c.fillRect(p.x+3,p.y-1,1,3);}
   }
-  // Winding stream outside the settlement; a readable soft border for the map.
-  for(let i=-2;i<21;i++){this.diamond(i,17+(i%4===0?1:0),'#9dbab3');const p=this.project(i+.5,17.5);c.fillStyle='#c7d8cd';c.fillRect(p.x-6,p.y+2,8,1);}
+  // Moonlit stream outside the settlement; a readable cool border for the map.
+  for(let i=-2;i<21;i++){this.diamond(i,17+(i%4===0?1:0),'#2e6b7a');const p=this.project(i+.5,17.5);c.fillStyle='#7fc4d4';c.fillRect(p.x-6,p.y+2,8,1);}
   for(let i=0;i<20;i++){if(i%3!==0)this.tree(i,-1.5,i);if(i%2===0)this.tree(-1.5,i%16,i+2);if(i%3===0)this.tree(21,i%16,i);}
-  // Small paths join the manor clearing.
-  for(let x=5;x<15;x++)this.diamond(x,11,'#c7bc96');for(let y=4;y<11;y++)this.diamond(10,y,'#c7bc96');
+  // Lantern-lit dirt paths join the manor clearing, with a spur to the east fields.
+  for(let x=4;x<16;x++)this.diamond(x,11,'#a8895a');for(let y=4;y<11;y++)this.diamond(10,y,'#a8895a');for(let y=8;y<11;y++)this.diamond(13,y,'#a8895a');
   if(this.placing&&this.hover){const valid=canPlace(world,this.data,this.placing,this.hover.x,this.hover.y,this.moving);const size=this.data.buildings[this.placing].size;for(let y=0;y<size;y++)for(let x=0;x<size;x++)this.diamond(this.hover.x+x,this.hover.y+y,valid?'#69a06bcc':'#c05a4ecc',valid?'#fff6d8':'#ffe3dc');}
   else if(this.hover&&this.grid)this.diamond(this.hover.x,this.hover.y,'#f2ecb988','#fff3c0');
   const drawables=[...world.buildings.map(b=>({kind:'building',value:b,depth:b.x+b.y+this.data.buildings[b.type].size})),...world.troops.map(t=>({kind:'unit',value:t,depth:t.x+t.y+.2})),...world.enemies.map(e=>({kind:'enemy',value:e,depth:e.x+e.y+.2}))].sort((a,b)=>a.depth-b.depth);

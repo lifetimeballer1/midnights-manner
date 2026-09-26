@@ -3,10 +3,31 @@ from PIL import Image, ImageDraw
 from pathlib import Path
 out=Path(__file__).resolve().parents[1]/'assets'/'sprites'
 out.mkdir(parents=True,exist_ok=True)
-ink='#182230'; stone='#8d9cae'; light='#e9dab2'; timber='#a26e40'; dark='#5d4430'; roof='#4e7a7e'; gold='#f2c96e'; rim='#bcd3e0'; glow='#ffe9a8'
+ink='#0b1220'; stone='#7e93a8'; light='#e9dab2'; timber='#96592c'; dark='#5d4430'; roof='#3d6f7f'; gold='#f2c96e'; rim='#bcd3e0'; glow='#ffe9a8'
+# Outline ink for the silhouette pass: solid near-black so every sprite carries the same weight.
+OUTLINE=(11,18,32,255)
 def canvas():
  im=Image.new('RGBA',(32,32)); return im,ImageDraw.Draw(im)
-def save(im,name): im.save(out/(name+'.png'))
+def save(im,name):
+ # Consistent dark outline + two-tone moonlit shading, applied generically so every
+ # sprite keeps its distinct silhouette and palette (multiplicative shade only).
+ px=im.load(); w,h=im.size
+ solid=lambda x,y: 0<=x<w and 0<=y<h and px[x,y][3]>=200
+ for y in range(h):
+  for x in range(w):
+   if px[x,y][3]<40 and (solid(x+1,y)or solid(x-1,y)or solid(x,y+1)or solid(x,y-1)):
+    px[x,y]=OUTLINE
+ # Top-light: lift the upper half, deepen the lower half of solid pixels only.
+ ys=[y for y in range(h)for x in range(w)if px[x,y][3]>=200]
+ if ys:
+  mid=(min(ys)+max(ys))//2
+  for y in range(h):
+   for x in range(w):
+    r,g,b,a=px[x,y]
+    if a>=200:
+     if y<=mid: px[x,y]=(min(255,int(r*1.07+6)),min(255,int(g*1.07+6)),min(255,int(b*1.07+6)),a)
+     else: px[x,y]=(int(r*.84),int(g*.84),int(b*.84),a)
+ im.save(out/(name+'.png'))
 for kind in ['hall','farm','lumber','mine','barracks','wall','tower','trap']:
  for t in range(1,4):
   im,d=canvas()
