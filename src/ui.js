@@ -2,6 +2,7 @@ import {stats,unlockedAbilities,buildingCost,housing,XP_LEVELS,center,assignedWo
 import {currentQuest,questProgress} from './systems/village.js';
 import {exportSave,importSaveBlob} from './storage.js';
 import {pickRumor,pickLegend,daySeed} from './systems/story.js';
+import {dayKey,seasonFor,modifierFor,dealsFor,marketOpen,tradeCap,describeDeal} from './systems/calendar.js';
 import {sfx,isMuted,toggleMute} from './systems/audio.js';
 const icons={wood:'▰',food:'♧',gold:'◆'};
 const resourceSprites={wood:'item-hammer.png',food:'item-sickle.png',gold:'item-pickaxe.png'};
@@ -53,6 +54,7 @@ export class UI {
    if(b.dataset.gear)this.game.equip(b.dataset.unit,b.dataset.gear);
    if(b.dataset.ability)this.game.ability(b.dataset.unit,b.dataset.ability);
    if(b.dataset.mission){this.cancel();this.clearSelection();this.game.mission(b.dataset.mission);if(this.game.state.mission){this.closePanel();this.renderer.fitVillage(this.game.world);}}
+   if(b.dataset.trade){this.game.trade(b.dataset.trade);}
    if(b.dataset.home){this.game.returnHome();this.cancel();this.clearSelection();this.closePanel();this.renderer.fitVillage(this.game.world);}
    this.lastPanel='';this.refresh();
   };
@@ -86,7 +88,8 @@ export class UI {
  refresh(){const g=this.game,w=g.world,d=g.data;
   const resourceHTML=Object.entries(w.resources).map(([key,value])=>`<div class="resource ${value<30?'low':''}" data-resource="${key}" title="${key}">${img(resourceSprites[key])}<div><b>${Math.floor(value).toLocaleString()}</b><small>${key}</small></div></div>`).join('');if($('#resources').innerHTML!==resourceHTML)$('#resources').innerHTML=resourceHTML;
   document.body.classList.toggle('raid-active',w.enemies.length>0||!!w.raidPending);
-  $('#day').textContent=`Day ${Math.floor(w.elapsed/180)+1} · ${g.state.mission?'Expedition':'Homestead'}`;
+  const seasonName=seasonFor(d.calendar,new Date())?.season?.name;
+  $('#day').textContent=`Day ${Math.floor(w.elapsed/180)+1} · ${g.state.mission?'Expedition':(seasonName||'Homestead')}`;
   $('#village-level').textContent=g.state.vlevel||1;const lv=g.state.vlevel||1,lo=XP_LEVELS[lv-1]||0,hi=XP_LEVELS[lv]||lo+1;$('#xp-fill').style.width=`${Math.max(0,Math.min(100,((g.state.xp||0)-lo)/(hi-lo)*100))}%`;
   $('#chapter-count').textContent=`${g.state.completed.length} / ${d.missions.length}`;$('#population-count').textContent=`${w.troops.length} villagers`;$('#wave-count').textContent=g.state.mission?'Expedition':`Wave ${w.wave+1}`;
   if(this.lastMessage!==g.message){this.lastMessage=g.message;$('#status').textContent=g.message;this.toastTime=4.5;$('#status').classList.add('show');const log=$('#event-log');if(log)log.textContent=g.message;}
@@ -120,7 +123,23 @@ export class UI {
  renderStory(){const g=this.game,w=g.world;
   const rumor=pickRumor(g.data.rumors,daySeed());
   const board=rumor?`<div class="notice-board" aria-live="polite"><span>NOTICE BOARD</span><p>${rumor.text}</p></div>`:'';
-  this.setPanelHTML(`<div class="panel-heading"><span>TALES OF THE FRONTIER</span><span>${g.data.missions.length} chapters</span></div>${board}${this.questBlock(g)}${g.data.missions.map(m=>{const current=g.state.mission?.id===m.id,completed=g.state.completed.includes(m.id),locked=!m.requires.every(id=>g.state.completed.includes(id));return `<article class="mission-card"><div class="chapter">CHAPTER ${m.chapter}${m.act?` · ACT ${m.act}`:''} ${completed?'· COMPLETE':locked?'· LOCKED':''}</div><h3>${m.name}</h3><p>${m.description}</p>${m.beat?`<p class="mission-beat">${m.beat}</p>`:''}${current&&m.ceremony?`<p class="ceremony">${m.ceremony.warning}</p>`:''}<div class="details">${m.objectives.map(o=>`${current?Math.floor(w.gathered[o.resource])+' / ':''}${o.amount} ${o.resource} collected${current?`<div class="progress"><div style="width:${Math.min(100,w.gathered[o.resource]/o.amount*100)}%"></div></div>`:'<br>'}`).join('')}${current?Math.max(0,Math.ceil(m.timeLimit-w.elapsed)):m.timeLimit}s ${current?'remaining':'limit'} · ${m.troopLimit} people maximum<br>${m.raids.length} scheduled raids ${m.raids.length?'· defeat every wave':''}<br>First-clear reward: ${cost(m.rewards)}<br>Unlock: ${m.unlocks.map(id=>g.data.buildings[id]?.name||g.data.items[id]?.name).join(', ')}</div>${current?`<p class="result">${g.state.mission.status==='won'?'The frontier is yours. Mission complete.':g.state.mission.status==='lost'?'The expedition was lost. Your home is safe.':'Your home village is paused during this expedition.'}</p><button class="primary" data-home="true">${g.state.mission.status==='won'?'Claim rewards & return':g.state.mission.status==='lost'?'Return home':'Abandon & return home'}</button>`:`<button class="primary" data-mission="${m.id}" ${locked||g.state.mission?'disabled':''}>${locked?'Complete the previous chapter':completed?'Replay chapter (no repeat rewards)':'Begin expedition →'}</button>`}</article>`;}).join('')}`);
+  this.setPanelHTML(`<div class="panel-heading"><span>TALES OF THE FRONTIER</span><span>${g.data.missions.length} chapters</span></div>${board}${this.marketBlock(g)}${this.questBlock(g)}${g.data.missions.map(m=>{const current=g.state.mission?.id===m.id,completed=g.state.completed.includes(m.id),locked=!m.requires.every(id=>g.state.completed.includes(id));return `<article class="mission-card"><div class="chapter">CHAPTER ${m.chapter}${m.act?` · ACT ${m.act}`:''} ${completed?'· COMPLETE':locked?'· LOCKED':''}</div><h3>${m.name}</h3><p>${m.description}</p>${m.beat?`<p class="mission-beat">${m.beat}</p>`:''}${current&&m.ceremony?`<p class="ceremony">${m.ceremony.warning}</p>`:''}<div class="details">${m.objectives.map(o=>`${current?Math.floor(w.gathered[o.resource])+' / ':''}${o.amount} ${o.resource} collected${current?`<div class="progress"><div style="width:${Math.min(100,w.gathered[o.resource]/o.amount*100)}%"></div></div>`:'<br>'}`).join('')}${current?Math.max(0,Math.ceil(m.timeLimit-w.elapsed)):m.timeLimit}s ${current?'remaining':'limit'} · ${m.troopLimit} people maximum<br>${m.raids.length} scheduled raids ${m.raids.length?'· defeat every wave':''}<br>First-clear reward: ${cost(m.rewards)}<br>Unlock: ${m.unlocks.map(id=>g.data.buildings[id]?.name||g.data.items[id]?.name).join(', ')}</div>${current?`<p class="result">${g.state.mission.status==='won'?'The frontier is yours. Mission complete.':g.state.mission.status==='lost'?'The expedition was lost. Your home is safe.':'Your home village is paused during this expedition.'}</p><button class="primary" data-home="true">${g.state.mission.status==='won'?'Claim rewards & return':g.state.mission.status==='lost'?'Return home':'Abandon & return home'}</button>`:`<button class="primary" data-mission="${m.id}" ${locked||g.state.mission?'disabled':''}>${locked?'Complete the previous chapter':completed?'Replay chapter (no repeat rewards)':'Begin expedition →'}</button>`}</article>`;}).join('')}`);
+ }
+ marketBlock(g){
+  const d=g.data;
+  if(g.state.mission)return `<div class="notice-board" aria-live="polite"><span>GREY MARKET</span><p>The wagons wait at home — finish the expedition first.</p></div>`;
+  if(!marketOpen(g.state))return `<div class="notice-board" aria-live="polite"><span>GREY MARKET</span><p>Dust on the Grey Road — no wagons yet. Grow the village to level 2 and the traders will find you.</p></div>`;
+  const now=new Date(),key=dayKey(now);
+  const s=seasonFor(d.calendar,now),m=modifierFor(d.calendar,now);
+  const sky=s||m?`<div class="notice-board" aria-live="polite"><span>TONIGHT'S SKY</span><p>${s?`${s.season.name}, day ${s.dayOfCycle} of 28. ${s.season.text} `:''}${m?`${m.name} — ${m.text}`:''}</p></div>`:';
+  const used=g.state.tradeDay===key&&(g.state.tradesUsed||{});
+  const deals=dealsFor(d.traders,d.calendar,now,g.state.vlevel||1);
+  if(!deals.length)return `${sky}<div class="notice-board" aria-live="polite"><span>GREY MARKET</span><p>No wagons on the road today. The bell will bring new faces tomorrow.</p></div>`;
+  const cards=deals.map(deal=>{const cap=tradeCap(deal),n=used?used[deal.id]||0:0,left=cap-n;
+   const short=!afford(g.world.resources,deal.give||{});
+   const done=left<=0;
+   return `<article class="mission-card"><div class="chapter">GREY MARKET · ${done?'DEAL DONE':`${left} OF ${cap} LEFT TODAY`}${deal.season?' · THIS SEASON ONLY':''}</div><h3>${describeDeal(deal)}</h3><p>${deal.flavor||''}</p><p class="mission-beat">${deal.trader?`— ${deal.trader}`:''}</p><button class="primary" data-trade="${deal.id}" ${done||short?'disabled':''}>${done?'Come back tomorrow':short?'Gather a little more':'Strike the deal →'}</button></article>`;}).join('');
+  return `${sky}<div class="panel-heading"><span>GREY MARKET · 3 WAGONS TODAY</span><span>Same faces all day</span></div>${cards}`;
  }
  questBlock(g){
   const d=g.data,done=g.state.questsCompleted||[];

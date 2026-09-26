@@ -1,6 +1,6 @@
 const KEY='midnights-manner-v2';
 const OLD_KEY='midnights-manner-v1';
-export const VERSION = 2;
+export const VERSION = 3;
 // In-memory fallback when localStorage is missing (private mode, SSR, tests)
 // or full (quota). Saves still work for the session; persist() warns.
 const memFallback = new Map();
@@ -64,9 +64,22 @@ function migrateV1toV2(value, data) {
   value.version = 2;
   return value;
 }
+// v2 -> v3: living-world layer (calendar + Grey Markets). Every new key is
+// optional with a sane default; old saves load untouched and ring the night
+// bell once on their next visit. Never wipes: unknown shapes fall back to
+// defaults, resources/buildings/troops/progress are never touched.
+function migrateV2toV3(value, data) {
+  if (!value || typeof value !== 'object') return null;
+  if (value.tradeDay === undefined) value.tradeDay = null;
+  if (!value.tradesUsed || typeof value.tradesUsed !== 'object' || Array.isArray(value.tradesUsed)) value.tradesUsed = {};
+  if (value.calendarDay === undefined) value.calendarDay = null;
+  if (value.gatheredAtBell !== undefined && (typeof value.gatheredAtBell !== 'object' || value.gatheredAtBell === null)) value.gatheredAtBell = null;
+  value.version = 3;
+  return value;
+}
 // Versioned migration registry — add future steps here, never wipe saves.
 // Each entry maps version N -> function upgrading to N+1.
-const MIGRATIONS = {1: migrateV1toV2};
+const MIGRATIONS = {1: migrateV1toV2, 2: migrateV2toV3};
 export function migrate(value, data) {
   return migrateToLatest(value, data);
 }

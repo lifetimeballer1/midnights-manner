@@ -87,8 +87,9 @@ test('story item 2: every 10th arrival earns a trade-name; flavor needs no save 
   assert.ok(d.names.given.includes(given), 'given name from the pool');
   assert.ok(d.names.trade.includes(rest.join(' ')), 'trade name from the pool');
   assert.ok(messages.some(m => m.includes(arrival.name)), 'village announces the name');
-  // Flavor-only: no persisted state, no version bump.
-  assert.equal(VERSION, 2);
+  // Flavor-only: no persisted state of its own. (The living-world layer
+  // later added calendar/trade keys under save version 3.)
+  assert.equal(VERSION, 3);
   for (const key of ['records', 'boardSeen', 'tradeDay', 'calendarDay', 'tradeNames'])
     assert.ok(!(key in state), `no save key ${key}`);
 });

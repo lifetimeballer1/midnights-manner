@@ -74,6 +74,15 @@ export function auras(world, data) {
     if (!job || job.workplace !== b.type) continue;
     if (job.effect === 'produce') out.food += (job.rate || 0.8) * spec_tier(b, data);
   }
+  // Living-world sky: the day's season + modifier blessings ride here as a
+  // transient world.calendarBonus set by game orchestration. Only known aura
+  // keys merge, and the caps below still hold — the sky never breaks the sim.
+  const sky = world.calendarBonus;
+  if (sky && typeof sky === 'object') {
+    for (const [k, v] of Object.entries(sky)) {
+      if (k in out && Number.isFinite(v)) out[k] += v;
+    }
+  }
   out.damage = Math.min(.3, out.damage);
   out.armor = Math.min(.3, out.armor);
   out.gather = Math.min(.45, out.gather);

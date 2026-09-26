@@ -1,13 +1,14 @@
 import {nextStep,blocked} from './systems/pathfinding.js';
 import {createWorld,makeBuilding,makeUnit,canPlace,inBounds,pay,stats,buildingCost,center,assignmentValid} from './model.js';
-import {tickVillage} from './systems/village.js';
+import {tickVillage,gainXp} from './systems/village.js';
 import {tickEconomy} from './systems/economy.js';
 import {tickCombat,spawnRaid,activateAbility} from './systems/combat.js';
 import {startMission,tickMission,finishMission} from './systems/campaign.js';
 import {load,save} from './storage.js';
+import {dayKey,seasonFor,modifierFor,calendarEffects,performTrade,marketOpen,describeDeal} from './systems/calendar.js';
 import {sfx} from './systems/audio.js';
 export class Game {
- constructor(data){this.data=data;this.state=load(data)||{world:createWorld(data),home:null,mission:null,completed:[],unlocks:['tower'],xp:0,vlevel:1,questsCompleted:[]};this.paused=false;this.message='Welcome home. Build a farm, equip your people, and prepare for the night.';this.dirty=true;this.saveTimer=0;}
+ constructor(data){this.data=data;this.state=load(data)||{world:createWorld(data),home:null,mission:null,completed:[],unlocks:['tower'],xp:0,vlevel:1,questsCompleted:[],tradeDay:null,tradesUsed:{},calendarDay:dayKey(new Date()),gatheredAtBell:null};this.paused=false;this.message='Welcome home. Build a farm, equip your people, and prepare for the night.';this.dirty=true;this.saveTimer=0;}
  get world(){return this.state.world;}
  notify(message){this.message=message;this.dirty=true;}
  locked(id){return this.data.world.locked.includes(id)&&!this.state.unlocks.includes(id);}
@@ -68,10 +69,49 @@ export class Game {
   const party=count??(this.world.wave===0?3:4+this.world.wave);this.world.raidPending={timer:3,count:party};this.world.raidKills=0;this.world.raidLoot=0;this.world.raidResult=null;sfx.horn();this.notify(`Scouts report ${party} raiders from the west — 3 seconds to positions!`);}
  mission(id){const m=this.data.missions.find(m=>m.id===id);if(startMission(this.state,this.data,id))this.notify(`${m?.ceremony?.warning||'Expedition begun.'} Your home village is safely paused.`);else this.notify('Finish the current raid or unlock the previous chapter first.');}
  returnHome(){const m=this.data.missions.find(m=>m.id===this.state.mission?.id);const result=finishMission(this.state,this.data);if(result?.first)this.notify(`${m?.ceremony?.victory||'Victory!'} Rewards and unlocks delivered to your village.`);else if(result?.won)this.notify('Returned home. First-clear rewards can only be claimed once.');else this.notify(`${m?.ceremony?.defeat||'Expedition lost.'} Your home is safe.`);this.persist();}
+ trade(id,date=new Date()){
+  if(this.paused)return this.notify('Resume the village to trade.');
+  if(this.state.mission)return this.notify('The traders wait at home — finish the expedition first.');
+  if(!marketOpen(this.state))return this.notify('Dust on the Grey Road — no wagons yet. Grow the village to level 2 and the traders will find you.');
+  const res=performTrade(this.state,this.data,id,date);
+  if(!res.ok)return this.notify(res.error);
+  if(res.xp)gainXp(this.state,res.xp);
+  sfx.collect();
+  const left=res.left>0?` (${res.left} left today)`:' (that was the last one today)';
+  this.notify(`Deal struck — ${describeDeal(res.deal)}${left}. ${res.deal.flavor}`);
+  this.persist();
+  return true;
+ }
+ // Nightly bell: first touch each calendar day rolls the world over — fresh
+ // trader caps, yesterday's harvest read aloud, today's sky announced. Old
+ // saves (calendarDay null) ring once on their next visit; brand-new games
+ // start on today so the welcome message stands.
+ checkCalendar(date=new Date()){
+  const key=dayKey(date);
+  this.world.calendarBonus=calendarEffects(this.data.calendar,date);
+  if(this.state.calendarDay===key)return false;
+  const g=this.world.gathered||{wood:0,food:0,gold:0};
+  const prev=this.state.gatheredAtBell;
+  this.state.calendarDay=key;
+  this.state.tradeDay=key;
+  this.state.tradesUsed={};
+  this.state.gatheredAtBell={wood:g.wood||0,food:g.food||0,gold:g.gold||0};
+  const s=seasonFor(this.data.calendar,date),m=modifierFor(this.data.calendar,date);
+  let line=`🔔 The night bell rings. ${s?`${s.season.name}, day ${s.dayOfCycle} of 28. `:''}${m?`${m.name}: ${m.text}`:'A quiet night on the frontier.'}`;
+  if(prev){
+   const dw=Math.max(0,Math.floor(g.wood-(prev.wood||0))),df=Math.max(0,Math.floor(g.food-(prev.food||0))),dg=Math.max(0,Math.floor(g.gold-(prev.gold||0)));
+   line+=` Yesterday the village raised ${dw} wood, ${df} food and ${dg} gold. The wagons have set out fresh deals.`;
+  }else line+=` The wagons have set out fresh deals.`;
+  sfx.bell();
+  this.notify(line);
+  this.persist();
+  return true;
+ }
  harvest(id){const b=this.world.buildings.find(b=>b.id===id),spec=b&&this.data.buildings[b.type];if(this.paused||!b||!spec.production||b.hp<=0||b.remaining>0)return false;const amount=Math.floor(b.harvestBonus||0);if(amount<1)return false;b.harvestBonus-=amount;this.world.resources[spec.production]+=amount;this.world.gathered[spec.production]+=amount;const at=center(b,this.data);this.world.effects.push({x:at.x,y:at.y,tx:at.x,ty:at.y,kind:'float',text:`+${amount} ${spec.production}`,color:'#ffe595',life:.9});sfx.collect();this.notify(`Collected ${amount} bonus ${spec.production}.`);return amount;}
  persist(){const ok=save(this.state);if(!ok)this.notify('Browser storage is unavailable. Progress cannot be saved here.');return ok;}
  importState(state){this.state=state;this.paused=false;this.saveTimer=0;this.dirty=true;this.notify('Save restored. Welcome back to the village.');}
  tick(dt){if(this.paused||this.state.mission?.status&&this.state.mission.status!=='active')return;
+  this.checkCalendar();
   if(this.world.raidPending&&!this.state.mission){this.world.raidPending.timer-=dt;
    if(this.world.raidPending.timer<=0){const {count}=this.world.raidPending;this.world.raidPending=null;spawnRaid(this.world,count);this.notify(`Wave ${this.world.wave} — ${count} raiders! Defend the manor!`);}}
   const raided=!this.state.mission&&(this.world.enemies.length>0||this.world.raidPending);
