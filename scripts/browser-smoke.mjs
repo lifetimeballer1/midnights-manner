@@ -45,7 +45,9 @@ try{
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[0].level'),2,'training applies');
  await click('#close-panel');
  // Manage a workplace from its map selection, then hire directly into it.
- await tap(await evaluate('window.midnightsManner.project(7,10)'));
+ await tap(await evaluate('(()=>{const p=window.midnightsManner.project(7,10);return {x:p.x,y:p.y-12};})()'));
+ await screenshot('workplace-selection');
+ console.log('Workplace selection:',await evaluate('document.querySelector("#inspector").textContent'));
  await click('[data-action="assign"]');
  await click('[data-staff]');
  assert.ok(await evaluate('window.midnightsManner.snapshot().world.troops.find(t=>t.type==="farmer").workplace'),'worker assigned from workplace');
