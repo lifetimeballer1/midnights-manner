@@ -6,13 +6,13 @@ import {Game} from '../src/game.js';
 import {migrateToLatest, VERSION} from '../src/storage.js';
 const data = Object.fromEntries(await Promise.all(['world','troops','items','abilities','buildings','missions','quests','levels','calendar','traders'].map(async n=>[n,JSON.parse(await readFile(new URL(`../data/${n}.json`,import.meta.url)))])));
 
-test('unlock chain: all six chapters grant something real, nothing dead or doubled', ()=>{
-  assert.equal(data.missions.length, 6);
+test('unlock chain: all eight chapters grant something real, nothing dead or doubled', ()=>{
+  assert.equal(data.missions.length, 8);
   const granted = [];
   for (const m of data.missions) {
     assert.ok(Array.isArray(m.unlocks) && m.unlocks.length > 0, `${m.id} grants an unlock`);
     for (const id of m.unlocks) {
-      assert.ok(data.buildings[id] || data.items[id], `${m.id} unlock ${id} resolves`);
+      assert.ok(data.buildings[id] || data.items[id] || data.troops[id], `${m.id} unlock ${id} resolves`);
       assert.ok(data.world.locked.includes(id), `${m.id} unlock ${id} is genuinely locked until earned`);
       granted.push(id);
     }
@@ -92,8 +92,8 @@ test('test-button raids still work and also reschedule the horns', ()=>{
   assert.ok(g.world.nextRaidAt > g.world.elapsed, 'manual raid pushes the next scheduled horn out');
 });
 
-test('migration v3->v4: fresh raid clock, earned unlocks healed, stores untouched', ()=>{
-  assert.equal(VERSION, 4);
+test('migration v3->v5: fresh raid clock, earned unlocks healed, stores untouched', ()=>{
+  assert.equal(VERSION, 5);
   const w = createWorld(data);
   delete w.nextRaidAt;
   w.elapsed = 900; // a veteran village, long past the first horn
@@ -103,7 +103,7 @@ test('migration v3->v4: fresh raid clock, earned unlocks healed, stores untouche
     unlocks: ['tower', 'trap'], xp: 120, vlevel: 2, questsCompleted: [],
     tradeDay: null, tradesUsed: {}, calendarDay: '2026-09-26', gatheredAtBell: null};
   const out = migrateToLatest(structuredClone(old), data);
-  assert.equal(out.version, 4);
+  assert.equal(out.version, 5);
   // One full interval of peace — never an instant horn on first load.
   assert.equal(out.world.nextRaidAt, 900 + data.world.homeRaids.interval);
   // Victories already won now pay what they always should have.

@@ -1,6 +1,6 @@
 const KEY='midnights-manner-v2';
 const OLD_KEY='midnights-manner-v1';
-export const VERSION = 4;
+export const VERSION = 5;
 // In-memory fallback when localStorage is missing (private mode, SSR, tests)
 // or full (quota). Saves still work for the session; persist() warns.
 const memFallback = new Map();
@@ -107,9 +107,24 @@ function migrateV3toV4(value, data) {
   value.version = 4;
   return value;
 }
+// v4 -> v5: armor-slot wardrobe (Act V). Every troop gains armor/armorOwned;
+// old saves backfill empty wardrobes — gear, resources, progress untouched.
+function migrateV4toV5(value, data) {
+  if (!value || typeof value !== 'object') return null;
+  for (const key of ['world', 'home']) {
+    const w = value[key];
+    if (!w || typeof w !== 'object') continue;
+    for (const t of w.troops || []) {
+      if (t.armor === undefined) t.armor = null;
+      if (!Array.isArray(t.armorOwned)) t.armorOwned = [];
+    }
+  }
+  value.version = 5;
+  return value;
+}
 // Versioned migration registry — add future steps here, never wipe saves.
 // Each entry maps version N -> function upgrading to N+1.
-const MIGRATIONS = {1: migrateV1toV2, 2: migrateV2toV3, 3: migrateV3toV4};
+const MIGRATIONS = {1: migrateV1toV2, 2: migrateV2toV3, 3: migrateV3toV4, 4: migrateV4toV5};
 export function migrate(value, data) {
   return migrateToLatest(value, data);
 }
@@ -135,7 +150,7 @@ export function peekVersion() {
   } catch { return null; }
 }
 export function validateSave(value, data) {
-  function valid(w){return w&&['wood','food','gold'].every(k=>Number.isFinite(w.resources?.[k])&&w.resources[k]>=0)&&Array.isArray(w.buildings)&&w.buildings.every(b=>data.buildings[b.type]&&Number.isInteger(b.level)&&b.level>=1&&b.level<=data.buildings[b.type].tiers.length&&Number.isFinite(b.hp)&&Number.isFinite(b.x)&&Number.isFinite(b.y))&&Array.isArray(w.troops)&&w.troops.every(t=>data.troops[t.type]&&data.items[t.gear]&&Number.isInteger(t.level)&&t.level>=1&&t.level<=data.troops[t.type].maxLevel&&Array.isArray(t.owned))&&Array.isArray(w.enemies)&&Array.isArray(w.effects);}
+  function valid(w){return w&&['wood','food','gold'].every(k=>Number.isFinite(w.resources?.[k])&&w.resources[k]>=0)&&Array.isArray(w.buildings)&&w.buildings.every(b=>data.buildings[b.type]&&Number.isInteger(b.level)&&b.level>=1&&b.level<=data.buildings[b.type].tiers.length&&Number.isFinite(b.hp)&&Number.isFinite(b.x)&&Number.isFinite(b.y))&&Array.isArray(w.troops)&&w.troops.every(t=>data.troops[t.type]&&data.items[t.gear]&&(!t.armor||data.items[t.armor])&&Number.isInteger(t.level)&&t.level>=1&&t.level<=data.troops[t.type].maxLevel&&Array.isArray(t.owned))&&Array.isArray(w.enemies)&&Array.isArray(w.effects);}
   if(!value||typeof value!=='object')return false;
   if(!valid(value.world)||!Array.isArray(value.completed)||!Array.isArray(value.unlocks))return false;
   if(value.mission&&(!valid(value.home)||!data.missions.some(m=>m.id===value.mission.id)))return false;

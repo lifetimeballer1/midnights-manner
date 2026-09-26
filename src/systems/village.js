@@ -1,7 +1,7 @@
 // Village-sim systems: quest walkthrough + XP levels, housing/population,
 // map expansion, and assigned-job trickles. All content from data/quests.json;
 // numbers below are gentle pacing constants, not content.
-import {levelForXp, EXPANSION, auras, housing, center, stats} from '../model.js';
+import {levelForXp, EXPANSION, auras, housing, center, stats, unlockedAbilities} from '../model.js';
 import {sfx} from './audio.js';
 import {makeTradeName} from './story.js';
 
@@ -27,6 +27,13 @@ function taskDone(task, state, data) {
   if (task.kind === 'population') return w.troops.length >= task.count;
   if (task.kind === 'level') return (state.vlevel || 1) >= task.level;
   if (task.kind === 'gather') return (w.gathered[task.resource] || 0) >= task.amount;
+  // Upgrade gates (Act V+): every listed building type stands at the
+  // tier — rewards preparation, never arrival arithmetic.
+  if (task.kind === 'upgrade') {
+    const types = Array.isArray(task.type) ? task.type : [task.type];
+    const level = task.level || 2;
+    return types.every(t => w.buildings.some(b => b.type === t && b.hp > 0 && b.level >= level));
+  }
   return false;
 }
 
@@ -38,6 +45,14 @@ function completeQuest(state, data, quest, notify) {
   state.questsCompleted.push(quest.id);
   gainXp(state, quest.xp);
   for (const [k, v] of Object.entries(quest.rewards || {})) state.world.resources[k] = (state.world.resources[k] || 0) + v;
+  // Quest-gated unlocks (data/quests.json `unlocks`, mirroring missions):
+  // earned, never bought — old saves with the quest already done keep
+  // their state; only a fresh completion grants.
+  const unlocked = [];
+  state.unlocks = state.unlocks || [];
+  for (const id of quest.unlocks || []) {
+    if (!state.unlocks.includes(id)) { state.unlocks.push(id); unlocked.push(id); }
+  }
   const w = state.world, cp = {x:10, y:8};
   const hall = w.buildings.find(b => b.type === 'hall' && b.hp > 0);
   const at = hall ? center(hall, data) : cp;
@@ -45,9 +60,10 @@ function completeQuest(state, data, quest, notify) {
   push(w, {x:at.x, y:at.y, tx:at.x, ty:at.y - 1.1, kind:'float', text:`+${quest.xp} XP`, color:'#ffe9a8', life:.9});
   sfx.quest();
   const rewardText = Object.entries(quest.rewards || {}).map(([k, v]) => `+${v} ${k}`).join(', ');
+  const unlockText = unlocked.map(id => data.buildings[id]?.name || data.items[id]?.name || id).join(', ');
   // Optional flavor fields (data/quests.json): old entries without them read unchanged.
   const flavor = quest.flavor ? ` ${quest.flavor}` : '';
-  notify(`Quest complete: ${quest.name}! +${quest.xp} XP${rewardText ? ` · ${rewardText}` : ''}.${flavor}`);
+  notify(`Quest complete: ${quest.name}! +${quest.xp} XP${rewardText ? ` · ${rewardText}` : ''}${unlockText ? ` · Unlocks: ${unlockText}` : ''}.${flavor}`);
 }
 
 function applyExpansion(state, data, notify) {
@@ -101,7 +117,7 @@ function tickPopulation(state, data, dt, notify) {
     if (!data.troops[type]) return;
     const existing = w.troops.length;
     const s = data.troops[type];
-    const child = {id:crypto.randomUUID(), type, level:1, hp:s.base.hp, gear:s.defaultGear, owned:[s.defaultGear], x:8 + (existing % 5) * .65, y:10.8, attackTimer:0, abilityTimer:0, carry:0, phase:'gather', animation:0, workplace:null};
+    const child = {id:crypto.randomUUID(), type, level:1, hp:s.base.hp, gear:s.defaultGear, owned:[s.defaultGear], armor:null, armorOwned:[], x:8 + (existing % 5) * .65, y:10.8, attackTimer:0, abilityTimer:0, carry:0, phase:'gather', animation:0, workplace:null};
     // Every 10th arrival comes down the road with a trade-name (data/names.json).
     if ((existing + 1) % 10 === 0) {
       const tradeName = makeTradeName(data.names);
@@ -132,6 +148,14 @@ export function tickVillage(state, data, dt, notify) {
       w.gathered.food += aura.food * dt;
     }
     if (aura.xp > 0) gainXp(state, aura.xp * dt);
+    // Sage wisdom: 'xp'-effect abilities (the K1/K2 capstone) trickle
+    // village XP from the bearer, posted or not, home village only.
+    for (const u of w.troops) {
+      if (u.hp <= 0) continue;
+      try {
+        for (const a of unlockedAbilities(u, data)) if (a.effect === 'xp' && a.value > 0) gainXp(state, a.value * dt);
+      } catch {}
+    }
     if (aura.survey > 0) {
       w.survey += aura.survey * dt;
       gainXp(state, aura.survey * 0.05 * dt);
@@ -181,6 +205,12 @@ export function questProgress(task, state) {
   if (task.kind === 'population') return {have: w.troops.length, need: task.count};
   if (task.kind === 'level') return {have: state.vlevel || 1, need: task.level};
   if (task.kind === 'gather') return {have: Math.floor(w.gathered[task.resource] || 0), need: task.amount};
+  if (task.kind === 'upgrade') {
+    const types = Array.isArray(task.type) ? task.type : [task.type];
+    const level = task.level || 2;
+    const have = types.filter(t => w.buildings.some(b => b.type === t && b.hp > 0 && b.level >= level)).length;
+    return {have, need: types.length};
+  }
   return {have: 0, need: 1};
 }
 

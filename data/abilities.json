@@ -71,5 +71,58 @@
     "effect": "damage",
     "value": 0.15,
     "description": "15% more attack damage."
+  },
+  "attune": {
+    "name": "Attune",
+    "effect": "aura",
+    "value": 0.05,
+    "description": "In tune with the workplace: +5% to its aura."
+  },
+  "mend": {
+    "name": "Mend",
+    "effect": "heal",
+    "passive": true,
+    "value": 0.4,
+    "description": "Quiet hands: mends 0.4 HP each second."
+  },
+  "veteran-x": {
+    "name": "Veteran's eye",
+    "effect": "aura",
+    "value": 0.05,
+    "description": "Seasoned hands: +5% to this workplace's aura."
+  },
+  "sage": {
+    "name": "Sage",
+    "effect": "xp",
+    "value": 0.02,
+    "description": "Wisdom trickles: +0.02 village XP each second."
+  },
+  "brace": {
+    "name": "Brace",
+    "effect": "buff",
+    "stat": "range",
+    "value": 1,
+    "duration": 8,
+    "cooldown": 30,
+    "active": true,
+    "description": "Spear-wall: +1 range for 8s. 30s cooldown."
+  },
+  "rally": {
+    "name": "Rally",
+    "effect": "buff",
+    "stat": "damage",
+    "value": 0.1,
+    "radius": 3,
+    "duration": 8,
+    "cooldown": 45,
+    "active": true,
+    "description": "Nearby allies deal +10% damage for 8s. 45s cooldown."
+  },
+  "phalanx": {
+    "name": "Phalanx",
+    "effect": "guard",
+    "value": 0.1,
+    "radius": 1.5,
+    "description": "Shoulder to shoulder: adjacent allies take 10% less damage."
   }
 }

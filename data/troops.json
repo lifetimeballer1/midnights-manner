@@ -798,5 +798,80 @@
       "20": "second-wind",
       "25": "harvest-master"
     }
+  },
+  "apprentice": {
+    "name": "Apprentice",
+    "role": "keeper",
+    "sprite": "apprentice.png",
+    "color": "#e9dab2",
+    "maxLevel": 15,
+    "base": {
+      "hp": 75,
+      "damage": 5,
+      "speed": 1.2,
+      "range": 0.85
+    },
+    "growth": {
+      "hp": 0.08,
+      "damage": 0.075,
+      "speed": 0.005
+    },
+    "levelCost": {
+      "gold": 15,
+      "food": 10
+    },
+    "recruitCost": {
+      "food": 30,
+      "gold": 15
+    },
+    "defaultGear": "apron",
+    "gatherResource": null,
+    "carry": 6,
+    "job": {
+      "workplace": "cottage",
+      "effect": "welcome",
+      "text": "Keeps the cottage lamps lit; every posted apprentice makes room for one more villager."
+    },
+    "abilities": {
+      "5": "attune",
+      "10": "armor",
+      "15": "mend"
+    }
+  },
+  "pikewoman": {
+    "name": "Pikewoman",
+    "role": "combat",
+    "sprite": "pikewoman.png",
+    "color": "#9db3c7",
+    "maxLevel": 25,
+    "base": {
+      "hp": 150,
+      "damage": 14,
+      "speed": 1.1,
+      "range": 1.6
+    },
+    "growth": {
+      "hp": 0.09,
+      "damage": 0.085,
+      "speed": 0.006
+    },
+    "levelCost": {
+      "gold": 18,
+      "food": 12
+    },
+    "recruitCost": {
+      "food": 40,
+      "gold": 25
+    },
+    "defaultGear": "pike",
+    "gatherResource": null,
+    "carry": 10,
+    "abilities": {
+      "5": "brace",
+      "10": "armor",
+      "15": "rally",
+      "20": "veteran",
+      "25": "phalanx"
+    }
   }
 }

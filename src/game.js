@@ -40,6 +40,8 @@ export class Game {
  build(type,x,y){
   if(this.paused)return this.notify('Resume the village to build.');
   if(this.locked(type))return this.notify('Complete campaign chapters to unlock this.');
+  const spec=this.data.buildings[type];
+  if(spec&&(spec.minLevel||1)>(this.state.vlevel||1))return this.notify(`The ${spec.name} needs village level ${spec.minLevel}. Earn XP — quests, scholars, surveys.`);
   if(!inBounds(this.world,this.data,type,x,y))return this.notify('That land is still wild. Earn village XP (quests, scholars, surveys) to open new rows.');
   if(!canPlace(this.world,this.data,type,x,y))return this.notify('Too close — roomy buildings need a one-tile gap. Villages breathe; clutter burns.');
   if(!pay(this.world.resources,buildingCost(type,1,this.world,this.data)))return this.notify('Not enough resources. Let your village gather more.');
@@ -48,6 +50,11 @@ export class Game {
  upgrade(id){
   const b=this.world.buildings.find(b=>b.id===id);if(!b||b.hp<=0||b.remaining>0)return;
   if(b.level>=this.data.buildings[b.type].tiers.length)return this.notify('This building is at its highest tier.');
+  // Level-gated tiers (data/buildings.json `tierGates: {tier: vlevel}`):
+  // the Scriptorium observatory waits for village level 7, and later
+  // wonders gate the same generic way. No building-specific conditionals.
+  const gate=this.data.buildings[b.type].tierGates?.[b.level+1];
+  if(gate&&(this.state.vlevel||1)<gate)return this.notify(`A tier-${b.level+1} ${this.data.buildings[b.type].name} needs village level ${gate}. Earn XP — quests, scholars, surveys.`);
   const cost=b.type==='hall'?{wood:200*b.level,gold:150*b.level}:buildingCost(b.type,b.level+1,this.world,this.data);
   if(!pay(this.world.resources,cost))return this.notify('Not enough resources for this upgrade.');
   b.level++;b.hp=this.data.buildings[b.type].tiers[b.level-1].hp;
@@ -75,6 +82,7 @@ export class Game {
  }
  recruit(type){
   if(!this.data.troops[type])return this.notify('Unknown calling.');
+  if(this.locked(type))return this.notify('That calling is not yet earned — quests and campaign chapters unlock new people.');
   if(!this.world.buildings.some(b=>b.type==='barracks'&&b.hp>0&&b.remaining<=0))return this.notify('Build a barracks first.');
   const mission=this.data.missions.find(m=>m.id===this.state.mission?.id),limit=mission?.troopLimit||16;
   if(this.world.troops.length>=limit)return this.notify(`Your troop limit is ${limit}.`);
@@ -83,8 +91,14 @@ export class Game {
  }
  level(id){const u=this.world.troops.find(t=>t.id===id);if(!u||u.level>=this.data.troops[u.type].maxLevel)return;const curve=u.level>=5?1.5:1;const cost=Object.fromEntries(Object.entries(this.data.troops[u.type].levelCost).map(([k,v])=>[k,Math.ceil(v*u.level*curve)]));if(!pay(this.world.resources,cost))return this.notify('Not enough food or gold to train.');u.level++;u.hp=stats(u,this.data).hp;this.notify(`Level ${u.level} reached${u.level%5===0?' — new ability unlocked!':'.'}`);}
  equip(id,itemId){const u=this.world.troops.find(t=>t.id===id),item=this.data.items[itemId];if(!u||!item||!item.roles.includes(u.type)||this.locked(itemId))return;
+  // Armor-slot pieces (Padded Coat onward, item.slot==='armor') ride a
+  // second gear axis with their own owned list; everything else is main-hand.
+  if(item.slot==='armor'){
+   u.armorOwned=u.armorOwned||[];
+   if(!u.armorOwned.includes(itemId)){if(!pay(this.world.resources,item.cost))return this.notify('Not enough resources for this armor.');u.armorOwned.push(itemId);}u.armor=itemId;this.notify(`${item.name} fitted as armor.`);return;
+  }
   if(!u.owned.includes(itemId)){if(!pay(this.world.resources,item.cost))return this.notify('Not enough resources for this equipment.');u.owned.push(itemId);}u.gear=itemId;this.notify(`${item.name} equipped.`);}
- ability(id,ability){const u=this.world.troops.find(t=>t.id===id);if(u)this.notify(activateAbility(this.world,this.data,u,ability)?'Rallying light restores nearby allies.':'Ability is not ready.');}
+ ability(id,ability){const u=this.world.troops.find(t=>t.id===id);if(u){const def=this.data.abilities[ability];const ok=activateAbility(this.world,this.data,u,ability);this.notify(ok?(def?.effect==='heal'?'Rallying light restores nearby allies.':`${def?.name||'Ability'} unleashed.`):'Ability is not ready.');}}
  commandMove(id,x,y){const u=this.world.troops.find(t=>t.id===id);if(!u||u.hp<=0||!Number.isInteger(x)||!Number.isInteger(y)||x<0||y<0||x>=this.data.world.width||y>=this.data.world.height)return false;if(blocked(this.world,this.data,x,y)||!nextStep(this.world,this.data,u,{x:x+.5,y:y+.5},.65)){this.notify('No clear path. Choose open ground.');return false;}u.order={kind:'move',x:x+.5,y:y+.5};this.notify(`${this.data.troops[u.type].name} moving.`);return true;}
  commandAttack(id,enemyId){const u=this.world.troops.find(t=>t.id===id);if(!u||!enemyId)return false;if(this.data.troops[u.type].role!=='combat')return void this.notify('Only fighters take attack orders.'),false;u.order={kind:'attack',targetId:enemyId};this.notify(`${this.data.troops[u.type].name} attacking!`);return true;}
  commandHold(id){const u=this.world.troops.find(t=>t.id===id);if(!u)return false;u.order={kind:'hold'};this.notify(`${this.data.troops[u.type].name} holding position.`);return true;}

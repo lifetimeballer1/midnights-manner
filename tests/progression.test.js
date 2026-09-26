@@ -38,14 +38,18 @@ test('2. role kits: combat cleaves, farmers never do; keepers mend, builders nev
     assert.ok(!kit(id).some(k => data.abilities[k].effect === 'splash'), `${id} never splashes`);
   for (const id of ['scholar', 'scout', 'healer', 'weaponsmith', 'armorer', 'toolsmith', 'leatherworker'])
     assert.ok(!kit(id).some(k => data.abilities[k].effect === 'splash'), `${id} never splashes`);
-  // Four distinct kits, all effects from the pre-existing set.
+  // Six distinct kits (the C1 melee-control track debuted with the Pikewoman);
+  // effects are the combat-tested set plus aura/xp sharers with generic handlers.
   const sig = ids => kit(ids[0]).join(',');
-  const kits = new Set([sig(['warrior']), sig(['miner']), sig(['scholar']), sig(['builder'])]);
-  assert.equal(kits.size, 4, 'combat/collector/keeper/builder kits differ');
+  const kits = new Set([sig(['warrior']), sig(['miner']), sig(['scholar']), sig(['builder']), sig(['apprentice']), sig(['pikewoman'])]);
+  assert.equal(kits.size, 6, 'combat/collector/keeper/builder/scholarly/melee-control kits differ');
+  assert.deepEqual(kit('apprentice'), ['attune', 'armor', 'mend']);
+  assert.deepEqual(kit('pikewoman'), ['brace', 'armor', 'rally', 'veteran', 'phalanx']);
+  assert.ok(data.abilities.mend.passive && !data.abilities.mend.active, 'mend is passive, never cast');
   for (const [id, t] of Object.entries(data.troops))
     for (const ab of Object.values(t.abilities)) {
       assert.ok(data.abilities[ab], `${id} ability ${ab} resolves`);
-      assert.ok(['splash', 'armor', 'heal', 'damage', 'gather'].includes(data.abilities[ab].effect), `${ab} uses an existing effect`);
+      assert.ok(['splash', 'armor', 'heal', 'damage', 'gather', 'aura', 'xp', 'buff', 'guard'].includes(data.abilities[ab].effect), `${ab} uses a handled effect`);
     }
 });
 

@@ -15,20 +15,28 @@ function freshState(d) {
 }
 
 test('story item 1: every quest carries giver, flavor and act', () => {
-  assert.equal(data.quests.length, 8);
+  assert.equal(data.quests.length, 12);
   for (const q of data.quests) {
     assert.ok(typeof q.giver === 'string' && q.giver.length > 0, `${q.id} giver`);
     assert.ok(typeof q.flavor === 'string' && q.flavor.length > 0, `${q.id} flavor`);
-    assert.ok(['I', 'II'].includes(q.act), `${q.id} act`);
+    assert.ok(['I', 'II', 'V'].includes(q.act), `${q.id} act`);
   }
   assert.deepEqual(data.quests.slice(0, 5).map(q => q.act), ['I', 'I', 'I', 'I', 'I']);
-  assert.deepEqual(data.quests.slice(5).map(q => q.act), ['II', 'II', 'II']);
+  assert.deepEqual(data.quests.slice(5, 8).map(q => q.act), ['II', 'II', 'II']);
+  assert.equal(data.quests[8].id, 'chart-the-dark');
+  assert.equal(data.quests[8].act, 'V');
+  assert.equal(data.quests[9].id, 'tomm-s-flocks');
+  assert.equal(data.quests[9].act, 'V');
+  assert.equal(data.quests[10].id, 'open-doors');
+  assert.equal(data.quests[10].act, 'V');
+  assert.equal(data.quests[11].id, 'sarella-s-standard');
+  assert.equal(data.quests[11].act, 'V');
 });
 
 test('story item 1: every mission carries act, beat and ceremony lines', () => {
-  assert.equal(data.missions.length, 6);
+  assert.equal(data.missions.length, 8);
   for (const m of data.missions) {
-    assert.ok(['III', 'IV'].includes(m.act), `${m.id} act`);
+    assert.ok(['III', 'IV', 'V'].includes(m.act), `${m.id} act`);
     assert.ok(typeof m.beat === 'string' && m.beat.length > 0, `${m.id} beat`);
     for (const key of ['warning', 'victory', 'defeat'])
       assert.ok(typeof m.ceremony?.[key] === 'string' && m.ceremony[key].length > 0, `${m.id} ceremony.${key}`);
@@ -88,9 +96,10 @@ test('story item 2: every 10th arrival earns a trade-name; flavor needs no save 
   assert.ok(d.names.trade.includes(rest.join(' ')), 'trade name from the pool');
   assert.ok(messages.some(m => m.includes(arrival.name)), 'village announces the name');
   // Flavor-only: no persisted state of its own. (The living-world layer
-  // later added calendar/trade keys under save version 3, and the raid
-  // clock + unlock re-deal under save version 4.)
-  assert.equal(VERSION, 4);
+  // later added calendar/trade keys under save version 3, the raid
+  // clock + unlock re-deal under save version 4, and the armor wardrobe
+  // under save version 5.)
+  assert.equal(VERSION, 5);
   for (const key of ['records', 'boardSeen', 'tradeDay', 'calendarDay', 'tradeNames'])
     assert.ok(!(key in state), `no save key ${key}`);
 });

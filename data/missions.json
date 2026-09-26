@@ -295,5 +295,66 @@
     "rewards": { "gold": 400, "wood": 300, "food": 250 },
     "unlocks": ["toolkit"],
     "requires": ["moonwell"]
+  },
+  {
+    "id": "ashen-ford",
+    "name": "Ashen Ford",
+    "chapter": "07",
+    "act": "V",
+    "beat": "Rush-defense; a stone wall holds the ford while the mine pays.",
+    "ceremony": {
+      "warning": "Ash and shallow water. Hold the ford, keep the mine singing, and mind the second horn.",
+      "victory": "The ford held and the pike-line never broke. The village has a new road — and new spears.",
+      "defeat": "The ford ran red and the raiders crossed. Rebuild the line and try the crossing again."
+    },
+    "description": "Raiders press the ashen ford. Hold a stone wall with a lean crew and keep moonstone flowing through two raids.",
+    "timeLimit": 280,
+    "troopLimit": 6,
+    "objectives": [{ "resource": "gold", "amount": 200 }],
+    "startingResources": { "wood": 280, "food": 160, "gold": 120 },
+    "map": {
+      "buildings": [
+        { "type": "hall", "x": 9, "y": 7 },
+        { "type": "mine", "x": 7, "y": 9 },
+        { "type": "tower", "x": 6, "y": 7 },
+        { "type": "stonewall", "x": 5, "y": 7 },
+        { "type": "stonewall", "x": 5, "y": 8 }
+      ],
+      "troops": ["warrior", "warden", "builder", "miner"]
+    },
+    "raids": [{ "at": 60, "count": 5 }, { "at": 160, "count": 7 }],
+    "rewards": { "gold": 250, "wood": 200 },
+    "unlocks": ["pikewoman", "pike", "kite-shield"],
+    "requires": ["last-stand"]
+  },
+  {
+    "id": "hollow-dam",
+    "name": "Hollow Dam",
+    "chapter": "08",
+    "act": "V",
+    "beat": "Escort-economy; pikewomen screen the harvest crews.",
+    "ceremony": {
+      "warning": "Bread and stone both, and the hollow is thirsty work. The pikewomen walk screen — keep them fed.",
+      "victory": "Full tables, quiet water. The dam crews swear by the pike-line now — and the masons took notes.",
+      "defeat": "The crews scattered and the dam stood half-built. Feed them better and walk them home."
+    },
+    "description": "Two hungers at the hollow dam: bread for the tables, stone for the walls. Pikewomen screen two raids while the crews haul.",
+    "timeLimit": 300,
+    "troopLimit": 7,
+    "objectives": [{ "resource": "food", "amount": 200 }, { "resource": "gold", "amount": 150 }],
+    "startingResources": { "wood": 260, "food": 140, "gold": 130 },
+    "map": {
+      "buildings": [
+        { "type": "hall", "x": 9, "y": 7 },
+        { "type": "farm", "x": 6, "y": 9 },
+        { "type": "pond", "x": 11, "y": 5 },
+        { "type": "tower", "x": 6, "y": 7 }
+      ],
+      "troops": ["pikewoman", "warrior", "farmer", "builder"]
+    },
+    "raids": [{ "at": 90, "count": 4 }, { "at": 200, "count": 6 }],
+    "rewards": { "food": 250, "gold": 200 },
+    "unlocks": ["stonewall"],
+    "requires": ["last-stand"]
   }
 ]

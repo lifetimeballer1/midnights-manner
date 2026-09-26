@@ -13,9 +13,13 @@ test('village data: workplaces, jobs, gear and quest chain all resolve', async (
   assert.ok(data.quests.length >= 8);
   for (const q of data.quests) {
     assert.ok(q.id && q.name && q.text && Number.isFinite(q.xp));
-    assert.ok(['build', 'recruit', 'assign', 'population', 'level', 'gather'].includes(q.task.kind), q.id);
+    assert.ok(['build', 'recruit', 'assign', 'population', 'level', 'gather', 'upgrade'].includes(q.task.kind), q.id);
     if (q.task.kind === 'build') assert.ok(data.buildings[q.task.type], q.id);
     if (q.task.kind === 'recruit') assert.ok(data.troops[q.task.type], q.id);
+    if (q.task.kind === 'upgrade') {
+      const types = Array.isArray(q.task.type) ? q.task.type : [q.task.type];
+      for (const t of types) assert.ok(data.buildings[t] && data.buildings[t].tiers.length >= (q.task.level || 2), `${q.id} upgrade target ${t}`);
+    }
   }
   for (const [id, t] of Object.entries(data.troops)) {
     if (!t.job) continue;
@@ -186,8 +190,8 @@ test('v1 saves migrate to v2 with progress intact', () => {
   const old = {version: 1, world: w, home: null, mission: null, completed: ['first-harvest'], unlocks: ['tower'], xp: undefined, questsCompleted: undefined};
   const wood = w.resources.wood, troops = w.troops.length;
   const out = migrate(structuredClone(old), data);
-  assert.equal(out.version, 4); // v1 -> v2 village-sim -> v3 living world -> v4 raid horns
-  assert.deepEqual(out.bounds ?? out.world.bounds, {w: 20, h: 16}); // veterans keep the whole map
+  assert.equal(out.version, 5); // v1 -> v2 village-sim -> v3 living world -> v4 raid horns -> v5 armor wardrobe
+  assert.deepEqual(out.bounds ?? out.world.bounds, {w: 20, h: 17}); // veterans keep the whole map (20x17 since Act V)
   assert.equal(out.world.resources.wood, wood);
   assert.equal(out.world.troops.length, troops);
   assert.deepEqual(out.completed, ['first-harvest']);

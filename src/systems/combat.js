@@ -1,4 +1,4 @@
-import {distance,center,stats,unlockedAbilities,auras} from '../model.js';
+import {distance,center,stats,unlockedAbilities,auras,gearArmor} from '../model.js';
 import {move} from './pathfinding.js';
 import {sfx} from './audio.js';
 export function spawnRaid(world,count=4) {
@@ -15,7 +15,15 @@ export function activateAbility(world,data,unit,id) {
  const a=list.find(a=>a.id===id&&a.active);
  if(!a||unit.abilityTimer>0)return false;
  if(a.effect==='heal')for(const ally of world.troops)if(ally.hp>0&&distance(unit,ally)<=a.radius)ally.hp=Math.min(stats(ally,data).hp,ally.hp+a.value);
- unit.abilityTimer=a.cooldown;effect(world,unit,unit,'heal');return true;
+ // Drills ('buff'-effect actives: Brace, Rally): plant a transient buff on
+ // the bearer, or on every living ally in radius when one is given.
+ if(a.effect==='buff'&&a.stat){
+  const targets=a.radius?world.troops.filter(t=>t.hp>0&&distance(unit,t)<=a.radius):[unit];
+  for(const t of targets){t.buffs=t.buffs||{};t.buffs[a.stat]={value:a.value,timer:a.duration||6};}
+  effect(world,unit,unit,'sparkle');
+ }
+ else effect(world,unit,unit,'heal');
+ unit.abilityTimer=a.cooldown;return true;
 }
 export function tickCombat(world,data,dt) {
  if(!Number.isFinite(dt)||dt<=0)return;
@@ -24,7 +32,13 @@ export function tickCombat(world,data,dt) {
  world.effects=world.effects.filter(e=>e.life>0);
  for(const unit of world.troops) {
   unit.attackTimer=Math.max(0,(unit.attackTimer??0)-dt);unit.abilityTimer=Math.max(0,(unit.abilityTimer??0)-dt);unit.animation=Math.max(0,(unit.animation??0)-dt);
+  // Drills fade: transient buff timers tick down even off-raid.
+  if(unit.buffs)for(const k of Object.keys(unit.buffs)){unit.buffs[k].timer-=dt;if(unit.buffs[k].timer<=0)delete unit.buffs[k];}
   if(unit.hp<=0)continue;
+  // Quiet hands: passive 'heal'-effect abilities without `active` mend
+  // their bearer each second (the K1 track's Mend). Castable heals still
+  // go through activateAbility; this never spends a cooldown.
+  for(const a of unlockedAbilities(unit,data)) if(a.effect==='heal'&&!a.active&&a.value>0)unit.hp=Math.min(stats(unit,data).hp,unit.hp+a.value*dt);
   const s=stats(unit,data);
   const order=unit.order;
   if(order&&order.kind==='move'&&Number.isFinite(order.x)&&Number.isFinite(order.y)){
@@ -64,7 +78,11 @@ export function tickCombat(world,data,dt) {
    if(adjacent&&enemy.attackTimer<=0){bb.hp=Math.max(0,bb.hp-enemy.damage);enemy.attackTimer=1.3;effect(world,enemy,center(bb,data),'slash');push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y,kind:'hit',life:.18});continue;}
   }
   if(arrived&&enemy.attackTimer<=0){
-   let reduction=aura.armor;if(targetUnit) reduction+=unlockedAbilities(target,data).filter(a=>a.effect==='armor').reduce((n,a)=>n+a.value,0);
+   // Armor stacks: sky aura + ability resolve + worn gear (Padded Coat
+   // onward, read through gearArmor) + the phalanx shield-line ('guard'-
+   // effect allies in radius lend their value). The 0.8 ceiling still holds.
+   let reduction=aura.armor;if(targetUnit){reduction+=unlockedAbilities(target,data).filter(a=>a.effect==='armor').reduce((n,a)=>n+a.value,0);try{reduction+=gearArmor(target,data);}catch{}
+    if(targetUnit.hp>0)for(const ally of world.troops){if(ally.id===target.id||ally.hp<=0)continue;try{for(const a of unlockedAbilities(ally,data))if(a.effect==='guard'&&distance(ally,target)<=a.radius)reduction+=a.value;}catch{}}}
    target.hp=Math.max(0,target.hp-enemy.damage*(1-Math.min(.8,reduction)));enemy.attackTimer=1.3;effect(world,enemy,targetPoint,'slash');push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y,kind:'hit',life:.18});sfx.hit();
   }
  }

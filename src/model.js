@@ -3,7 +3,7 @@ export const distance = (a,b) => Math.hypot(a.x-b.x,a.y-b.y);
 // New villages start small; the frontier opens as village XP grows (see village.js).
 export const START_BOUNDS = {w:14,h:12};
 export const XP_LEVELS = [0,100,220,380,580,830,1150];
-export const EXPANSION = [{w:14,h:12},{w:16,h:13},{w:18,h:14},{w:20,h:16}];
+export const EXPANSION = [{w:14,h:12},{w:16,h:13},{w:18,h:14},{w:20,h:16},{w:20,h:17}];
 export function levelForXp(xp) {
   let level = 1;
   for (let i = 0; i < XP_LEVELS.length; i++) if (xp >= XP_LEVELS[i]) level = i + 1;
@@ -17,11 +17,28 @@ export function stats(unit,data) {
   const result=Object.fromEntries(Object.entries(spec.base).map(([key,value])=>[key,value*(1+(spec.growth[key]||0)*(unit.level-1))]));
   result.damage*=gear.damage||1; result.range=gear.range||result.range;
   for (const a of unlockedAbilities(unit,data)) if(a.effect==='damage') result.damage*=1+a.value;
+  // Worn bulk and active drills: armor-slot pieces can pad max HP or slow
+  // feet (Padded Coat onward); 'buff'-effect abilities (Brace, Rally)
+  // ride transient unit.buffs set by activateAbility. No current main-hand
+  // gear carries hp/speed, so old stat lines are untouched.
+  for (const gid of [unit.gear,unit.armor]) {
+    const gs=(gid&&data.items[gid]&&data.items[gid].stats)||{};
+    if(gs.hp) result.hp+=gs.hp;
+    if(gs.speed) result.speed*=gs.speed;
+  }
+  if(unit.buffs&&unit.buffs.damage) result.damage*=1+unit.buffs.damage.value;
+  if(unit.buffs&&unit.buffs.range) result.range+=unit.buffs.range.value;
   return result;
 }
 export function makeUnit(type,data,index=0) {
   const s=data.troops[type];
-  return {id:crypto.randomUUID(),type,level:1,hp:s.base.hp,gear:s.defaultGear,owned:[s.defaultGear],x:8+index*.65,y:10.8,attackTimer:0,abilityTimer:0,carry:0,phase:'gather',animation:0,workplace:null,order:null};
+  return {id:crypto.randomUUID(),type,level:1,hp:s.base.hp,gear:s.defaultGear,owned:[s.defaultGear],armor:null,armorOwned:[],x:8+index*.65,y:10.8,attackTimer:0,abilityTimer:0,carry:0,phase:'gather',animation:0,workplace:null,order:null};
+}
+// Armor-slot reduction (Padded Coat onward): main gear + armor piece stack
+// multiplicatively, so no wardrobe ever breaks the combat caps alone.
+export function gearArmor(unit,data) {
+  const vals=[unit.gear,unit.armor].map(id=>(id&&data.items[id]&&data.items[id].stats&&data.items[id].stats.armor)||0);
+  return 1-vals.reduce((m,v)=>m*(1-v),1);
 }
 export function makeBuilding(type,x,y,data,level=1) {
   const spec = data.buildings[type];
@@ -49,7 +66,7 @@ export function assignmentValid(world, data, unit, building) {
 }
 // Combined aura of every assigned keeper at a finished workplace. Caps keep numbers gentle.
 export function auras(world, data) {
-  const out = {damage:0,armor:0,gather:0,carry:0,build:0,discount:0,heal:0,xp:0,survey:0,food:0,produce:0};
+  const out = {damage:0,armor:0,gather:0,carry:0,build:0,discount:0,heal:0,xp:0,survey:0,food:0,produce:0,beds:0};
   for (const b of world.buildings) {
     if (b.hp <= 0 || b.remaining > 0) continue;
     const spec = data.buildings[b.type];
@@ -57,14 +74,38 @@ export function auras(world, data) {
     const crew = assignedWorkers(world, b.id).filter(u => data.troops[u.type].job?.workplace === b.type);
     if (!crew.length) continue;
     const n = crew.length, tier = spec.tiers[b.level - 1].rateMultiplier;
-    if (spec.damageAura) out.damage += spec.damageAura * n * tier;
-    if (spec.armorAura) out.armor += spec.armorAura * n * tier;
-    if (spec.gatherAura) out.gather += spec.gatherAura * n * tier;
+    // Keeper gear read-through: a posted keeper's equipped tool sharpens
+    // their own share. stats.survey multiplies the bearer's surveyRate
+    // share, stats.xpAura adds flat XP/s, and stats.<key>Aura adds flat
+    // aura per bearer (damage/armor/gather/heal/carry). Empty stats (the
+    // old keeper tomes) contribute exactly the pre-gear values.
+    const gearOf = u => (data.items[u.gear] && data.items[u.gear].stats) || {};
+    // Attuned bearers ('aura'-effect abilities: attune, veteran-x)
+    // amplify their own share of whatever this workplace provides.
+    const share = u => {
+      let m = 1;
+      try { for (const a of unlockedAbilities(u, data)) if (a.effect === 'aura') m += a.value; } catch {}
+      return m;
+    };
+    if (spec.damageAura) out.damage += spec.damageAura * tier * crew.reduce((s, u) => s + share(u), 0);
+    if (spec.armorAura) out.armor += spec.armorAura * tier * crew.reduce((s, u) => s + share(u), 0);
+    if (spec.gatherAura) out.gather += spec.gatherAura * tier * crew.reduce((s, u) => s + share(u), 0);
     if (spec.carryBonus) out.carry += spec.carryBonus * n;
     if (spec.buildAura) { out.build += spec.buildAura * n; out.discount += 0.05 * n; }
-    if (spec.healRate) out.heal += spec.healRate * n * tier;
-    if (spec.xpRate) out.xp += spec.xpRate * n * tier;
-    if (spec.surveyRate) out.survey += spec.surveyRate * n * tier;
+    if (spec.healRate) out.heal += spec.healRate * tier * crew.reduce((s, u) => s + share(u), 0);
+    if (spec.xpRate) out.xp += spec.xpRate * tier * crew.reduce((s, u) => s + share(u) * (gearOf(u).xpMult ?? 1), 0)
+      + crew.reduce((s, u) => s + (gearOf(u).xpAura ?? 0), 0);
+    if (spec.surveyRate) out.survey += spec.surveyRate * tier * crew.reduce((s, u) => s + share(u) * (gearOf(u).survey ?? 1), 0);
+    for (const [statKey, auraKey] of [['damageAura', 'damage'], ['armorAura', 'armor'], ['gatherAura', 'gather'], ['healAura', 'heal'], ['carryAura', 'carry']]) {
+      const add = crew.reduce((s, u) => s + (gearOf(u)[statKey] ?? 0), 0);
+      if (add) out[auraKey] += add;
+    }
+    // Welcoming hands (apprentices at cottages) raise cottage capacity:
+    // +1 bed each, gear stacks, +3 total. Housing is the visible track.
+    for (const u of crew) {
+      const job = data.troops[u.type].job;
+      if (job && job.effect === 'welcome') out.beds += 1 + (gearOf(u).beds ?? 0);
+    }
   }
   // Assigned butchers smoke food directly; assigned collectors work their source 25% faster each.
   for (const u of world.troops) {
@@ -89,6 +130,7 @@ export function auras(world, data) {
   out.gather = Math.min(.45, out.gather);
   out.build = Math.min(.75, out.build);
   out.discount = Math.min(.2, out.discount);
+  out.beds = Math.min(3, out.beds);
   return out;
 }
 function spec_tier(b, data) { return data.buildings[b.type].tiers[b.level - 1].rateMultiplier; }
@@ -112,6 +154,7 @@ export function housing(world, data) {
     const h = data.buildings[b.type].housing;
     if (h) beds += h[Math.min(b.level, h.length) - 1];
   }
+  beds += auras(world, data).beds;
   const used = world.troops.filter(t => t.hp >= 0).length;
   return {beds, used, free: Math.max(0, beds - used)};
 }

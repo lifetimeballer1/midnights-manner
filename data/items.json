@@ -283,5 +283,210 @@
     },
     "animation": "sweep",
     "sprite": "item-fellingaxe.png"
+  },
+  "orrery": {
+    "name": "Scholar's Orrery",
+    "roles": [
+      "scholar"
+    ],
+    "cost": {},
+    "stats": {
+      "survey": 1.25,
+      "xpAura": 0.06
+    },
+    "animation": "tap",
+    "sprite": "item-orrery.png"
+  },
+  "herding-crook": {
+    "name": "Herding Crook",
+    "roles": [
+      "shepherd"
+    ],
+    "cost": {
+      "gold": 75,
+      "wood": 40
+    },
+    "stats": {
+      "gather": 1.5,
+      "carry": 16
+    },
+    "animation": "sweep",
+    "sprite": "item-herding-crook.png"
+  },
+  "berry-basket": {
+    "name": "Berry Basket",
+    "roles": [
+      "forager"
+    ],
+    "cost": {
+      "gold": 70,
+      "wood": 50
+    },
+    "stats": {
+      "gather": 1.4,
+      "carry": 18
+    },
+    "animation": "sweep",
+    "sprite": "item-berry-basket.png"
+  },
+  "apron": {
+    "name": "Hearth Apron",
+    "roles": [
+      "apprentice"
+    ],
+    "cost": {},
+    "stats": {
+      "beds": 1
+    },
+    "animation": "tap",
+    "sprite": "item-apron.png"
+  },
+  "padded-coat": {
+    "name": "Padded Coat",
+    "slot": "armor",
+    "roles": [
+      "warrior",
+      "archer",
+      "miner",
+      "builder",
+      "farmer",
+      "fisherman",
+      "shepherd",
+      "lumberjack",
+      "butcher",
+      "scholar",
+      "scout",
+      "healer",
+      "weaponsmith",
+      "armorer",
+      "toolsmith",
+      "leatherworker",
+      "mason",
+      "warden",
+      "ranger",
+      "forager",
+      "apprentice"
+    ],
+    "cost": {
+      "gold": 50,
+      "wood": 25
+    },
+    "stats": {
+      "armor": 0.1
+    },
+    "animation": "tap",
+    "sprite": "item-padded-coat.png"
+  },
+  "runed-forgehammer": {
+    "name": "Runed Forgehammer",
+    "roles": [
+      "weaponsmith"
+    ],
+    "cost": {
+      "gold": 90,
+      "wood": 30
+    },
+    "stats": {
+      "damageAura": 0.1
+    },
+    "animation": "slam",
+    "sprite": "item-runed-forgehammer.png"
+  },
+  "etched-armorkit": {
+    "name": "Etched Ward-kit",
+    "roles": [
+      "armorer"
+    ],
+    "cost": {
+      "gold": 90,
+      "wood": 30
+    },
+    "stats": {
+      "armorAura": 0.1
+    },
+    "animation": "tap",
+    "sprite": "item-etched-armorkit.png"
+  },
+  "fine-tinkerkit": {
+    "name": "Fine Tinkerkit",
+    "roles": [
+      "toolsmith"
+    ],
+    "cost": {
+      "gold": 90,
+      "wood": 30
+    },
+    "stats": {
+      "gatherAura": 0.1
+    },
+    "animation": "tap",
+    "sprite": "item-fine-tinkerkit.png"
+  },
+  "oiled-awl": {
+    "name": "Oiled Awl",
+    "roles": [
+      "leatherworker"
+    ],
+    "cost": {
+      "gold": 90,
+      "wood": 30
+    },
+    "stats": {
+      "carryAura": 10
+    },
+    "animation": "tap",
+    "sprite": "item-oiled-awl.png"
+  },
+  "brass-chalice": {
+    "name": "Brass Chalice",
+    "roles": [
+      "healer"
+    ],
+    "cost": {
+      "gold": 90,
+      "wood": 30
+    },
+    "stats": {
+      "healAura": 1.0
+    },
+    "animation": "tap",
+    "sprite": "item-brass-chalice.png"
+  },
+  "pike": {
+    "name": "Ashen Pike",
+    "roles": [
+      "pikewoman"
+    ],
+    "cost": {
+      "gold": 60,
+      "wood": 30
+    },
+    "stats": {
+      "damage": 1.0,
+      "range": 1.6
+    },
+    "animation": "brace",
+    "sprite": "item-pike.png"
+  },
+  "kite-shield": {
+    "name": "Kite Shield",
+    "slot": "armor",
+    "roles": [
+      "warrior",
+      "archer",
+      "warden",
+      "ranger",
+      "pikewoman"
+    ],
+    "cost": {
+      "gold": 80,
+      "wood": 40
+    },
+    "stats": {
+      "armor": 0.15,
+      "hp": 20
+    },
+    "animation": "tap",
+    "sprite": "item-kite-shield.png"
   }
 }

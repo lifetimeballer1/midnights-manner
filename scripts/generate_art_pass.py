@@ -266,6 +266,18 @@ def trowel(d, cx):
     d.polygon([(cx + 5, 14), (cx + 8, 19), (cx + 2, 19)], fill=STONE)
 
 
+def spear(d, cx):
+    d.line((cx + 5, 26, cx + 5, 2), fill=TIMBER, width=2)
+    d.polygon([(cx + 5, 2), (cx + 8, 8), (cx + 5, 12), (cx + 2, 8)], fill=STONE)
+    d.point((cx + 5, 6), fill=FOAM)
+
+
+def ledger(d, cx):
+    d.rectangle((cx + 3, 16, cx + 8, 23), fill=DARK)
+    d.line((cx + 5, 16, cx + 5, 23), fill=FOAM, width=1)
+    d.point((cx + 6, 18), fill=GOLD)
+
+
 def basket(d, cx):
     d.polygon([(cx + 3, 19), (cx + 8, 19), (cx + 7, 23), (cx + 4, 23)], fill=TIMBER)
     d.line((cx + 3, 20, cx + 8, 20), fill=DARK, width=1)
@@ -304,6 +316,8 @@ def make_troops():
     troop('warden', PINE, STONE, E, greathelm, halberd)
     troop('ranger', MOSS, DARK, E, hood(MOSS), longbow)
     troop('forager', LEAF, DARK, G, straw_hat, basket)
+    troop('apprentice', STRAW, DARK, K, cap(FOAM), ledger)
+    troop('pikewoman', STONE, DARK, E, hood(STONE), spear)
 
 
 def make_raider():
@@ -481,6 +495,117 @@ def i_fellingaxe(d):
     d.line((21, 8, 27, 10), fill=EMBER, width=2)
 
 
+def i_herding_crook(d):
+    # Herding Crook: taller crook, brass-bound shaft, moonstone tip.
+    d.line((14, 28, 14, 8), fill=TIMBER, width=4)
+    d.arc((9, 1, 19, 11), 180, 360, fill=TIMBER, width=4)
+    d.arc((9, 1, 19, 11), 180, 360, fill=GOLD, width=1)
+    d.line((13, 22, 15, 22), fill=GOLD, width=3)
+    d.line((13, 18, 15, 18), fill=GOLD, width=3)
+    d.point((14, 4), fill=GLOW)
+
+
+def i_berry_basket(d):
+    # Berry Basket: woven punnet heaped with moonberries.
+    d.polygon([(8, 14), (24, 14), (21, 27), (11, 27)], fill=TIMBER)
+    for yy in (18, 22, 26):
+        d.line((8, yy, 24, yy), fill=DARK, width=1)
+    d.line((8, 14, 24, 14), fill=STRAW, width=2)
+    for x, y in [(11, 11), (15, 9), (19, 11), (13, 13), (17, 13)]:
+        d.point((x, y), fill=EMBER)
+    d.point((15, 9), fill=GLOW)
+
+
+def i_padded_coat(d):
+    # Padded Coat: quilted gambeson, stitched diamonds, brass clasp.
+    d.polygon([(9, 6), (23, 6), (25, 26), (7, 26)], fill=HIDE)
+    for yy in (11, 16, 21):
+        d.line((8, yy, 24, yy), fill=DARK, width=1)
+    d.line((12, 8, 20, 24), fill=DARK, width=1)
+    d.line((20, 8, 12, 24), fill=DARK, width=1)
+    d.line((16, 6, 16, 26), fill=STRAW, width=2)
+    d.point((16, 14), fill=GOLD)
+
+
+def i_runed_forgehammer(d):
+    # Runed Forgehammer: ember-etched head, glowing rune stave.
+    i_forgehammer(d)
+    d.line((16, 24, 22, 10), fill=EMBER, width=1)
+    d.point((19, 14), fill=GLOW)
+    d.point((21, 11), fill=GLOW)
+
+
+def i_etched_armorkit(d):
+    # Etched Ward-kit: fine ward-lines down the plate, gold rivet.
+    i_armorkit(d)
+    d.line((13, 9, 13, 23), fill=FOAM, width=1)
+    d.line((19, 9, 19, 23), fill=FOAM, width=1)
+    d.point((16, 16), fill=GLOW)
+
+
+def i_fine_tinkerkit(d):
+    # Fine Tinkerkit: brass gears, oiled timber, glinting pivots.
+    i_tinkerkit(d)
+    d.ellipse((13, 15, 19, 21), fill=GOLD)
+    d.point((16, 18), fill=GLOW)
+    d.line((8, 26, 24, 26), fill=GOLD, width=1)
+
+
+def i_oiled_awl(d):
+    # Oiled Awl: dark sheen, waxed grip, keen bright point.
+    i_awl(d)
+    d.line((14, 8, 14, 18), fill=FOAM, width=1)
+    d.ellipse((10, 20, 18, 24), fill=DARK)
+    d.point((14, 6), fill=GLOW)
+
+
+def i_pike(d):
+    # Ashen Pike: long ash shaft, leaf head, moonlit point.
+    d.line((8, 29, 22, 3), fill=TIMBER, width=3)
+    d.polygon([(22, 3), (27, 9), (22, 14), (18, 8)], fill=STONE)
+    d.point((22, 7), fill=FOAM)
+    d.line((10, 26, 12, 24), fill=GOLD, width=1)
+
+
+def i_kite_shield(d):
+    # Kite Shield: pine kite, iron boss, gold rim.
+    d.polygon([(16, 2), (26, 10), (20, 29), (12, 29), (6, 10)], fill=PINE)
+    d.line((16, 2, 26, 10), fill=STRAW, width=1)
+    d.ellipse((12, 12, 20, 20), fill=STONE)
+    d.point((16, 16), fill=GOLD)
+    d.line((16, 20, 16, 29), fill=DARK, width=1)
+
+
+def i_brass_chalice(d):
+    # Brass Chalice: tall bright cup, moonlit rim, lamp-glow bowl.
+    i_chalice(d)
+    d.ellipse((10, 5, 22, 9), fill=FOAM)
+    d.line((10, 6, 22, 6), fill=GOLD, width=1)
+    d.point((16, 10), fill=GLOW)
+
+
+def i_apron(d):
+    # Hearth Apron: leather apron with a lampocket and welcome stitching.
+    d.polygon([(11, 4), (21, 4), (23, 26), (9, 26)], fill=TIMBER)
+    d.rectangle((11, 4, 21, 8), fill=DARK)
+    d.rectangle((13, 12, 19, 18), fill=HIDE)
+    d.point((16, 15), fill=GLOW)
+    d.line((12, 22, 20, 22), fill=GOLD, width=1)
+    d.line((12, 24, 20, 24), fill=GOLD, width=1)
+
+
+def i_orrery(d):
+    # Scholar's Orrery: brass armillary rings around a glowing moon disc.
+    d.ellipse((9, 9, 23, 23), fill=INK)
+    d.ellipse((11, 11, 21, 21), fill=GLOW)
+    d.point((16, 16), fill=FOAM)
+    d.ellipse((6, 12, 26, 20), outline=GOLD)
+    d.ellipse((10, 5, 22, 27), outline=STONE)
+    d.line((16, 2, 16, 6), fill=TIMBER, width=2)
+    d.point((24, 9), fill=EMBER)
+    d.point((8, 22), fill=GOLD)
+
+
 def make_items():
     item('item-sword', i_sword)
     item('item-axe', i_axe)
@@ -504,6 +629,18 @@ def make_items():
     item('item-awl', i_awl)
     item('item-trowel', i_trowel)
     item('item-fellingaxe', i_fellingaxe)
+    item('item-orrery', i_orrery)
+    item('item-herding-crook', i_herding_crook)
+    item('item-berry-basket', i_berry_basket)
+    item('item-apron', i_apron)
+    item('item-padded-coat', i_padded_coat)
+    item('item-runed-forgehammer', i_runed_forgehammer)
+    item('item-etched-armorkit', i_etched_armorkit)
+    item('item-fine-tinkerkit', i_fine_tinkerkit)
+    item('item-oiled-awl', i_oiled_awl)
+    item('item-brass-chalice', i_brass_chalice)
+    item('item-pike', i_pike)
+    item('item-kite-shield', i_kite_shield)
 
 # ------------------------------------------------------------- buildings
 # Generic moonlit gable hall. Tier reads: T1 low + plain, T2 taller +
@@ -774,15 +911,91 @@ def b_watchfire(d, t):
         d.point((16, 3), fill=GLOW)
 
 
+def b_scriptorium(d, t):
+    if t < 3:
+        # Tiers 1-2 keep the original chart-house look (byte-stable regen).
+        fam_house(STRAW, DARK)(d, t)
+        return
+    # Tier 3: the observatory — round stone tower, chart-dome, sky-spire.
+    d.rectangle((9, 14, 23, 29), fill=STONE)
+    for yy in (19, 24):
+        d.line((9, yy, 23, yy), fill=DARK, width=1)
+    d.chord((7, 2, 25, 18), 180, 360, fill=DARK)
+    d.arc((7, 2, 25, 18), 180, 360, fill=STONE, width=2)
+    d.line((16, 4, 16, 12), fill=GLOW, width=2)  # telescope slit
+    d.point((16, 3), fill=GOLD)
+    d.line((16, 2, 16, -3), fill=STONE, width=2)
+    d.point((16, -2), fill=EMBER)
+    d.rectangle((11, 20, 13, 23), fill=GLOW)  # chart windows
+    d.rectangle((19, 20, 21, 23), fill=GLOW)
+    d.rectangle((14, 24, 18, 29), fill=INK)  # door
+    d.point((17, 26), fill=GOLD)
+    d.line((24, 8, 24, 14), fill=TIMBER, width=1)
+    d.polygon([(24, 8), (29, 10), (24, 12)], fill=EMBER)  # pennant
+
+
+def b_stonewall(d, t):
+    # Stone Wall: rough-cut grey blocks, moss in the seams, gold cap at T3.
+    # Distinct from the timber Palisade at every tier.
+    if t == 1:
+        for x in range(5, 27, 6):
+            d.rectangle((x, 15, x + 5, 29), fill=STONE)
+            d.line((x, 15, x + 5, 15), fill=FOAM, width=1)
+        d.point((8, 22), fill=MOSS); d.point((20, 25), fill=MOSS)
+    elif t == 2:
+        d.rectangle((5, 11, 27, 29), fill=STONE)
+        for yy in (17, 23):
+            d.line((5, yy, 27, yy), fill=DARK, width=1)
+        for xx in (10, 16, 22):
+            d.line((xx, 11, xx, 29), fill=DARK, width=1)
+        d.line((5, 11, 27, 11), fill=FOAM, width=1)
+        d.point((8, 14), fill=MOSS)
+    else:
+        d.rectangle((5, 10, 27, 29), fill=STONE)
+        for yy in (16, 22, 27):
+            d.line((5, yy, 27, yy), fill=DARK, width=1)
+        for cx in (5, 10, 16, 22, 27):
+            d.rectangle((cx - 1, 5, cx + 1, 10), fill=STONE)
+        d.line((5, 5, 27, 5), fill=GOLD, width=1)
+        d.point((16, 13), fill=EMBER)
+
+
+def b_longhouse(d, t):
+    # Longhouse: one long timber hall, three doors, bannered gable.
+    d.rectangle((3, 16, 29, 29), fill=TIMBER)
+    for fx in range(6, 29, 6):
+        d.line((fx, 16, fx, 29), fill=DARK, width=1)
+    d.polygon([(1, 16), (16, 5), (31, 16)], fill=DARK)
+    d.line((16, 5, 31, 16), fill=STRAW, width=1)
+    for wx in (6, 14, 22):
+        d.rectangle((wx, 19, wx + 2, 22), fill=GLOW)
+    for dx in (5, 14, 23):
+        d.rectangle((dx, 23, dx + 3, 29), fill=INK)
+        d.point((dx + 2, 25), fill=GOLD)
+    d.line((16, 5, 16, 0), fill=TIMBER, width=1)
+    d.polygon([(16, 0), (21, 2), (16, 4)], fill=EMBER)
+
+
+def b_cottage(d, t):
+    if t < 3:
+        # Tiers 1-2 keep the original cottage look (byte-stable regen).
+        fam_house(TIMBER, STRAW, wing=True)(d, t)
+        return
+    # Tier 3: the tall house — third floor, twin lamps, welcome banner.
+    house(d, t, 16 + t * 2, TIMBER, STRAW, wing=True,
+          frame=False, windows=2, banner=True)
+    d.rectangle((7, 8, 9, 14), fill=STONE)
+    d.point((8, 7), fill=GLOW)
+
+
 def make_buildings():
     three = {'hall': b_hall, 'barracks': b_barracks, 'tower': b_tower,
              'wall': b_wall, 'trap': b_trap, 'farm': b_farm,
-             'lumber': b_lumber, 'mine': b_mine}
+             'lumber': b_lumber, 'mine': b_mine, 'stonewall': b_stonewall}
     for name, fn in three.items():
         for t in (1, 2, 3):
             building(name, t, fn)
-    two = {'cottage': fam_house(TIMBER, STRAW, wing=True),
-           'chapel': fam_house(STONE, PINE),
+    two = {'chapel': fam_house(STONE, PINE),
            'forge': fam_house(STONE, DARK),
            'workshop': fam_house(TIMBER, TIMBER),
            'butchery': fam_house(TIMBER, HIDE),
@@ -790,12 +1003,18 @@ def make_buildings():
            'armory': fam_house(STONE, STONE),
            'mason_yard': fam_house(STONE, TIMBER),
            'scout_post': fam_house(TIMBER, PINE),
-           'scriptorium': fam_house(STRAW, DARK),
            'pond': b_pond, 'pasture': b_pasture, 'grove': b_grove,
            'watchfire': b_watchfire}
     for name, fn in two.items():
         for t in (1, 2):
             building(name, t, fn)
+    # Cottage grows a tall third tier; the Longhouse stands alone (Act V).
+    for t in (1, 2, 3):
+        building('cottage', t, b_cottage)
+    building('longhouse', 1, b_longhouse)
+    # Scriptorium grows a third tier (the observatory) at village level 7.
+    for t in (1, 2, 3):
+        building('scriptorium', t, b_scriptorium)
     # chapel spire + forge glow accents so same-family houses still differ
     for t in (1, 2):
         im, d = C()

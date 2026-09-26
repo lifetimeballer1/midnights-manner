@@ -49,6 +49,7 @@
     "text": "Idle hands, empty bellies. Assign 2 villagers to workplaces from the People panel.",
     "giver": "Issa the chart-keeper",
     "flavor": "Two hands at proper work beat ten idle. The Moonwarden chart says so, and so does supper.",
+    "log": "Issa chalked the first true page: every hand at proper work, every belly fed. The Moonwarden chart says so.",
     "act": "I",
     "task": { "kind": "assign", "count": 2 },
     "xp": 80,
@@ -86,5 +87,57 @@
     "task": { "kind": "population", "count": 12 },
     "xp": 150,
     "rewards": { "gold": 100, "food": 60 }
+  },
+  {
+    "id": "chart-the-dark",
+    "name": "Chart the Dark",
+    "text": "Issa's moon-chart has a blank page where the deep gold sleeps. Haul 400 gold so the ink has something true to mark.",
+    "giver": "Issa the chart-keeper",
+    "flavor": "She ground the ink herself, lampblack and patience. Gold first, glory after.",
+    "log": "Issa unrolled the dark half of the chart and inked the deep seams in gold. The Orrery is yours — wind it, and learn the sky's accounts.",
+    "act": "V",
+    "task": { "kind": "gather", "resource": "gold", "amount": 400 },
+    "xp": 150,
+    "rewards": {},
+    "unlocks": [ "orrery" ]
+  },
+  {
+    "id": "tomm-s-flocks",
+    "name": "Tomm's Flocks",
+    "text": "Tomm the herder has watched three generations lamb under this moon. Raise the Night Pasture to tier 2 and prove the village keeps flocks, not just fences.",
+    "giver": "Tomm the herder",
+    "flavor": "Wren's grandfather counts lambs the way Issa counts stars. He has never once been wrong.",
+    "log": "Tomm walked the new pasture rails and nodded once. Flocks, not fences — the village is learning.",
+    "act": "V",
+    "task": { "kind": "upgrade", "type": "pasture", "level": 2 },
+    "xp": 130,
+    "rewards": { "food": 60, "wood": 40 },
+    "unlocks": [ "herding-crook", "berry-basket" ]
+  },
+  {
+    "id": "open-doors",
+    "name": "Open Doors",
+    "text": "Ten souls under one moon and more on the road. Grow the village to 10 villagers and throw the doors wide.",
+    "giver": "Old Bell",
+    "flavor": "She rang the roll herself, all ten names, and the echo came back with an eleventh.",
+    "log": "Old Bell chalked ten names inside the hall door. The village takes apprentices now — beds for dozens.",
+    "act": "V",
+    "task": { "kind": "population", "count": 10 },
+    "xp": 0,
+    "rewards": { "gold": 50, "food": 40 },
+    "unlocks": [ "apprentice" ]
+  },
+  {
+    "id": "sarella-s-standard",
+    "name": "Sarella's Standard",
+    "text": "Sarella Emberwright holds every forge-piece to her own standard. Raise the Emberforge AND the Wardarmory to tier 2, then choose one master's tool from her rack.",
+    "giver": "Sarella Emberwright",
+    "flavor": "Master of the forge, keeper of the standard. Her rack holds five tools and her patience holds one lesson: pick the work, not the shine.",
+    "log": "Sarella tested every edge herself and chalked her mark on five tools. Choose one — the village can afford the master's standard now.",
+    "act": "V",
+    "task": { "kind": "upgrade", "type": [ "forge", "armory" ], "level": 2 },
+    "xp": 140,
+    "rewards": { "gold": 60 },
+    "unlocks": [ "runed-forgehammer", "etched-armorkit", "fine-tinkerkit", "oiled-awl", "brass-chalice" ]
   }
 ]

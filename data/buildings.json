@@ -192,6 +192,7 @@
     "buildSeconds": 4,
     "production": null,
     "rate": 0,
+    "repeatPlace": true,
     "tiers": [
       {
         "sprite": "wall-1.png",
@@ -210,6 +211,41 @@
       {
         "sprite": "wall-3.png",
         "hp": 690,
+        "rateMultiplier": 3,
+        "damage": 0,
+        "range": 0.75
+      }
+    ]
+  },
+  "stonewall": {
+    "name": "Stone Wall",
+    "size": 1,
+    "cost": {
+      "wood": 30,
+      "gold": 25
+    },
+    "buildSeconds": 6,
+    "production": null,
+    "rate": 0,
+    "repeatPlace": true,
+    "tiers": [
+      {
+        "sprite": "stonewall-1.png",
+        "hp": 520,
+        "rateMultiplier": 1,
+        "damage": 0,
+        "range": 0.75
+      },
+      {
+        "sprite": "stonewall-2.png",
+        "hp": 1040,
+        "rateMultiplier": 2,
+        "damage": 0,
+        "range": 0.75
+      },
+      {
+        "sprite": "stonewall-3.png",
+        "hp": 1560,
         "rateMultiplier": 3,
         "damage": 0,
         "range": 0.75
@@ -296,8 +332,10 @@
     "rate": 0,
     "housing": [
       6,
-      10
+      10,
+      16
     ],
+    "workplace": "apprentice",
     "tiers": [
       {
         "sprite": "cottage-1.png",
@@ -310,6 +348,37 @@
         "sprite": "cottage-2.png",
         "hp": 420,
         "rateMultiplier": 2,
+        "damage": 0,
+        "range": 0.75
+      },
+      {
+        "sprite": "cottage-3.png",
+        "hp": 640,
+        "rateMultiplier": 3,
+        "damage": 0,
+        "range": 0.75
+      }
+    ]
+  },
+  "longhouse": {
+    "name": "Longhouse",
+    "size": 3,
+    "cost": {
+      "wood": 180,
+      "gold": 90
+    },
+    "buildSeconds": 8,
+    "production": null,
+    "rate": 0,
+    "housing": [
+      14
+    ],
+    "minLevel": 5,
+    "tiers": [
+      {
+        "sprite": "longhouse-1.png",
+        "hp": 900,
+        "rateMultiplier": 1,
         "damage": 0,
         "range": 0.75
       }
@@ -425,6 +494,9 @@
     "rate": 0,
     "workplace": "scholar",
     "xpRate": 0.12,
+    "tierGates": {
+      "3": 7
+    },
     "tiers": [
       {
         "sprite": "scriptorium-1.png",
@@ -437,6 +509,13 @@
         "sprite": "scriptorium-2.png",
         "hp": 300,
         "rateMultiplier": 2,
+        "damage": 0,
+        "range": 0.75
+      },
+      {
+        "sprite": "scriptorium-3.png",
+        "hp": 450,
+        "rateMultiplier": 3,
         "damage": 0,
         "range": 0.75
       }
