@@ -184,5 +184,74 @@
     "requires": [
       "timber-line"
     ]
+  },
+  {
+    "id": "ember-road",
+    "name": "The Ember Road",
+    "chapter": "04",
+    "description": "A forge-fire needs feeding. Cut timber fast on a tight clock while a single late raid tests the new watchfire.",
+    "timeLimit": 200,
+    "troopLimit": 6,
+    "objectives": [{ "resource": "wood", "amount": 200 }],
+    "startingResources": { "wood": 200, "food": 150, "gold": 120 },
+    "map": {
+      "buildings": [
+        { "type": "hall", "x": 9, "y": 7 },
+        { "type": "lumber", "x": 7, "y": 9 },
+        { "type": "watchfire", "x": 6, "y": 7 }
+      ],
+      "troops": ["warrior", "warden", "builder", "miner"]
+    },
+    "raids": [{ "at": 120, "count": 5 }],
+    "rewards": { "wood": 200, "gold": 150 },
+    "unlocks": ["grove"],
+    "requires": ["long-night"]
+  },
+  {
+    "id": "moonwell",
+    "name": "Moonwell Plenty",
+    "chapter": "05",
+    "description": "Two hungers at once: bread for the tables, moonstone for the coffers. Foragers earn their keep while raiders circle twice.",
+    "timeLimit": 260,
+    "troopLimit": 7,
+    "objectives": [{ "resource": "food", "amount": 150 }, { "resource": "gold", "amount": 200 }],
+    "startingResources": { "wood": 260, "food": 100, "gold": 120 },
+    "map": {
+      "buildings": [
+        { "type": "hall", "x": 9, "y": 7 },
+        { "type": "grove", "x": 6, "y": 9 },
+        { "type": "mine", "x": 11, "y": 5 },
+        { "type": "tower", "x": 6, "y": 7 }
+      ],
+      "troops": ["warrior", "ranger", "forager", "miner", "builder"]
+    },
+    "raids": [{ "at": 60, "count": 4 }, { "at": 150, "count": 6 }],
+    "rewards": { "food": 200, "gold": 250 },
+    "unlocks": ["watchfire"],
+    "requires": ["ember-road"]
+  },
+  {
+    "id": "last-stand",
+    "name": "The Last Stand",
+    "chapter": "06",
+    "description": "Three waves before dawn with a skeleton crew. Hold the manor, keep the gold flowing, and prove the village endures.",
+    "timeLimit": 300,
+    "troopLimit": 5,
+    "objectives": [{ "resource": "gold", "amount": 250 }],
+    "startingResources": { "wood": 280, "food": 160, "gold": 120 },
+    "map": {
+      "buildings": [
+        { "type": "hall", "x": 9, "y": 7 },
+        { "type": "mine", "x": 7, "y": 9 },
+        { "type": "watchfire", "x": 5, "y": 6 },
+        { "type": "wall", "x": 5, "y": 7 },
+        { "type": "wall", "x": 5, "y": 8 }
+      ],
+      "troops": ["warden", "ranger", "miner", "builder"]
+    },
+    "raids": [{ "at": 40, "count": 4 }, { "at": 130, "count": 6 }, { "at": 220, "count": 8 }],
+    "rewards": { "gold": 400, "wood": 300, "food": 250 },
+    "unlocks": [],
+    "requires": ["moonwell"]
   }
 ]

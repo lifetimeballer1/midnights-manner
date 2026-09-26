@@ -374,5 +374,52 @@
     "carry": 10,
     "job": { "workplace": "mason_yard", "effect": "lay", "text": "Lays true courses at the Mason Yard; building goes faster." },
     "abilities": { "5": "haste", "10": "armor", "15": "heal", "20": "veteran", "25": "haste" }
+  },
+  "warden": {
+    "name": "Warden",
+    "role": "combat",
+    "sprite": "warden.png",
+    "color": "#7b96b8",
+    "maxLevel": 25,
+    "base": { "hp": 210, "damage": 16, "speed": 1.0, "range": 1.0 },
+    "growth": { "hp": 0.1, "damage": 0.08, "speed": 0.005 },
+    "levelCost": { "gold": 22, "food": 14 },
+    "recruitCost": { "food": 45, "gold": 30 },
+    "defaultGear": "sword",
+    "gatherResource": null,
+    "carry": 10,
+    "abilities": { "5": "cleave", "10": "armor", "15": "heal", "20": "veteran", "25": "haste" }
+  },
+  "ranger": {
+    "name": "Ranger",
+    "role": "combat",
+    "sprite": "ranger.png",
+    "color": "#5f8f5a",
+    "maxLevel": 25,
+    "base": { "hp": 70, "damage": 18, "speed": 2.2, "range": 5.0 },
+    "growth": { "hp": 0.08, "damage": 0.09, "speed": 0.006 },
+    "levelCost": { "gold": 20, "food": 12 },
+    "recruitCost": { "food": 40, "gold": 25 },
+    "defaultGear": "bow",
+    "gatherResource": null,
+    "carry": 8,
+    "abilities": { "5": "cleave", "10": "armor", "15": "heal", "20": "veteran", "25": "haste" }
+  },
+  "forager": {
+    "name": "Forager",
+    "role": "collector",
+    "sprite": "forager.png",
+    "color": "#c9713f",
+    "maxLevel": 25,
+    "base": { "hp": 80, "damage": 5, "speed": 1.8, "range": 0.85 },
+    "growth": { "hp": 0.09, "damage": 0.08, "speed": 0.008 },
+    "levelCost": { "gold": 15, "food": 10 },
+    "recruitCost": { "food": 30, "gold": 15 },
+    "defaultGear": "sickle",
+    "gatherResource": "food",
+    "gatherFrom": "grove",
+    "carry": 8,
+    "job": { "workplace": "grove", "effect": "pick", "text": "Picks moonberries at the Grove; posted hands keep baskets full." },
+    "abilities": { "5": "haste", "10": "armor", "15": "heal", "20": "veteran", "25": "haste" }
   }
 }

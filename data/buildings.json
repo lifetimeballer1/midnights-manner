@@ -425,6 +425,32 @@
       { "sprite": "tannery-2.png", "hp": 300, "rateMultiplier": 2, "damage": 0, "range": 0.75 }
     ]
   },
+  "grove": {
+    "name": "Moonberry Grove",
+    "size": 2,
+    "cost": { "wood": 55, "food": 15 },
+    "buildSeconds": 4,
+    "production": "food",
+    "rate": 1.2,
+    "reserve": 350,
+    "workplace": "forager",
+    "tiers": [
+      { "sprite": "grove-1.png", "hp": 170, "rateMultiplier": 1, "damage": 0, "range": 0.75 },
+      { "sprite": "grove-2.png", "hp": 340, "rateMultiplier": 2, "damage": 0, "range": 0.75 }
+    ]
+  },
+  "watchfire": {
+    "name": "Signal Watchfire",
+    "size": 1,
+    "cost": { "wood": 65, "gold": 35 },
+    "buildSeconds": 5,
+    "production": null,
+    "rate": 0,
+    "tiers": [
+      { "sprite": "watchfire-1.png", "hp": 200, "rateMultiplier": 1, "damage": 10, "range": 5.5 },
+      { "sprite": "watchfire-2.png", "hp": 400, "rateMultiplier": 2, "damage": 20, "range": 6.0 }
+    ]
+  },
   "mason_yard": {
     "name": "Mason Yard",
     "size": 2,
