@@ -31,6 +31,12 @@ There are no npm dependencies to install. Serve over HTTP; opening `index.html` 
 
 ## Mobile game interface
 
+### Workplace management and architecture preview
+
+Select a workplace on the map and tap **Workers** to view its crew, assign an available matching profession, transfer someone from another workplace, or release a worker. **Hire** in this panel recruits directly into that building. Hiring from People automatically chooses the nearest finished, living matching workplace with a vacancy. If none is open, the recruit remains unassigned. A full or unavailable explicitly targeted workplace rejects the hire before charging resources. Existing barracks, unlock, and troop-limit requirements still apply. Assigned noncombat specialists walk to their workplace; collectors retain their gather/deliver cycle and explicit player orders take priority.
+
+The architecture pass uses original Canvas geometry in `src/building-art.js`: connected timber/stone/fortified walls, raised foundations, dimensional manor/cottage/barracks roofs, crop beds, and crenellated towers. Each tier adds structural detail. Other buildings and inventory cards retain their pixel sprites. No save migration is required. `scripts/architecture-preview.mjs` optionally creates a review sheet using an externally installed `@napi-rs/canvas`; it adds no runtime dependency.
+
 The map fills the viewport (including iPhone safe-area handling); the document never scrolls. Build, Army & people, and Adventure are overlay drawers. On phones they are bottom sheets; in landscape/desktop they use a side drawer. A quick fighter rail supports direct orders. Quest and raid status stay visible on the map. Menus have keyboard focus containment and labeled controls. The welcome and settings screens pause simulation; Build/Army/Adventure remain live during raids.
 
 Production buildings keep generating automatically. They also accumulate a **capped, manually collected bonus**: tap a gold `+N` bubble or the selected building's Collect button. Configure `harvest.bonusRate` and `harvest.capacity` in buildings.json. This bonus accrues only during active simulation, cannot be double-claimed, and counts toward collection objectives.

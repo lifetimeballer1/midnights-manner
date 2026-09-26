@@ -1,6 +1,7 @@
 import {screenToWorld,panPixels,zoomAt,phaseSeed} from './camera.js';
 import {center,canPlace,stats,housing,assignedWorkers} from './model.js';
 import {sfx} from './systems/audio.js';
+import {drawWall,drawFoundation,drawArchitecture,isWall} from './building-art.js';
 export class Renderer {
  constructor(canvas,data,images){this.canvas=canvas;this.ctx=canvas.getContext('2d');this.data=data;this.images=images;this.grid=false;this.hover=null;this.selection=null;this.placing=null;this.moving=null;this.tw=43;this.th=22;this.ox=510;this.oy=97;this.shake=0;this.cam={x:10,y:8,zoom:1};this.cx=550;this.cy=370;this.width=1100;this.height=740;this.dpr=1;this.hitAreas=[];this.staticLayer=null;this.staticKey='';this.frameTimes=[];this._pendingStaticKey=null;this._noCache=false;this._lastFrame=null;try{this.calm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch{this.calm=false;}this.seen=new Map();this.flash=new Map();this.deadAt=new Map();this.tints=new Map();}
  base(x,y){return {x:this.ox+(x-y)*this.tw/2,y:this.oy+(x+y)*this.th/2};}
@@ -84,7 +85,9 @@ export class Renderer {
      const range=spec.tiers[b.level-1].range;
      if(spec.tiers[b.level-1].damage){c.save();c.globalAlpha=.9;c.strokeStyle='#f2e2a8';c.lineWidth=1.5;c.setLineDash([6,4]);c.beginPath();c.ellipse(gp.x,gp.y,range*this.tw*.72*this.cam.zoom,range*this.th*.72*this.cam.zoom,0,0,Math.PI*2);c.stroke();c.restore();}
     }
-    this.sprite(spec.tiers[b.level-1].sprite,cp.x,cp.y,baseSize,b.hp<=0?.3:b.remaining>0?.65:1);
+    drawFoundation(this,b,spec);
+    if(isWall(b))drawWall(this,b,world);
+    else if(!drawArchitecture(this,b,spec))this.sprite(spec.tiers[b.level-1].sprite,cp.x,cp.y,baseSize,b.hp<=0?.3:b.remaining>0?.65:1);
     // Living-village readouts: beds on cottages, gold crew pips on workplaces,
     // and a thin reserve bar on nodes draining below two-thirds.
     const p=this.project(cp.x,cp.y);const p2=p;
@@ -127,7 +130,7 @@ export class Renderer {
     }else this.bar(p.x,p.y+9,b.hp/b.maxHp,22,'#bd7770');
    }
   }
-  if(this.placing&&this.hover){const size=this.data.buildings[this.placing].size,tier=this.data.buildings[this.placing].tiers[0];this.sprite(tier.sprite,this.hover.x+size/2,this.hover.y+size/2,size===2?79:51,this.calm?.5:.5+Math.sin(time/200)*.08);if(tier.damage){const gp=this.project(this.hover.x+size/2,this.hover.y+size/2);c.save();c.globalAlpha=.85;c.strokeStyle='#f2e2a8';c.lineWidth=1.5;c.setLineDash([6,4]);c.beginPath();c.ellipse(gp.x,gp.y,tier.range*this.tw*.72*this.cam.zoom,tier.range*this.th*.72*this.cam.zoom,0,0,Math.PI*2);c.stroke();c.restore();}}
+  if(this.placing&&this.hover){const size=this.data.buildings[this.placing].size,tier=this.data.buildings[this.placing].tiers[0];const ghost={type:this.placing,x:this.hover.x,y:this.hover.y,level:1,hp:1,remaining:1};drawFoundation(this,ghost,this.data.buildings[this.placing]);if(isWall(ghost))drawWall(this,ghost,world);else if(!drawArchitecture(this,ghost,this.data.buildings[this.placing]))this.sprite(tier.sprite,this.hover.x+size/2,this.hover.y+size/2,size===2?79:51,.6);if(tier.damage){const gp=this.project(this.hover.x+size/2,this.hover.y+size/2);c.save();c.globalAlpha=.85;c.strokeStyle='#f2e2a8';c.lineWidth=1.5;c.setLineDash([6,4]);c.beginPath();c.ellipse(gp.x,gp.y,tier.range*this.tw*.72*this.cam.zoom,tier.range*this.th*.72*this.cam.zoom,0,0,Math.PI*2);c.stroke();c.restore();}}
   for(const e of world.effects){const a=this.project(e.x,e.y),b=this.project(e.tx,e.ty);if(e.kind==='place'){const t=1-Math.max(0,e.life)/.6;c.globalAlpha=Math.max(0,e.life)/.6;c.strokeStyle='#ffe9a8';c.lineWidth=3;c.beginPath();c.ellipse(b.x,b.y-6,8+t*34,4+t*15,0,0,Math.PI*2);c.stroke();c.globalAlpha=1;if(e.life>.5)this.shake=Math.max(this.shake,4);continue;}
    if(e.kind==='splash'){const t=1-Math.max(0,e.life)/.5;c.globalAlpha=Math.max(0,e.life)/.5;c.strokeStyle='#7fc4d4';c.lineWidth=2;for(let s=0;s<2;s++){c.beginPath();c.ellipse(b.x,b.y-8,6+t*(10+s*7),3+t*(4+s*3),0,Math.PI,Math.PI*2);c.stroke();}c.fillStyle='#dff3f8';c.fillRect(b.x-1,b.y-14-t*8,2,3);c.globalAlpha=1;continue;}
    if(e.kind==='float'||e.kind==='dmg'){const rise=1-Math.max(0,e.life)/(e.kind==='float'?.9:.7);c.globalAlpha=Math.min(1,e.life*2.2);c.font=`bold ${e.kind==='dmg'?13:14}px system-ui`;c.textAlign='center';c.fillStyle='#1c302c';c.fillText(e.text,b.x+1,b.y-30-rise*22+1);c.fillStyle=e.kind==='dmg'?'#ffd9a8':(e.color||'#ffe9a8');c.fillText(e.text,b.x,b.y-30-rise*22);c.textAlign='left';c.globalAlpha=1;continue;}

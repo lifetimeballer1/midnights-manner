@@ -82,22 +82,27 @@ export class Game {
  relocate(id,x,y){const b=this.world.buildings.find(b=>b.id===id);if(!b||this.world.enemies.length||this.world.raidPending)return this.notify('Buildings cannot move during a raid.');if(!inBounds(this.world,this.data,b.type,x,y))return this.notify('That land is still wild. Earn village XP to open new rows.');if(!canPlace(this.world,this.data,b.type,x,y,b.id))return this.notify('Too close — roomy buildings need a one-tile gap.');b.x=x;b.y=y;this.notify('Building moved.');return true;}
  assign(unitId,buildingId){
   const u=this.world.troops.find(t=>t.id===unitId);if(!u)return this.notify('That villager is gone.');
-  if(!buildingId){u.workplace=null;this.notify(`${this.data.troops[u.type].name} is resting.`);return true;}
+  if(!buildingId){u.workplace=null;u.order=null;this.notify(`${this.data.troops[u.type].name} is available for work.`);return true;}
   const b=this.world.buildings.find(b=>b.id===buildingId);
   if(!b||!assignmentValid(this.world,this.data,u,b))return this.notify('That worker does not belong there — match each profession to its own workplace.');
-  u.workplace=buildingId;
+  u.workplace=buildingId;u.order=null;
   const job=this.data.troops[u.type].job;
   this.notify(`${this.data.troops[u.type].name} assigned to the ${this.data.buildings[b.type].name}. ${job?.text||''}`);
   return true;
  }
- recruit(type){
+ recruit(type,workplaceId=null){
   if(!this.data.troops[type])return this.notify('Unknown calling.');
   if(this.locked(type))return this.notify('That calling is not yet earned — quests and campaign chapters unlock new people.');
   if(!this.world.buildings.some(b=>b.type==='barracks'&&b.hp>0&&b.remaining<=0))return this.notify('Build a barracks first.');
   const mission=this.data.missions.find(m=>m.id===this.state.mission?.id),limit=mission?.troopLimit||16;
   if(this.world.troops.length>=limit)return this.notify(`Your troop limit is ${limit}.`);
+  const unit=makeUnit(type,this.data,this.world.troops.length%5);
+  const preferred=workplaceId?this.world.buildings.find(b=>b.id===workplaceId):null;
+  if(workplaceId&&(!preferred||!assignmentValid(this.world,this.data,unit,preferred)))return this.notify('This workplace is full, unfinished, or unavailable. No resources spent.');
+  const workplace=preferred||this.world.buildings.filter(b=>assignmentValid(this.world,this.data,unit,b)).sort((a,b)=>Math.hypot(a.x-unit.x,a.y-unit.y)-Math.hypot(b.x-unit.x,b.y-unit.y))[0];
   if(!pay(this.world.resources,this.data.troops[type].recruitCost))return this.notify('Not enough food or gold.');
-  this.world.troops.push(makeUnit(type,this.data,this.world.troops.length%5));sfx.upgrade();this.notify(`${this.data.troops[type].name} recruited.`);
+  if(workplace)unit.workplace=workplace.id;
+  this.world.troops.push(unit);sfx.upgrade();this.notify(`${this.data.troops[type].name} hired${workplace?` and assigned to ${this.data.buildings[workplace.type].name}`:'. No matching job is open yet'}.`);return unit;
  }
  level(id){const u=this.world.troops.find(t=>t.id===id);if(!u||u.level>=this.data.troops[u.type].maxLevel)return;const curve=u.level>=5?1.5:1;const cost=Object.fromEntries(Object.entries(this.data.troops[u.type].levelCost).map(([k,v])=>[k,Math.ceil(v*u.level*curve)]));if(!pay(this.world.resources,cost))return this.notify('Not enough food or gold to train.');u.level++;u.hp=stats(u,this.data).hp;this.notify(`Level ${u.level} reached${u.level%5===0?' — new ability unlocked!':'.'}`);}
  equip(id,itemId){const u=this.world.troops.find(t=>t.id===id),item=this.data.items[itemId];if(!u||!item||!item.roles.includes(u.type)||this.locked(itemId))return;

@@ -64,7 +64,7 @@ export function pay(resources,cost) {if(!afford(resources,cost)) return false; f
 export function workplaceCapacity(building, data) { return data.buildings[building.type].size + 1; }
 export function assignedWorkers(world, buildingId) { return world.troops.filter(t => t.workplace === buildingId && t.hp > 0); }
 export function assignmentValid(world, data, unit, building) {
-  if (!unit || !building || building.hp <= 0 || building.remaining > 0) return false;
+  if (!unit || unit.hp <= 0 || !building || building.hp <= 0 || building.remaining > 0) return false;
   const job = data.troops[unit.type].job;
   if (!job || building.type !== job.workplace) return false;
   if (unit.workplace === building.id) return true;
