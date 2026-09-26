@@ -124,8 +124,8 @@
     "perWave": 1,
     "maxCount": 8,
     "warningLines": [
-      "Horns on the west wind — riders under a pale moon. To the walls! They come in {count} heartbeats of {seconds}.",
-      "Dust on the west road and a horn through the pines. {count} raiders, {seconds} breaths out. Light the lamps.",
+      "Horns on the night wind — riders under a pale moon. To the walls! They come in {count} heartbeats of {seconds}.",
+      "Dust on the border roads and a horn through the pines. {count} raiders, {seconds} breaths out. Light the lamps.",
       "The watchfire gutters — hoofbeats past the treeline. {count} coming, {seconds} to bar the doors."
     ],
     "attackLines": [
