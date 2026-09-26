@@ -1,5 +1,6 @@
 import {stats,unlockedAbilities,buildingCost,housing,XP_LEVELS,center,assignedWorkers,workplaceCapacity,canPlace,afford} from './model.js';
 import {currentQuest,questProgress} from './systems/village.js';
+import {exportSave,importSaveBlob} from './storage.js';
 import {sfx,isMuted,toggleMute} from './systems/audio.js';
 const icons={wood:'▰',food:'♧',gold:'◆'};
 const resourceSprites={wood:'item-hammer.png',food:'item-sickle.png',gold:'item-pickaxe.png'};
@@ -22,6 +23,8 @@ export class UI {
    if(b.id==='opt-motion'){this.renderer.calm=!this.renderer.calm;try{localStorage.setItem('midnights-manner-calm',this.renderer.calm?'on':'off');}catch{}this.syncPause();}
    if(b.id==='opt-grid'){this.renderer.grid=!this.renderer.grid;this.syncPause();}
    if(b.id==='opt-save'){if(this.game.persist())this.game.notify('Saved on this browser.');}
+   if(b.id==='opt-export'){const blob=exportSave(this.game.state);if(!blob){this.game.notify('Export failed in this browser.');}else{const label='village save v'+(this.game.state.version||2);try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(blob).then(()=>{this.game.notify('Village copied ('+label+'). Paste it into Import on your other device.');this.refresh();},()=>{window.prompt('Copy your '+label+' (Ctrl+C, Enter):',blob);});}else{window.prompt('Copy your '+label+' (Ctrl+C, Enter):',blob);}}catch{window.prompt('Copy your '+label+' (Ctrl+C, Enter):',blob);}}this.refresh();}
+   if(b.id==='opt-import'){const text=window.prompt('Paste a village save (Export on your other device):','');if(text==null)return;const result=importSaveBlob(text,this.game.data);if(!result.ok){this.game.notify('Import failed: '+result.error);this.refresh();return;}this.game.importState(result.state);this.cancel();this.closePause();this.refresh();}
    if(b.id==='fullscreen'){if(document.fullscreenElement)document.exitFullscreen?.();else if(document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(()=>this.game.notify('Use Add to Home Screen for full-screen play.'));else this.game.notify('On iPhone: Safari → Share → Add to Home Screen.');}
    if(b.id==='help')$('#controls-recap').classList.toggle('help-highlight');this.refresh();
   };
@@ -85,7 +88,7 @@ export class UI {
   $('#day').textContent=`Day ${Math.floor(w.elapsed/180)+1} · ${g.state.mission?'Expedition':'Homestead'}`;
   $('#village-level').textContent=g.state.vlevel||1;const lv=g.state.vlevel||1,lo=XP_LEVELS[lv-1]||0,hi=XP_LEVELS[lv]||lo+1;$('#xp-fill').style.width=`${Math.max(0,Math.min(100,((g.state.xp||0)-lo)/(hi-lo)*100))}%`;
   $('#chapter-count').textContent=`${g.state.completed.length} / ${d.missions.length}`;$('#population-count').textContent=`${w.troops.length} villagers`;$('#wave-count').textContent=g.state.mission?'Expedition':`Wave ${w.wave+1}`;
-  if(this.lastMessage!==g.message){this.lastMessage=g.message;$('#status').textContent=g.message;this.toastTime=4.5;$('#status').classList.add('show');}
+  if(this.lastMessage!==g.message){this.lastMessage=g.message;$('#status').textContent=g.message;this.toastTime=4.5;$('#status').classList.add('show');const log=$('#event-log');if(log)log.textContent=g.message;}
   const q=currentQuest(g.state,d);$('#quest-name').textContent=q?.name||'Your village is thriving';if(q){const p=questProgress(q.task,g.state);$('#quest-progress').textContent=`${Math.min(p.have,p.need)} / ${p.need} · +${q.xp} XP`;}else $('#quest-progress').textContent='Explore the campaign';
   const mission=d.missions.find(m=>m.id===g.state.mission?.id),battle=$('#battle-hud');battle.hidden=!w.enemies.length&&!w.raidPending&&!mission;
   if(w.raidPending)battle.innerHTML=`<b>RAIDERS INCOMING · ${Math.ceil(w.raidPending.timer)}</b><small>${w.raidPending.count} approaching from the west</small>`;

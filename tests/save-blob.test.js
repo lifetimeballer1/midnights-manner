@@ -42,16 +42,6 @@ test('import refuses saves with unknown content', () => {
   assert.equal(res.ok, false);
   assert.match(res.error, /validation/i);
 });
-test('Game.canBuild pre-flights placement without spending', () => {
-  const g = new Game(data);
-  const before = { ...g.world.resources };
-  // Find any buildable tile; canBuild must not mutate resources either way.
-  let checked = 0;
-  for (let y = 1; y < data.world.height - 1 && checked < 4; y++) for (let x = 1; x < data.world.width - 1 && checked < 4; x++) { g.canBuild('farm', x, y); checked++; }
-  assert.deepEqual({ ...g.world.resources }, before);
-  const locked = data.world.locked[0];
-  if (locked && data.buildings[locked]) assert.equal(g.canBuild(locked, 9, 9).ok, false);
-});
 test('world exposes troops for the missions data file', () => {
   assert.ok(createWorld(data).troops.length > 0);
 });

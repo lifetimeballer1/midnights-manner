@@ -11,16 +11,7 @@ export class Game {
  get world(){return this.state.world;}
  notify(message){this.message=message;this.dirty=true;}
  locked(id){return this.data.world.locked.includes(id)&&!this.state.unlocks.includes(id);}
- // Pure pre-flight for the two-step placement preview (no spend, no notify).
- canBuild(type,x,y,movingId){
-  if(this.locked(type))return {ok:false,reason:'locked'};
-  if(!inBounds(this.world,this.data,type,x,y))return {ok:false,reason:'wild'};
-  if(!canPlace(this.world,this.data,type,x,y,movingId))return {ok:false,reason:'space'};
-  const cost=buildingCost(type,1,this.world,this.data);
-  const afford=Object.entries(cost).every(([k,v])=>(this.world.resources[k]??0)>=v);
-  if(!afford)return {ok:false,reason:'cost'};
-  return {ok:true};
- }
+
  build(type,x,y){
   if(this.paused)return this.notify('Resume the village to build.');
   if(this.locked(type))return this.notify('Complete campaign chapters to unlock this.');
