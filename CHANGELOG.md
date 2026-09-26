@@ -114,3 +114,15 @@ Running log for Jesce's extended autonomous pass. One entry per item. Judgment c
   move leader-line, ➤/⚔/✋ tags) supporting Item 4.
 - NOT done (pro-art territory, deliberately untouched): final sprite art,
   phone-device screenshot check, audio expansion.
+
+
+## Mobile-game conversion — September 26
+
+- Replaced scrolling website chrome with a full-viewport game, edge HUD, quick fighter rail, large bottom actions and contextual selection controls.
+- Added touch pan/pinch, zoom anchoring, high-DPI Canvas resize, precise sprite hit areas and responsive portrait/landscape overlay menus.
+- Added preview/confirm placement to prevent accidental purchases; menu filters for economy, defense, village jobs, fighters and recruitment.
+- Fixed UUID-based animation arithmetic producing NaN coordinates (invisible characters/smoke), and balanced Canvas save/restore around screen shake.
+- Retained all professions, six missions, quests, assignments, population/expansion, revised sprites and existing save migration.
+- Added capped tap-to-collect production bonuses, visible raid/quest progress, welcome pause, settings focus management, app icons and a standalone home-screen manifest.
+- Added movement destination validation, blocked relocation during raid warning, corrected displayed high-level training costs and defeat repair totals.
+- Extended real-browser tests to exercise actual pointer/touch input, portrait/landscape and save continuity.

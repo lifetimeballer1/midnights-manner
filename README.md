@@ -4,7 +4,7 @@
 
 A browser-based village builder with an isometric HTML5 Canvas map, farming economy, equippable pixel-art tools, tactical defenses, and a data-driven frontier campaign. Vanilla JavaScript modules; no runtime dependencies, backend, API keys, or build framework.
 
-**Status:** first playable prototype. The systems below are implemented; balancing, deeper combat AI, final art, audio, multiplayer, and cloud saves are future work. Progress is saved locally in the browser every five seconds and on page exit. Hidden tabs pause simulation; there is no offline production. Campaign expeditions use separate maps and preserve the home village.
+**Status:** mobile-first playable prototype. The systems below are implemented; Long-term balancing, richer combat AI, final art, multiplayer, and cloud saves are future work. Synthesized sound effects, responsive full-screen controls and six campaign chapters are implemented. Progress is saved locally in the browser every five seconds and on page exit. Hidden tabs pause simulation; there is no offline production. Campaign expeditions use separate maps and preserve the home village.
 
 ## Start locally
 
@@ -21,19 +21,43 @@ There are no npm dependencies to install. Serve over HTTP; opening `index.html` 
 
 ## Play
 
-- **Build:** select a card, then tap/click an empty grid tile. Escape or Cancel leaves placement mode. Walls can be placed repeatedly. Select any building to upgrade, move, or repair it. No relocation during raids.
-- **Keyboard:** focus the map, use arrow keys to choose a tile, Enter to place/select, Escape to cancel.
+- **Build:** open Build, select a card, tap a tile to preview, then press Build to confirm the resource spend. Cancel leaves placement mode. Walls stay in placement mode for repeated confirmed placement. Select any building to upgrade, move, or repair it. No relocation during raids.
+- **Controls:** one finger/mouse drag pans; two-finger pinch or wheel zooms around the gesture. Tap rendered buildings to select them. Use the bottom troop rail to select a fighter, then tap open ground to move or an enemy to attack. The camera buttons zoom/recenter. On a keyboard, arrows + Enter choose a tile, WASD pan, +/- zoom, 0 recenters, H holds the selected troop, and Escape dismisses the top menu/selection.
 - **People:** twelve frontier professions (fisher, shepherd, butcher, scholar, wayfinder, mooncleric, smiths, mason, lumberjack) plus the original five. Assign each to its matching workplace from the People panel. Surplus food plus free cottage beds grows new villagers over time; hunger or crowding pauses it.
 - **Economy:** farms, timber yards, mines, ponds, pastures and smokehouses produce each second from living nodes that visibly drain and refill. Collectors walk to matching buildings (fishermen need ponds, shepherds need pastures) and deliver to the manor. Assigned specialists work 25% faster; keepers at workplaces grant auras (sharper weapons, ward-plate, faster gathering, mending, XP, surveys).
 - **Defense:** Test your defenses spawns an increasingly large raid from the west. Warriors/archers auto-engage, towers fire, and reusable traps trigger on cooldown. Walls block routes. Destroyed buildings remain for repair. Defeated troops revive after a raid. If the home manor falls, the raid ends and salvaged wood allows recovery.
-- **Story:** an 8-step village-path quest chain (quests.json) teaches build order and pays XP that levels the village; each level can open new buildable map rows. Plus three linear campaign chapters with fresh starting layouts, time limits, recruitment caps and scheduled raids. Meet collection targets, defeat scheduled waves, and keep the manor alive. Return home explicitly to claim a chapter's one-time reward and unlocks. Replays cannot farm first-clear rewards; abandoning never changes the home village.
+- **Story:** an 8-step village-path quest chain (quests.json) teaches build order and pays XP that levels the village; each level can open new buildable map rows. Plus six linear campaign chapters with fresh starting layouts, time limits, recruitment caps and scheduled raids. Meet collection targets, defeat scheduled waves, and keep the manor alive. Return home explicitly to claim a chapter's one-time reward and unlocks. Replays cannot farm first-clear rewards; abandoning never changes the home village.
 - **Saving:** local to this browser and origin; private browsing/clearing browser data can remove saves. A storage failure is shown in the status strip. Use the same browser/device to resume.
+
+## Mobile game interface
+
+The map fills the viewport (including iPhone safe-area handling); the document never scrolls. Build, Army & people, and Adventure are overlay drawers. On phones they are bottom sheets; in landscape/desktop they use a side drawer. A quick fighter rail supports direct orders. Quest and raid status stay visible on the map. Menus have keyboard focus containment and labeled controls. The welcome and settings screens pause simulation; Build/Army/Adventure remain live during raids.
+
+Production buildings keep generating automatically. They also accumulate a **capped, manually collected bonus**: tap a gold `+N` bubble or the selected building's Collect button. Configure `harvest.bonusRate` and `harvest.capacity` in buildings.json. This bonus accrues only during active simulation, cannot be double-claimed, and counts toward collection objectives.
+
+Use **Safari → Share → Add to Home Screen** on iPhone for standalone play. The relative-path web manifest and local app icons support a home-screen shortcut. This does not promise offline operation or cross-device saves. Full Screen in Settings uses the browser Fullscreen API where supported.
+
+### Visual direction and references
+
+User-provided Clash of Clans village and battle screenshots informed edge-anchored resource HUDs, a dominant map, thumb-sized bottom actions, troop cards, and contextual controls. Online references reviewed:
+
+- Clash of Clans village layout: https://gametaffy.com/blog/best-for-you/the-art-of-war-forming-alliances-in-clash-of-clans
+- Kingdoms and Castles settlement readability: https://www.gamestar.de/galerien/kingdoms_and_castles,132271.html
+- Stardew Valley farm paths and crop grouping: https://www.breakflip.com/guides/6590.html
+
+These are design references only. No screenshots or commercial game assets are bundled; the repository's original pixel sprite set is retained. The brighter grass, dark framed HUD, camera scale and high-contrast selection treatment make it readable on a small phone.
+
+### Verification
+
+`npm test` includes 57 simulation/rendering regression checks. `npm run test:browser` requires a locally installed Chrome (`CHROME_BIN` may override its path). CI runs real pointer/touch input checks for placement preview/confirm, menus, equipment/training, missions, raids, save/reload, one-finger pan, pinch zoom, and no document overflow at portrait/landscape sizes. Screenshots are attached to the Actions run. A browser test failure blocks deployment.
 
 ## Repository structure
 
 ```text
 src/
-  main.js              JSON/assets loading, fixed-step loop, input
+  main.js              JSON/assets loading, fixed-step loop, responsive Canvas
+  input.js             pointer, drag/pinch and keyboard controls
+  camera.js            screen/world transforms and stable animation seeds
   game.js              commands and simulation orchestration
   model.js             unit/building factories, curves, costs, placement
   renderer.js          isometric Canvas map, sprites, equipment animation
@@ -46,7 +70,7 @@ src/
     pathfinding.js     grid routing and collision
     combat.js          raids, damage, towers, traps, ability handlers
     campaign.js        mission lifecycle, constraints, rewards
-assets/sprites/        88 original 32×32 transparent PNG placeholders
+assets/sprites/        95 original 32×32 transparent PNG placeholders
 assets/favicon.svg
 data/                  editable game configuration JSON (buildings, troops, items, quests, missions, world)
 scripts/
@@ -104,7 +128,7 @@ Repository visibility and plan must support Pages; a private repository may requ
 4. Story: isolated campaign maps, timed collection, wave constraints, troop limits, first-clear rewards and unlocks.
 5. Verify: simulation regression tests, browser loading/interaction checks, responsive rendering, Pages subpath build.
 
-Read this README before editing. Keep game data separate from logic. Maintain honest status, preserve the original brief below, run tests/build before pushing, and never put secrets in this static client. Do not replace the structured repo with a single mega-file. Next useful work: stronger save-schema migration, larger-world camera controls, richer routing/target priorities, troop commands, audio, more missions and art polish.
+Read this README before editing. Keep game data separate from logic. Maintain honest status, preserve the original brief below, run tests/build before pushing, and never put secrets in this static client. Do not replace the structured repo with a single mega-file. Next useful work: stronger save-schema migration, richer routing/target priorities, more missions, cloud-save design and art polish.
 
 ## Original user prompt — preserved for all workers
 
