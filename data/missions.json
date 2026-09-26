@@ -1,0 +1,188 @@
+[
+  {
+    "id": "first-harvest",
+    "name": "The First Harvest",
+    "chapter": "01",
+    "description": "A village begins with a full granary. Raise farms and bring home the first harvest.",
+    "timeLimit": 180,
+    "troopLimit": 5,
+    "objectives": [
+      {
+        "resource": "food",
+        "amount": 100
+      }
+    ],
+    "startingResources": {
+      "wood": 200,
+      "food": 40,
+      "gold": 80
+    },
+    "map": {
+      "buildings": [
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "farm",
+          "x": 6,
+          "y": 8
+        }
+      ],
+      "troops": [
+        "warrior",
+        "builder",
+        "farmer"
+      ]
+    },
+    "raids": [],
+    "rewards": {
+      "wood": 140,
+      "gold": 90
+    },
+    "unlocks": [
+      "tower"
+    ],
+    "requires": []
+  },
+  {
+    "id": "timber-line",
+    "name": "Hold the Timber Line",
+    "chapter": "02",
+    "description": "Raiders have found the road. Gather timber while keeping the manor standing.",
+    "timeLimit": 210,
+    "troopLimit": 6,
+    "objectives": [
+      {
+        "resource": "wood",
+        "amount": 150
+      }
+    ],
+    "startingResources": {
+      "wood": 220,
+      "food": 120,
+      "gold": 130
+    },
+    "map": {
+      "buildings": [
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "lumber",
+          "x": 7,
+          "y": 8
+        },
+        {
+          "type": "tower",
+          "x": 6,
+          "y": 7
+        }
+      ],
+      "troops": [
+        "warrior",
+        "archer",
+        "builder",
+        "miner"
+      ]
+    },
+    "raids": [
+      {
+        "at": 35,
+        "count": 3
+      },
+      {
+        "at": 85,
+        "count": 4
+      }
+    ],
+    "rewards": {
+      "gold": 180,
+      "food": 150
+    },
+    "unlocks": [
+      "trap"
+    ],
+    "requires": [
+      "first-harvest"
+    ]
+  },
+  {
+    "id": "long-night",
+    "name": "The Long Night",
+    "chapter": "03",
+    "description": "Secure moonstone before dawn. Defend the manor through two raids with a small garrison.",
+    "timeLimit": 240,
+    "troopLimit": 5,
+    "objectives": [
+      {
+        "resource": "gold",
+        "amount": 180
+      }
+    ],
+    "startingResources": {
+      "wood": 260,
+      "food": 140,
+      "gold": 140
+    },
+    "map": {
+      "buildings": [
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "mine",
+          "x": 7,
+          "y": 9
+        },
+        {
+          "type": "tower",
+          "x": 6,
+          "y": 7
+        },
+        {
+          "type": "wall",
+          "x": 5,
+          "y": 7
+        },
+        {
+          "type": "wall",
+          "x": 5,
+          "y": 8
+        }
+      ],
+      "troops": [
+        "warrior",
+        "archer",
+        "miner",
+        "builder"
+      ]
+    },
+    "raids": [
+      {
+        "at": 25,
+        "count": 4
+      },
+      {
+        "at": 90,
+        "count": 6
+      }
+    ],
+    "rewards": {
+      "gold": 300,
+      "wood": 250,
+      "food": 200
+    },
+    "unlocks": [
+      "warhammer"
+    ],
+    "requires": [
+      "timber-line"
+    ]
+  }
+]

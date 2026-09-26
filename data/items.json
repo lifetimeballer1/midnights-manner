@@ -1,0 +1,147 @@
+{
+  "sword": {
+    "name": "Iron sword",
+    "roles": [
+      "warrior"
+    ],
+    "cost": {},
+    "stats": {
+      "damage": 1,
+      "range": 0.85
+    },
+    "animation": "slash",
+    "sprite": "item-sword.png"
+  },
+  "axe": {
+    "name": "Moon axe",
+    "roles": [
+      "warrior"
+    ],
+    "cost": {
+      "gold": 70,
+      "wood": 20
+    },
+    "stats": {
+      "damage": 1.25,
+      "range": 1.15
+    },
+    "animation": "sweep",
+    "sprite": "item-axe.png"
+  },
+  "warhammer": {
+    "name": "Stone warhammer",
+    "roles": [
+      "warrior"
+    ],
+    "cost": {
+      "gold": 140,
+      "wood": 40
+    },
+    "stats": {
+      "damage": 1.6,
+      "range": 1.5
+    },
+    "animation": "slam",
+    "sprite": "item-warhammer.png"
+  },
+  "bow": {
+    "name": "Longbow",
+    "roles": [
+      "archer"
+    ],
+    "cost": {},
+    "stats": {
+      "damage": 1,
+      "range": 3.8
+    },
+    "animation": "arrow",
+    "sprite": "item-bow.png"
+  },
+  "hammer": {
+    "name": "Carpenter hammer",
+    "roles": [
+      "builder"
+    ],
+    "cost": {},
+    "stats": {
+      "buildSpeed": 1.3,
+      "costReduction": 0.05
+    },
+    "animation": "tap",
+    "sprite": "item-hammer.png"
+  },
+  "toolkit": {
+    "name": "Master toolkit",
+    "roles": [
+      "builder"
+    ],
+    "cost": {
+      "gold": 90,
+      "wood": 30
+    },
+    "stats": {
+      "buildSpeed": 2,
+      "costReduction": 0.2
+    },
+    "animation": "tap",
+    "sprite": "item-toolkit.png"
+  },
+  "pickaxe": {
+    "name": "Iron pickaxe",
+    "roles": [
+      "miner"
+    ],
+    "cost": {},
+    "stats": {
+      "gather": 1,
+      "carry": 10
+    },
+    "animation": "tap",
+    "sprite": "item-pickaxe.png"
+  },
+  "cart": {
+    "name": "Ore cart",
+    "roles": [
+      "miner"
+    ],
+    "cost": {
+      "gold": 80,
+      "wood": 50
+    },
+    "stats": {
+      "gather": 1.5,
+      "carry": 28
+    },
+    "animation": "roll",
+    "sprite": "item-cart.png"
+  },
+  "sickle": {
+    "name": "Field sickle",
+    "roles": [
+      "farmer"
+    ],
+    "cost": {},
+    "stats": {
+      "gather": 1,
+      "carry": 10
+    },
+    "animation": "sweep",
+    "sprite": "item-sickle.png"
+  },
+  "scythe": {
+    "name": "Harvest scythe",
+    "roles": [
+      "farmer"
+    ],
+    "cost": {
+      "gold": 70,
+      "wood": 30
+    },
+    "stats": {
+      "gather": 1.8,
+      "carry": 16
+    },
+    "animation": "sweep",
+    "sprite": "item-scythe.png"
+  }
+}

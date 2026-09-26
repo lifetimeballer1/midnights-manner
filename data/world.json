@@ -1,0 +1,67 @@
+{
+  "width": 20,
+  "height": 16,
+  "startingResources": {
+    "wood": 320,
+    "food": 180,
+    "gold": 210
+  },
+  "buildings": [
+    {
+      "type": "hall",
+      "x": 9,
+      "y": 7
+    },
+    {
+      "type": "farm",
+      "x": 6,
+      "y": 9
+    },
+    {
+      "type": "lumber",
+      "x": 12,
+      "y": 8
+    },
+    {
+      "type": "mine",
+      "x": 11,
+      "y": 5
+    },
+    {
+      "type": "barracks",
+      "x": 7,
+      "y": 5
+    },
+    {
+      "type": "tower",
+      "x": 5,
+      "y": 7
+    },
+    {
+      "type": "wall",
+      "x": 5,
+      "y": 8
+    },
+    {
+      "type": "wall",
+      "x": 5,
+      "y": 9
+    },
+    {
+      "type": "wall",
+      "x": 5,
+      "y": 10
+    }
+  ],
+  "troops": [
+    "warrior",
+    "archer",
+    "miner",
+    "builder",
+    "farmer"
+  ],
+  "locked": [
+    "trap",
+    "warhammer"
+  ]
+}
