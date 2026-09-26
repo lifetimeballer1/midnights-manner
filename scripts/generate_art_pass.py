@@ -27,7 +27,9 @@ def C():
 def finish(im, name):
     px = im.load()
     w, h = im.size
-    solid = lambda x, y: 0 <= x < w and 0 <= y < h and px[x, y][3] >= 200
+    # Read an immutable mask: newly added outline pixels must not seed more ink.
+    original = im.copy().load()
+    solid = lambda x, y: 0 <= x < w and 0 <= y < h and original[x, y][3] >= 200
     for y in range(h):
         for x in range(w):
             if px[x, y][3] < 40 and (solid(x + 1, y) or solid(x - 1, y)
