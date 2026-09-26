@@ -1,3 +1,4 @@
+import {nextStep,blocked} from './systems/pathfinding.js';
 import {createWorld,makeBuilding,makeUnit,canPlace,inBounds,pay,stats,buildingCost,center,assignmentValid} from './model.js';
 import {tickVillage} from './systems/village.js';
 import {tickEconomy} from './systems/economy.js';
@@ -45,7 +46,7 @@ export class Game {
   if(!pay(this.world.resources,cost))return this.notify(`Repairs need ${cost.wood} wood. Gather more first.`);
   for(const b of damaged){b.hp=this.data.buildings[b.type].tiers[b.level-1].hp;const cp=center(b,this.data);this.world.effects.push({x:cp.x,y:cp.y,tx:cp.x,ty:cp.y,kind:'heal',life:.3});}
   sfx.repair();this.notify(`All buildings repaired for ${cost.wood} wood.`);}
- relocate(id,x,y){const b=this.world.buildings.find(b=>b.id===id);if(!b||this.world.enemies.length)return this.notify('Buildings cannot move during a raid.');if(!inBounds(this.world,this.data,b.type,x,y))return this.notify('That land is still wild. Earn village XP to open new rows.');if(!canPlace(this.world,this.data,b.type,x,y,b.id))return this.notify('Too close — roomy buildings need a one-tile gap.');b.x=x;b.y=y;this.notify('Building moved.');return true;}
+ relocate(id,x,y){const b=this.world.buildings.find(b=>b.id===id);if(!b||this.world.enemies.length||this.world.raidPending)return this.notify('Buildings cannot move during a raid.');if(!inBounds(this.world,this.data,b.type,x,y))return this.notify('That land is still wild. Earn village XP to open new rows.');if(!canPlace(this.world,this.data,b.type,x,y,b.id))return this.notify('Too close — roomy buildings need a one-tile gap.');b.x=x;b.y=y;this.notify('Building moved.');return true;}
  assign(unitId,buildingId){
   const u=this.world.troops.find(t=>t.id===unitId);if(!u)return this.notify('That villager is gone.');
   if(!buildingId){u.workplace=null;this.notify(`${this.data.troops[u.type].name} is resting.`);return true;}
@@ -68,7 +69,7 @@ export class Game {
  equip(id,itemId){const u=this.world.troops.find(t=>t.id===id),item=this.data.items[itemId];if(!u||!item||!item.roles.includes(u.type)||this.locked(itemId))return;
   if(!u.owned.includes(itemId)){if(!pay(this.world.resources,item.cost))return this.notify('Not enough resources for this equipment.');u.owned.push(itemId);}u.gear=itemId;this.notify(`${item.name} equipped.`);}
  ability(id,ability){const u=this.world.troops.find(t=>t.id===id);if(u)this.notify(activateAbility(this.world,this.data,u,ability)?'Rallying light restores nearby allies.':'Ability is not ready.');}
- commandMove(id,x,y){const u=this.world.troops.find(t=>t.id===id);if(!u||!Number.isFinite(x)||!Number.isFinite(y))return false;u.order={kind:'move',x:x+.5,y:y+.5};this.notify(`${this.data.troops[u.type].name} moving.`);return true;}
+ commandMove(id,x,y){const u=this.world.troops.find(t=>t.id===id);if(!u||u.hp<=0||!Number.isInteger(x)||!Number.isInteger(y)||x<0||y<0||x>=this.data.world.width||y>=this.data.world.height)return false;if(blocked(this.world,this.data,x,y)||!nextStep(this.world,this.data,u,{x:x+.5,y:y+.5},.65)){this.notify('No clear path. Choose open ground.');return false;}u.order={kind:'move',x:x+.5,y:y+.5};this.notify(`${this.data.troops[u.type].name} moving.`);return true;}
  commandAttack(id,enemyId){const u=this.world.troops.find(t=>t.id===id);if(!u||!enemyId)return false;if(this.data.troops[u.type].role!=='combat')return void this.notify('Only fighters take attack orders.'),false;u.order={kind:'attack',targetId:enemyId};this.notify(`${this.data.troops[u.type].name} attacking!`);return true;}
  commandHold(id){const u=this.world.troops.find(t=>t.id===id);if(!u)return false;u.order={kind:'hold'};this.notify(`${this.data.troops[u.type].name} holding position.`);return true;}
  clearOrder(id){const u=this.world.troops.find(t=>t.id===id);if(!u)return false;u.order=null;this.notify(`${this.data.troops[u.type].name} resuming duties.`);return true;}
@@ -76,12 +77,14 @@ export class Game {
   const party=count??(this.world.wave===0?3:4+this.world.wave);this.world.raidPending={timer:3,count:party};this.world.raidKills=0;this.world.raidLoot=0;this.world.raidResult=null;sfx.horn();this.notify(`Scouts report ${party} raiders from the west — 3 seconds to positions!`);}
  mission(id){if(startMission(this.state,this.data,id))this.notify('Expedition begun. Your home village is safely paused.');else this.notify('Finish the current raid or unlock the previous chapter first.');}
  returnHome(){const result=finishMission(this.state,this.data);this.notify(result?.first?'Victory! Rewards and unlocks delivered to your village.':'Returned home. First-clear rewards can only be claimed once.');this.persist();}
+ harvest(id){const b=this.world.buildings.find(b=>b.id===id),spec=b&&this.data.buildings[b.type];if(this.paused||!b||!spec.production||b.hp<=0||b.remaining>0)return false;const amount=Math.floor(b.harvestBonus||0);if(amount<1)return false;b.harvestBonus-=amount;this.world.resources[spec.production]+=amount;this.world.gathered[spec.production]+=amount;const at=center(b,this.data);this.world.effects.push({x:at.x,y:at.y,tx:at.x,ty:at.y,kind:'float',text:`+${amount} ${spec.production}`,color:'#ffe595',life:.9});sfx.collect();this.notify(`Collected ${amount} bonus ${spec.production}.`);return amount;}
  persist(){const ok=save(this.state);if(!ok)this.notify('Browser storage is unavailable. Progress cannot be saved here.');return ok;}
  importState(state){this.state=state;this.paused=false;this.saveTimer=0;this.dirty=true;this.notify('Save restored. Welcome back to the village.');}
  tick(dt){if(this.paused||this.state.mission?.status&&this.state.mission.status!=='active')return;
   if(this.world.raidPending&&!this.state.mission){this.world.raidPending.timer-=dt;
    if(this.world.raidPending.timer<=0){const {count}=this.world.raidPending;this.world.raidPending=null;spawnRaid(this.world,count);this.notify(`Wave ${this.world.wave} — ${count} raiders! Defend the manor!`);}}
   const raided=!this.state.mission&&(this.world.enemies.length>0||this.world.raidPending);
+  for(const b of this.world.buildings){const spec=this.data.buildings[b.type];if(spec.harvest&&b.hp>0&&b.remaining<=0)b.harvestBonus=Math.min(spec.harvest.capacity,Math.max(0,Number.isFinite(b.harvestBonus)?b.harvestBonus:0)+spec.harvest.bonusRate*b.level*dt);}
   this.world.elapsed+=dt;tickEconomy(this.world,this.data,dt);tickCombat(this.world,this.data,dt);tickVillage(this.state,this.data,dt,m=>this.notify(m));const before=this.state.mission?.status;tickMission(this.state,this.data);
   if(raided&&!this.world.enemies.length&&!this.world.raidPending&&this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)){const kills=this.world.raidKills??0,loot=this.world.raidLoot??0;
    const damaged=this.world.buildings.filter(b=>b.hp<this.data.buildings[b.type].tiers[b.level-1].hp);
