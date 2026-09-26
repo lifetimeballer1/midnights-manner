@@ -45,6 +45,8 @@ export const sfx = {
   collect() { tone(880, 0.07, { vol: 0.1 }); tone(1320, 0.09, { delay: 0.06, vol: 0.1 }); },
   upgrade() { [523, 659, 784].forEach((f, i) => tone(f, 0.1, { type: 'triangle', delay: i * 0.08, vol: 0.14 })); },
   repair() { tone(440, 0.08, { type: 'triangle', vol: 0.12 }); tone(660, 0.1, { type: 'triangle', delay: 0.07, vol: 0.12 }); },
+  buildDone() { [660, 880].forEach((f, i) => tone(f, 0.12, { type: 'triangle', delay: i * 0.09, vol: 0.12 })); },
+  destroy() { tone(140, 0.25, { type: 'sawtooth', slide: -90, vol: 0.12 }); tone(70, 0.3, { type: 'triangle', vol: 0.14 }); },
   horn() { tone(196, 0.5, { type: 'sawtooth', vol: 0.1 }); tone(147, 0.6, { type: 'sawtooth', delay: 0.05, vol: 0.1 }); },
   hit() {
     const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
