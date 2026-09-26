@@ -1,7 +1,12 @@
 import {distance,center,stats,unlockedAbilities,auras,gearArmor,proximityArmor,reviveFraction,siegeBonus} from '../model.js';
-import {move} from './pathfinding.js';
+import {move,blocked} from './pathfinding.js';
+import {isWall} from './walls.js';
 import {sfx} from './audio.js';
-export function spawnRaid(world,count=4,scaling=null) {
+export function raidSides(wave,count) {
+ const sides=['west','north','east','south'];
+ return Array.from({length:Math.min(4,count)},(_,i)=>sides[(Math.max(0,wave-1)+i)%4]);
+}
+export function spawnRaid(world,count=4,scaling=null,data=null) {
  world.wave++;world.raidTimer=0;world.raidAge=0;world.raidKills=world.raidKills??0;world.raidLoot=world.raidLoot??0;
  // Wave-scaled missions (the Pale Host onward): a mission may steepen the
  // climb through data `scaling: {hp, damage}` per wave. Home raids omit
@@ -9,7 +14,19 @@ export function spawnRaid(world,count=4,scaling=null) {
  const hpPer=scaling&&Number.isFinite(scaling.hp)?scaling.hp:12;
  const dmgPer=scaling&&Number.isFinite(scaling.damage)?scaling.damage:2;
  const hp=65+world.wave*hpPer,dmg=9+world.wave*dmgPer;
- for(let i=0;i<count;i++) world.enemies.push({id:crypto.randomUUID(),x:.5,y:3.5+i%10,hp,maxHp:hp,damage:dmg,attackTimer:i*.2,animation:0});
+ // Use the settled perimeter, clamped to the configured navigation grid.
+ const width=Math.min(world.bounds?.w||data?.world.width||20,data?.world.width||Infinity);
+ const height=Math.min(world.bounds?.h||data?.world.height||17,data?.world.height||Infinity);
+ const sides=raidSides(world.wave,count);
+ for(let i=0;i<count;i++) {
+  const side=sides[i%sides.length],vertical=side==='west'||side==='east',length=vertical?height:width;
+  const entries=Array.from({length:Math.max(1,length-2)},(_,n)=>{
+   const along=1.5+(n+2+Math.floor(i/4)*3)%(length-2);
+   return vertical?{x:side==='west'?.5:width-.5,y:along}:{x:along,y:side==='north'?.5:height-.5};
+  });
+  const entry=entries.find(p=>!data||!blocked(world,data,Math.floor(p.x),Math.floor(p.y)));
+  if(entry)world.enemies.push({id:crypto.randomUUID(),...entry,hp,maxHp:hp,damage:dmg,attackTimer:i*.2,animation:0});
+ }
  // Flawless tracking (Rue's terms): a fresh raid opens the ledger with
  // zero building losses; multi-wave assaults keep one ledger per raid.
  if(!world.inRaid){world.inRaid=true;world.raidLosses=0;}
@@ -117,12 +134,21 @@ export function tickCombat(world,data,dt) {
   const target=targetUnit||buildings[0];if(!target)continue;
   const targetPoint=targetUnit?target:center(target,data),range=targetUnit?1.1:data.buildings[target.type].size/2+.7;
   const arrived=move(world,data,enemy,targetPoint,.95,dt,range);
+  if(!arrived){
+   const barrier=world.buildings.filter(b=>isWall(b)&&b.hp>0&&distance(enemy,center(b,data))<=1.2).sort((a,b)=>distance(enemy,center(a,data))-distance(enemy,center(b,data)))[0];
+   if(barrier&&enemy.attackTimer<=0){
+    barrier.hp=Math.max(0,barrier.hp-enemy.damage);enemy.attackTimer=1.3;
+    effect(world,enemy,center(barrier,data),'slash');
+    if(barrier.hp<=0)world.raidLosses=(world.raidLosses||0)+1;
+    continue;
+   }
+  }
   if(!arrived&&!targetUnit&&target){
    // Walled in? Chew the adjacent barrier so raids never soft-lock.
    const bb=target;let adjacent=false;
    const bx0=Math.floor(enemy.x),by0=Math.floor(enemy.y);
    for(let yy=bb.y-1;yy<bb.y+data.buildings[bb.type].size+1&&!adjacent;yy++)for(let xx=bb.x-1;xx<bb.x+data.buildings[bb.type].size+1&&!adjacent;xx++)if(xx===bx0&&yy===by0)adjacent=true;
-   if(adjacent&&enemy.attackTimer<=0){bb.hp=Math.max(0,bb.hp-enemy.damage);enemy.attackTimer=1.3;effect(world,enemy,center(bb,data),'slash');push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y,kind:'hit',life:.18});continue;}
+   if(adjacent&&enemy.attackTimer<=0){bb.hp=Math.max(0,bb.hp-enemy.damage);if(bb.hp<=0)world.raidLosses=(world.raidLosses||0)+1;enemy.attackTimer=1.3;effect(world,enemy,center(bb,data),'slash');push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y,kind:'hit',life:.18});continue;}
   }
   if(arrived&&enemy.attackTimer<=0){
    // Armor stacks: sky aura + ability resolve + worn gear (Padded Coat

@@ -40,7 +40,31 @@ try{
  await tap(await evaluate('window.midnightsManner.project(2.5,2.5)'));
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.buildings.length'),count,'preview does not spend');
  await click('#confirm-place');assert.equal(await evaluate('window.midnightsManner.snapshot().world.buildings.length'),count+1,'confirm builds once');
- await click('[data-action="close"]');await click('[data-tab="troops"]');await click('[data-gear="cart"]');await click('[data-level]');
+ // Touch wall rows on a phone: preview is free, confirm builds the line,
+ // and the inspector upgrades the complete connected row with one action.
+ await click('[data-action="close"]');
+ await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:2,mobile:true});
+ await new Promise(r=>setTimeout(r,200));await click('#recenter');
+ await click('[data-tab="build"]');await click('[data-build="wall"]');
+ const wallStart=await evaluate('window.midnightsManner.project(7.5,3.5)'),wallEnd=await evaluate('window.midnightsManner.project(9.5,3.5)');
+ const wallBefore=await evaluate('window.midnightsManner.snapshot().world.buildings.length');
+ const wallCamera=await evaluate('window.midnightsManner.camera()');
+ await call('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{...wallStart,id:1}]});
+ await call('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{...wallEnd,id:1}]});
+ await call('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+ assert.equal(await evaluate('window.midnightsManner.snapshot().world.buildings.length'),wallBefore,'wall release only previews');
+ assert.deepEqual(await evaluate('window.midnightsManner.camera()'),wallCamera,'wall drag does not pan');
+ assert.match(await evaluate('document.querySelector("#placement-hint").textContent'),/3 segments/);
+ await screenshot('mobile-wall-preview');await click('#confirm-place');
+ assert.equal(await evaluate('window.midnightsManner.snapshot().world.buildings.length'),wallBefore+3,'three wall segments built');
+ await click('#cancel');
+ await waitFor('window.midnightsManner.snapshot().world.buildings.filter(b=>b.type==="wall"&&b.y===3&&b.x>=7&&b.x<=9).every(b=>b.remaining<=0)');
+ await tap(await evaluate('(()=>{const p=window.midnightsManner.project(8.5,3.5);return {x:p.x,y:p.y-20};})()'));
+ await screenshot('mobile-wall-upgrade');await click('[data-action="upgrade-row"][data-axis="x"]');
+ assert.ok(await evaluate('window.midnightsManner.snapshot().world.buildings.filter(b=>b.type==="wall"&&b.y===3&&b.x>=7&&b.x<=9).every(b=>b.level===2)'),'row upgrade applies to all segments');
+ await click('[data-action="close"]');
+ await call('Emulation.setDeviceMetricsOverride',{width:1440,height:1100,deviceScaleFactor:1,mobile:false});await new Promise(r=>setTimeout(r,200));await click('#recenter');
+ await click('[data-tab="troops"]');await click('[data-gear="cart"]');await click('[data-level]');
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[2].gear'),'cart','equipment applies');
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[0].level'),2,'training applies');
  await click('#close-panel');
@@ -86,5 +110,5 @@ try{
  await click('[data-tab="troops"]');await click('[data-category="recruit"]');
  assert.ok((await evaluate('document.querySelectorAll("[data-recruit]").length'))>=20,'all professions retained');
  assert.deepEqual(errors,[],'no browser runtime errors');
- console.log(JSON.stringify({placementConfirmation:true,equipment:true,training:true,mission:true,raid:true,saveReload:true,portrait:true,landscape:true,touchPan:true,pinchZoom:true,consoleErrors:errors}));
+ console.log(JSON.stringify({placementConfirmation:true,touchWallRows:true,wallRowUpgrade:true,equipment:true,training:true,mission:true,raid:true,saveReload:true,portrait:true,landscape:true,touchPan:true,pinchZoom:true,consoleErrors:errors}));
 }finally{ws?.close();chrome.kill();server.close();await new Promise(r=>setTimeout(r,300));await rm(profile,{recursive:true,force:true,maxRetries:3,retryDelay:100});}
