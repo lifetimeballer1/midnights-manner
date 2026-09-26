@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Midnights Manner — Finished Battle Vision (mockup)</title>
+<style>
+:root{
+  font-family:ui-rounded,'Trebuchet MS',Arial,sans-serif;
+  --gold:#f4cc73; --paper:#eee4c9; --ink:#263a32; --panel:#253b35;
+  --night:#203b2a; --cream:#fff7d9;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:#0d1f16;color:var(--cream)}
+body{display:flex;justify-content:center;min-height:100dvh}
+.phone{width:min(430px,100%);max-width:430px;min-height:100dvh;background:var(--night);
+  border-left:1px solid #00000055;border-right:1px solid #00000055;
+  display:flex;flex-direction:column;position:relative;overflow:hidden}
+/* header */
+.mhead{padding:12px 12px 8px;text-align:center;
+  background:linear-gradient(#6f4835eb,#462d24ee);border-bottom:2px solid #ebc479}
+.mhead small{font-size:9px;letter-spacing:2px;color:#edcfad}
+.mhead h1{margin:3px 0;font-size:19px;color:#ffe5a4}
+.mhead .sub{font-size:11px;color:#edcfad}
+.mhead .timers{display:flex;gap:8px;justify-content:center;margin-top:8px}
+.pill{font-size:11px;font-weight:800;background:#241e18;border:1px solid #ebc47988;
+  border-radius:20px;padding:5px 11px}
+.pill b{color:#ffe5a4}
+/* objectives */
+.objs{margin:10px 12px 0;background:linear-gradient(#314b3ef5,#24392ff5);
+  border:1px solid #adb08b;border-radius:14px;padding:11px 12px;box-shadow:0 4px 0 #15271e}
+.objs h2{font-size:10px;letter-spacing:2px;color:#c9b983;margin:0 0 6px}
+.objs ul{list-style:none;margin:0;padding:0;font-size:12px;line-height:1.5}
+.objs li{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid #ffffff12}
+.objs li:last-child{border-bottom:0}
+.objs .box{flex-shrink:0;width:20px;height:20px;border-radius:6px;border:2px solid #a8b398;
+  display:grid;place-items:center;font-size:13px}
+.objs li.done .box{background:#86ac65;border-color:#d7efb8;color:#12271d}
+.objs .bar{height:5px;border-radius:4px;background:#142a1e;margin-top:4px;overflow:hidden}
+.objs .bar i{display:block;height:100%;background:#d9b964}
+.raidline{margin:10px 12px 0;background:#182f26f2;border:1px dashed #ebc47988;border-radius:12px;
+  padding:9px 12px;font-size:11px;color:#ffe9a8}
+.raidline .bar{height:6px;border-radius:5px;background:#241e18;margin-top:7px;overflow:hidden}
+.raidline .bar i{display:block;height:100%;width:64%;background:linear-gradient(90deg,#d96a4a,#f4cc73)}
+/* battlefield */
+.field{margin:10px 12px 0;border:1px solid #a8b39888;border-radius:16px;overflow:hidden;
+  position:relative;min-height:200px;
+  background:radial-gradient(circle at 20% 10%,#fdf3c0 0 4%,#f4d78833 9%,transparent 22%),
+  linear-gradient(#141f38 0%,#1d4032 60%,#26422c 100%)}
+.field .ground{position:absolute;left:0;right:0;bottom:0;height:92px;
+  background:linear-gradient(#2c5232,#1a3824);border-top:2px solid #3c6440}
+.field img.u{position:absolute;width:48px;height:48px;image-rendering:pixelated;
+  filter:drop-shadow(0 4px 0 #00000055)}
+.floater{position:absolute;font-weight:900;font-size:13px;text-shadow:0 2px #102017;
+  animation:rise 2.2s ease-in-out infinite}
+.floater.food{color:#aad675}.floater.wood{color:#e8cfa0}.floater.gold{color:#f6cc68}.floater.dmg{color:#ff9d7a}
+@keyframes rise{0%{transform:translateY(0);opacity:0}20%{opacity:1}100%{transform:translateY(-26px);opacity:0}}
+.verdict{position:absolute;left:12px;right:12px;top:12px;text-align:center;padding:12px;
+  border-radius:14px;font-size:22px;font-weight:900;letter-spacing:2px;display:none}
+.verdict.show{display:block}
+.verdict.win{background:linear-gradient(#f7df95,#d0a24d);color:#493c23;border:2px solid #fff0b5;
+  box-shadow:0 5px 0 #8a612d}
+.verdict small{display:block;font-size:11px;letter-spacing:0;font-weight:700;margin-top:5px}
+/* troop bar */
+.troops{margin:10px 12px 0;background:linear-gradient(#314b3ef5,#24392ff5);
+  border:1px solid #adb08b;border-radius:14px;padding:11px 12px}
+.troops h2{font-size:10px;letter-spacing:2px;color:#c9b983;margin:0 0 8px}
+.ability-note{font-size:10px;color:#8fa184;margin:0 0 8px}
+.trow{display:flex;gap:8px}
+.tcard{flex:1;background:linear-gradient(#637f72,#344b3e);border:1px solid #b5c19d;border-radius:10px;
+  box-shadow:0 3px #152c22;padding:6px 5px;text-align:center;cursor:pointer;position:relative;color:inherit}
+.tcard img{width:40px;height:40px;image-rendering:pixelated;display:block;margin:auto}
+.tcard b{font-size:10px;display:block;margin-top:2px}
+.tcard .ab{font-size:8px;color:#ffe3a1;display:block;margin-top:2px;min-height:22px}
+.tcard .pips{font-size:9px;letter-spacing:2px;color:#aade76}
+.tcard .pips .off{color:#5b6f5e}
+.tcard.sel{border:2px solid #ffe394}
+.tcard.cd .pips{color:#8fa184}
+/* bottom */
+.actions{display:flex;gap:8px;padding:10px 12px 4px}
+.actions button{flex:1;min-height:50px;border-radius:12px;font-weight:800;font-size:13px;cursor:pointer;
+  border:1px solid #82978570;background:linear-gradient(#375047,#263d35);color:var(--cream);
+  box-shadow:inset 0 1px #ffffff18,0 3px 0 #12271d}
+.actions button.gold{color:#493c23;background:linear-gradient(#f7df95,#d0a24d);border:1px solid #ffebb0;
+  box-shadow:inset 0 2px #fff5bd,0 4px #8a612d}
+.actions button.red{background:linear-gradient(#8b5545,#69382e);border-color:#ca9380}
+.sheet{margin:8px 12px 0;background:#ebe5cf;color:var(--ink);border-radius:12px;padding:10px 12px;font-size:11px}
+.sheet b{font-size:12px}
+.foot{display:flex;gap:8px;padding:10px 12px calc(12px + env(safe-area-inset-bottom,0px))}
+.foot button{flex:1;min-height:46px;border-radius:12px;font-weight:800;font-size:12px;cursor:pointer;
+  border:1px solid #8a9a7b;background:linear-gradient(#3d5648f5,#263d32f5);color:var(--cream)}
+.note{font-size:9px;color:#8fa184;text-align:center;padding:0 16px 10px}
+</style>
+</head>
+<body>
+<div class="phone" role="main" aria-label="Finished battle mockup">
+  <header class="mhead">
+    <small>CHAPTER 04 · ACT III — DEFENSE</small>
+    <h1>Ashes on the West Road</h1>
+    <div class="sub">Hold the timber line · gather under pressure</div>
+    <div class="timers">
+      <span class="pill">⏳ <b id="clock">02:41</b> left</span>
+      <span class="pill">🪖 troops <b>6/8</b></span>
+      <span class="pill">🌲 <b>118/150</b></span>
+    </div>
+  </header>
+
+  <section class="objs" aria-label="objectives">
+    <h2>🎯 OBJECTIVES · 2 / 3</h2>
+    <ul>
+      <li><span class="box">🌲</span><span style="flex:1">Gather <b>150 wood</b> — 118 banked<div class="bar"><i style="width:79%"></i></div></span></li>
+      <li><span class="box">🛡️</span><span style="flex:1">Defeat scheduled waves — <b>2 / 3</b><div class="bar"><i style="width:67%"></i></div></span></li>
+      <li class="done"><span class="box">✓</span><span>Keep the Manor standing — <b>640 / 850 HP</b></span></li>
+    </ul>
+  </section>
+
+  <div class="raidline" aria-label="raid state">
+    🔥 <b>Next wave in 0:38</b> — 6 raiders from the <b>west</b> · towers manned · traps armed (2/3)
+    <div class="bar"><i></i></div>
+  </div>
+
+  <div class="field" aria-label="moonlit battlefield preview">
+    <div class="ground"></div>
+    <img class="u" style="left:8%;bottom:52px" src="../assets/sprites/tower-2.png" alt="Guard tower sprite">
+    <img class="u" style="left:24%;bottom:30px" src="../assets/sprites/wall-2.png" alt="Stone wall sprite">
+    <img class="u" style="left:31%;bottom:34px" src="../assets/sprites/wall-2.png" alt="Stone wall sprite">
+    <img class="u" style="left:42%;bottom:44px" src="../assets/sprites/warrior.png" alt="Warrior sprite">
+    <img class="u" style="left:54%;bottom:36px" src="../assets/sprites/archer.png" alt="Archer sprite">
+    <img class="u" style="left:70%;bottom:48px" src="../assets/sprites/raider.png" alt="Raider sprite">
+    <img class="u" style="left:80%;bottom:34px" src="../assets/sprites/raider.png" alt="Raider sprite">
+    <span class="floater wood" style="left:30%;bottom:100px">+25 🪵</span>
+    <span class="floater food" style="left:52%;bottom:112px;animation-delay:.7s">+25 🌾</span>
+    <span class="floater gold" style="left:64%;bottom:96px;animation-delay:1.2s">+12 🪙</span>
+    <span class="floater dmg" style="left:74%;bottom:108px;animation-delay:.4s">−18 💥</span>
+    <div class="verdict win" id="verdict">VICTORY<small>+140 🪵 · +90 🪙 · unlock: Spike Trap · first-clear once (mock)</small></div>
+  </div>
+
+  <section class="troops" aria-label="troop bar">
+    <h2>🪖 TROOP BAR · TAP TO SELECT, DOUBLE-TAP ABILITY (MOCK)</h2>
+    <p class="ability-note" id="abNote">Warrior selected — Cleave ready. Cooldown pips show at a glance.</p>
+    <div class="trow" id="trow">
+      <button class="tcard sel" data-name="Warrior" data-ab="Cleave ready — arc slash"><img src="../assets/sprites/warrior.png" alt="Warrior sprite"><b>War 12</b><span class="ab">⚔️ Cleave</span><span class="pips">●●●</span></button>
+      <button class="tcard" data-name="Archer" data-ab="Volley on cooldown — 1 pip left"><img src="../assets/sprites/archer.png" alt="Archer sprite"><b>Arc 10</b><span class="ab">🏹 Volley</span><span class="pips">●<span class="off">●●</span></span></button>
+      <button class="tcard" data-name="Pikewoman" data-ab="Brace ready — bonus vs charge"><img src="../assets/sprites/pikewoman.png" alt="Pikewoman sprite"><b>Pike 8</b><span class="ab">🛡️ Brace</span><span class="pips">●●●</span></button>
+      <button class="tcard cd" data-name="Mooncleric" data-ab="Heal used — 2 pips recovering"><img src="../assets/sprites/healer.png" alt="Healer sprite"><b>Clr 7</b><span class="ab">✚ Heal</span><span class="pips">●<span class="off">●●</span></span></button>
+    </div>
+  </section>
+
+  <div class="actions">
+    <button id="verdictBtn" class="gold">👁 Preview VICTORY banner</button>
+    <button id="abBtn">⚡ Use ability (mock)</button>
+  </div>
+  <div class="sheet" aria-live="polite"><b>After-action (mock):</b> <span id="sheetLine">waves 2/3 down · manor at 75% · gather crews still out.</span></div>
+
+  <div class="foot">
+    <button class="red" id="retreatBtn" style="background:linear-gradient(#8b5545,#69382e)">🏳 Retreat (mock)</button>
+    <button id="homeBtn">🏠 Return Home (mock)</button>
+  </div>
+  <div class="note">STATIC MOCKUP · tap-through only — no saves touched, no game logic · mockups/battle-goal.html</div>
+</div>
+
+<script>
+(function(){
+  var note = document.getElementById('abNote');
+  var line = document.getElementById('sheetLine');
+  var cards = document.querySelectorAll('#trow .tcard');
+  cards.forEach(function(c){
+    c.addEventListener('click', function(){
+      cards.forEach(function(x){ x.classList.remove('sel'); });
+      c.classList.add('sel');
+      note.textContent = c.getAttribute('data-name') + ' selected — ' + c.getAttribute('data-ab') + '.';
+    });
+  });
+  document.getElementById('abBtn').addEventListener('click', function(){
+    var sel = document.querySelector('#trow .tcard.sel');
+    var n = sel ? sel.getAttribute('data-name') : 'Troop';
+    line.textContent = n + ' ability fired — pips drain, then recover (mock).';
+  });
+  var verdict = document.getElementById('verdict');
+  var vbtn = document.getElementById('verdictBtn');
+  vbtn.addEventListener('click', function(){
+    var on = verdict.classList.toggle('show');
+    vbtn.textContent = on ? '🙈 Hide VICTORY banner' : '👁 Preview VICTORY banner';
+    line.textContent = on ? 'Victory preview — rewards apply to home world on return (mock).' : 'Banner hidden — battle resumes (mock).';
+  });
+  document.getElementById('retreatBtn').addEventListener('click', function(){
+    line.textContent = 'Retreat keeps the home village unchanged (mock).';
+  });
+  document.getElementById('homeBtn').addEventListener('click', function(){
+    line.textContent = 'Return home claims the one-time reward (mock).';
+  });
+  var secs = 161;
+  var clock = document.getElementById('clock');
+  setInterval(function(){
+    if(secs > 0) secs--;
+    var m = Math.floor(secs / 60);
+    var s = ('0' + (secs % 60)).slice(-2);
+    clock.textContent = '0' + m + ':' + s;
+  }, 1000);
+})();
+</script>
+</body>
+</html>

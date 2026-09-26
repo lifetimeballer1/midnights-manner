@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Midnights Manner — Finished Village Vision (mockup)</title>
+<style>
+:root{
+  font-family:ui-rounded,'Trebuchet MS',Arial,sans-serif;
+  --gold:#f4cc73; --paper:#eee4c9; --ink:#263a32; --panel:#253b35;
+  --night:#203b2a; --cream:#fff7d9; --line:#70836b;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:#0d1f16;color:var(--cream)}
+body{display:flex;justify-content:center;min-height:100dvh}
+.phone{width:min(430px,100%);min-height:100dvh;max-width:430px;background:var(--night);
+  border-left:1px solid #00000055;border-right:1px solid #00000055;
+  display:flex;flex-direction:column;position:relative;overflow:hidden}
+/* ---------- HUD ---------- */
+.hud{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;
+  padding:12px 12px 8px}
+.chief{display:flex;align-items:center;gap:8px}
+.crest{position:relative;display:grid;place-items:center;width:46px;height:50px;
+  background:linear-gradient(140deg,#456e65,#243e3e);border:2px solid #eacb81;
+  box-shadow:0 4px #132b25,inset 0 0 0 4px #6a8d7955;border-radius:13px 13px 17px 17px;
+  font-size:28px}
+.crest>span{position:absolute;bottom:-8px;right:-6px;background:#8e6337;color:var(--cream);
+  border:2px solid #efd398;border-radius:8px;padding:0 6px;font-size:11px;font-weight:900}
+.chief h1{font-size:11px;letter-spacing:.7px;margin:0;line-height:1.3}
+.chief h1 b{color:var(--gold);display:block;font-size:14px}
+.season{font-size:10px;color:#d4e1c1;display:block;margin-top:3px}
+.xpbar{margin-top:5px;width:110px;height:6px;background:#112820;border:1px solid #768a70;
+  border-radius:10px;overflow:hidden}
+.xpbar i{display:block;height:100%;width:68%;background:linear-gradient(90deg,#65bec7,#c0f8d5)}
+.resources{display:flex;flex-direction:column;gap:5px}
+.resource{min-width:118px;display:flex;align-items:center;justify-content:space-between;gap:8px;
+  border:1px solid #829a79;background:linear-gradient(90deg,#22352bed,#33493adf);
+  border-radius:9px;padding:4px 8px;font-size:13px;font-weight:800;position:relative;overflow:hidden}
+.resource::after{content:'';position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--rc,#f6cc68)}
+.resource[data-r="wood"]{--rc:#bba370}.resource[data-r="food"]{--rc:#aad675}.resource[data-r="gold"]{--rc:#f6cc68}
+.resource small{font-size:8px;color:#bec9ac;font-weight:400;letter-spacing:1px}
+/* ---------- quest chip ---------- */
+.quest-chip{margin:2px 12px 8px;display:flex;align-items:center;gap:10px;padding:9px 12px;
+  border:1px solid #a7a97888;background:#21382ae8;border-radius:13px;text-align:left;color:inherit;
+  width:calc(100% - 24px);cursor:pointer}
+.quest-chip .qi{color:var(--gold);font-size:24px}
+.quest-chip small{display:block;font-size:8px;letter-spacing:1.8px;color:#c6c7a0}
+.quest-chip b{font-size:12px;display:block;margin-top:2px}
+.quest-chip .qp{font-size:10px;color:#abc69a;display:block;margin-top:3px}
+.quest-chip .go{margin-left:auto;font-size:20px;color:#d6c68e}
+/* ---------- vista ---------- */
+.vista{margin:0 12px;border:1px solid #a8b39888;border-radius:16px;overflow:hidden;position:relative;
+  background:radial-gradient(circle at 78% 12%,#fdf3c0 0 4%,#f4d78833 9%,transparent 22%),
+  linear-gradient(#16283f 0%,#1d4032 55%,#24402c 100%);min-height:190px}
+.vista .moon{position:absolute;top:10px;right:22px;font-size:30px;filter:drop-shadow(0 0 12px #f4d788)}
+.vista .stars{position:absolute;inset:0;font-size:10px;color:#ffffff88;letter-spacing:6px;padding:8px;pointer-events:none}
+.vista .ground{position:absolute;left:0;right:0;bottom:0;height:88px;
+  background:linear-gradient(#2c5232,#1c3a26);border-top:2px solid #3c6440}
+.vista button.plot{position:absolute;background:none;border:0;padding:0;cursor:pointer}
+.vista button.plot img{width:56px;height:56px;image-rendering:pixelated;display:block;
+  filter:drop-shadow(0 4px 0 #00000055)}
+.vista button.plot.big img{width:76px;height:76px}
+.vista .tag{position:absolute;bottom:6px;left:10px;font-size:9px;color:#cfe0bd;letter-spacing:1px}
+.vista .collect{position:absolute;background:#f4cc73;color:#443d24;border:1px solid #fff0b5;
+  border-radius:10px;font-weight:900;font-size:11px;padding:4px 8px;cursor:pointer;
+  box-shadow:0 3px 0 #8a612d;animation:bob 1.6s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-4px)}}
+.toast{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:#182f26f2;
+  border:1px solid #bdc8a64d;border-radius:10px;padding:7px 12px;font-size:11px;display:none;z-index:5}
+.toast.show{display:block}
+/* ---------- panels ---------- */
+.scroll{flex:1;overflow-y:auto;padding:10px 12px 8px;display:flex;flex-direction:column;gap:10px}
+.card{background:linear-gradient(#314b3ef5,#24392ff5);border:1px solid #adb08b;border-radius:14px;
+  padding:12px;box-shadow:0 4px 0 #15271e}
+.card h2{font-size:11px;letter-spacing:2px;color:#c9b983;margin:0 0 8px}
+.card h2 .r{float:right;color:#8fa184;letter-spacing:0;font-size:10px}
+.notice{background:var(--paper);color:var(--ink);border-radius:10px;padding:9px 10px;margin-bottom:8px;font-size:11px}
+.notice b{display:block;font-size:12px}
+.notice small{color:#6c7a5a}
+.notice:last-child{margin-bottom:0}
+.trade{display:flex;align-items:center;gap:10px;background:#fcfae9;color:#34432f;border-radius:10px;
+  padding:8px 10px;margin-bottom:8px;font-size:11px}
+.trade:last-child{margin-bottom:0}
+.trade img{width:40px;height:40px;image-rendering:pixelated}
+.trade b{display:block;font-size:12px}
+.trade button{margin-left:auto;background:linear-gradient(#f7df95,#d0a24d);color:#493c23;
+  border:1px solid #ffebb0;border-radius:10px;font-weight:800;font-size:11px;padding:8px 10px;
+  box-shadow:0 3px 0 #8a612d;min-height:40px}
+.log{list-style:none;margin:0;padding:0;font-size:11px;line-height:1.5;color:#c7d2b6}
+.log li{padding:7px 2px;border-bottom:1px solid #ffffff14}
+.log li:last-child{border-bottom:0}
+.log time{color:#8fa184;font-size:10px;margin-right:6px}
+/* ---------- troop rail ---------- */
+.rail{display:flex;gap:7px;overflow-x:auto;padding:2px 2px 6px}
+.troop{position:relative;flex-shrink:0;width:60px;background:linear-gradient(#637f72,#344b3e);
+  border:1px solid #b5c19d;border-radius:10px;box-shadow:0 3px #152c22;padding:5px 4px;text-align:center}
+.troop img{display:block;width:38px;height:38px;margin:auto;image-rendering:pixelated}
+.troop small{font-size:8px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.troop .lv{position:absolute;top:0;right:4px;font-size:10px;color:#ffe3a1;text-shadow:0 1px #06130c}
+.troop .hp{height:3px;border-radius:4px;background:#142a1e;margin-top:3px}
+.troop .hp i{display:block;height:100%;background:#aade76;border-radius:4px}
+.troop.sel{border:2px solid #ffe394}
+/* ---------- sheet + dock ---------- */
+.sheet{margin:0 12px;background:#ebe5cf;color:var(--ink);border:2px solid #a8b398;border-bottom:0;
+  border-radius:16px 16px 0 0;padding:12px;min-height:118px}
+.sheet h3{margin:0;font-size:15px}
+.sheet p{font-size:11px;color:#6c7a5a;margin:6px 0 0;line-height:1.5}
+.sheet .row{display:flex;gap:8px;margin-top:9px}
+.sheet .row button{flex:1;font-size:11px;min-height:42px;border-radius:10px;border:1px solid #a5b48f;
+  background:linear-gradient(#e0e8c8,#c5d5ad);color:#4d5e38;font-weight:700}
+.dock{display:flex;gap:8px;padding:10px 12px calc(12px + env(safe-area-inset-bottom,0px));
+  background:#16281f;border-top:1px solid #ffffff18}
+.dock button{flex:1;min-height:66px;border-radius:12px;border:1px solid #8a9a7b;border-bottom-width:3px;
+  background:linear-gradient(#3d5648f5,#263d32f5);color:var(--cream);font-weight:800;font-size:11px}
+.dock button span{font-size:24px;display:block;line-height:28px}
+.dock button small{display:block;font-size:8px;color:#bacbb0;font-weight:500;margin-top:2px}
+.dock button.active{border-color:#f3d58b}
+.dock button.battle{background:linear-gradient(#b36e46,#85432d);border-color:#dca775}
+.dock button.build{background:linear-gradient(#efd689,#cea354);border-color:#fff0b5;color:#443d24}
+.dock button.build small{color:#655635}
+.note{font-size:9px;color:#8fa184;text-align:center;padding:0 16px 10px;background:#16281f}
+</style>
+</head>
+<body>
+<div class="phone" role="main" aria-label="Finished village mockup">
+  <div class="hud">
+    <div class="chief">
+      <div class="crest">🛡️<span>12</span></div>
+      <div>
+        <h1>MIDNIGHTS<b>MANNER</b></h1>
+        <span class="season">🌙 Autumn, Day 47 · Pop 28/34</span>
+        <div class="xpbar" aria-label="village xp 68 percent"><i></i></div>
+      </div>
+    </div>
+    <div class="resources">
+      <div class="resource" data-r="wood">🪵 <span><b>1,240</b><small>WOOD +18/s</small></span></div>
+      <div class="resource" data-r="food">🌾 <span><b>860</b><small>FOOD +24/s</small></span></div>
+      <div class="resource" data-r="gold">🪙 <span><b>540</b><small>GOLD +6/s</small></span></div>
+    </div>
+  </div>
+
+  <button class="quest-chip" id="questChip" aria-label="active quest">
+    <span class="qi">📜</span>
+    <span><small>QUEST 7 / 12 · VILLAGE PATH</small>
+      <b>Raise the Longhouse to Tier 2</b>
+      <span class="qp">Longhouse T1 → T2 · 1/1 timber reserved · talk to Warden</span></span>
+    <span class="go">›</span>
+  </button>
+
+  <div class="vista" aria-label="moonlit village preview">
+    <div class="stars">· · · · · · · · · · · ·</div>
+    <div class="moon">🌕</div>
+    <div class="ground"></div>
+    <button class="plot big" style="left:6%;bottom:34px" data-name="Manor Hall T3 — intact"><img src="../assets/sprites/hall-2.png" alt="Manor hall sprite"></button>
+    <button class="plot" style="left:30%;bottom:22px" data-name="Cottage T2 — 4/4 beds"><img src="../assets/sprites/cottage-2.png" alt="Cottage sprite"></button>
+    <button class="plot" style="left:47%;bottom:40px" data-name="Wheat Farm T3 — +40 ready"><img src="../assets/sprites/farm-3.png" alt="Farm sprite"></button>
+    <button class="plot" style="left:66%;bottom:26px" data-name="Guard Tower T2 — manned"><img src="../assets/sprites/tower-2.png" alt="Tower sprite"></button>
+    <button class="plot" style="left:82%;bottom:44px" data-name="Barracks T2 — 2 training"><img src="../assets/sprites/barracks-2.png" alt="Barracks sprite"></button>
+    <button class="collect" style="left:48%;bottom:104px" id="collectBtn">+40 🌾</button>
+    <div class="toast" id="vistaToast"></div>
+    <span class="tag">HOME MEADOW · TAP A ROOF TO INSPECT (MOCK)</span>
+  </div>
+
+  <div class="scroll">
+    <section class="card" aria-label="notice board">
+      <h2>📌 NOTICE BOARD <span class="r">chart-log · 3 pinned</span></h2>
+      <div class="notice"><b>🌕 Moonfair tonight</b><small>Warden · trade 2:1 food→gold until dawn bell.</small></div>
+      <div class="notice"><b>🛡️ Raid forecast: west road</b><small>Scout post · 8+ raiders near dusk, Day 48.</small></div>
+      <div class="notice"><b>📖 Scriptorium request</b><small>Scholar · survey 3 plots for +120 XP.</small></div>
+    </section>
+
+    <section class="card" aria-label="trading post">
+      <h2>⚖️ TRADING POST <span class="r">peddler · leaves at dawn</span></h2>
+      <div class="trade"><img src="../assets/sprites/item-cart.png" alt="Trade cart sprite"><span><b>150 🌾 → 90 🪙</b>Granary surplus rate ·×1.2 moonfair</span><button data-trade="Sold 150 food for 90 gold (mock)">Trade</button></div>
+      <div class="trade"><img src="../assets/sprites/item-tinkerkit.png" alt="Tinker kit sprite"><span><b>80 🪵 + 40 🪙 → Master Tinkerkit</b>Builder speed +15%</span><button data-trade="Master Tinkerkit reserved (mock)">Trade</button></div>
+    </section>
+
+    <section class="card" aria-label="event log">
+      <h2>📖 EVENT LOG <span class="r">newest first</span></h2>
+      <ul class="log">
+        <li><time>21:02</time>🌾 Collectors delivered <b>+64 food</b> to the Manor.</li>
+        <li><time>20:47</time>🏠 Cottage T2 finished — <b>+4 beds</b>, pop cap 34.</li>
+        <li><time>20:31</time>🛡️ Warden posted at Longhouse — armor aura up.</li>
+        <li><time>19:58</time>⭐ Quest 6 complete — <b>+150 XP</b>, trap unlocked.</li>
+        <li><time>19:40</time>🌲 Timber yard bonus capped — tap a <b>+N</b> bubble to collect.</li>
+      </ul>
+    </section>
+
+    <section class="card" aria-label="troops">
+      <h2>🛡️ TROOP RAIL <span class="r">tap to select (mock)</span></h2>
+      <div class="rail" id="rail">
+        <div class="troop sel"><span class="lv">12</span><img src="../assets/sprites/warrior.png" alt="Warrior sprite"><small>Warrior</small><div class="hp"><i style="width:100%"></i></div></div>
+        <div class="troop"><span class="lv">10</span><img src="../assets/sprites/archer.png" alt="Archer sprite"><small>Archer</small><div class="hp"><i style="width:82%"></i></div></div>
+        <div class="troop"><span class="lv">8</span><img src="../assets/sprites/pikewoman.png" alt="Pikewoman sprite"><small>Pikewoman</small><div class="hp"><i style="width:64%"></i></div></div>
+        <div class="troop"><span class="lv">6</span><img src="../assets/sprites/builder.png" alt="Builder sprite"><small>Builder</small><div class="hp"><i style="width:100%"></i></div></div>
+        <div class="troop"><span class="lv">5</span><img src="../assets/sprites/farmer.png" alt="Farmer sprite"><small>Farmer</small><div class="hp"><i style="width:100%"></i></div></div>
+        <div class="troop"><span class="lv">4</span><img src="../assets/sprites/miner.png" alt="Miner sprite"><small>Miner</small><div class="hp"><i style="width:45%"></i></div></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="sheet" aria-live="polite">
+    <h3 id="sheetTitle">🔨 Build</h3>
+    <p id="sheetText">Longhouse T2 ready to place — 120 🪵 · 60 🪙. Walls stay in placement mode for repeated builds.</p>
+    <div class="row" id="sheetRow">
+      <button>Place Longhouse</button><button>Repair all (35 🪵)</button><button>Expand row (Lv 13)</button>
+    </div>
+  </div>
+  <nav class="dock" aria-label="bottom dock">
+    <button class="build active" data-tab="build">🔨<b>Build</b><small>place · upgrade</small></button>
+    <button data-tab="army">🪖<b>Army</b><small>people · gear</small></button>
+    <button data-tab="adv">🗺️<b>Adventure</b><small>ch. 1–8</small></button>
+    <button class="battle" data-tab="battle">⚔️<b>Battle</b><small>test defenses</small></button>
+  </nav>
+  <div class="note">STATIC MOCKUP · tap-through only — no saves touched, no game logic · mockups/village-goal.html</div>
+</div>
+
+<script>
+(function(){
+  var toast = document.getElementById('vistaToast');
+  var timer = null;
+  function show(msg){
+    toast.textContent = msg;
+    toast.classList.add('show');
+    if(timer) clearTimeout(timer);
+    timer = setTimeout(function(){ toast.classList.remove('show'); }, 1600);
+  }
+  document.querySelectorAll('.vista .plot').forEach(function(b){
+    b.addEventListener('click', function(){ show(b.getAttribute('data-name') + ' (mock)'); });
+  });
+  document.getElementById('collectBtn').addEventListener('click', function(){
+    show('Collected +40 food bonus (mock)');
+    this.style.display = 'none';
+  });
+  document.querySelectorAll('[data-trade]').forEach(function(b){
+    b.addEventListener('click', function(){ show(b.getAttribute('data-trade')); });
+  });
+  document.getElementById('questChip').addEventListener('click', function(){
+    show('Quest journal would open here (mock)');
+  });
+  var tabs = {
+    build: ['🔨 Build', 'Longhouse T2 ready to place — 120 🪵 · 60 🪙. Walls stay in placement mode for repeated builds.'],
+    army: ['🪖 Army & People', '6 posted · 4 idle · drag a keeper onto its workplace. Gear shows on every sprite.'],
+    adv: ['🗺️ Adventure', 'Ch.04 “Ashes on the West Road” unlocked — see battle mockup. First-clear rewards once.'],
+    battle: ['⚔️ Test Defenses', 'Simulated raid from the west, ~8 raiders. Defeated troops revive after the drill.']
+  };
+  var title = document.getElementById('sheetTitle');
+  var text = document.getElementById('sheetText');
+  document.querySelectorAll('.dock button').forEach(function(b){
+    b.addEventListener('click', function(){
+      document.querySelectorAll('.dock button').forEach(function(x){ x.classList.remove('active'); });
+      b.classList.add('active');
+      var t = tabs[b.getAttribute('data-tab')];
+      title.textContent = t[0];
+      text.textContent = t[1] + ' (mock)';
+    });
+  });
+  document.querySelectorAll('#rail .troop').forEach(function(c){
+    c.addEventListener('click', function(){
+      document.querySelectorAll('#rail .troop').forEach(function(x){ x.classList.remove('sel'); });
+      c.classList.add('sel');
+      show(c.querySelector('small').textContent + ' selected (mock)');
+    });
+  });
+})();
+</script>
+</body>
+</html>
