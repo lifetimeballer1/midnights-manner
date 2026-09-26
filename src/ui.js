@@ -135,7 +135,7 @@ export class UI {
   if(!marketOpen(g.state))return `<div class="notice-board" aria-live="polite"><span>GREY MARKET</span><p>Dust on the Grey Road — no wagons yet. Grow the village to level 2 and the traders will find you.</p></div>`;
   const now=new Date(),key=dayKey(now);
   const s=seasonFor(d.calendar,now),m=modifierFor(d.calendar,now);
-  const sky=s||m?`<div class="notice-board" aria-live="polite"><span>TONIGHT'S SKY</span><p>${s?`${s.season.name}, day ${s.dayOfCycle} of 28. ${s.season.text} `:''}${m?`${m.name} — ${m.text}`:''}</p></div>`:';
+  const sky=s||m?`<div class="notice-board" aria-live="polite"><span>TONIGHT'S SKY</span><p>${s?`${s.season.name}, day ${s.dayOfCycle} of 28. ${s.season.text} `:''}${m?`${m.name} — ${m.text}`:''}</p></div>`:'';
   const used=g.state.tradeDay===key&&(g.state.tradesUsed||{});
   const deals=dealsFor(d.traders,d.calendar,now,g.state.vlevel||1);
   if(!deals.length)return `${sky}<div class="notice-board" aria-live="polite"><span>GREY MARKET</span><p>No wagons on the road today. The bell will bring new faces tomorrow.</p></div>`;
