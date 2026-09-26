@@ -7,7 +7,8 @@ import {join,extname,resolve} from 'node:path';
 import {createServer} from 'node:http';
 import assert from 'node:assert/strict';
 const root=resolve('dist'),profile=await mkdtemp(join(tmpdir(),'midnight-browser-'));
-const server=createServer(async(req,res)=>{try{let path=decodeURIComponent(new URL(req.url,'http://localhost').pathname).replace(/^\/midnights-manner\//,'');if(!path||path==='/')path='index.html';const file=resolve(root,path);if(!file.startsWith(root+'/'))throw Error('Invalid path');res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.json':'application/json','.css':'text/css','.png':'image/png','.svg':'image/svg+xml'})[extname(file)]||'application/octet-stream');res.end(await readFile(file));}catch{res.writeHead(404);res.end('Not found');}});
+let updateFixture=false;
+const server=createServer(async(req,res)=>{try{let path=decodeURIComponent(new URL(req.url,'http://localhost').pathname).replace(/^\/midnights-manner\//,'');if(!path||path==='/')path='index.html';const file=resolve(root,path);if(!file.startsWith(root+'/'))throw Error('Invalid path');res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.json':'application/json','.css':'text/css','.png':'image/png','.svg':'image/svg+xml'})[extname(file)]||'application/octet-stream');let contents=await readFile(file);if(updateFixture&&path==='sw.js')contents=Buffer.from(contents.toString().replace(/const CACHE=PREFIX\+"[^"]+";/,'const CACHE=PREFIX+"browser-update-fixture";'));if(updateFixture&&path==='index.html')contents=Buffer.from(contents.toString().replace(/name="game-build" content="[^"]+"/,'name="game-build" content="browser-update-fixture"'));res.end(contents);}catch{res.writeHead(404);res.end('Not found');}});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const port=server.address().port;
 const chrome=spawn(process.env.CHROME_BIN||'google-chrome',['--headless=new','--no-sandbox','--disable-gpu','--remote-debugging-port=0',`--user-data-dir=${profile}`,'about:blank'],{stdio:['ignore','ignore','pipe']});
@@ -109,6 +110,26 @@ try{
  assert.equal(await evaluate('document.documentElement.scrollHeight > innerHeight'),false,'landscape has no scrolling');
  await click('[data-tab="troops"]');await click('[data-category="recruit"]');
  assert.ok((await evaluate('document.querySelectorAll("[data-recruit]").length'))>=20,'all professions retained');
+ // Serve a second build while the standalone-sized page stays open.
+ await click('#close-panel');await click('#pause');
+ await evaluate('navigator.serviceWorker.ready.then(()=>true)');
+ await waitFor('!!navigator.serviceWorker.controller');
+ const savedUnit=await evaluate('window.midnightsManner.snapshot().world.troops[0].id');
+ await call('Network.enable');
+ await call('Network.emulateNetworkConditions',{offline:true,latency:0,downloadThroughput:0,uploadThroughput:0});
+ await click('#opt-update');await waitFor('document.querySelector("#update-status").textContent.includes("internet")');
+ assert.ok(await evaluate('window.midnightsManner.ready'),'offline check does not reload the game');
+ await call('Network.emulateNetworkConditions',{offline:false,latency:0,downloadThroughput:-1,uploadThroughput:-1});
+ await waitFor('!document.querySelector("#opt-update").disabled');
+ updateFixture=true;
+ await click('#opt-update');await waitFor('!document.querySelector("#update-notice").hidden');
+ assert.notEqual(await evaluate('document.querySelector("meta[name=game-build]").content'),'browser-update-fixture','update waits for a click');
+ await screenshot('update-ready');await click('#opt-update');
+ await waitFor('document.querySelector("meta[name=game-build]")?.content==="browser-update-fixture" && !!window.midnightsManner');
+ assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[0].id'),savedUnit,'update preserves village');
+ await click('#begin');await click('#pause');await click('#opt-refresh');
+ await waitFor('!!window.midnightsManner && !document.querySelector("#title").hidden');
+ assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[0].id'),savedUnit,'ordinary in-app refresh preserves village');
  assert.deepEqual(errors,[],'no browser runtime errors');
- console.log(JSON.stringify({placementConfirmation:true,touchWallRows:true,wallRowUpgrade:true,equipment:true,training:true,mission:true,raid:true,saveReload:true,portrait:true,landscape:true,touchPan:true,pinchZoom:true,consoleErrors:errors}));
+ console.log(JSON.stringify({inAppUpdate:true,saveAndRefresh:true,offlineUpdateCheck:true,placementConfirmation:true,touchWallRows:true,wallRowUpgrade:true,equipment:true,training:true,mission:true,raid:true,saveReload:true,portrait:true,landscape:true,touchPan:true,pinchZoom:true,consoleErrors:errors}));
 }finally{ws?.close();chrome.kill();server.close();await new Promise(r=>setTimeout(r,300));await rm(profile,{recursive:true,force:true,maxRetries:3,retryDelay:100});}

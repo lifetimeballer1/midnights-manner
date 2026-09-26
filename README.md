@@ -43,6 +43,14 @@ Production buildings keep generating automatically. They also accumulate a **cap
 
 Use **Safari → Share → Add to Home Screen** on iPhone for standalone play. The relative-path web manifest and local app icons support a home-screen shortcut. This does not promise offline operation or cross-device saves. Full Screen in Settings uses the browser Fullscreen API where supported.
 
+### Updates from a Home Screen shortcut
+
+Open **Settings → Check for updates**. When a new build finishes downloading, tap **Update ready · Save & refresh**, or the gold **Update ready ↻** notice on the map. **Save & refresh** also reloads the current game at any time. Refresh saves first and is cancelled if saving fails. It never clears village storage or removes the Home Screen shortcut.
+
+Built games check on reopening/resuming and every five visible minutes. New versions wait for your click rather than interrupting play. Offline/update-download errors leave the current build playable. Every changed build gets a content-based cache ID, even without a package-version bump. Caches are scoped to this game; missing assets never return HTML. Local development has Save & refresh but does not register a service worker.
+
+Existing shortcuts need to load this release once: fully close the game and reopen it online (close any other open copies too if the older build remains). Safari and a Home Screen installation can have separate storage; updating does not transfer saves between them.
+
 ### Visual direction and references
 
 User-provided Clash of Clans village and battle screenshots informed edge-anchored resource HUDs, a dominant map, thumb-sized bottom actions, troop cards, and contextual controls. Online references reviewed:
@@ -55,7 +63,7 @@ These are design references only. No screenshots or commercial game assets are b
 
 ### Verification
 
-`npm test` includes 218 simulation/rendering/input regression checks. `npm run test:browser` requires a locally installed Chrome (`CHROME_BIN` may override its path). CI runs real pointer/touch input checks for placement preview/confirm, menus, equipment/training, missions, raids, save/reload, one-finger pan, pinch zoom, and no document overflow at portrait/landscape sizes. Screenshots are attached to the Actions run. A browser test failure blocks deployment.
+`npm test` includes 242 simulation/rendering/input/update regression checks. `npm run test:browser` requires a locally installed Chrome (`CHROME_BIN` may override its path). CI runs real pointer/touch input checks for placement preview/confirm, menus, equipment/training, missions, raids, save/reload, one-finger pan, pinch zoom, and no document overflow at portrait/landscape sizes. Screenshots are attached to the Actions run. A browser test failure blocks deployment.
 
 ## Repository structure
 

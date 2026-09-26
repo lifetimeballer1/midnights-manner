@@ -1,3 +1,10 @@
+## 0.1.2 — Home Screen updates
+
+- Settings now includes Check for updates and Save & refresh, with a map notice when a build is ready.
+- Refresh persists the village first and cancels on storage failure; updates wait for a player click.
+- Built games check on resume and every five visible minutes, with offline/download failure feedback.
+- Content-based, scope-specific service-worker caches detect code/data/art changes without manual version bumps and keep complete builds together.
+
 ## 0.1.1 — All-side raids and wall controls
 
 - Home, test and campaign raids enter from rotating perimeter sides; four-or-more raiders cover all four sides. Countdown warnings list the sides.

@@ -1,4 +1,5 @@
 import {Game} from './game.js';
+import {GameUpdates} from './updates.js';
 import {Renderer} from './renderer.js';
 import {UI} from './ui.js';
 import {MapInput} from './input.js';
@@ -10,7 +11,7 @@ async function boot(){
  const images=Object.fromEntries(await Promise.all([...new Set(sprites)].map(name=>new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve([name,image]);image.onerror=()=>reject(Error(`Missing sprite: ${name}`));image.src=new URL(`../assets/sprites/${name}`,import.meta.url).href;}))));
  const canvas=document.querySelector('#world'),game=new Game(data),renderer=new Renderer(canvas,data,images);
  const resize=()=>{const rect=canvas.getBoundingClientRect();renderer.resize(rect.width,rect.height,window.devicePixelRatio||1);};resize();renderer.fitVillage(game.world);
- const ui=new UI(game,renderer);new MapInput(canvas,renderer,ui);
+ const ui=new UI(game,renderer);new MapInput(canvas,renderer,ui);new GameUpdates(game);
  new ResizeObserver(resize).observe(canvas);
  try{if(new URLSearchParams(location.search).has('perf')){const badge=document.createElement('div');badge.id='perf';document.body.appendChild(badge);setInterval(()=>{const r=renderer.frameReport();if(r)badge.textContent='frame avg '+r.avg+'ms · p50 '+r.p50+'ms · p95 '+r.p95+'ms · n='+r.n+' · '+(renderer.staticLayer?'cached':'uncached');},500);}}catch{}
  window.addEventListener('pointerdown',()=>unlock(),{passive:true});window.addEventListener('keydown',()=>unlock());
