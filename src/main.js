@@ -8,6 +8,8 @@ async function boot(){
  const sprites=[...Object.values(data.buildings).flatMap(b=>b.tiers.map(t=>t.sprite)),...Object.values(data.troops).map(t=>t.sprite),...Object.values(data.items).map(i=>i.sprite),'raider.png'];
  const images=Object.fromEntries(await Promise.all(sprites.map(name=>new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve([name,image]);image.onerror=()=>reject(Error(`Missing sprite: ${name}`));image.src=new URL(`../assets/sprites/${name}`,import.meta.url).href;}))));
  const canvas=document.querySelector('#world'),game=new Game(data),renderer=new Renderer(canvas,data,images),ui=new UI(game,renderer);
+ // Phone hero: open zoomed into the village on narrow screens (desktop untouched).
+ try{if(canvas.clientWidth&&canvas.clientWidth<520)renderer.cam.zoom=1.3;}catch{}
  const title=document.querySelector('#title'),begin=document.querySelector('#begin');
  if(title&&begin)begin.onclick=()=>{title.hidden=true;canvas.focus();};
  const unlockAudio=()=>unlock();
