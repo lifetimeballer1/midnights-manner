@@ -7,7 +7,7 @@ await rm(out,{recursive:true,force:true});await mkdir(out,{recursive:true});
 // Allowlist: only public game files ship. sw.js is generated below so the
 // repo root (npm run dev) never serves a service worker — registration and
 // precache exist in dist/ builds only.
-for(const file of ['index.html','manifest.webmanifest','src','assets','data'])await cp(new URL(file,root),new URL(file,out),{recursive:true});
+for(const file of ['index.html','manifest.webmanifest','src','assets','data','mockups'])await cp(new URL(file,root),new URL(file,out),{recursive:true});
 async function walk(url,prefix){const out=[];for(const e of await readdir(url,{withFileTypes:true})){if(e.isDirectory())out.push(...await walk(new URL(e.name+'/',url),prefix+e.name+'/'));else out.push(prefix+e.name);}return out;}
 const files=await walk(out,'./');
 files.push('./');
