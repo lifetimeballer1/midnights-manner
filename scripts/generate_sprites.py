@@ -3,7 +3,7 @@ from PIL import Image, ImageDraw
 from pathlib import Path
 out=Path(__file__).resolve().parents[1]/'assets'/'sprites'
 out.mkdir(parents=True,exist_ok=True)
-ink='#202b36'; stone='#929b9c'; light='#d2c7a4'; timber='#9e6c45'; dark='#65472f'; roof='#698b8c'; gold='#edc878'
+ink='#182230'; stone='#8d9cae'; light='#e9dab2'; timber='#a26e40'; dark='#5d4430'; roof='#4e7a7e'; gold='#f2c96e'; rim='#bcd3e0'; glow='#ffe9a8'
 def canvas():
  im=Image.new('RGBA',(32,32)); return im,ImageDraw.Draw(im)
 def save(im,name): im.save(out/(name+'.png'))
@@ -13,7 +13,8 @@ for kind in ['hall','farm','lumber','mine','barracks','wall','tower','trap']:
   if kind=='hall':
    d.rectangle((5,14,26,29),fill=timber if t==1 else stone,outline=ink)
    d.polygon([(3,14),(15,3),(29,14)],fill=roof,outline=ink)
-   d.rectangle((13,22,18,29),fill=ink); d.rectangle((8,17,11,20),fill=gold)
+   d.rectangle((13,22,18,29),fill=ink); d.rectangle((8,17,11,20),fill=glow); d.point((7,18),fill=glow); d.point((12,18),fill=glow)
+   d.line((3,13,29,13),fill=rim,width=1)
    if t>=2:
     d.rectangle((22,8,28,29),fill=stone,outline=ink); d.polygon([(21,8),(25,1),(29,8)],fill='#627888')
    if t==3:
@@ -25,30 +26,38 @@ for kind in ['hall','farm','lumber','mine','barracks','wall','tower','trap']:
    for y in range(13,26,4):
     for x in range(6,25,5):
      d.line((x,y+2,x,y-2),fill='#c7bd72',width=1); d.point((x-1,y-1),fill=gold)
-   if t>=2: d.rectangle((22,3,28,13),fill=timber,outline=ink); d.polygon([(21,3),(25,0),(29,3)],fill=roof)
+   if t>=2:
+    d.rectangle((22,3,28,13),fill=timber,outline=ink); d.polygon([(21,3),(25,0),(29,3)],fill=roof)
+    d.rectangle((24,6,26,9),fill=glow); d.point((23,7),fill=glow)
    if t==3:
     d.rectangle((3,3,7,15),fill=light); d.line((0,1,12,10),fill=light,width=2); d.line((12,1,0,10),fill=light,width=2)
   elif kind=='lumber':
    for x in range(3,20,6):
     d.rectangle((x,19,x+5,28),fill=timber,outline=ink); d.ellipse((x,18,x+5,23),fill=light,outline=dark)
    d.rectangle((21,9,24,27),fill=dark); d.polygon([(15,18),(23,1),(31,18)],fill='#547b60',outline=ink)
-   if t>=2: d.rectangle((2,11,17,14),fill=stone); d.line((4,8,16,8),fill=light,width=2)
+   if t>=2:
+    d.rectangle((2,11,17,14),fill=stone); d.line((4,8,16,8),fill=light,width=2)
+    d.rectangle((6,11,9,14),fill=glow)
    if t==3: d.polygon([(0,7),(9,1),(19,7)],fill=roof); d.line((1,7,1,25),fill=timber,width=2)
   elif kind=='mine':
    d.polygon([(1,28),(5,10),(15,3),(24,8),(31,28)],fill='#78778c',outline=ink)
    d.rectangle((10,16,22,29),fill=ink); d.line((9,28,9,14,23,14,23,28),fill=timber,width=3)
    d.polygon([(4,16),(6,11),(9,16),(6,20)],fill='#ba9bd5')
-   if t>=2: d.line((13,28,11,31),fill=stone,width=2); d.line((20,28,22,31),fill=stone,width=2)
+   if t>=2:
+    d.line((13,28,11,31),fill=stone,width=2); d.line((20,28,22,31),fill=stone,width=2)
+    d.point((5,14),fill=glow); d.point((7,18),fill=glow)
    if t==3: d.rectangle((22,21,30,27),fill=gold,outline=ink); d.ellipse((23,27,26,30),fill=ink); d.ellipse((28,27,31,30),fill=ink)
   elif kind=='barracks':
    d.polygon([(2,27),(14,5),(29,27)],fill='#8b6675',outline=ink); d.polygon([(10,27),(15,15),(21,27)],fill=ink)
-   if t>=2: d.rectangle((1,23,30,29),fill=stone); d.rectangle((13,23,18,29),fill=ink)
+   if t>=2:
+    d.rectangle((1,23,30,29),fill=stone); d.rectangle((13,23,18,29),fill=ink)
+    d.rectangle((14,24,17,26),fill=glow)
    if t==3: d.rectangle((2,11,7,28),fill=stone,outline=ink); d.rectangle((25,11,30,28),fill=stone,outline=ink)
    d.line((15,6,15,0),fill=light); d.polygon([(16,0),(24,2),(16,4)],fill=gold)
   elif kind=='wall':
    for x in range(2,31,5):
     if t==1: d.polygon([(x,29),(x,10),(x+2,6),(x+4,10),(x+4,29)],fill=timber,outline=ink)
-    else: d.rectangle((x,13,x+5,29),fill=stone,outline=ink); d.rectangle((x,9,x+3,14),fill=light)
+    else: d.rectangle((x,13,x+5,29),fill=stone,outline=ink); d.rectangle((x,9,x+3,14),fill=light); d.point((x,9),fill=rim)
    if t==3: d.rectangle((1,22,31,26),fill=light,outline=ink); d.rectangle((12,6,21,28),fill=stone,outline=ink)
   elif kind=='tower':
    d.polygon([(6,29),(10,10),(22,10),(27,29)],fill=timber if t==1 else stone,outline=ink)
@@ -56,12 +65,14 @@ for kind in ['hall','farm','lumber','mine','barracks','wall','tower','trap']:
    if t==1: d.polygon([(3,9),(15,1),(28,9)],fill=roof,outline=ink)
    else:
     for x in range(5,27,5): d.rectangle((x,4,x+2,10),fill=light)
-   d.rectangle((14,16,18,22),fill=ink)
+   d.rectangle((14,16,18,22),fill=glow if t>=2 else ink)
    if t==3: d.line((9,4,24,0),fill=gold,width=3); d.line((18,0,18,8),fill=ink,width=2)
   elif kind=='trap':
    d.ellipse((2,16,30,29),fill=dark,outline=ink)
    for x in range(5,29,5): d.polygon([(x-2,25),(x,11-t*2),(x+2,25)],fill=stone if t>1 else timber,outline=ink)
    if t==3: d.line((1,28,30,28),fill=gold,width=2)
+   if t==2:
+    for x in range(5,29,10): d.point((x,10),fill=glow)
   save(im,f'{kind}-{t}')
 for kind,c in [('warrior','#c79175'),('archer','#9fc782'),('miner','#ad98d0'),('builder','#e7c77c'),('farmer','#73b7a7'),('raider','#ca7375')]:
  im,d=canvas(); d.ellipse((9,26,24,30),fill='#17272b88')
@@ -71,7 +82,7 @@ for kind,c in [('warrior','#c79175'),('archer','#9fc782'),('miner','#ad98d0'),('
  elif kind=='warrior': d.rectangle((11,13,24,23),fill=stone,outline=ink); d.polygon([(7,16),(13,15),(14,22),(10,26),(6,22)],fill=c,outline=ink)
  elif kind=='farmer': d.polygon([(10,24),(12,13),(22,13),(26,24)],fill=c,outline=ink)
  else: d.rectangle((10,13,23,23),fill=c,outline=ink)
- d.rectangle((13,6,22,13),fill='#e1b68b',outline=ink)
+ d.rectangle((13,6,22,13),fill='#e1b68b',outline=ink); d.line((14,6,21,6),fill=rim)
  if kind=='archer': d.polygon([(10,8),(17,0),(24,8)],fill=c,outline=ink)
  elif kind=='farmer': d.rectangle((8,5,27,8),fill=gold); d.rectangle((14,2,21,5),fill=gold)
  elif kind=='miner': d.rectangle((11,3,24,7),fill=c); d.rectangle((16,3,19,6),fill=gold)

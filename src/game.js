@@ -1,4 +1,4 @@
-import {createWorld,makeBuilding,makeUnit,canPlace,pay,stats,buildingCost} from './model.js';
+import {createWorld,makeBuilding,makeUnit,canPlace,pay,stats,buildingCost,center} from './model.js';
 import {tickEconomy} from './systems/economy.js';
 import {tickCombat,spawnRaid,activateAbility} from './systems/combat.js';
 import {startMission,tickMission,finishMission} from './systems/campaign.js';
@@ -13,7 +13,7 @@ export class Game {
   if(this.locked(type))return this.notify('Complete campaign chapters to unlock this.');
   if(!canPlace(this.world,this.data,type,x,y))return this.notify('Choose an empty tile inside the village boundary.');
   if(!pay(this.world.resources,buildingCost(type,1,this.world,this.data)))return this.notify('Not enough resources. Let your village gather more.');
-  const b=makeBuilding(type,x,y,this.data);b.remaining=this.data.buildings[type].buildSeconds;this.world.buildings.push(b);this.notify(`${this.data.buildings[type].name} construction started.`);return b;
+  const b=makeBuilding(type,x,y,this.data);b.remaining=this.data.buildings[type].buildSeconds;this.world.buildings.push(b);const cp=center(b,this.data);this.world.effects.push({x:cp.x,y:cp.y,tx:cp.x,ty:cp.y,kind:'place',life:.6});this.notify(`${this.data.buildings[type].name} construction started.`);return b;
  }
  upgrade(id){
   const b=this.world.buildings.find(b=>b.id===id);if(!b||b.hp<=0||b.remaining>0)return;
@@ -23,7 +23,7 @@ export class Game {
   b.level++;b.hp=this.data.buildings[b.type].tiers[b.level-1].hp;b.remaining=8*b.level;this.notify('Upgrade started. Your builders are on it.');
  }
  repair(id){const b=this.world.buildings.find(b=>b.id===id);if(!b)return;const max=this.data.buildings[b.type].tiers[b.level-1].hp;if(b.hp>=max)return;
-  if(!pay(this.world.resources,{wood:Math.ceil((max-b.hp)/15)}))return this.notify('Gather more wood to repair.');b.hp=max;this.notify('Building repaired.');}
+  if(!pay(this.world.resources,{wood:Math.ceil((max-b.hp)/15)}))return this.notify('Gather more wood to repair.');b.hp=max;const cp=center(b,this.data);this.world.effects.push({x:cp.x,y:cp.y,tx:cp.x,ty:cp.y,kind:'heal',life:.3});this.notify('Building repaired.');}
  relocate(id,x,y){const b=this.world.buildings.find(b=>b.id===id);if(!b||this.world.enemies.length)return this.notify('Buildings cannot move during a raid.');if(!canPlace(this.world,this.data,b.type,x,y,b.id))return this.notify('That location is blocked.');b.x=x;b.y=y;this.notify('Building moved.');return true;}
  recruit(type){
   if(!this.world.buildings.some(b=>b.type==='barracks'&&b.hp>0&&b.remaining<=0))return this.notify('Build a barracks first.');
@@ -41,7 +41,9 @@ export class Game {
  returnHome(){const result=finishMission(this.state,this.data);this.notify(result?.first?'Victory! Rewards and unlocks delivered to your village.':'Returned home. First-clear rewards can only be claimed once.');this.persist();}
  persist(){const ok=save(this.state);if(!ok)this.notify('Browser storage is unavailable. Progress cannot be saved here.');return ok;}
  tick(dt){if(this.paused||this.state.mission?.status&&this.state.mission.status!=='active')return;
+  const raided=!this.state.mission&&this.world.enemies.length>0;
   this.world.elapsed+=dt;tickEconomy(this.world,this.data,dt);tickCombat(this.world,this.data,dt);const before=this.state.mission?.status;tickMission(this.state,this.data);
+  if(raided&&!this.world.enemies.length&&this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)){this.notify(`Raid repelled! ${this.world.troops.filter(t=>t.hp>0).length} villagers stand ready.`);this.persist();}
   if(before!==this.state.mission?.status){this.notify(this.state.mission.status==='won'?'Mission complete! Return home to claim your rewards.':'Expedition lost. Return home and try a different layout.');this.persist();}
   if(!this.state.mission&&!this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)&&this.world.enemies.length){this.world.enemies=[];this.world.resources.wood=Math.max(80,this.world.resources.wood);this.notify('The manor fell. Salvaged wood is available for repairs.');}
   this.saveTimer+=dt;if(this.saveTimer>5){this.saveTimer=0;this.persist();}

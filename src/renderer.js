@@ -12,9 +12,11 @@ export class Renderer {
   // Ambient paper and a raised, diamond-shaped clearing.
   c.fillStyle='#a3ac7c25';c.beginPath();c.ellipse(543,385,410,190,0,0,Math.PI*2);c.fill();
   for(let y=-3;y<20;y++)for(let x=-3;x<24;x++){
-   const n=((x*67+y*113+10000)*17)%101;
+   const n=((x*67+y*113+10000)*17)%101, checker=(x+y)%2===0;
    const edge=x<0||y<0||x>=20||y>=16;
-   this.diamond(x,y,edge?['#d7ddbf','#d3dbb7','#dbe0c7'][Math.abs(n)%3]:['#c1cf9d','#c4d29f','#c7d4a3','#bfd09d'][Math.abs(n)%4],this.grid&&!edge?'#a3b88b88':null);
+   // Checkerboard light/dark pair keeps adjacent tiles distinguishable; edges fall off darker.
+   const inner=checker?['#aebd8d','#b3c48f','#b8c795','#a9ba86'][Math.abs(n)%4]:['#c3d19e','#c7d4a4','#cbd7a8','#bfd09c'][Math.abs(n)%4];
+   this.diamond(x,y,edge?['#c9d0ac','#c6cea6','#ced4b5'][Math.abs(n)%3]:inner,this.grid&&!edge?'#6f8a62':null);
    if(!edge&&n%9===0){const p=this.project(x+.5,y+.5);c.fillStyle='#91a77688';c.fillRect(p.x,p.y,2,3);c.fillRect(p.x+3,p.y-1,1,3);}
   }
   // Winding stream outside the settlement; a readable soft border for the map.
@@ -22,19 +24,33 @@ export class Renderer {
   for(let i=0;i<20;i++){if(i%3!==0)this.tree(i,-1.5,i);if(i%2===0)this.tree(-1.5,i%16,i+2);if(i%3===0)this.tree(21,i%16,i);}
   // Small paths join the manor clearing.
   for(let x=5;x<15;x++)this.diamond(x,11,'#c7bc96');for(let y=4;y<11;y++)this.diamond(10,y,'#c7bc96');
-  if(this.placing&&this.hover){const valid=canPlace(world,this.data,this.placing,this.hover.x,this.hover.y,this.moving);const size=this.data.buildings[this.placing].size;for(let y=0;y<size;y++)for(let x=0;x<size;x++)this.diamond(this.hover.x+x,this.hover.y+y,valid?'#7ca476aa':'#c67e7299','#faf5d3');}
-  else if(this.hover&&this.grid)this.diamond(this.hover.x,this.hover.y,'#e8e6b266','#f5edc9');
+  if(this.placing&&this.hover){const valid=canPlace(world,this.data,this.placing,this.hover.x,this.hover.y,this.moving);const size=this.data.buildings[this.placing].size;for(let y=0;y<size;y++)for(let x=0;x<size;x++)this.diamond(this.hover.x+x,this.hover.y+y,valid?'#69a06bcc':'#c05a4ecc',valid?'#fff6d8':'#ffe3dc');}
+  else if(this.hover&&this.grid)this.diamond(this.hover.x,this.hover.y,'#f2ecb988','#fff3c0');
   const drawables=[...world.buildings.map(b=>({kind:'building',value:b,depth:b.x+b.y+this.data.buildings[b.type].size})),...world.troops.map(t=>({kind:'unit',value:t,depth:t.x+t.y+.2})),...world.enemies.map(e=>({kind:'enemy',value:e,depth:e.x+e.y+.2}))].sort((a,b)=>a.depth-b.depth);
   for(const {kind,value:b} of drawables){
    if(kind==='building'){
     const spec=this.data.buildings[b.type],cp=center(b,this.data),size=spec.size===2?93:66;
-    if(this.selection===b.id)for(let y=0;y<spec.size;y++)for(let x=0;x<spec.size;x++)this.diamond(b.x+x,b.y+y,'#e4d59766','#fbf5cf');
-    this.sprite(spec.tiers[b.level-1].sprite,cp.x,cp.y,size,b.hp<=0?.25:b.remaining>0?.6:1);
-    const p=this.project(cp.x,cp.y);if(b.hp<=0){c.fillStyle='#685b4c';c.font='11px Arial';c.fillText('Repair',p.x-15,p.y+22);}
-    if(b.remaining>0){c.fillStyle='#304534';c.font='10px Arial';c.textAlign='center';c.fillText(`${Math.ceil(b.remaining)}s`,p.x,p.y-size+11);c.textAlign='left';}
-    if(b.hp>0&&b.hp<spec.tiers[b.level-1].hp)this.bar(p.x,p.y+14,b.hp/spec.tiers[b.level-1].hp,32,'#9caa66');
+    const gp=this.project(cp.x,cp.y);
+    // Ground shadow anchors every building to the map.
+    c.fillStyle='#2c3a2c33';c.beginPath();c.ellipse(gp.x,gp.y+9,size*.42,10,0,0,Math.PI*2);c.fill();
+    if(this.selection===b.id){
+     for(let y=0;y<spec.size;y++)for(let x=0;x<spec.size;x++)this.diamond(b.x+x,b.y+y,'#f0d47e99','#fff3c0');
+     // Range preview for defenses so layout choices read at a glance.
+     const range=spec.tiers[b.level-1].range;
+     if(spec.tiers[b.level-1].damage){c.save();c.globalAlpha=.9;c.strokeStyle='#f2e2a8';c.lineWidth=1.5;c.setLineDash([6,4]);c.beginPath();c.ellipse(gp.x,gp.y,range*this.tw*.72,range*this.th*.72,0,0,Math.PI*2);c.stroke();c.restore();}
+    }
+    this.sprite(spec.tiers[b.level-1].sprite,cp.x,cp.y,size,b.hp<=0?.3:b.remaining>0?.65:1);
+    const p=this.project(cp.x,cp.y);
+    // Tier pips: filled gold per tier so upgrades read instantly.
+    for(let i=0;i<spec.tiers.length;i++){c.fillStyle=i<b.level?'#e9c46a':'#5a6b5533';c.beginPath();c.arc(p.x-(spec.tiers.length*7)/2+i*7+3,p.y-size+4,2.6,0,Math.PI*2);c.fill();}
+    if(b.hp<=0){c.fillStyle='#3d2c22ee';const w=52;c.fillRect(p.x-w/2,p.y+16,w,15);c.fillStyle='#ffd9a8';c.font='bold 10px Arial';c.textAlign='center';c.fillText('REPAIR',p.x,p.y+27);c.textAlign='left';}
+    if(b.remaining>0){const total=this.data.buildings[b.type].buildSeconds||8;this.bar(p.x,p.y-size+12,1-b.remaining/total,44,'#e9c46a');c.fillStyle='#2f4433';c.font='bold 10px Arial';c.textAlign='center';c.fillText(`${Math.ceil(b.remaining)}s`,p.x,p.y-size+10);c.textAlign='left';}
+    else if(b.hp>0&&b.hp<spec.tiers[b.level-1].hp)this.bar(p.x,p.y+14,b.hp/spec.tiers[b.level-1].hp,36,b.hp/spec.tiers[b.level-1].hp>.5?'#9caa66':'#c9766a');
    }else{
     const unit=kind==='unit';if(b.hp<=0)continue;
+    const up=this.project(b.x,b.y);
+    c.fillStyle=unit?'#2c3a2c2e':'#5a232633';c.beginPath();c.ellipse(up.x,up.y+7,unit?13:15,5,0,0,Math.PI*2);c.fill();
+    if(!unit){c.strokeStyle='#d96a5e';c.lineWidth=1.5;c.beginPath();c.ellipse(up.x,up.y+7,16,6,0,0,Math.PI*2);c.stroke();}
     this.sprite(unit?this.data.troops[b.type].sprite:'raider.png',b.x,b.y,39);
     const p=this.project(b.x,b.y);
     if(unit){
@@ -44,8 +60,17 @@ export class Renderer {
     }else this.bar(p.x,p.y+9,b.hp/b.maxHp,22,'#bd7770');
    }
   }
-  if(this.placing&&this.hover){const size=this.data.buildings[this.placing].size;this.sprite(this.data.buildings[this.placing].tiers[0].sprite,this.hover.x+size/2,this.hover.y+size/2,size===2?93:66,.5);}
-  for(const e of world.effects){const a=this.project(e.x,e.y),b=this.project(e.tx,e.ty);c.globalAlpha=e.life/.3;c.strokeStyle=e.kind==='heal'?'#e4efb0':e.kind==='arrow'?'#f6ecbb':'#f5d78d';c.lineWidth=e.kind==='slam'?5:2;c.beginPath();if(e.kind==='heal'||e.kind==='slam'){c.ellipse(b.x,b.y-8,25,12,0,0,Math.PI*2);}else{c.moveTo(a.x,a.y-12);c.lineTo(b.x,b.y-12);}c.stroke();c.globalAlpha=1;}
+  if(this.placing&&this.hover){const size=this.data.buildings[this.placing].size,tier=this.data.buildings[this.placing].tiers[0];this.sprite(tier.sprite,this.hover.x+size/2,this.hover.y+size/2,size===2?93:66,.55);if(tier.damage){const gp=this.project(this.hover.x+size/2,this.hover.y+size/2);c.save();c.globalAlpha=.85;c.strokeStyle='#f2e2a8';c.lineWidth=1.5;c.setLineDash([6,4]);c.beginPath();c.ellipse(gp.x,gp.y,tier.range*this.tw*.72,tier.range*this.th*.72,0,0,Math.PI*2);c.stroke();c.restore();}}
+  for(const e of world.effects){const a=this.project(e.x,e.y),b=this.project(e.tx,e.ty);if(e.kind==='place'){const t=1-Math.max(0,e.life)/.6;c.globalAlpha=Math.max(0,e.life)/.6;c.strokeStyle='#ffe9a8';c.lineWidth=3;c.beginPath();c.ellipse(b.x,b.y-6,8+t*34,4+t*15,0,0,Math.PI*2);c.stroke();c.globalAlpha=1;continue;}c.globalAlpha=e.life/.3;c.strokeStyle=e.kind==='heal'?'#e4efb0':e.kind==='arrow'?'#f6ecbb':'#f5d78d';c.lineWidth=e.kind==='slam'?5:2;c.beginPath();if(e.kind==='heal'||e.kind==='slam'){c.ellipse(b.x,b.y-8,25,12,0,0,Math.PI*2);}else{c.moveTo(a.x,a.y-12);c.lineTo(b.x,b.y-12);}c.stroke();c.globalAlpha=1;}
+  // Raid readability: red western edge + marching chevrons while raiders live.
+  if(world.enemies.length){
+   const pulse=.14+Math.sin(time/300)*.05;
+   const g=c.createLinearGradient(0,0,150,0);g.addColorStop(0,`rgba(178,60,50,${pulse+.18})`);g.addColorStop(1,'rgba(178,60,50,0)');
+   c.fillStyle=g;c.fillRect(0,0,150,740);
+   c.fillStyle='#b23c32';c.font='bold 14px Arial';c.textAlign='center';
+   for(let y=2;y<16;y+=2){const p=this.project(.6,y+.5);c.fillText('▶',p.x-30+Math.sin(time/250+y)*5,p.y);}
+   c.textAlign='left';
+  }
   // Fireflies and chimney smoke are decorative only.
   for(let i=0;i<8;i++){const p=this.project(4+i*1.8,4+(i*3)%9);c.globalAlpha=.25+Math.sin(time/1000+i)*.2;c.fillStyle='#fcf4c0';c.fillRect(p.x+Math.sin(time/1500+i)*8,p.y-25,2,2);}c.globalAlpha=1;
  }
