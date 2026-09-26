@@ -6,7 +6,7 @@ const icons={wood:'▰',food:'♧',gold:'◆'};
 const cost=c=>Object.entries(c).map(([k,v])=>`${icons[k]} ${Math.ceil(v)} ${k}`).join(' · ')||'Included';
 const img=name=>`<img src="./assets/sprites/${name}" alt="">`;
 export class UI {
- constructor(game,renderer){this.game=game;this.renderer=renderer;this.tab='build';this.selected=null;this.clock=0;this.panel=document.querySelector('#panel');this.guide=loadGuide();this.prevRes={...game.world.resources};this.bind();this.refresh();}
+ constructor(game,renderer){this.game=game;this.renderer=renderer;this.tab='build';this.selected=null;this.selectedTroop=null;this.clock=0;this.panel=document.querySelector('#panel');this.guide=loadGuide();this.prevRes={...game.world.resources};this.bind();this.refresh();}
  bind(){
   document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{this.tab=b.dataset.tab;document.querySelectorAll('[data-tab]').forEach(t=>t.classList.toggle('active',t===b));this.refresh();});
   document.querySelector('#pause').onclick=()=>{this.game.paused=!this.game.paused;document.querySelector('#pause').textContent=this.game.paused?'▶ Resume':'Ⅱ Pause';};
@@ -19,7 +19,7 @@ export class UI {
    if(b.dataset.repairAll)this.game.repairAll();
    if(b.dataset.repairAll||b.dataset.dismiss){this.game.world.raidResult=null;}
    this.refresh();};
-  document.querySelector('#inspector').onclick=e=>{const b=e.target.closest('button');if(!b)return;const action=b.dataset.action;if(b.id==='raid')this.game.raid();else if(action==='upgrade')this.game.upgrade(this.selected);else if(action==='repair')this.game.repair(this.selected);else if(action==='move'){const selected=this.game.world.buildings.find(b=>b.id===this.selected);if(selected){this.renderer.moving=selected.id;this.renderer.placing=selected.type;this.placementHint();}}this.refresh();};
+  document.querySelector('#inspector').onclick=e=>{const b=e.target.closest('button');if(!b)return;const action=b.dataset.action;if(b.id==='raid')this.game.raid();else if(action==='upgrade')this.game.upgrade(this.selected);else if(action==='repair')this.game.repair(this.selected);else if(action==='hold'&&this.selectedTroop)this.game.commandHold(this.selectedTroop);else if(action==='resume'&&this.selectedTroop){this.game.clearOrder(this.selectedTroop);this.selectedTroop=null;this.renderer.selection=null;}else if(action==='move'){const selected=this.game.world.buildings.find(b=>b.id===this.selected);if(selected){this.renderer.moving=selected.id;this.renderer.placing=selected.type;this.placementHint();}}this.refresh();};
   this.panel.onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;
    if(b.dataset.build){this.renderer.placing=b.dataset.build;this.renderer.moving=null;this.renderer.grid=true;this.placementHint();}
    if(b.dataset.recruit)this.game.recruit(b.dataset.recruit);
@@ -32,12 +32,22 @@ export class UI {
   };
   this.panel.onchange=e=>{const s=e.target.closest('select[data-assign]');if(!s)return;this.game.assign(s.dataset.assign,s.value||null);this.refresh();};
  }
- cancel(){this.renderer.placing=null;this.renderer.moving=null;this.placementHint();this.refresh();}
+ cancel(){this.renderer.placing=null;this.renderer.moving=null;this.selectedTroop=null;this.placementHint();this.refresh();}
  placementHint(){const type=this.renderer.placing;document.querySelector('#cancel').hidden=!type;document.querySelector('#placement-hint').textContent=type?`${this.renderer.moving?'Move':'Place'} ${this.game.data.buildings[type].name} · choose a tile · Esc cancels`:'Tap a building to inspect it';}
  selectCell(cell){
   const r=this.renderer,g=this.game;
   if(r.placing){if(r.moving){if(g.relocate(r.moving,cell.x,cell.y))this.cancel();}else{const b=g.build(r.placing,cell.x,cell.y);if(b){this.selected=b.id;r.selection=b.id;}}}
-  else{const exact=g.world.buildings.find(b=>cell.x>=b.x&&cell.x<b.x+g.data.buildings[b.type].size&&cell.y>=b.y&&cell.y<b.y+g.data.buildings[b.type].size);
+  else{
+   const clickedTroop=g.world.troops.find(t=>t.hp>0&&Math.hypot(t.x-(cell.x+.5),t.y-(cell.y+.5))<.8);
+   const clickedEnemy=g.world.enemies.find(e=>e.hp>0&&Math.hypot(e.x-(cell.x+.5),e.y-(cell.y+.5))<.9);
+   if(clickedTroop&&(!this.selectedTroop||this.selectedTroop!==clickedTroop.id)){this.selectedTroop=clickedTroop.id;this.selected=null;r.selection=clickedTroop.id;sfx.click();this.refresh();return;}
+   if(this.selectedTroop){
+    const u=g.world.troops.find(t=>t.id===this.selectedTroop);
+    if(!u||u.hp<=0){this.selectedTroop=null;}
+    else if(clickedEnemy){g.commandAttack(u.id,clickedEnemy.id);this.refresh();return;}
+    else if(!clickedTroop||clickedTroop.id===u.id){g.commandMove(u.id,cell.x,cell.y);this.refresh();return;}
+   }
+   const exact=g.world.buildings.find(b=>cell.x>=b.x&&cell.x<b.x+g.data.buildings[b.type].size&&cell.y>=b.y&&cell.y<b.y+g.data.buildings[b.type].size);
    // Fat-finger fallback for phones: nearest footprint within ~1.3 tiles still counts.
    let b=exact;
    if(!b){let best=null,bestD=1.3;for(const cand of g.world.buildings){const cc=center(cand,g.data);const dd=Math.hypot(cc.x-(cell.x+.5),cc.y-(cell.y+.5));if(dd<bestD){bestD=dd;best=cand;}}b=best;}
@@ -97,6 +107,9 @@ export class UI {
   return bits.length?`<br><small>${bits.join(' · ')}</small>`:'';
  }
  renderInspector(){const g=this.game,b=g.world.buildings.find(b=>b.id===this.selected),el=document.querySelector('#inspector');
+  const tu=g.world.troops.find(t=>t.id===this.selectedTroop);
+  if(tu&&(!b||true)){const spec=g.data.troops[tu.type],order=tu.order?tu.order.kind:'auto';
+   el.innerHTML=`<div><span class="eyebrow">${spec.name.toUpperCase()} · LEVEL ${tu.level} · ${order.toUpperCase()}</span><h2>${spec.name} — your orders?</h2><p>Tap a tile to move, tap a raider to attack. Hold keeps position. Resume returns to duties.</p></div><div class="actions"><button class="primary" data-action="hold">Hold ✋</button><button data-action="resume">Resume</button></div>`;return;}
   if(!b){el.innerHTML='<div><span class="eyebrow">YOUR HOMESTEAD</span><h2>Make yourself at home.</h2><p>Farms feed your people. Timber builds your future. Keep the manor standing.</p></div><button id="raid" class="primary">Test your defenses ⚔</button>';return;}
   const spec=g.data.buildings[b.type],tier=spec.tiers[b.level-1],max=b.level===spec.tiers.length;
   const upgradeCost=b.type==='hall'?{wood:200*b.level,gold:150*b.level}:buildingCost(b.type,b.level+1,g.world,g.data);

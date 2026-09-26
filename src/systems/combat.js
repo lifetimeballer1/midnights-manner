@@ -25,10 +25,18 @@ export function tickCombat(world,data,dt) {
  for(const unit of world.troops) {
   unit.attackTimer=Math.max(0,(unit.attackTimer??0)-dt);unit.abilityTimer=Math.max(0,(unit.abilityTimer??0)-dt);unit.animation=Math.max(0,(unit.animation??0)-dt);
   if(unit.hp<=0)continue;
+  const s=stats(unit,data);
+  const order=unit.order;
+  if(order&&order.kind==='move'&&Number.isFinite(order.x)&&Number.isFinite(order.y)){
+   if(move(world,data,unit,order,s.speed,dt,.4))unit.order=null;
+   continue;
+  }
+  if(order&&order.kind==='hold'){const e2=world.enemies.filter(e=>e.hp>0).sort((a,b)=>distance(unit,a)-distance(unit,b))[0];if(e2&&distance(unit,e2)<=s.range&&unit.attackTimer<=0){const dealt=s.damage*(1+aura.damage);e2.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,e2,data.items[unit.gear].animation);dmgNum(world,e2,dealt);}continue;}
+  if(order&&order.kind==='attack'){const tgt=world.enemies.find(e=>e.id===order.targetId&&e.hp>0);if(!tgt){unit.order=null;continue;}
+   if(move(world,data,unit,tgt,s.speed,dt,s.range)&&unit.attackTimer<=0){const dealt=s.damage*(1+aura.damage);tgt.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,tgt,data.items[unit.gear].animation);dmgNum(world,tgt,dealt);}continue;}
   if(!world.enemies.length){unit.hp=Math.min(stats(unit,data).hp,unit.hp+dt*2);continue;}
   if(data.troops[unit.type].role!=='combat')continue;
   const enemy=world.enemies.filter(e=>e.hp>0).sort((a,b)=>distance(unit,a)-distance(unit,b))[0];if(!enemy)continue;
-  const s=stats(unit,data);
   if(move(world,data,unit,enemy,s.speed,dt,s.range)&&unit.attackTimer<=0){
    const dealt=s.damage*(1+aura.damage);
    enemy.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,enemy,data.items[unit.gear].animation);dmgNum(world,enemy,dealt);

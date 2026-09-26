@@ -21,7 +21,7 @@ export function stats(unit,data) {
 }
 export function makeUnit(type,data,index=0) {
   const s=data.troops[type];
-  return {id:crypto.randomUUID(),type,level:1,hp:s.base.hp,gear:s.defaultGear,owned:[s.defaultGear],x:8+index*.65,y:10.8,attackTimer:0,abilityTimer:0,carry:0,phase:'gather',animation:0,workplace:null};
+  return {id:crypto.randomUUID(),type,level:1,hp:s.base.hp,gear:s.defaultGear,owned:[s.defaultGear],x:8+index*.65,y:10.8,attackTimer:0,abilityTimer:0,carry:0,phase:'gather',animation:0,workplace:null,order:null};
 }
 export function makeBuilding(type,x,y,data,level=1) {
   const spec = data.buildings[type];

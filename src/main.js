@@ -20,6 +20,7 @@ async function boot(){
   if(event.key==='Enter'){event.preventDefault();ui.selectCell(renderer.hover||{x:9,y:8});}
   const pan={w:[0,-1],s:[0,1],a:[-1,0],d:[1,0]}[event.key.toLowerCase()];
   if(pan&&!arrows[event.key]){event.preventDefault();renderer.pan(pan[0],pan[1]);}
+  if(event.key.toLowerCase()==='h'&&ui.selectedTroop){game.commandHold(ui.selectedTroop);ui.refresh();}
   if(event.key==='+'||event.key==='=')renderer.zoomBy(1.1);
   if(event.key==='-')renderer.zoomBy(0.9);
   if(event.key==='0')renderer.resetCam();

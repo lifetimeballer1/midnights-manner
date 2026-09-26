@@ -63,6 +63,8 @@ export function tickEconomy(world,data,dt) {
  for(const u of world.troops) {
   if(u.hp<=0)continue;
   const spec=data.troops[u.type];if(spec.role!=='collector')continue;
+  if(u.order&&u.order.kind==='move'&&Number.isFinite(u.order.x)){if(move(world,data,u,u.order,stats(u,data).speed,dt,.4))u.order=null;continue;}
+  if(u.order&&u.order.kind==='hold')continue;
   const source=sourceFor(world,data,spec,u);if(!source)continue;
   const gear=data.items[u.gear];if(!gear)continue;
   const item=gear.stats||{};
