@@ -47,6 +47,7 @@ export class GameUpdates {
   if(manual)this.show('Checking for updates…');
   try{
    await this.started;
+   if(this.nav.onLine===false)throw Error('Offline');
    if(!this.registration){
     if(!this.build||!this.nav.serviceWorker)return;
     // Allow recovery after a failed initial registration or offline launch.
