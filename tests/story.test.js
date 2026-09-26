@@ -15,11 +15,11 @@ function freshState(d) {
 }
 
 test('story item 1: every quest carries giver, flavor and act', () => {
-  assert.equal(data.quests.length, 19, "nineteen steps: sixteen shipped plus the three Act VII trials");
+  assert.equal(data.quests.length, 22, "twenty-two steps: sixteen shipped plus the three Act VII trials plus the three Act VIII legend trials");;
   for (const q of data.quests) {
     assert.ok(typeof q.giver === 'string' && q.giver.length > 0, `${q.id} giver`);
     assert.ok(typeof q.flavor === 'string' && q.flavor.length > 0, `${q.id} flavor`);
-    assert.ok(['I', 'II', 'V', 'VI', 'VII'].includes(q.act), `${q.id} act`);
+    assert.ok(['I', 'II', 'V', 'VI', 'VII', 'VIII'].includes(q.act), `${q.id} act`);
   }
   assert.deepEqual(data.quests.slice(0, 5).map(q => q.act), ['I', 'I', 'I', 'I', 'I']);
   assert.deepEqual(data.quests.slice(5, 8).map(q => q.act), ['II', 'II', 'II']);
@@ -39,12 +39,18 @@ test('story item 1: every quest carries giver, flavor and act', () => {
   assert.equal(data.quests[14].act, 'VI');
   assert.equal(data.quests[15].id, 'glass-under-stone');
   assert.equal(data.quests[15].act, 'VI');
+  assert.equal(data.quests[19].id, 'the-bell-remembers');
+  assert.equal(data.quests[19].act, 'VIII');
+  assert.equal(data.quests[20].id, 'what-the-water-kept');
+  assert.equal(data.quests[20].act, 'VIII');
+  assert.equal(data.quests[21].id, 'dawn-of-the-manner');
+  assert.equal(data.quests[21].act, 'VIII');
 });
 
 test('story item 1: every mission carries act, beat and ceremony lines', () => {
-  assert.equal(data.missions.length, 12, "twelve chapters: nine shipped plus the pale host and twin banners");
+  assert.equal(data.missions.length, 15, "fifteen chapters: nine shipped plus the pale host and twin banners plus the pale court, longest night and dawn");;
   for (const m of data.missions) {
-    assert.ok(['III', 'IV', 'V', 'VI', 'VII'].includes(m.act), `${m.id} act`);
+    assert.ok(['III', 'IV', 'V', 'VI', 'VII', 'VIII'].includes(m.act), `${m.id} act`);
     assert.ok(typeof m.beat === 'string' && m.beat.length > 0, `${m.id} beat`);
     for (const key of ['warning', 'victory', 'defeat'])
       assert.ok(typeof m.ceremony?.[key] === 'string' && m.ceremony[key].length > 0, `${m.id} ceremony.${key}`);
@@ -67,7 +73,7 @@ test('story item 2: rumors, names and legends tables load with shape', async () 
   assert.ok(data.rumors.length >= 10, 'a full board of rumors');
   for (const r of data.rumors) assert.ok(r.id && typeof r.text === 'string' && r.text.length <= 140, r.id);
   assert.ok(data.names.given.length >= 10 && data.names.trade.length >= 10, 'name pools');
-  assert.equal(data.legends.length, 5, 'one tale per legend');
+  assert.equal(data.legends.length, 6, 'one tale per legend');;
   for (const l of data.legends) assert.ok(l.id && l.title && l.text, l.id);
 });
 
@@ -105,9 +111,10 @@ test('story item 2: every 10th arrival earns a trade-name; flavor needs no save 
   assert.ok(messages.some(m => m.includes(arrival.name)), 'village announces the name');
   // Flavor-only: no persisted state of its own. (The living-world layer
   // later added calendar/trade keys under save version 3, the raid
-  // clock + unlock re-deal under save version 4, and the armor wardrobe
-  // under save version 5.)
-  assert.equal(VERSION, 5);
+  // clock + unlock re-deal under save version 4, the armor wardrobe
+  // under save version 5, and prestige stars + the cairn roll under
+  // save version 6.)
+  assert.equal(VERSION, 6);
   for (const key of ['records', 'boardSeen', 'tradeDay', 'calendarDay', 'tradeNames'])
     assert.ok(!(key in state), `no save key ${key}`);
 });

@@ -1,6 +1,6 @@
 const KEY='midnights-manner-v2';
 const OLD_KEY='midnights-manner-v1';
-export const VERSION = 5;
+export const VERSION = 6;
 // In-memory fallback when localStorage is missing (private mode, SSR, tests)
 // or full (quota). Saves still work for the session; persist() warns.
 const memFallback = new Map();
@@ -122,9 +122,26 @@ function migrateV4toV5(value, data) {
   value.version = 5;
   return value;
 }
+// v5 -> v6: Act VIII Legends (prestige stars, Last Watch oath, cairn roll,
+// moon-dial season). Every new key backfills a quiet default; gear,
+// resources, buildings, troops and progress are never touched or removed.
+function migrateV5toV6(value, data) {
+  if (!value || typeof value !== 'object') return null;
+  for (const key of ['world', 'home']) {
+    const w = value[key];
+    if (!w || typeof w !== 'object') continue;
+    for (const t of w.troops || []) {
+      if (!Number.isFinite(t.prestigeStars)) t.prestigeStars = 0;
+      if (t.oath === undefined) t.oath = false;
+    }
+    if (!Array.isArray(w.fallen)) w.fallen = [];
+  }
+  value.version = 6;
+  return value;
+}
 // Versioned migration registry — add future steps here, never wipe saves.
 // Each entry maps version N -> function upgrading to N+1.
-const MIGRATIONS = {1: migrateV1toV2, 2: migrateV2toV3, 3: migrateV3toV4, 4: migrateV4toV5};
+const MIGRATIONS = {1: migrateV1toV2, 2: migrateV2toV3, 3: migrateV3toV4, 4: migrateV4toV5, 5: migrateV5toV6};
 export function migrate(value, data) {
   return migrateToLatest(value, data);
 }

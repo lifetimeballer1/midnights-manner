@@ -32,6 +32,12 @@ function taskDone(task, state, data) {
   // construction, so this gate can never auto-fire. Missions merge their
   // ledgers home on return (campaign.js), so either road counts.
   if (task.kind === 'defeat') return ((w.flawlessRaids || 0) + (state.home?.flawlessRaids || 0)) >= (task.count || 1);
+  // Prestige roll (Act VIII, the bell remembers): starred veterans on the
+  // rolls. Arrival rosters read zero stars by construction — never auto.
+  if (task.kind === 'prestige') return w.troops.filter(t => (t.prestigeStars || 0) >= (task.stars || 1)).length >= (task.count || 1);
+  // Wonder standing (Act VIII finale): the named wonder built AND standing
+  // — ruins and scaffolds do not count. Arrival has no gate to stand on.
+  if (task.kind === 'wonder') return w.buildings.some(b => b.type === task.type && b.hp > 0 && b.remaining <= 0);
   // Upgrade gates (Act V+): every listed building type stands at the
   // tier — rewards preparation, never arrival arithmetic.
   if (task.kind === 'upgrade') {
@@ -224,6 +230,8 @@ export function questProgress(task, state) {
   if (task.kind === 'level') return {have: state.vlevel || 1, need: task.level};
   if (task.kind === 'gather') return {have: Math.floor(w.gathered[task.resource] || 0), need: task.amount};
   if (task.kind === 'defeat') return {have: (w.flawlessRaids || 0) + (state.home?.flawlessRaids || 0), need: task.count || 1};
+  if (task.kind === 'prestige') return {have: w.troops.filter(t => (t.prestigeStars || 0) >= (task.stars || 1)).length, need: task.count || 1};
+  if (task.kind === 'wonder') return {have: w.buildings.some(b => b.type === task.type && b.hp > 0 && b.remaining <= 0) ? 1 : 0, need: 1};
   if (task.kind === 'upgrade') {
     const types = Array.isArray(task.type) ? task.type : [task.type];
     const level = task.level || 2;

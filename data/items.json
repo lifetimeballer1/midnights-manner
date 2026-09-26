@@ -991,5 +991,263 @@
     },
     "animation": "tap",
     "sprite": "item-banner-cloak.png"
+  },
+  "envoys-gift": {
+    "name": "Envoy's Gift",
+    "slot": "armor",
+    "roles": [
+      "scholar",
+      "scout",
+      "healer",
+      "weaponsmith",
+      "armorer",
+      "toolsmith",
+      "leatherworker",
+      "apprentice",
+      "haggler",
+      "chorister",
+      "tidecaller"
+    ],
+    "cost": {
+      "gold": 120,
+      "plate": 2
+    },
+    "stats": {
+      "armor": 0.15,
+      "xp": 0.03
+    },
+    "animation": "tap",
+    "sprite": "item-envoys-gift.png"
+  },
+  "banner-cloak-grey": {
+    "name": "Grey Banner Cloak",
+    "slot": "armor",
+    "roles": [
+      "warrior",
+      "archer",
+      "warden",
+      "ranger",
+      "pikewoman",
+      "oathsworn",
+      "halberdier",
+      "longbowman",
+      "squire"
+    ],
+    "cost": {
+      "gold": 60,
+      "wood": 30
+    },
+    "stats": {
+      "armor": 0.1
+    },
+    "animation": "tap",
+    "sprite": "item-banner-cloak-grey.png"
+  },
+  "starforged-oathblade": {
+    "name": "Starforged Oathblade",
+    "roles": [
+      "oathsworn"
+    ],
+    "cost": {
+      "gold": 500,
+      "plate": 5
+    },
+    "stats": {
+      "damage": 1.495,
+      "range": 1.1
+    },
+    "animation": "oath",
+    "sprite": "item-starforged-oathblade.png"
+  },
+  "starforged-halberd": {
+    "name": "Starforged Halberd",
+    "roles": [
+      "halberdier"
+    ],
+    "cost": {
+      "gold": 500,
+      "plate": 5
+    },
+    "stats": {
+      "damage": 1.5525,
+      "range": 1.9
+    },
+    "animation": "sweep",
+    "sprite": "item-starforged-halberd.png"
+  },
+  "starforged-longbow": {
+    "name": "Starforged Longbow",
+    "roles": [
+      "longbowman",
+      "ranger",
+      "archer"
+    ],
+    "cost": {
+      "gold": 500,
+      "plate": 5
+    },
+    "stats": {
+      "damage": 1.495,
+      "range": 5.5
+    },
+    "animation": "arrow",
+    "sprite": "item-starforged-longbow.png"
+  },
+  "tidebell": {
+    "name": "Tidebell",
+    "roles": [
+      "tidecaller"
+    ],
+    "cost": {
+      "gold": 90,
+      "wood": 30
+    },
+    "stats": {
+      "healAura": 0.5,
+      "foodAura": 0.3
+    },
+    "animation": "tap",
+    "sprite": "item-tidebell.png"
+  },
+  "divers-plate": {
+    "name": "Diver's Plate",
+    "slot": "armor",
+    "roles": [
+      "miner",
+      "farmer",
+      "fisherman",
+      "shepherd",
+      "lumberjack",
+      "butcher",
+      "forager",
+      "woodward",
+      "diver",
+      "sapper"
+    ],
+    "cost": {
+      "gold": 90,
+      "plate": 6
+    },
+    "stats": {
+      "armor": 0.2
+    },
+    "animation": "tap",
+    "sprite": "item-divers-plate.png"
+  },
+  "oathkeeper-armor": {
+    "name": "Oathkeeper Armor",
+    "slot": "armor",
+    "roles": [
+      "warrior",
+      "archer",
+      "warden",
+      "ranger",
+      "pikewoman",
+      "oathsworn",
+      "halberdier",
+      "longbowman",
+      "squire"
+    ],
+    "cost": {
+      "gold": 800,
+      "plate": 12
+    },
+    "stats": {
+      "armor": 0.25,
+      "damage": 1.1
+    },
+    "animation": "tap",
+    "sprite": "item-oathkeeper-armor.png",
+    "requiresOath": true
+  },
+  "squires-blade": {
+    "name": "Squire's Blade",
+    "roles": [
+      "squire"
+    ],
+    "cost": {
+      "gold": 40,
+      "wood": 20
+    },
+    "stats": {
+      "damage": 1.1,
+      "range": 0.9
+    },
+    "animation": "slash",
+    "sprite": "item-squires-blade.png"
+  },
+  "regalia": {
+    "name": "Moonwarden's Regalia",
+    "slot": "armor",
+    "roles": [
+      "warrior",
+      "archer",
+      "miner",
+      "builder",
+      "farmer",
+      "fisherman",
+      "shepherd",
+      "lumberjack",
+      "butcher",
+      "scholar",
+      "scout",
+      "healer",
+      "weaponsmith",
+      "armorer",
+      "toolsmith",
+      "leatherworker",
+      "mason",
+      "warden",
+      "ranger",
+      "forager",
+      "apprentice",
+      "pikewoman",
+      "woodward",
+      "smelter",
+      "diver",
+      "sapper",
+      "haggler",
+      "oathsworn",
+      "chorister",
+      "halberdier",
+      "longbowman",
+      "tidecaller",
+      "squire"
+    ],
+    "cost": {
+      "gold": 600,
+      "plate": 8
+    },
+    "stats": {
+      "armor": 0.2,
+      "allAura": 0.02
+    },
+    "animation": "tap",
+    "sprite": "item-regalia.png",
+    "requiresName": "Moonwarden"
+  },
+  "dawnbringer": {
+    "name": "Dawnbringer",
+    "roles": [
+      "warrior",
+      "archer",
+      "warden",
+      "ranger",
+      "pikewoman",
+      "oathsworn",
+      "halberdier",
+      "longbowman",
+      "squire"
+    ],
+    "cost": {
+      "gold": 800,
+      "plate": 10
+    },
+    "stats": {
+      "damage": 1.5,
+      "range": 5.5
+    },
+    "animation": "slash",
+    "sprite": "item-dawnbringer.png"
   }
 }

@@ -52,10 +52,25 @@ export class Game {
    const ready=this.world.buildings.some(b=>b.type===req.type&&b.hp>0&&(b.level||1)>=need);
    if(!ready){const rn=this.data.buildings[req.type]?.name||req.type;return this.notify(`The ${spec.name} needs a tier-${need} ${rn} first. Raise the old work before the new fire.`);}
   }
+  // Dual-building gates (data `requiresBuildings: [{type, level}]`): the
+  // drowned chapel waits on a tier-3 chapel AND a tier-2 water line — AND-gate contrasting
+  // the mission OR-gate. No per-building conditionals; the shop reads it.
+  const reqs=spec&&spec.requiresBuildings;
+  if(Array.isArray(reqs)&&reqs.length){
+   const missing=reqs.filter(r=>!this.world.buildings.some(b=>b.type===r.type&&b.hp>0&&(b.level||1)>=(r.level||1)));
+   if(missing.length){const names=missing.map(r=>`tier-${r.level||1} ${this.data.buildings[r.type]?.name||r.type}`).join(' and ');return this.notify(`The ${spec.name} needs ${names} first. Raise the old work before the new water.`);}
+  }
+  // Wonders stand alone (data `maxPerVillage: 1`): one Moon Dial, one Dawn
+  // Gate per village — the sky gets one vote, dawn gets one door.
+  if(spec&&spec.maxPerVillage&&this.world.buildings.some(b=>b.type===type&&b.hp>0))return this.notify(`The village holds only one ${spec.name}. It stands already.`);
   if(!inBounds(this.world,this.data,type,x,y))return this.notify('That land is still wild. Earn village XP (quests, scholars, surveys) to open new rows.');
   if(!canPlace(this.world,this.data,type,x,y))return this.notify('Too close — roomy buildings need a one-tile gap. Villages breathe; clutter burns.');
   if(!pay(this.world.resources,buildingCost(type,1,this.world,this.data)))return this.notify('Not enough resources. Let your village gather more.');
-  const b=makeBuilding(type,x,y,this.data);b.remaining=this.data.buildings[type].buildSeconds;this.world.buildings.push(b);const cp=center(b,this.data);this.world.effects.push({x:cp.x,y:cp.y,tx:cp.x,ty:cp.y,kind:'place',life:.6});sfx.place();this.notify(`${this.data.buildings[type].name} construction started.`);return b;
+  const b=makeBuilding(type,x,y,this.data);b.remaining=this.data.buildings[type].buildSeconds;
+  // The Dial locks its season the day it is raised — the sky that watched
+  // the building is the blessing it keeps, at half strength, ever after.
+  if(this.data.buildings[type]?.moonDial){try{const s=seasonFor(this.data.calendar,new Date());if(s?.season?.id)b.dialSeason=s.season.id;}catch{}}
+  this.world.buildings.push(b);const cp=center(b,this.data);this.world.effects.push({x:cp.x,y:cp.y,tx:cp.x,ty:cp.y,kind:'place',life:.6});sfx.place();this.notify(`${this.data.buildings[type].name} construction started.`);return b;
  }
  upgrade(id){
   const b=this.world.buildings.find(b=>b.id===id);if(!b||b.hp<=0||b.remaining>0)return;
@@ -130,6 +145,34 @@ export class Game {
   u.hp=stats(u,this.data).hp;
   this.notify(`${spec.name} graduated with the master's touch — level 5, kit kept, aura keener. Tam chalked the name himself.`);return true;
  }
+ prestige(id){
+  const u=this.world.troops.find(t=>t.id===id);if(!u)return this.notify('That villager is gone.');
+  const spec=this.data.troops[u.type];
+  if(u.level<(spec.maxLevel||25))return this.notify('Only a capped veteran may be rung back — train them to the top first.');
+  if((u.prestigeStars||0)>=3)return this.notify('Three stars is the sky itself. Even the bell cannot ring further.');
+  if(!this.world.buildings.some(b=>b.hp>0&&b.remaining<=0&&this.data.buildings[b.type]?.prestigeAura))return this.notify('Raise the Bell Tower first — prestige needs a bell that remembers.');
+  u.prestigeStars=(u.prestigeStars||0)+1;u.level=1;u.oath=false;u.hp=stats(u,this.data).hp;
+  this.notify(`${'★'.repeat(u.prestigeStars)} ${spec.name} rung back to a recruit with honors kept — gear kept, kit kept, +${u.prestigeStars*5}% all stats. Old Bell chalked the name herself.`);return true;
+ }
+ takeOath(id){
+  const u=this.world.troops.find(t=>t.id===id);if(!u)return this.notify('That villager is gone.');
+  if(!this.data.troops[u.type]?.oathbound)return this.notify('Only a Warden may swear the Last Watch — the oath was written for their line.');
+  if(u.level<20)return this.notify('The oath needs a tempered Warden — level 20 at least. The young may not swear away their mornings.');
+  if(u.oath)return this.notify('That Warden already walks the Last Watch.');
+  u.oath=true;
+  this.notify('The Last Watch is sworn: +50% damage and armor, and if they fall, they fall forever. Sorrel chalked the name — the cairns will keep it.');return true;
+ }
+ reforge(unitId){
+  const u=this.world.troops.find(t=>t.id===unitId);if(!u)return this.notify('That villager is gone.');
+  const nextId='starforged-'+u.gear;
+  const next=this.data.items[nextId];
+  if(!next)return this.notify('That tool has no starforged line — only proven war-steel may be reforged.');
+  if(this.locked(nextId))return this.notify('The starforged line is not yet earned — ring the bell first.');
+  if((u.owned||[]).includes(nextId))return this.notify('That steel already sings starlit.');
+  if(!pay(this.world.resources,next.cost))return this.notify('Reforging needs plate 5 and gold 500. The star-forge eats dear.');
+  u.owned.push(nextId);u.gear=nextId;
+  this.notify(`${next.name} fitted — +15% main stat, starlit and true. The Act VI economy finally sings.`);return true;
+ }
  serviceArmor(){
   const yard=this.world.buildings.find(b=>this.data.buildings[b.type]?.serviceArmor&&b.hp>0&&b.remaining<=0);
   if(!yard)return this.notify('Raise a Shieldwall Yard first — worn plate needs a yard that knows it.');
@@ -138,6 +181,11 @@ export class Game {
   this.notify('The yard rang all day — every worn plate bright again, every strap true.');return true;
  }
  equip(id,itemId){const u=this.world.troops.find(t=>t.id===id),item=this.data.items[itemId];if(!u||!item||!item.roles.includes(u.type)||this.locked(itemId))return;
+  // Roster-gated steel (Oathkeeper Armor): no oathbound Warden on the
+  // rolls, no sale — the armor knows its own. Unit-gated mantle
+  // (Regalia): only the named Moonwarden may wear it. Data, never ids.
+  if(item.requiresOath&&!this.world.troops.some(t=>t.oath&&t.hp>0))return this.notify('Oathkeeper steel waits on an oathbound Warden in the roster. Swear the Last Watch first.');
+  if(item.requiresName&&u.name!==item.requiresName)return this.notify(`Only ${item.requiresName} may wear that — the mantle knows its name.`);
   // Armor-slot pieces (Padded Coat onward, item.slot==='armor') ride a
   // second gear axis with their own owned list; everything else is main-hand.
   if(item.slot==='armor'){

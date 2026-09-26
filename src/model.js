@@ -2,7 +2,7 @@ export const copy = value => structuredClone(value);
 export const distance = (a,b) => Math.hypot(a.x-b.x,a.y-b.y);
 // New villages start small; the frontier opens as village XP grows (see village.js).
 export const START_BOUNDS = {w:14,h:12};
-export const XP_LEVELS = [0,100,220,380,580,830,1150,1500];
+export const XP_LEVELS = [0,100,220,380,580,830,1150,1500,2100,2400,2600];
 export const EXPANSION = [{w:14,h:12},{w:16,h:13},{w:18,h:14},{w:20,h:16},{w:20,h:17}];
 export function levelForXp(xp) {
   let level = 1;
@@ -13,8 +13,16 @@ export function unlockedAbilities(unit, data) {
   return Object.entries(data.troops[unit.type].abilities).filter(([level]) => unit.level >= +level).map(([,id]) => ({id,...data.abilities[id]}));
 }
 export function stats(unit,data) {
-  const spec=data.troops[unit.type], gear=data.items[unit.gear].stats;
+  const spec=data.troops[unit.type], gear=(unit.gear&&data.items[unit.gear]&&data.items[unit.gear].stats)||{};
   const result=Object.fromEntries(Object.entries(spec.base).map(([key,value])=>[key,value*(1+(spec.growth[key]||0)*(unit.level-1))]));
+  // Prestige stars (Act VIII): each star is +5% all stats, max 3 — the
+  // capped veteran's continuation. Role kits re-earn through levels, so
+  // identity survives the ringing. Missing keys read zero for old saves.
+  const stars=Math.max(0,Math.min(3,unit.prestigeStars||0));
+  if(stars>0){const m=1+0.05*stars;result.hp*=m;result.damage*=m;result.speed*=m;}
+  // The Last Watch (Act VIII): oathbound wardens hit 50% harder — the
+  // price is paid on the other side of the raid, not here.
+  if(unit.oath)result.damage*=1.5;
   result.damage*=gear.damage||1; result.range=gear.range||result.range;
   for (const a of unlockedAbilities(unit,data)) if(a.effect==='damage') result.damage*=1+a.value;
   // Worn bulk and active drills: armor-slot pieces can pad max HP or slow
@@ -38,7 +46,7 @@ export function stats(unit,data) {
 }
 export function makeUnit(type,data,index=0) {
   const s=data.troops[type];
-  return {id:crypto.randomUUID(),type,level:1,hp:s.base.hp,gear:s.defaultGear,owned:[s.defaultGear],armor:null,armorOwned:[],x:8+index*.65,y:10.8,attackTimer:0,abilityTimer:0,carry:0,phase:'gather',animation:0,workplace:null,order:null};
+  return {id:crypto.randomUUID(),type,level:1,hp:s.base.hp,gear:s.defaultGear,owned:[s.defaultGear],armor:null,armorOwned:[],prestigeStars:0,oath:false,x:8+index*.65,y:10.8,attackTimer:0,abilityTimer:0,carry:0,phase:'gather',animation:0,workplace:null,order:null};
 }
 // Armor-slot reduction (Padded Coat onward): main gear + armor piece stack
 // multiplicatively, so no wardrobe ever breaks the combat caps alone.
@@ -89,10 +97,15 @@ export function auras(world, data) {
   // Promoted keepers (the master's touch) and % aura gear (Master's Ring)
   // ride the same share — both hands read, main and armor, no per-troop
   // logic anywhere.
+  // Bell Tower resonance (Act VIII): where a finished prestige-aura tower
+  // stands, starred veterans count double — the bell carries their voice.
+  // Data flag, never a building id; old saves without stars read single.
+  const bellUp = world.buildings.some(b => b.hp > 0 && b.remaining <= 0 && data.buildings[b.type]?.prestigeAura);
   const share = u => {
     let m = 1;
     try { for (const a of unlockedAbilities(u, data)) if (a.effect === 'aura') m += a.value; } catch {}
     if (u.promoted) m += 0.1;
+    if (bellUp && (u.prestigeStars || 0) > 0) m *= 2;
     m += gearOf(u).aura ?? 0;
     const ag = (u.armor && data.items[u.armor] && data.items[u.armor].stats) || {};
     m += ag.aura ?? 0;
@@ -119,6 +132,10 @@ export function auras(world, data) {
     // the same way a forge carries a damage aura — posted keepers sharpen
     // their own share, tier multiplies, the cap below holds the ceiling.
     if (spec.tradeAura) out.trade += spec.tradeAura * tier * crew.reduce((s, u) => s + share(u), 0);
+    // Dual-aura pour (Act VIII Sunken Chapel): a workplace can carry food
+    // the same way a forge carries damage — posted keepers sharpen their
+    // share, tier multiplies. Existing key, new reader, same caps below.
+    if (spec.foodAura) out.food += spec.foodAura * tier * crew.reduce((s, u) => s + share(u), 0);
     if (spec.carryBonus) out.carry += spec.carryBonus * n;
     if (spec.buildAura) { out.build += spec.buildAura * n; out.discount += 0.05 * n; }
     // Flat-heal wardrobe (Choir Robe onward): a posted keeper's armor
@@ -128,12 +145,26 @@ export function auras(world, data) {
       + crew.reduce((s, u) => s + (((u.armor && data.items[u.armor] && data.items[u.armor].stats) || {}).heal ?? 0), 0);
     // Primer ink (Tam's school onward): a posted keeper's tool can carry a
     // flat XP pour under the plain `xp` stat key — same channel as xpAura.
+    // Armor-ink XP (Act VIII Envoy's Gift onward): a posted keeper's armor
+    // piece can pour village XP beside the main-hand tool — same tick.
+    const armorXp = u => { const ag = (u.armor && data.items[u.armor] && data.items[u.armor].stats) || {}; return (ag.xpAura ?? 0) + (ag.xp ?? 0); };
     if (spec.xpRate) out.xp += spec.xpRate * tier * crew.reduce((s, u) => s + share(u) * (gearOf(u).xpMult ?? 1), 0)
-      + crew.reduce((s, u) => s + (gearOf(u).xpAura ?? 0) + (gearOf(u).xp ?? 0), 0);
+      + crew.reduce((s, u) => s + (gearOf(u).xpAura ?? 0) + (gearOf(u).xp ?? 0) + armorXp(u), 0);
     if (spec.surveyRate) out.survey += spec.surveyRate * tier * crew.reduce((s, u) => s + share(u) * (gearOf(u).survey ?? 1), 0);
-    for (const [statKey, auraKey] of [['damageAura', 'damage'], ['armorAura', 'armor'], ['gatherAura', 'gather'], ['healAura', 'heal'], ['carryAura', 'carry'], ['tradeAura', 'trade']]) {
+    for (const [statKey, auraKey] of [['damageAura', 'damage'], ['armorAura', 'armor'], ['gatherAura', 'gather'], ['healAura', 'heal'], ['carryAura', 'carry'], ['tradeAura', 'trade'], ['foodAura', 'food']]) {
       const add = crew.reduce((s, u) => s + (gearOf(u)[statKey] ?? 0), 0);
       if (add) out[auraKey] += add;
+    }
+    // All-aura mantle (Act VIII Regalia): a bearer whose gear speaks
+    // `allAura` lends a little to every key at once. Both hands read —
+    // the only all-aura gear in the game, and still a small number.
+    for (const u of crew) {
+      let all = 0;
+      for (const gid of [u.gear, u.armor]) {
+        const gs = (gid && data.items[gid] && data.items[gid].stats) || {};
+        if (Number.isFinite(gs.allAura)) all += gs.allAura;
+      }
+      if (all) for (const k of Object.keys(out)) out[k] += all;
     }
     // Welcoming hands (apprentices at cottages) raise cottage capacity:
     // +1 bed each, gear stacks, +3 total. Housing is the visible track.
@@ -148,7 +179,11 @@ export function auras(world, data) {
     const b = world.buildings.find(b => b.id === u.workplace);
     if (!b || b.hp <= 0 || b.remaining > 0) continue;
     const job = data.troops[u.type].job;
-    if (!job || job.workplace !== b.type) continue;
+    // Hosted hands pour where they stand: a tide-line keeper at hosted
+    // water counts beside their own chapel (Phase-13 precedent).
+    // Produce crews still pour only at their own line — law intact.
+    if (!job) continue;
+    if (job.workplace !== b.type && !(job.effect === 'tide' && (data.buildings[b.type]?.hosts || []).includes(u.type))) continue;
     // Smokehouse pattern, generalized: the job names its own resource
     // (the old shops smoke food, the new pour-house pours plate) and
     // attuned bearers ('aura'-effect abilities) quicken their own share.
@@ -156,6 +191,12 @@ export function auras(world, data) {
     if (job.effect === 'produce') {
       const key = job.resource || 'food';
       if (key in out) out[key] += (job.rate || 0.8) * spec_tier(b, data) * share(u);
+    }
+    // Tide offices (Act VIII): tide-line keepers pour food wherever the water
+    // lets them stand — their own chapel or hosted water. Same
+    // share law as every pour, data rate, no new keys.
+    if (job.effect === 'tide' && (job.workplace === b.type || (data.buildings[b.type]?.hosts || []).includes(u.type))) {
+      out.food += (job.rate || 0.5) * share(u);
     }
   }
   // Living-world sky: the day's season + modifier blessings ride here as a
@@ -166,6 +207,23 @@ export function auras(world, data) {
     for (const [k, v] of Object.entries(sky)) {
       if (k in out && Number.isFinite(v)) out[k] += v;
     }
+  }
+  // Moon Dial (Act VIII): a finished dial locks one season blessing in at
+  // half strength — the season is data on the building, the effects come
+  // from data/calendar.json, only known aura keys merge. One per village.
+  for (const b of world.buildings) {
+    if (b.hp <= 0 || b.remaining > 0 || !data.buildings[b.type]?.moonDial || !b.dialSeason) continue;
+    const season = (data.calendar?.seasons || []).find(s => s.id === b.dialSeason);
+    if (!season?.effects) continue;
+    for (const [k, v] of Object.entries(season.effects)) {
+      if (k in out && Number.isFinite(v)) out[k] += v * 0.5;
+    }
+  }
+  // Dawn Gate (Act VIII): the everything engine — +0.05 every aura key,
+  // village-wide, still held by the caps below. Data flag, one per village.
+  if (world.buildings.some(b => b.hp > 0 && b.remaining <= 0 && data.buildings[b.type]?.dawnAura)) {
+    const amt = Math.max(0, ...world.buildings.filter(b => b.hp > 0 && b.remaining <= 0 && data.buildings[b.type]?.dawnAura).map(b => data.buildings[b.type].dawnAura));
+    for (const k of Object.keys(out)) out[k] += amt;
   }
   out.damage = Math.min(.3, out.damage);
   out.armor = Math.min(.3, out.armor);

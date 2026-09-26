@@ -98,8 +98,8 @@ test('test-button raids still work and also reschedule the horns', ()=>{
   assert.ok(g.world.nextRaidAt > g.world.elapsed, 'manual raid pushes the next scheduled horn out');
 });
 
-test('migration v3->v5: fresh raid clock, earned unlocks healed, stores untouched', ()=>{
-  assert.equal(VERSION, 5);
+test('migration v3->v6: fresh raid clock, earned unlocks healed, stores untouched', ()=>{
+  assert.equal(VERSION, 6);
   const w = createWorld(data);
   delete w.nextRaidAt;
   w.elapsed = 900; // a veteran village, long past the first horn
@@ -109,7 +109,8 @@ test('migration v3->v5: fresh raid clock, earned unlocks healed, stores untouche
     unlocks: ['tower', 'trap'], xp: 120, vlevel: 2, questsCompleted: [],
     tradeDay: null, tradesUsed: {}, calendarDay: '2026-09-26', gatheredAtBell: null};
   const out = migrateToLatest(structuredClone(old), data);
-  assert.equal(out.version, 5);
+  assert.equal(out.version, 6);
+  assert.deepEqual(out.world.fallen, [], 'the cairn roll starts empty');
   // One full interval of peace — never an instant horn on first load.
   assert.equal(out.world.nextRaidAt, 900 + data.world.homeRaids.interval);
   // Victories already won now pay what they always should have.

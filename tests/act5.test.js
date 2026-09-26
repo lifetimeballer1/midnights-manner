@@ -275,7 +275,7 @@ test('ph3: mend knits its bearer mid-raid; saves migrate to v5', () => {
   const old = {version: 4, world: structuredClone(g.world), home: null, mission: null, completed: [], unlocks: ['tower'], xp: 0, vlevel: 1, questsCompleted: []};
   delete old.world.troops[0].armor; delete old.world.troops[0].armorOwned;
   const out = migrateToLatest(old, d);
-  assert.equal(out.version, 5);
+  assert.equal(out.version, 6);
   assert.equal(out.world.troops[0].armor, null);
   assert.deepEqual(out.world.troops[0].armorOwned, []);
 });
@@ -289,7 +289,7 @@ test('ph4: sarella-s-standard demands two tier-2 upgrades, then a real choice', 
   assert.equal(q.giver, 'Sarella Emberwright');
   assert.ok(q.log && q.log.length > 0, 'Sarella persists as forge vendor');
   const total = data.quests.reduce((n, x) => n + x.xp, 0);
-  assert.equal(data.quests.filter(q => (q.act || "I") !== "VII").reduce((n, x) => n + x.xp, 0), 1690, 'Quest 16 pushes the running total to 1690 (Act V still closed 20 short of 7)');
+  assert.equal(data.quests.filter(q => !["VII", "VIII"].includes(q.act || "I")).reduce((n, x) => n + x.xp, 0), 1690, 'Quest 16 pushes the running total to 1690 (Act V still closed 20 short of 7; war and legend trials count separately)');
   // All five tools are new SKUs in the toolkit cost band, quest-gated.
   const tools = {
     'runed-forgehammer': ['weaponsmith', 'damageAura', 0.1],
@@ -462,5 +462,5 @@ test('ph5: kite-shield pads max HP; quest XP totals 1420 after the first pour', 
   assert.equal(u.armor, 'kite-shield');
   assert.equal(stats(u, d).hp, bare + 20);
   assert.ok(Math.abs(gearArmor(u, d) - 0.15) < 1e-9);
-  assert.equal(data.quests.filter(q => (q.act || "I") !== "VII").reduce((n, x) => n + x.xp, 0), 1690, 'Quest 16 keeps level 7 landed through quest play');
+  assert.equal(data.quests.filter(q => !["VII", "VIII"].includes(q.act || "I")).reduce((n, x) => n + x.xp, 0), 1690, 'Quest 16 keeps level 7 landed through quest play');
 });

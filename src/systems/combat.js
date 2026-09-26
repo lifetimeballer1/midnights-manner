@@ -129,7 +129,10 @@ export function tickCombat(world,data,dt) {
    // onward, read through gearArmor) + the phalanx shield-line ('guard'-
    // effect allies in radius lend their value) + Oathstone ground (Act VII
    // proximity armor). The 0.8 ceiling still holds.
-   let reduction=aura.armor;if(targetUnit){const tAbilities=unlockedAbilities(target,data);reduction+=tAbilities.filter(a=>a.effect==='armor').reduce((n,a)=>n+a.value,0);try{reduction+=gearArmor(target,data);}catch{}
+   let reduction=aura.armor;if(targetUnit){const tAbilities=unlockedAbilities(target,data);reduction+=tAbilities.filter(a=>a.effect==='armor').reduce((n,a)=>n+a.value,0);
+    // The Last Watch holds harder: oathbound wardens read +0.25 armor
+    // under the same 0.8 ceiling — the oath guards, it does not break.
+    if(targetUnit.oath)reduction+=0.25;try{reduction+=gearArmor(target,data);}catch{}
     try{reduction+=proximityArmor(target,world,data);}catch{}
     if(targetUnit.hp>0)for(const ally of world.troops){if(ally.id===target.id||ally.hp<=0)continue;try{for(const a of unlockedAbilities(ally,data))if(a.effect==='guard'&&distance(ally,target)<=a.radius)reduction+=a.value;}catch{}}}
    const raw=enemy.damage*(1-Math.min(.8,reduction));
@@ -160,5 +163,10 @@ export function tickCombat(world,data,dt) {
  }
  // The fallen rise at the best finished revive rate in the village — cold
  // ground 30%, Bellcote mercy 50%. Data, never a hardcoded second rule.
- if(!world.enemies.length)for(const u of world.troops)if(u.hp<=0){u.hp=stats(u,data).hp*reviveFraction(world,data);u.x=10.5;u.y=10.5;}
+ // The oath carves the one exception: oathbound who fall stay fallen, and
+ // their names go on the cairn list — the stakes, by player consent.
+ if(!world.enemies.length)for(const u of world.troops)if(u.hp<=0){
+  if(u.oath){world.fallen=world.fallen||[];if(!world.fallen.some(f=>f.id===u.id))world.fallen.push({id:u.id,name:u.name||data.troops[u.type].name,type:u.type});continue;}
+  u.hp=stats(u,data).hp*reviveFraction(world,data);u.x=10.5;u.y=10.5;
+ }
 }

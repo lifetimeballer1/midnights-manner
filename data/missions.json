@@ -985,5 +985,305 @@
     "requires": [
       "the-pale-host"
     ]
+  },
+  {
+    "id": "the-pale-court",
+    "name": "The Pale Court",
+    "chapter": "12",
+    "act": "VIII",
+    "beat": "The unchosen banner returns; the sky itself gets a vote.",
+    "giver": "The Pale Envoy",
+    "log": "The Envoy quoted the oldest legend word for word, then asked for nothing but a road. The court is pale, the terms are plain, and both banners fly over it.",
+    "ceremony": {
+      "warning": "The Pale Envoy waits where the banners meet, pale as moonrise. She quotes the old legend — \"the court sits where two roads kneel\" — and bids you hold her court through two raids.",
+      "victory": "The court held, and both banners fly over it now — red and grey together. The Envoy bowed once and left a dial, a gift, and a cloak of the other color.",
+      "defeat": "The court scattered before the second horn. The Envoy waited, patient as winter, for you to try the road again."
+    },
+    "description": "The Pale Envoy holds court where the red and grey roads meet. Either banner may enter; hold two raids and reunite the doctrine.",
+    "timeLimit": 320,
+    "troopLimit": 8,
+    "objectives": [
+      {
+        "resource": "gold",
+        "amount": 300
+      }
+    ],
+    "startingResources": {
+      "wood": 300,
+      "food": 180,
+      "gold": 140
+    },
+    "map": {
+      "buildings": [
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "mine",
+          "x": 7,
+          "y": 9
+        },
+        {
+          "type": "tower",
+          "x": 6,
+          "y": 7
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 7
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 8
+        }
+      ],
+      "troops": [
+        "halberdier",
+        "longbowman",
+        "warrior",
+        "builder",
+        "miner"
+      ]
+    },
+    "raids": [
+      {
+        "at": 70,
+        "count": 5
+      },
+      {
+        "at": 190,
+        "count": 7
+      }
+    ],
+    "rewards": {
+      "gold": 350,
+      "food": 250
+    },
+    "unlocks": [
+      "moon-dial",
+      "envoys-gift",
+      "banner-cloak-grey"
+    ],
+    "requires": [],
+    "requiresAny": [
+      "red-banner",
+      "grey-banner"
+    ]
+  },
+  {
+    "id": "the-longest-night",
+    "name": "The Longest Night",
+    "chapter": "13",
+    "act": "VIII",
+    "beat": "Hardest raid in the game; oathbound wardens hold the line that must not break.",
+    "giver": "Bell-Captain Sorrel",
+    "log": "Sorrel chalked the oathbound names herself and set a lantern at every cairn. The night outlasted — barely — and the dawn owes us one.",
+    "ceremony": {
+      "warning": "Bell-Captain Sorrel holds the Old Bell line one last time: three steep waves, nine souls, and the night that outlasted its name. Swear the oath if you dare.",
+      "victory": "The longest night broke at last. Sorrel chalked every name — the living on the bell, the fallen on the cairns. Squires stood where wardens fell.",
+      "defeat": "The night outlasted, as the old song warned. Sorrel sounds the retreat in good order: swear again, hold longer, mind the horns."
+    },
+    "description": "Sorrel stakes everything on one ridge: three steepening assaults, the hardest raid the Manner has seen. Oathbound wardens welcome.",
+    "timeLimit": 360,
+    "troopLimit": 9,
+    "objectives": [
+      {
+        "resource": "gold",
+        "amount": 350
+      }
+    ],
+    "startingResources": {
+      "wood": 320,
+      "food": 200,
+      "gold": 150
+    },
+    "map": {
+      "buildings": [
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "mine",
+          "x": 7,
+          "y": 9
+        },
+        {
+          "type": "tower",
+          "x": 6,
+          "y": 7
+        },
+        {
+          "type": "oathstone",
+          "x": 8,
+          "y": 6
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 7
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 8
+        }
+      ],
+      "troops": [
+        "warden",
+        "oathsworn",
+        "squire",
+        "warrior",
+        "builder",
+        "miner"
+      ]
+    },
+    "raids": [
+      {
+        "at": 60,
+        "count": 6
+      },
+      {
+        "at": 170,
+        "count": 8
+      },
+      {
+        "at": 270,
+        "count": 10
+      }
+    ],
+    "scaling": {
+      "hp": 22,
+      "damage": 4
+    },
+    "rewards": {
+      "gold": 400,
+      "wood": 300
+    },
+    "unlocks": [
+      "squire",
+      "squires-blade",
+      "cairnfield",
+      "oathkeeper-armor",
+      "dawn-gate"
+    ],
+    "requires": [
+      "the-pale-court"
+    ],
+    "requiresAny": [
+      "red-banner",
+      "grey-banner"
+    ]
+  },
+  {
+    "id": "dawn",
+    "name": "Dawn",
+    "chapter": "14",
+    "act": "VIII",
+    "beat": "Four-wave final siege; the whole Manner holds one ridge at first light.",
+    "giver": "Issa the chart-keeper",
+    "log": "Twelve givers stood the last ridge together — Issa, Tomm, Maro, Sarella, Fen, Wren, Pella, Sorrel, Rue, Tam, Old Bell, and the Pale Envoy. The eldest of the village was named Moonwarden, and dawn came up like a held breath let go.",
+    "ceremony": {
+      "warning": "Issa unrolls the finished chart: four waves before first light, ten souls, every giver on the ridge. Hold till dawn, and the Manner earns its name.",
+      "victory": "Dawn breaks over the Manner — Issa, Tomm, Maro, Sarella, Fen, Wren, Pella, Sorrel, Rue, Tam, Old Bell and the Pale Envoy standing one line. The eldest is named Moonwarden, the Gate stands open, and the credits are chalked in gold.",
+      "defeat": "The dark held past first light. Twelve givers, one ridge, and the dawn still coming — walk it again, all together."
+    },
+    "description": "The final siege: four waves against the whole Manner, every giver on the ridge. Hold till dawn and name the Moonwarden.",
+    "timeLimit": 420,
+    "troopLimit": 10,
+    "objectives": [
+      {
+        "resource": "gold",
+        "amount": 400
+      }
+    ],
+    "startingResources": {
+      "wood": 340,
+      "food": 220,
+      "gold": 160
+    },
+    "map": {
+      "buildings": [
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "mine",
+          "x": 7,
+          "y": 9
+        },
+        {
+          "type": "tower",
+          "x": 6,
+          "y": 7
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 7
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 8
+        },
+        {
+          "type": "oathstone",
+          "x": 8,
+          "y": 6
+        }
+      ],
+      "troops": [
+        "oathsworn",
+        "halberdier",
+        "longbowman",
+        "warden",
+        "warrior",
+        "builder",
+        "miner"
+      ]
+    },
+    "raids": [
+      {
+        "at": 60,
+        "count": 6
+      },
+      {
+        "at": 150,
+        "count": 8
+      },
+      {
+        "at": 250,
+        "count": 10
+      },
+      {
+        "at": 340,
+        "count": 12
+      }
+    ],
+    "scaling": {
+      "hp": 24,
+      "damage": 4
+    },
+    "rewards": {
+      "gold": 500,
+      "wood": 400,
+      "food": 300
+    },
+    "unlocks": [
+      "regalia",
+      "dawnbringer"
+    ],
+    "crowning": "Moonwarden",
+    "requires": [
+      "the-longest-night"
+    ]
   }
 ]

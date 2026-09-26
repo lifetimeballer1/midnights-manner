@@ -719,7 +719,8 @@
       "15": "heal",
       "20": "veteran",
       "25": "warlord"
-    }
+    },
+    "oathbound": true
   },
   "ranger": {
     "name": "Ranger",
@@ -1248,6 +1249,84 @@
       "15": "camouflage",
       "20": "veteran",
       "25": "arrowstorm"
+    }
+  },
+  "tidecaller": {
+    "name": "Tidecaller",
+    "role": "keeper",
+    "sprite": "tidecaller.png",
+    "color": "#2e5f7a",
+    "maxLevel": 25,
+    "base": {
+      "hp": 90,
+      "damage": 7,
+      "speed": 1.2,
+      "range": 0.85
+    },
+    "growth": {
+      "hp": 0.09,
+      "damage": 0.085,
+      "speed": 0.005
+    },
+    "levelCost": {
+      "gold": 18,
+      "food": 12
+    },
+    "recruitCost": {
+      "food": 35,
+      "gold": 20
+    },
+    "defaultGear": "tidebell",
+    "gatherResource": null,
+    "carry": 6,
+    "job": {
+      "workplace": "sunken-chapel",
+      "effect": "tide",
+      "rate": 0.5,
+      "text": "Keeps the sunken offices; posted tidecallers raise every catch and every table."
+    },
+    "abilities": {
+      "5": "attune",
+      "10": "armor",
+      "15": "mend",
+      "20": "veteran-x",
+      "25": "sage"
+    }
+  },
+  "squire": {
+    "name": "Squire",
+    "role": "combat",
+    "sprite": "squire.png",
+    "color": "#7a8ba0",
+    "maxLevel": 25,
+    "base": {
+      "hp": 100,
+      "damage": 10,
+      "speed": 1.4,
+      "range": 0.85
+    },
+    "growth": {
+      "hp": 0.09,
+      "damage": 0.085,
+      "speed": 0.006
+    },
+    "levelCost": {
+      "gold": 15,
+      "food": 10
+    },
+    "recruitCost": {
+      "food": 30,
+      "gold": 15
+    },
+    "defaultGear": "squires-blade",
+    "gatherResource": null,
+    "carry": 8,
+    "abilities": {
+      "5": "brace",
+      "10": "armor",
+      "15": "rally",
+      "20": "veteran",
+      "25": "phalanx"
     }
   }
 }

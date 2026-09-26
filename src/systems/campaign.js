@@ -69,6 +69,9 @@ export function finishMission(game,data) {
  // stretches in between. Data flag, never a building id.
  if(won&&game.world.buildings.some(b=>b.hp>0&&b.remaining<=0&&data.buildings[b.type]?.serviceArmor))
   for(const u of game.world.troops)u.armorWear=0;
- if(first){game.completed.push(mission.id);for(const [k,v] of Object.entries(mission.rewards))game.world.resources[k]+=v;game.unlocks=[...new Set([...game.unlocks,...mission.unlocks])];}
+ if(first){game.completed.push(mission.id);for(const [k,v] of Object.entries(mission.rewards))game.world.resources[k]+=v;game.unlocks=[...new Set([...game.unlocks,...mission.unlocks])];
+  // Crowning (Act VIII finale): the mission names the eldest of the roster
+  // — data `crowning`, oldest by roster order, unnamed hands only.
+  if(mission.crowning&&game.world.troops.length){const eldest=game.world.troops[0];if(eldest&&!eldest.name)eldest.name=mission.crowning;}}
  game.mission=null;return {won,first};
 }

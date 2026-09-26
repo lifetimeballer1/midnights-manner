@@ -367,5 +367,66 @@
       "primer",
       "masters-ring"
     ]
+  },
+  {
+    "id": "the-bell-remembers",
+    "name": "The Bell Remembers",
+    "text": "Old Bell has hung the great bell herself and chalked three new ropes. Ring a level-25 veteran back to a recruit with all honors kept — prestige one troop at the Bell Tower — and let the village hear what remembering sounds like.",
+    "giver": "Old Bell",
+    "flavor": "She rang for your first harvest and your twelfth soul. This ringing, she says, is for everyone who carried.",
+    "log": "Old Bell chalked the last page herself: every name she ever rang for, and room for more. The bell remembers, so the village can forget nothing.",
+    "act": "VIII",
+    "task": {
+      "kind": "prestige",
+      "count": 1
+    },
+    "xp": 160,
+    "rewards": {},
+    "unlocks": [
+      "starforged-oathblade",
+      "starforged-halberd",
+      "starforged-longbow"
+    ]
+  },
+  {
+    "id": "what-the-water-kept",
+    "name": "What the Water Kept",
+    "text": "Wren has sounded every dark foot of the Deephole and come up smiling. Raise the Deephole to tier 2 and sink the Sunken Chapel — the water has kept something for us, and it is time to ask for it back.",
+    "giver": "Wren Waterwise",
+    "flavor": "Her grandfather taught her the still water; the dark water she taught herself. This, she says, is the last lesson.",
+    "log": "Wren hung her sounding-line on the chapel door and walked home dry for the first time in years. The water keeps; the village keeps better.",
+    "act": "VIII",
+    "task": {
+      "kind": "upgrade",
+      "type": "deephole",
+      "level": 2
+    },
+    "xp": 150,
+    "rewards": {},
+    "unlocks": [
+      "sunken-chapel",
+      "tidecaller",
+      "tidebell",
+      "divers-plate"
+    ]
+  },
+  {
+    "id": "dawn-of-the-manner",
+    "name": "Dawn of the Manner",
+    "text": "Issa charted it, Tomm fenced it, Maro laid it stone by stone, Sarella fired it, Fen found the road, Wren blessed the water, Pella lit it, Sorrel guarded it, Rue warned it, Tam taught it, Old Bell rang it, and the Pale Envoy watched it all. Raise the Dawn Gate and let it stand — Issa, Tomm, Maro, Sarella, Fen, Wren, Pella, Sorrel, Rue, Tam, Old Bell, and the Envoy all chalked this page.",
+    "giver": "Issa the chart-keeper",
+    "flavor": "Twelve hands on the chalk. One gate. Dawn.",
+    "log": "Twelve givers, one gate, and the whole Manner written down at last. The chart is complete — and the next page is blank on purpose.",
+    "act": "VIII",
+    "task": {
+      "kind": "wonder",
+      "type": "dawn-gate"
+    },
+    "xp": 200,
+    "rewards": {},
+    "unlocks": [
+      "regalia",
+      "dawnbringer"
+    ]
   }
 ]

@@ -57,5 +57,31 @@
       "gold": 150
     },
     "text": "Siege-craft cache: full tables, heavy coffers, and the high towers open their fourth tier."
+  },
+  {
+    "level": 9,
+    "rewards": {
+      "food": 150,
+      "gold": 200,
+      "plate": 5
+    },
+    "text": "The high bell answers: the Bell Tower may rise, and capped veterans may ring themselves new. Prestige is open."
+  },
+  {
+    "level": 10,
+    "rewards": {
+      "food": 200,
+      "gold": 200,
+      "frostwood": 60
+    },
+    "text": "The deep water pays its tithe — plus stores for the Sunken Chapel second tier."
+  },
+  {
+    "level": 11,
+    "rewards": {
+      "gold": 500,
+      "food": 300
+    },
+    "text": "Dawn, debts paid, names chalked in gold. The credits stand — and for those who would begin again, a prestige-village road waits past this page."
   }
 ]
