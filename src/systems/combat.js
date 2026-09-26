@@ -1,9 +1,18 @@
-import {distance,center,stats,unlockedAbilities,auras,gearArmor} from '../model.js';
+import {distance,center,stats,unlockedAbilities,auras,gearArmor,proximityArmor,reviveFraction,siegeBonus} from '../model.js';
 import {move} from './pathfinding.js';
 import {sfx} from './audio.js';
-export function spawnRaid(world,count=4) {
+export function spawnRaid(world,count=4,scaling=null) {
  world.wave++;world.raidTimer=0;world.raidAge=0;world.raidKills=world.raidKills??0;world.raidLoot=world.raidLoot??0;
- for(let i=0;i<count;i++) world.enemies.push({id:crypto.randomUUID(),x:.5,y:3.5+i%10,hp:65+world.wave*12,maxHp:65+world.wave*12,damage:9+world.wave*2,attackTimer:i*.2,animation:0});
+ // Wave-scaled missions (the Pale Host onward): a mission may steepen the
+ // climb through data `scaling: {hp, damage}` per wave. Home raids omit
+ // it and ride the classic 65+12N curve untouched.
+ const hpPer=scaling&&Number.isFinite(scaling.hp)?scaling.hp:12;
+ const dmgPer=scaling&&Number.isFinite(scaling.damage)?scaling.damage:2;
+ const hp=65+world.wave*hpPer,dmg=9+world.wave*dmgPer;
+ for(let i=0;i<count;i++) world.enemies.push({id:crypto.randomUUID(),x:.5,y:3.5+i%10,hp,maxHp:hp,damage:dmg,attackTimer:i*.2,animation:0});
+ // Flawless tracking (Rue's terms): a fresh raid opens the ledger with
+ // zero building losses; multi-wave assaults keep one ledger per raid.
+ if(!world.inRaid){world.inRaid=true;world.raidLosses=0;}
 }
 function push(world,effect){if(world.effects.length<140)world.effects.push(effect);}
 function dmgNum(world,to,amount){push(world,{x:to.x,y:to.y,tx:to.x,ty:to.y-.9,kind:'dmg',text:String(Math.max(1,Math.round(amount))),life:.7});}
@@ -15,6 +24,19 @@ export function activateAbility(world,data,unit,id) {
  const a=list.find(a=>a.id===id&&a.active);
  if(!a||unit.abilityTimer>0)return false;
  if(a.effect==='heal')for(const ally of world.troops)if(ally.hp>0&&distance(unit,ally)<=a.radius)ally.hp=Math.min(stats(ally,data).hp,ally.hp+a.value);
+ // Oathcall (Act VII): plant a sworn challenge — nearby raiders turn on
+ // the oathbound while the taunt timer burns. Data radius/duration.
+ if(a.effect==='taunt'){unit.taunt={radius:a.radius||2.5,timer:a.duration||8};effect(world,unit,unit,'sparkle');unit.abilityTimer=a.cooldown;return true;}
+ // Arrowstorm (Act VII): an active splash — the sky darkens over the
+ // nearest raider and every enemy in the arc takes the storm. Generic:
+ // any future active splash rides this same branch.
+ if(a.effect==='splash'&&a.active){
+  const aura=auras(world,data),s2=stats(unit,data);
+  const foe=world.enemies.filter(e=>e.hp>0).sort((x,y)=>distance(unit,x)-distance(unit,y))[0];
+  if(!foe)return false;
+  for(const e of world.enemies)if(e.hp>0&&distance(e,foe)<=(a.radius||1.5)){const dealt=s2.damage*(1+aura.damage)*(a.factor||0.5);e.hp-=dealt;effect(world,unit,e,data.items[unit.gear].animation);dmgNum(world,e,dealt);}
+  unit.abilityTimer=a.cooldown;return true;
+ }
  // Drills ('buff'-effect actives: Brace, Rally): plant a transient buff on
  // the bearer, or on every living ally in radius when one is given.
  if(a.effect==='buff'&&a.stat){
@@ -32,13 +54,24 @@ export function tickCombat(world,data,dt) {
  world.effects=world.effects.filter(e=>e.life>0);
  for(const unit of world.troops) {
   unit.attackTimer=Math.max(0,(unit.attackTimer??0)-dt);unit.abilityTimer=Math.max(0,(unit.abilityTimer??0)-dt);unit.animation=Math.max(0,(unit.animation??0)-dt);
-  // Drills fade: transient buff timers tick down even off-raid.
+  // Drills fade: transient buff timers tick down even off-raid. Sworn
+  // challenges (taunt) burn down beside them.
   if(unit.buffs)for(const k of Object.keys(unit.buffs)){unit.buffs[k].timer-=dt;if(unit.buffs[k].timer<=0)delete unit.buffs[k];}
+  if(unit.taunt){unit.taunt.timer-=dt;if(unit.taunt.timer<=0)delete unit.taunt;}
   if(unit.hp<=0)continue;
   // Quiet hands: passive 'heal'-effect abilities without `active` mend
   // their bearer each second (the K1 track's Mend). Castable heals still
   // go through activateAbility; this never spends a cooldown.
   for(const a of unlockedAbilities(unit,data)) if(a.effect==='heal'&&!a.active&&a.value>0)unit.hp=Math.min(stats(unit,data).hp,unit.hp+a.value*dt);
+  // Burn wards (Ashen Cloak onward): a burning villager's wardrobe resists
+  // up to immunity. No live source sets troops alight yet — the math is
+  // pinned in-test and waits on the enemy-burn doctrine, like trade auras
+  // before the market. Never NaNs: missing burn reads zero.
+  if(unit.burn&&unit.burn.timer>0){
+   let resist=0;
+   for(const gid of [unit.gear,unit.armor]){const gs=(gid&&data.items[gid]&&data.items[gid].stats)||{};if(Number.isFinite(gs.burnResist))resist=Math.max(resist,gs.burnResist);}
+   unit.hp-=unit.burn.dps*(1-Math.min(1,resist))*dt;unit.burn.timer-=dt;
+  }
   const s=stats(unit,data);
   const order=unit.order;
   if(order&&order.kind==='move'&&Number.isFinite(order.x)&&Number.isFinite(order.y)){
@@ -61,11 +94,25 @@ export function tickCombat(world,data,dt) {
   if(b.hp<=0||b.remaining>0)continue;
   b.cooldown=Math.max(0,b.cooldown-dt);const tier=data.buildings[b.type].tiers[b.level-1];if(!tier.damage)continue;
   const c=center(b,data),enemy=world.enemies.find(e=>e.hp>0&&distance(c,e)<tier.range);
-  if(enemy&&b.cooldown===0){enemy.hp-=tier.damage;b.cooldown=b.type==='trap'?8:1.2;effect(world,c,enemy,b.type==='trap'?'slam':'arrow');dmgNum(world,enemy,tier.damage);}
+  if(enemy&&b.cooldown===0){
+   // Siege-craft: tongs-sharpened crews teach every defense — trap, tower
+   // and watchfire all ride the same bonus. Fire traps add a burn stack:
+   // damage-over-time from data `burn`/`burnDuration`, first of its kind.
+   const mult=1+siegeBonus(world,data),dealt=(tier.damage||0)*mult;
+   enemy.hp-=dealt;
+   if(tier.burn)enemy.burn={dps:tier.burn*mult,timer:tier.burnDuration||3};
+   b.cooldown=b.type==='trap'?8:1.2;effect(world,c,enemy,b.type==='trap'?'slam':'arrow');dmgNum(world,enemy,dealt);
+  }
  }
  for(const enemy of world.enemies) {
   if(enemy.hp<=0)continue;enemy.attackTimer=(enemy.attackTimer??0)-dt;
-  const targetUnit=world.troops.filter(t=>t.hp>0&&distance(enemy,t)<1.4).sort((a,b)=>distance(enemy,a)-distance(enemy,b))[0];
+  // Burn ticks before blades: lit raiders smolder each second.
+  if(enemy.burn&&enemy.burn.timer>0){enemy.hp-=enemy.burn.dps*dt;enemy.burn.timer-=dt;}
+  if(enemy.hp<=0)continue;
+  // Sworn challenges first: a living oathbound whose taunt covers this
+  // ground pulls the raider off its path. Otherwise the nearest hand.
+  const sworn=world.troops.filter(t=>t.hp>0&&t.taunt&&t.taunt.timer>0&&distance(enemy,t)<=t.taunt.radius).sort((a,b)=>distance(enemy,a)-distance(enemy,b))[0];
+  const targetUnit=sworn||world.troops.filter(t=>t.hp>0&&distance(enemy,t)<1.4).sort((a,b)=>distance(enemy,a)-distance(enemy,b))[0];
   const buildings=world.buildings.filter(b=>b.hp>0&&b.type!=='trap').sort((a,b)=>distance(enemy,center(a,data))-distance(enemy,center(b,data)));
   const target=targetUnit||buildings[0];if(!target)continue;
   const targetPoint=targetUnit?target:center(target,data),range=targetUnit?1.1:data.buildings[target.type].size/2+.7;
@@ -80,10 +127,17 @@ export function tickCombat(world,data,dt) {
   if(arrived&&enemy.attackTimer<=0){
    // Armor stacks: sky aura + ability resolve + worn gear (Padded Coat
    // onward, read through gearArmor) + the phalanx shield-line ('guard'-
-   // effect allies in radius lend their value). The 0.8 ceiling still holds.
-   let reduction=aura.armor;if(targetUnit){reduction+=unlockedAbilities(target,data).filter(a=>a.effect==='armor').reduce((n,a)=>n+a.value,0);try{reduction+=gearArmor(target,data);}catch{}
+   // effect allies in radius lend their value) + Oathstone ground (Act VII
+   // proximity armor). The 0.8 ceiling still holds.
+   let reduction=aura.armor;if(targetUnit){const tAbilities=unlockedAbilities(target,data);reduction+=tAbilities.filter(a=>a.effect==='armor').reduce((n,a)=>n+a.value,0);try{reduction+=gearArmor(target,data);}catch{}
+    try{reduction+=proximityArmor(target,world,data);}catch{}
     if(targetUnit.hp>0)for(const ally of world.troops){if(ally.id===target.id||ally.hp<=0)continue;try{for(const a of unlockedAbilities(ally,data))if(a.effect==='guard'&&distance(ally,target)<=a.radius)reduction+=a.value;}catch{}}}
-   target.hp=Math.max(0,target.hp-enemy.damage*(1-Math.min(.8,reduction)));enemy.attackTimer=1.3;effect(world,enemy,targetPoint,'slash');push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y,kind:'hit',life:.18});sfx.hit();
+   const raw=enemy.damage*(1-Math.min(.8,reduction));
+   if(targetUnit&&raw>=target.hp&&!target.unbrokenUsed){try{if(unlockedAbilities(target,data).some(a=>a.effect==='unbroken')){target.hp=1;target.unbrokenUsed=true;enemy.attackTimer=1.3;push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y-1,kind:'float',text:'UNBROKEN!',color:'#ffe9a8',life:.9});effect(world,enemy,targetPoint,'slash');sfx.hit();continue;}}catch{}}
+   target.hp=Math.max(0,target.hp-raw);enemy.attackTimer=1.3;effect(world,enemy,targetPoint,'slash');push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y,kind:'hit',life:.18});sfx.hit();
+   // Rue's ledger: a building that falls while raiders walk counts against
+   // the flawless defense. Troops falling never do — only walls and roofs.
+   if(!targetUnit&&target.hp<=0)world.raidLosses=(world.raidLosses||0)+1;
   }
  }
  for(const e of world.enemies)if(e.hp<=0)push(world,{x:e.x,y:e.y,tx:e.x,ty:e.y,kind:'poof',life:.4});
@@ -93,5 +147,18 @@ export function tickCombat(world,data,dt) {
   // Failsafe: a raid dragging past 4 minutes is soft-locked — raiders flee.
   world.enemies=[];world.raidFled=true;
  }
- if(!world.enemies.length)for(const u of world.troops)if(u.hp<=0){u.hp=stats(u,data).hp*.3;u.x=10.5;u.y=10.5;}
+ // The raid just ended (one ledger per raid, multi-wave or single): a
+ // defense with zero building losses and real kills is flawless — Rue's
+ // terms. Worn plate dulls a notch on every armored survivor, and spent
+ // oaths (unbroken) are ready to be sworn again next raid.
+ const raidJustEnded=world.inRaid&&world.enemies.length===0;
+ if(raidJustEnded){
+  world.inRaid=false;
+  if((world.raidLosses||0)===0&&(world.raidKills||0)>0)world.flawlessRaids=(world.flawlessRaids||0)+1;
+  world.raidLosses=0;
+  for(const u of world.troops){u.unbrokenUsed=false;if(u.armor)u.armorWear=(u.armorWear||0)+1;}
+ }
+ // The fallen rise at the best finished revive rate in the village — cold
+ // ground 30%, Bellcote mercy 50%. Data, never a hardcoded second rule.
+ if(!world.enemies.length)for(const u of world.troops)if(u.hp<=0){u.hp=stats(u,data).hp*reviveFraction(world,data);u.x=10.5;u.y=10.5;}
 }

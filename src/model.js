@@ -2,7 +2,7 @@ export const copy = value => structuredClone(value);
 export const distance = (a,b) => Math.hypot(a.x-b.x,a.y-b.y);
 // New villages start small; the frontier opens as village XP grows (see village.js).
 export const START_BOUNDS = {w:14,h:12};
-export const XP_LEVELS = [0,100,220,380,580,830,1150];
+export const XP_LEVELS = [0,100,220,380,580,830,1150,1500];
 export const EXPANSION = [{w:14,h:12},{w:16,h:13},{w:18,h:14},{w:20,h:16},{w:20,h:17}];
 export function levelForXp(xp) {
   let level = 1;
@@ -43,8 +43,12 @@ export function makeUnit(type,data,index=0) {
 // Armor-slot reduction (Padded Coat onward): main gear + armor piece stack
 // multiplicatively, so no wardrobe ever breaks the combat caps alone.
 export function gearArmor(unit,data) {
+  // Worn plate (Shieldwall doctrine): armor dulls 1 raid at a time, and at
+  // wear 3+ every piece guards at half — the yard keeps them bright. Wear
+  // rides the unit, so old saves (no wear key) read full-bright via ?? 0.
+  const worn=(unit.armorWear||0)>=3?0.5:1;
   const vals=[unit.gear,unit.armor].map(id=>(id&&data.items[id]&&data.items[id].stats&&data.items[id].stats.armor)||0);
-  return 1-vals.reduce((m,v)=>m*(1-v),1);
+  return 1-vals.reduce((m,v)=>m*(1-v*worn),1);
 }
 export function makeBuilding(type,x,y,data,level=1) {
   const spec = data.buildings[type];
@@ -66,26 +70,41 @@ export function assignedWorkers(world, buildingId) { return world.troops.filter(
 export function assignmentValid(world, data, unit, building) {
   if (!unit || unit.hp <= 0 || !building || building.hp <= 0 || building.remaining > 0) return false;
   const job = data.troops[unit.type].job;
-  if (!job || building.type !== job.workplace) return false;
+  // Host buildings (the Schoolroom onward) welcome listed professions
+  // beside their own line — data `hosts`, same capacity law, so new
+  // schools never need a posting-law exception.
+  if (!job || (building.type !== job.workplace && !(data.buildings[building.type]?.hosts || []).includes(unit.type))) return false;
   if (unit.workplace === building.id) return true;
   return assignedWorkers(world, building.id).length < workplaceCapacity(building, data);
 }
 // Combined aura of every assigned keeper at a finished workplace. Caps keep numbers gentle.
 export function auras(world, data) {
   const out = {damage:0,armor:0,gather:0,carry:0,build:0,discount:0,heal:0,xp:0,survey:0,food:0,plate:0,produce:0,beds:0,trade:0};
+  // Keeper gear read-through lives beside the share helper: every bearer
+  // read below goes through gearOf, so empty-stat tomes stay exactly put.
+  const gearOf = u => (data.items[u.gear] && data.items[u.gear].stats) || {};
   // Attuned bearers ('aura'-effect abilities: attune, veteran-x) amplify
   // their own share of whatever their workplace provides — keeper auras
   // above and the smokehouse-pattern pour below read the same helper.
+  // Promoted keepers (the master's touch) and % aura gear (Master's Ring)
+  // ride the same share — both hands read, main and armor, no per-troop
+  // logic anywhere.
   const share = u => {
     let m = 1;
     try { for (const a of unlockedAbilities(u, data)) if (a.effect === 'aura') m += a.value; } catch {}
+    if (u.promoted) m += 0.1;
+    m += gearOf(u).aura ?? 0;
+    const ag = (u.armor && data.items[u.armor] && data.items[u.armor].stats) || {};
+    m += ag.aura ?? 0;
     return m;
   };
   for (const b of world.buildings) {
     if (b.hp <= 0 || b.remaining > 0) continue;
     const spec = data.buildings[b.type];
     if (!spec.workplace) continue;
-    const crew = assignedWorkers(world, b.id).filter(u => data.troops[u.type].job?.workplace === b.type);
+    // Hosted hands (Schoolroom apprentices onward) count as crew where
+    // they stand, not only where their line was raised — same `hosts`.
+    const crew = assignedWorkers(world, b.id).filter(u => data.troops[u.type].job?.workplace === b.type || (spec.hosts || []).includes(u.type));
     if (!crew.length) continue;
     const n = crew.length, tier = spec.tiers[b.level - 1].rateMultiplier;
     // Keeper gear read-through: a posted keeper's equipped tool sharpens
@@ -93,7 +112,6 @@ export function auras(world, data) {
     // share, stats.xpAura adds flat XP/s, and stats.<key>Aura adds flat
     // aura per bearer (damage/armor/gather/heal/carry). Empty stats (the
     // old keeper tomes) contribute exactly the pre-gear values.
-    const gearOf = u => (data.items[u.gear] && data.items[u.gear].stats) || {};
     if (spec.damageAura) out.damage += spec.damageAura * tier * crew.reduce((s, u) => s + share(u), 0);
     if (spec.armorAura) out.armor += spec.armorAura * tier * crew.reduce((s, u) => s + share(u), 0);
     if (spec.gatherAura) out.gather += spec.gatherAura * tier * crew.reduce((s, u) => s + share(u), 0);
@@ -103,9 +121,15 @@ export function auras(world, data) {
     if (spec.tradeAura) out.trade += spec.tradeAura * tier * crew.reduce((s, u) => s + share(u), 0);
     if (spec.carryBonus) out.carry += spec.carryBonus * n;
     if (spec.buildAura) { out.build += spec.buildAura * n; out.discount += 0.05 * n; }
-    if (spec.healRate) out.heal += spec.healRate * tier * crew.reduce((s, u) => s + share(u), 0);
+    // Flat-heal wardrobe (Choir Robe onward): a posted keeper's armor
+    // piece can carry plain mending alongside the aura share — same crew,
+    // same tick, no new keys.
+    if (spec.healRate) out.heal += spec.healRate * tier * crew.reduce((s, u) => s + share(u), 0)
+      + crew.reduce((s, u) => s + (((u.armor && data.items[u.armor] && data.items[u.armor].stats) || {}).heal ?? 0), 0);
+    // Primer ink (Tam's school onward): a posted keeper's tool can carry a
+    // flat XP pour under the plain `xp` stat key — same channel as xpAura.
     if (spec.xpRate) out.xp += spec.xpRate * tier * crew.reduce((s, u) => s + share(u) * (gearOf(u).xpMult ?? 1), 0)
-      + crew.reduce((s, u) => s + (gearOf(u).xpAura ?? 0), 0);
+      + crew.reduce((s, u) => s + (gearOf(u).xpAura ?? 0) + (gearOf(u).xp ?? 0), 0);
     if (spec.surveyRate) out.survey += spec.surveyRate * tier * crew.reduce((s, u) => s + share(u) * (gearOf(u).survey ?? 1), 0);
     for (const [statKey, auraKey] of [['damageAura', 'damage'], ['armorAura', 'armor'], ['gatherAura', 'gather'], ['healAura', 'heal'], ['carryAura', 'carry'], ['tradeAura', 'trade']]) {
       const add = crew.reduce((s, u) => s + (gearOf(u)[statKey] ?? 0), 0);
@@ -183,9 +207,10 @@ export function housing(world, data) {
 }
 export function buildingCost(type,level,world,data) {
   const discount=builderBonuses(world,data).discount;
-  // Mid-game pacing: tier-3 price tags run 50% hot. Tier 1-2 (the snappy
-  // opening) and 2-tier buildings are untouched.
-  const tier3 = level>=3 ? 1.5 : 1;
+  // Mid-game pacing: tier-3 price tags run 50% hot, and the first tier-4
+  // in the game (Watchtower tier 4) doubles. Tier 1-2 (the snappy opening)
+  // and 2-tier buildings are untouched.
+  const tier3 = level>=4 ? 2 : level>=3 ? 1.5 : 1;
   return Object.fromEntries(Object.entries(data.buildings[type].cost).map(([k,v])=>[k,Math.ceil(v*level*tier3*(1-discount))]));
 }
 export function inBounds(world, data, type, x, y) {
@@ -215,3 +240,54 @@ export function canPlace(world,data,type,x,y,ignoreId) {
   return true;
 }
 export function center(building,data) {const size=data.buildings[building.type].size;return {x:building.x+size/2,y:building.y+size/2};}
+// Oathstone doctrine (Act VII): a finished monument lends armor to living
+// troops standing near it — a proximity aura, not a workplace. Every field
+// is data on the building spec; no building ids live here.
+export function proximityArmor(unit, world, data) {
+  let bonus = 0;
+  for (const b of world.buildings) {
+    if (b.hp <= 0 || b.remaining > 0) continue;
+    const pa = data.buildings[b.type]?.proximityAura;
+    if (!pa) continue;
+    if (distance(unit, center(b, data)) <= (pa.radius ?? 3)) bonus += pa.armor ?? 0;
+  }
+  return bonus;
+}
+// Bellcote mercy (Act VII): the fallen rise at the best finished revive
+// rate in the village — 30% on the cold ground, 50% under the bell.
+export function reviveFraction(world, data) {
+  let f = 0.3;
+  for (const b of world.buildings) {
+    if (b.hp <= 0 || b.remaining > 0) continue;
+    const r = data.buildings[b.type]?.reviveMult;
+    if (Number.isFinite(r)) f = Math.max(f, r);
+  }
+  return f;
+}
+// Siege-craft (Act VII): every living hand whose gear speaks `trapDamage`
+// sharpens every defense in the village — the tongs teach the towers.
+export function siegeBonus(world, data) {
+  let bonus = 0;
+  for (const u of world.troops) {
+    if (u.hp <= 0) continue;
+    const gs = (u.gear && data.items[u.gear] && data.items[u.gear].stats) || {};
+    if (Number.isFinite(gs.trapDamage)) bonus += gs.trapDamage;
+  }
+  return bonus;
+}
+// Master & Apprentice (Act VII): a capped apprentice posted at a listed
+// workplace may graduate into that line's keeper at level 5, keeping their
+// kit and gaining the master's touch (+10% aura via `promoted`). The
+// school must stand at tier 2 — the building-tier-gated second data point.
+// Pure and data-driven: callers check locks, this checks the rest.
+export function promotionOptions(world, data, unit) {
+  const spec = data.troops[unit.type];
+  if (!spec?.promotions || unit.hp <= 0) return [];
+  const school = world.buildings.some(b => b.type === 'schoolroom' && b.hp > 0 && (b.level || 1) >= 2 && b.remaining <= 0);
+  if (!school) return [];
+  const post = unit.workplace && world.buildings.find(b => b.id === unit.workplace);
+  if (!post || post.hp <= 0) return [];
+  return Object.entries(spec.promotions)
+    .filter(([type, p]) => data.troops[type] && unit.level >= (p.minLevel || 15) && (p.from || []).includes(post.type))
+    .map(([type, p]) => ({type, text: p.text || ''}));
+}

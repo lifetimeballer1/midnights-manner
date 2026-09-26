@@ -49,7 +49,9 @@ test('2. role kits: combat cleaves, farmers never do; keepers mend, builders nev
   for (const [id, t] of Object.entries(data.troops))
     for (const ab of Object.values(t.abilities)) {
       assert.ok(data.abilities[ab], `${id} ability ${ab} resolves`);
-      assert.ok(['splash', 'armor', 'heal', 'damage', 'gather', 'aura', 'xp', 'buff', 'guard'].includes(data.abilities[ab].effect), `${ab} uses a handled effect`);
+      // taunt (Oathcall) and unbroken ride generic combat handlers, same
+      // as every older effect — data names, never bespoke branches.
+      assert.ok(['splash', 'armor', 'heal', 'damage', 'gather', 'aura', 'xp', 'buff', 'guard', 'taunt', 'unbroken'].includes(data.abilities[ab].effect), `${ab} uses a handled effect`);
     }
 });
 

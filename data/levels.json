@@ -6,32 +6,56 @@
   },
   {
     "level": 2,
-    "rewards": { "wood": 30 },
+    "rewards": {
+      "wood": 30
+    },
     "text": "Survey stakes and new rows — plus a timber cache."
   },
   {
     "level": 3,
-    "rewards": { "food": 40 },
+    "rewards": {
+      "food": 40
+    },
     "text": "The east field opens — plus a granary share."
   },
   {
     "level": 4,
-    "rewards": { "gold": 60 },
+    "rewards": {
+      "gold": 60
+    },
     "text": "The whole hollow is yours — plus moonstone from the deep store."
   },
   {
     "level": 5,
-    "rewards": { "wood": 100, "gold": 80 },
+    "rewards": {
+      "wood": 100,
+      "gold": 80
+    },
     "text": "A stockade cache: timber and moonstone for proven hands."
   },
   {
     "level": 6,
-    "rewards": { "food": 150, "gold": 120 },
+    "rewards": {
+      "food": 150,
+      "gold": 120
+    },
     "text": "A harvest blessing: full tables, heavy coffers."
   },
   {
     "level": 7,
-    "rewards": { "wood": 200, "food": 150, "gold": 200 },
+    "rewards": {
+      "wood": 200,
+      "food": 150,
+      "gold": 200
+    },
     "text": "A legend stash: the frontier pays its debt."
+  },
+  {
+    "level": 8,
+    "rewards": {
+      "food": 150,
+      "gold": 150
+    },
+    "text": "Siege-craft cache: full tables, heavy coffers, and the high towers open their fourth tier."
   }
 ]

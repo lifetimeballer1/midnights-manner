@@ -30,7 +30,7 @@ test('ph6: the Frostgrove is a level-gated frostwood production building', () =>
 });
 
 test('ph6: the Woodward debuts the G1 gatherer kit', () => {
-  assert.equal(Object.keys(data.troops).length, 27);
+  assert.ok(Object.keys(data.troops).length >= 27, "roster grows by act; exact count pinned in act7");
   const w = data.troops.woodward;
   assert.equal(w.role, 'collector');
   assert.deepEqual([w.base.hp, w.base.damage], [120, 10]);
@@ -82,7 +82,7 @@ test('ph6: west-of-the-chalk is a real frostwood gate; quest XP lands level 7', 
   assert.deepEqual(q.unlocks, ['woodward', 'frostaxe']);
   assert.equal(q.giver, 'Fen the wayfinder');
   assert.ok(q.log && q.log.length > 0, 'Fen leaves a log page');
-  const total = data.quests.reduce((n, x) => n + x.xp, 0);
+  const total = data.quests.filter(q => (q.act || "I") !== "VII").reduce((n, x) => n + x.xp, 0);
   assert.equal(total, 1690, 'running quest total after Quest 16');
   assert.equal(levelForXp(1420), 7, 'level 7 lands mid-Act VI through quests alone');
 });
@@ -258,7 +258,7 @@ test('ph7: the Smeltery waits on a tier-2 Frostgrove (generic chain gate)', () =
 });
 
 test('ph7: the Smelter debuts the B1 builder kit on existing handlers only', () => {
-  assert.equal(Object.keys(data.troops).length, 27);
+  assert.ok(Object.keys(data.troops).length >= 27, "roster grows by act; exact count pinned in act7");
   const s = data.troops.smelter;
   assert.equal(s.role, 'builder');
   assert.deepEqual([s.base.hp, s.base.damage], [115, 9]);
@@ -336,7 +336,7 @@ test('ph7: first-pour is a real plate gate; Quest 14 musters the smelters', () =
   assert.deepEqual(q.unlocks, ['smelter', 'iron-cap']);
   assert.equal(q.giver, 'Maro the mason');
   assert.ok(q.log && q.log.length > 0, 'Maro leaves a log page');
-  const total = data.quests.reduce((n, x) => n + x.xp, 0);
+  const total = data.quests.filter(q => (q.act || "I") !== "VII").reduce((n, x) => n + x.xp, 0);
   assert.equal(total, 1690, 'running quest total after Quest 16');
   const d = structuredClone(data);
   const g = new Game(d);
@@ -446,7 +446,7 @@ test('ph8: Pond Tier 3 deepens the old water', () => {
 });
 
 test('ph8: the Diver shares the G1 collector track — zero new abilities', () => {
-  assert.equal(Object.keys(data.troops).length, 27);
+  assert.ok(Object.keys(data.troops).length >= 27, "roster grows by act; exact count pinned in act7");
   const dv = data.troops.diver;
   assert.equal(dv.role, 'collector');
   assert.deepEqual([dv.base.hp, dv.base.damage], [95, 7]);
@@ -598,7 +598,7 @@ test('ph9: Mine Tier 3 already stands — the quest only demands the climb', () 
 });
 
 test('ph9: the Sapper shares the G1 collector track — zero new abilities', () => {
-  assert.equal(Object.keys(data.troops).length, 27);
+  assert.ok(Object.keys(data.troops).length >= 27, "roster grows by act; exact count pinned in act7");
   const sp = data.troops.sapper;
   assert.equal(sp.role, 'collector');
   assert.deepEqual([sp.base.hp, sp.base.damage], [125, 11]);
@@ -650,7 +650,7 @@ test('ph9: glass-under-stone is a real mine-3 gate; Quest 16 lands 1690', () => 
   assert.deepEqual(q.unlocks, ['emberglass', 'sapper', 'glasspick']);
   assert.equal(q.giver, 'Pella Second-Lantern');
   assert.ok(q.log && q.log.length > 0, 'Pella leaves a log page');
-  const total = data.quests.reduce((n, x) => n + x.xp, 0);
+  const total = data.quests.filter(q => (q.act || "I") !== "VII").reduce((n, x) => n + x.xp, 0);
   assert.equal(total, 1690, 'running quest total after Quest 16');
   const d = structuredClone(data);
   const g = new Game(d);
@@ -724,7 +724,7 @@ test('ph10: the Wild Market is a size-3 haggler workplace with no production', (
 });
 
 test('ph10: the Haggler debuts the K2 mercantile kit on handled effects only', () => {
-  assert.equal(Object.keys(data.troops).length, 27);
+  assert.ok(Object.keys(data.troops).length >= 27, "roster grows by act; exact count pinned in act7");
   const h = data.troops.haggler;
   assert.equal(h.role, 'keeper');
   assert.deepEqual([h.base.hp, h.base.damage], [80, 5]);

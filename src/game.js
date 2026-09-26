@@ -1,5 +1,5 @@
 import {nextStep,blocked} from './systems/pathfinding.js';
-import {createWorld,makeBuilding,makeUnit,canPlace,inBounds,pay,stats,buildingCost,center,assignmentValid} from './model.js';
+import {createWorld,makeBuilding,makeUnit,canPlace,inBounds,pay,stats,buildingCost,center,assignmentValid,promotionOptions} from './model.js';
 import {tickVillage,gainXp} from './systems/village.js';
 import {tickEconomy} from './systems/economy.js';
 import {tickCombat,spawnRaid,activateAbility} from './systems/combat.js';
@@ -68,6 +68,13 @@ export class Game {
   const cost=b.type==='hall'?{wood:200*b.level,gold:150*b.level}:buildingCost(b.type,b.level+1,this.world,this.data);
   if(!pay(this.world.resources,cost))return this.notify('Not enough resources for this upgrade.');
   b.level++;b.hp=this.data.buildings[b.type].tiers[b.level-1].hp;
+  // Building-completion unlocks (data `tierUnlocks: {tier: [ids]}`): the
+  // tier itself teaches something new — the Bellcote waits on a tier-3
+  // chapel the way troops wait on chapters. Earned, never bought.
+  const tierWon=this.data.buildings[b.type].tierUnlocks?.[b.level]||[];
+  this.state.unlocks=this.state.unlocks||[];
+  for(const id of tierWon)if(!this.state.unlocks.includes(id))this.state.unlocks.push(id);
+  if(tierWon.length)this.notify(`Tier ${b.level} ${this.data.buildings[b.type].name} complete — unlocks: ${tierWon.map(id=>this.data.buildings[id]?.name||this.data.items[id]?.name||this.data.troops[id]?.name||id).join(', ')}.`);
   // Mid-game pacing: upgrades after the first 5 minutes take 50% longer.
   // Early snappy builds (4-6s new construction, fast first upgrades) untouched.
   b.remaining=6*b.level*((this.world.elapsed||0)>300?1.5:1);const cp=center(b,this.data);this.world.effects.push({x:cp.x,y:cp.y,tx:cp.x,ty:cp.y,kind:'fanfare',life:.8});sfx.upgrade();this.notify('Upgrade started. Your builders are on it.');
@@ -104,7 +111,32 @@ export class Game {
   if(workplace)unit.workplace=workplace.id;
   this.world.troops.push(unit);sfx.upgrade();this.notify(`${this.data.troops[type].name} hired${workplace?` and assigned to ${this.data.buildings[workplace.type].name}`:'. No matching job is open yet'}.`);return unit;
  }
- level(id){const u=this.world.troops.find(t=>t.id===id);if(!u||u.level>=this.data.troops[u.type].maxLevel)return;const curve=u.level>=5?1.5:1;const cost=Object.fromEntries(Object.entries(this.data.troops[u.type].levelCost).map(([k,v])=>[k,Math.ceil(v*u.level*curve)]));if(!pay(this.world.resources,cost))return this.notify('Not enough food or gold to train.');u.level++;u.hp=stats(u,this.data).hp;this.notify(`Level ${u.level} reached${u.level%5===0?' — new ability unlocked!':'.'}`);}
+ level(id){const u=this.world.troops.find(t=>t.id===id);if(!u||u.level>=this.data.troops[u.type].maxLevel)return;const curve=u.level>=5?1.5:1;
+  // Tam's tutoring (Act VII): hands posted at a teaching workplace train
+  // cheaper — data `tutorDiscount` on the building spec, generic.
+  let tutor=0;const post=u.workplace&&this.world.buildings.find(b=>b.id===u.workplace);
+  if(post&&post.hp>0&&post.remaining<=0)tutor=this.data.buildings[post.type]?.tutorDiscount||0;
+  const cost=Object.fromEntries(Object.entries(this.data.troops[u.type].levelCost).map(([k,v])=>[k,Math.ceil(v*u.level*curve*(1-tutor))]));if(!pay(this.world.resources,cost))return this.notify('Not enough food or gold to train.');u.level++;u.hp=stats(u,this.data).hp;this.notify(`Level ${u.level} reached${u.level%5===0?' — new ability unlocked!':'.'}`);}
+ promote(id,targetType){
+  const u=this.world.troops.find(t=>t.id===id);if(!u)return this.notify('That villager is gone.');
+  const opts=promotionOptions(this.world,this.data,u);
+  if(!opts.some(o=>o.type===targetType))return this.notify('The school is not ready for that graduation — cap the apprentice, post them true, and raise the Schoolroom to tier 2.');
+  if(this.locked(targetType))return this.notify('That calling is not yet earned — quests and campaign chapters unlock new people.');
+  const spec=this.data.troops[targetType];
+  u.type=targetType;u.level=5;u.promoted=true;u.workplace=null;
+  // Graduation keeps the old tool only when the new calling can hold it —
+  // otherwise the school issues the calling's own gear, kit kept always.
+  if(!this.data.items[u.gear]?.roles?.includes(targetType)){u.gear=spec.defaultGear;if(!u.owned.includes(u.gear))u.owned.push(u.gear);}
+  u.hp=stats(u,this.data).hp;
+  this.notify(`${spec.name} graduated with the master's touch — level 5, kit kept, aura keener. Tam chalked the name himself.`);return true;
+ }
+ serviceArmor(){
+  const yard=this.world.buildings.find(b=>this.data.buildings[b.type]?.serviceArmor&&b.hp>0&&b.remaining<=0);
+  if(!yard)return this.notify('Raise a Shieldwall Yard first — worn plate needs a yard that knows it.');
+  if(!pay(this.world.resources,{wood:20}))return this.notify('The yard needs 20 wood for oil and rivets.');
+  for(const u of this.world.troops)u.armorWear=0;
+  this.notify('The yard rang all day — every worn plate bright again, every strap true.');return true;
+ }
  equip(id,itemId){const u=this.world.troops.find(t=>t.id===id),item=this.data.items[itemId];if(!u||!item||!item.roles.includes(u.type)||this.locked(itemId))return;
   // Armor-slot pieces (Padded Coat onward, item.slot==='armor') ride a
   // second gear axis with their own owned list; everything else is main-hand.
@@ -190,7 +222,7 @@ export class Game {
    this.world.nextRaidAt=this.world.elapsed+cfg.interval;
    this.notify(`${fillLine(pickLine(cfg.victoryLines,this.world.wave),{kills,loot,wave:this.world.wave})}${damaged.length?` ${damaged.length} buildings need repair (${repairWood} wood).`:' All buildings stand strong.'}`);this.persist();}
   if(before!==this.state.mission?.status){const m=this.data.missions.find(m=>m.id===this.state.mission.id);this.notify(this.state.mission.status==='won'?`${m?.ceremony?.victory||'Mission complete!'} Return home to claim your rewards.`:`${m?.ceremony?.defeat||'Expedition lost.'} Return home and try a different layout.`);this.persist();}
-  if(!this.state.mission&&!this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)&&this.world.enemies.length){const kills=this.world.raidKills??0,loot=this.world.raidLoot??0;this.world.enemies=[];this.world.resources.wood=Math.max(80,this.world.resources.wood);this.world.raidResult={won:false,kills,loot,damaged:this.world.buildings.filter(b=>b.hp<=0).length,repairWood:0};sfx.lose();this.world.nextRaidAt=this.world.elapsed+cfg.interval;this.notify(fillLine(pickLine(cfg.defeatLines,this.world.wave),{kills,loot,wave:this.world.wave}));}
+  if(!this.state.mission&&!this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)&&this.world.enemies.length){const kills=this.world.raidKills??0,loot=this.world.raidLoot??0;this.world.enemies=[];this.world.inRaid=false;this.world.raidLosses=0;this.world.resources.wood=Math.max(80,this.world.resources.wood);this.world.raidResult={won:false,kills,loot,damaged:this.world.buildings.filter(b=>b.hp<=0).length,repairWood:0};sfx.lose();this.world.nextRaidAt=this.world.elapsed+cfg.interval;this.notify(fillLine(pickLine(cfg.defeatLines,this.world.wave),{kills,loot,wave:this.world.wave}));}
   this.saveTimer+=dt;if(this.saveTimer>5){this.saveTimer=0;this.persist();}
  }
 }

@@ -27,6 +27,11 @@ function taskDone(task, state, data) {
   if (task.kind === 'population') return w.troops.length >= task.count;
   if (task.kind === 'level') return (state.vlevel || 1) >= task.level;
   if (task.kind === 'gather') return (w.gathered[task.resource] || 0) >= task.amount;
+  // Flawless defenses (Act VII, Rue's terms): a raid won with zero
+  // building losses, home or away — arrival ledgers read zero by
+  // construction, so this gate can never auto-fire. Missions merge their
+  // ledgers home on return (campaign.js), so either road counts.
+  if (task.kind === 'defeat') return ((w.flawlessRaids || 0) + (state.home?.flawlessRaids || 0)) >= (task.count || 1);
   // Upgrade gates (Act V+): every listed building type stands at the
   // tier — rewards preparation, never arrival arithmetic.
   if (task.kind === 'upgrade') {
@@ -60,7 +65,7 @@ function completeQuest(state, data, quest, notify) {
   push(w, {x:at.x, y:at.y, tx:at.x, ty:at.y - 1.1, kind:'float', text:`+${quest.xp} XP`, color:'#ffe9a8', life:.9});
   sfx.quest();
   const rewardText = Object.entries(quest.rewards || {}).map(([k, v]) => `+${v} ${k}`).join(', ');
-  const unlockText = unlocked.map(id => data.buildings[id]?.name || data.items[id]?.name || id).join(', ');
+  const unlockText = unlocked.map(id => data.buildings[id]?.name || data.items[id]?.name || data.troops[id]?.name || id).join(', ');
   // Optional flavor fields (data/quests.json): old entries without them read unchanged.
   const flavor = quest.flavor ? ` ${quest.flavor}` : '';
   notify(`Quest complete: ${quest.name}! +${quest.xp} XP${rewardText ? ` · ${rewardText}` : ''}${unlockText ? ` · Unlocks: ${unlockText}` : ''}.${flavor}`);
@@ -161,6 +166,14 @@ export function tickVillage(state, data, dt, notify) {
         for (const a of unlockedAbilities(u, data)) if (a.effect === 'xp' && a.value > 0) gainXp(state, a.value * dt);
       } catch {}
     }
+    // Fletcher's stock (Act VII): craft-only buildings pile one arrow
+    // bundle at a time from data `stockRate` — expeditions spend it, the
+    // home sim only ever fills the quiver. Capped at one per building.
+    for (const b of w.buildings) {
+      const rate = data.buildings[b.type]?.stockRate;
+      if (!rate || b.hp <= 0 || b.remaining > 0) continue;
+      b.stock = Math.min(1, (Number.isFinite(b.stock) ? b.stock : 0) + rate * dt);
+    }
     if (aura.survey > 0) {
       w.survey += aura.survey * dt;
       gainXp(state, aura.survey * 0.05 * dt);
@@ -210,6 +223,7 @@ export function questProgress(task, state) {
   if (task.kind === 'population') return {have: w.troops.length, need: task.count};
   if (task.kind === 'level') return {have: state.vlevel || 1, need: task.level};
   if (task.kind === 'gather') return {have: Math.floor(w.gathered[task.resource] || 0), need: task.amount};
+  if (task.kind === 'defeat') return {have: (w.flawlessRaids || 0) + (state.home?.flawlessRaids || 0), need: task.count || 1};
   if (task.kind === 'upgrade') {
     const types = Array.isArray(task.type) ? task.type : [task.type];
     const level = task.level || 2;

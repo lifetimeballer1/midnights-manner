@@ -220,20 +220,58 @@
     "description": "A forge-fire needs feeding. Cut timber fast on a tight clock while a single late raid tests the new watchfire.",
     "timeLimit": 200,
     "troopLimit": 6,
-    "objectives": [{ "resource": "wood", "amount": 200 }],
-    "startingResources": { "wood": 200, "food": 150, "gold": 120 },
+    "objectives": [
+      {
+        "resource": "wood",
+        "amount": 200
+      }
+    ],
+    "startingResources": {
+      "wood": 200,
+      "food": 150,
+      "gold": 120
+    },
     "map": {
       "buildings": [
-        { "type": "hall", "x": 9, "y": 7 },
-        { "type": "lumber", "x": 7, "y": 9 },
-        { "type": "watchfire", "x": 6, "y": 7 }
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "lumber",
+          "x": 7,
+          "y": 9
+        },
+        {
+          "type": "watchfire",
+          "x": 6,
+          "y": 7
+        }
       ],
-      "troops": ["warrior", "warden", "builder", "miner"]
+      "troops": [
+        "warrior",
+        "warden",
+        "builder",
+        "miner"
+      ]
     },
-    "raids": [{ "at": 120, "count": 5 }],
-    "rewards": { "wood": 200, "gold": 150 },
-    "unlocks": ["watchfire"],
-    "requires": ["long-night"]
+    "raids": [
+      {
+        "at": 120,
+        "count": 5
+      }
+    ],
+    "rewards": {
+      "wood": 200,
+      "gold": 150
+    },
+    "unlocks": [
+      "watchfire"
+    ],
+    "requires": [
+      "long-night"
+    ]
   },
   {
     "id": "moonwell",
@@ -249,21 +287,72 @@
     "description": "Two hungers at once: bread for the tables, moonstone for the coffers. Foragers earn their keep while raiders circle twice.",
     "timeLimit": 260,
     "troopLimit": 7,
-    "objectives": [{ "resource": "food", "amount": 150 }, { "resource": "gold", "amount": 200 }],
-    "startingResources": { "wood": 260, "food": 100, "gold": 120 },
+    "objectives": [
+      {
+        "resource": "food",
+        "amount": 150
+      },
+      {
+        "resource": "gold",
+        "amount": 200
+      }
+    ],
+    "startingResources": {
+      "wood": 260,
+      "food": 100,
+      "gold": 120
+    },
     "map": {
       "buildings": [
-        { "type": "hall", "x": 9, "y": 7 },
-        { "type": "grove", "x": 6, "y": 9 },
-        { "type": "mine", "x": 11, "y": 5 },
-        { "type": "tower", "x": 6, "y": 7 }
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "grove",
+          "x": 6,
+          "y": 9
+        },
+        {
+          "type": "mine",
+          "x": 11,
+          "y": 5
+        },
+        {
+          "type": "tower",
+          "x": 6,
+          "y": 7
+        }
       ],
-      "troops": ["warrior", "ranger", "forager", "miner", "builder"]
+      "troops": [
+        "warrior",
+        "ranger",
+        "forager",
+        "miner",
+        "builder"
+      ]
     },
-    "raids": [{ "at": 60, "count": 4 }, { "at": 150, "count": 6 }],
-    "rewards": { "food": 200, "gold": 250 },
-    "unlocks": ["grove"],
-    "requires": ["ember-road"]
+    "raids": [
+      {
+        "at": 60,
+        "count": 4
+      },
+      {
+        "at": 150,
+        "count": 6
+      }
+    ],
+    "rewards": {
+      "food": 200,
+      "gold": 250
+    },
+    "unlocks": [
+      "grove"
+    ],
+    "requires": [
+      "ember-road"
+    ]
   },
   {
     "id": "last-stand",
@@ -279,22 +368,77 @@
     "description": "Three waves before dawn with a skeleton crew. Hold the manor, keep the gold flowing, and prove the village endures.",
     "timeLimit": 300,
     "troopLimit": 5,
-    "objectives": [{ "resource": "gold", "amount": 250 }],
-    "startingResources": { "wood": 280, "food": 160, "gold": 120 },
+    "objectives": [
+      {
+        "resource": "gold",
+        "amount": 250
+      }
+    ],
+    "startingResources": {
+      "wood": 280,
+      "food": 160,
+      "gold": 120
+    },
     "map": {
       "buildings": [
-        { "type": "hall", "x": 9, "y": 7 },
-        { "type": "mine", "x": 7, "y": 9 },
-        { "type": "watchfire", "x": 5, "y": 6 },
-        { "type": "wall", "x": 5, "y": 7 },
-        { "type": "wall", "x": 5, "y": 8 }
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "mine",
+          "x": 7,
+          "y": 9
+        },
+        {
+          "type": "watchfire",
+          "x": 5,
+          "y": 6
+        },
+        {
+          "type": "wall",
+          "x": 5,
+          "y": 7
+        },
+        {
+          "type": "wall",
+          "x": 5,
+          "y": 8
+        }
       ],
-      "troops": ["warden", "ranger", "miner", "builder"]
+      "troops": [
+        "warden",
+        "ranger",
+        "miner",
+        "builder"
+      ]
     },
-    "raids": [{ "at": 40, "count": 4 }, { "at": 130, "count": 6 }, { "at": 220, "count": 8 }],
-    "rewards": { "gold": 400, "wood": 300, "food": 250 },
-    "unlocks": ["toolkit"],
-    "requires": ["moonwell"]
+    "raids": [
+      {
+        "at": 40,
+        "count": 4
+      },
+      {
+        "at": 130,
+        "count": 6
+      },
+      {
+        "at": 220,
+        "count": 8
+      }
+    ],
+    "rewards": {
+      "gold": 400,
+      "wood": 300,
+      "food": 250
+    },
+    "unlocks": [
+      "toolkit"
+    ],
+    "requires": [
+      "moonwell"
+    ]
   },
   {
     "id": "ashen-ford",
@@ -310,22 +454,74 @@
     "description": "Raiders press the ashen ford. Hold a stone wall with a lean crew and keep moonstone flowing through two raids.",
     "timeLimit": 280,
     "troopLimit": 6,
-    "objectives": [{ "resource": "gold", "amount": 200 }],
-    "startingResources": { "wood": 280, "food": 160, "gold": 120 },
+    "objectives": [
+      {
+        "resource": "gold",
+        "amount": 200
+      }
+    ],
+    "startingResources": {
+      "wood": 280,
+      "food": 160,
+      "gold": 120
+    },
     "map": {
       "buildings": [
-        { "type": "hall", "x": 9, "y": 7 },
-        { "type": "mine", "x": 7, "y": 9 },
-        { "type": "tower", "x": 6, "y": 7 },
-        { "type": "stonewall", "x": 5, "y": 7 },
-        { "type": "stonewall", "x": 5, "y": 8 }
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "mine",
+          "x": 7,
+          "y": 9
+        },
+        {
+          "type": "tower",
+          "x": 6,
+          "y": 7
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 7
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 8
+        }
       ],
-      "troops": ["warrior", "warden", "builder", "miner"]
+      "troops": [
+        "warrior",
+        "warden",
+        "builder",
+        "miner"
+      ]
     },
-    "raids": [{ "at": 60, "count": 5 }, { "at": 160, "count": 7 }],
-    "rewards": { "gold": 250, "wood": 200 },
-    "unlocks": ["pikewoman", "pike", "kite-shield"],
-    "requires": ["last-stand"]
+    "raids": [
+      {
+        "at": 60,
+        "count": 5
+      },
+      {
+        "at": 160,
+        "count": 7
+      }
+    ],
+    "rewards": {
+      "gold": 250,
+      "wood": 200
+    },
+    "unlocks": [
+      "pikewoman",
+      "pike",
+      "kite-shield"
+    ],
+    "requires": [
+      "last-stand"
+    ]
   },
   {
     "id": "hollow-dam",
@@ -341,21 +537,71 @@
     "description": "Two hungers at the hollow dam: bread for the tables, stone for the walls. Pikewomen screen two raids while the crews haul.",
     "timeLimit": 300,
     "troopLimit": 7,
-    "objectives": [{ "resource": "food", "amount": 200 }, { "resource": "gold", "amount": 150 }],
-    "startingResources": { "wood": 260, "food": 140, "gold": 130 },
+    "objectives": [
+      {
+        "resource": "food",
+        "amount": 200
+      },
+      {
+        "resource": "gold",
+        "amount": 150
+      }
+    ],
+    "startingResources": {
+      "wood": 260,
+      "food": 140,
+      "gold": 130
+    },
     "map": {
       "buildings": [
-        { "type": "hall", "x": 9, "y": 7 },
-        { "type": "farm", "x": 6, "y": 9 },
-        { "type": "pond", "x": 11, "y": 5 },
-        { "type": "tower", "x": 6, "y": 7 }
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "farm",
+          "x": 6,
+          "y": 9
+        },
+        {
+          "type": "pond",
+          "x": 11,
+          "y": 5
+        },
+        {
+          "type": "tower",
+          "x": 6,
+          "y": 7
+        }
       ],
-      "troops": ["pikewoman", "warrior", "farmer", "builder"]
+      "troops": [
+        "pikewoman",
+        "warrior",
+        "farmer",
+        "builder"
+      ]
     },
-    "raids": [{ "at": 90, "count": 4 }, { "at": 200, "count": 6 }],
-    "rewards": { "food": 250, "gold": 200 },
-    "unlocks": ["stonewall"],
-    "requires": ["last-stand"]
+    "raids": [
+      {
+        "at": 90,
+        "count": 4
+      },
+      {
+        "at": 200,
+        "count": 6
+      }
+    ],
+    "rewards": {
+      "food": 250,
+      "gold": 200
+    },
+    "unlocks": [
+      "stonewall"
+    ],
+    "requires": [
+      "last-stand"
+    ]
   },
   {
     "id": "coin-and-cinder",
@@ -371,21 +617,373 @@
     "description": "Sarella Emberwright stakes a wild market where the forked roads rejoin. Hold the crossing, keep moonstone and frostwood flowing through two raids, and open the stalls.",
     "timeLimit": 300,
     "troopLimit": 7,
-    "objectives": [{ "resource": "gold", "amount": 250 }, { "resource": "frostwood", "amount": 150 }],
-    "startingResources": { "wood": 280, "food": 160, "gold": 140, "frostwood": 60 },
+    "objectives": [
+      {
+        "resource": "gold",
+        "amount": 250
+      },
+      {
+        "resource": "frostwood",
+        "amount": 150
+      }
+    ],
+    "startingResources": {
+      "wood": 280,
+      "food": 160,
+      "gold": 140,
+      "frostwood": 60
+    },
     "map": {
       "buildings": [
-        { "type": "hall", "x": 9, "y": 7 },
-        { "type": "mine", "x": 7, "y": 9 },
-        { "type": "frostgrove", "x": 11, "y": 5 },
-        { "type": "tower", "x": 6, "y": 7 }
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "mine",
+          "x": 7,
+          "y": 9
+        },
+        {
+          "type": "frostgrove",
+          "x": 11,
+          "y": 5
+        },
+        {
+          "type": "tower",
+          "x": 6,
+          "y": 7
+        }
       ],
-      "troops": ["warrior", "warden", "miner", "woodward", "builder", "haggler"]
+      "troops": [
+        "warrior",
+        "warden",
+        "miner",
+        "woodward",
+        "builder",
+        "haggler"
+      ]
     },
-    "raids": [{ "at": 80, "count": 5 }, { "at": 190, "count": 7 }],
-    "rewards": { "gold": 300, "wood": 250 },
-    "unlocks": ["market", "haggler", "scales"],
+    "raids": [
+      {
+        "at": 80,
+        "count": 5
+      },
+      {
+        "at": 190,
+        "count": 7
+      }
+    ],
+    "rewards": {
+      "gold": 300,
+      "wood": 250
+    },
+    "unlocks": [
+      "market",
+      "haggler",
+      "scales"
+    ],
     "requires": [],
-    "requiresAny": ["ashen-ford", "hollow-dam"]
+    "requiresAny": [
+      "ashen-ford",
+      "hollow-dam"
+    ]
+  },
+  {
+    "id": "the-pale-host",
+    "name": "The Pale Host",
+    "chapter": "10",
+    "act": "VII",
+    "beat": "The war band grows up; wave-scaled raiders test the oathbound line.",
+    "ceremony": {
+      "warning": "Bell-Captain Sorrel holds the Old Bell line. The pale host comes in climbing waves - swear the oath and hold.",
+      "victory": "The pale host broke on the oath-line. Sorrel chalked every name. The Oathstone stands and the heavy guard is sworn.",
+      "defeat": "The waves kept climbing and the line bent. Sorrel sounds the retreat in good order: swear again, hold longer, mind the horns."
+    },
+    "description": "Bell-Captain Sorrel, successor of the Old Bell, holds a ridge against climbing raider waves. Survive three steepening assaults and keep moonstone flowing.",
+    "timeLimit": 320,
+    "troopLimit": 8,
+    "objectives": [
+      {
+        "resource": "gold",
+        "amount": 300
+      }
+    ],
+    "startingResources": {
+      "wood": 300,
+      "food": 180,
+      "gold": 140
+    },
+    "map": {
+      "buildings": [
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "mine",
+          "x": 7,
+          "y": 9
+        },
+        {
+          "type": "tower",
+          "x": 6,
+          "y": 7
+        },
+        {
+          "type": "oathstone",
+          "x": 8,
+          "y": 6
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 7
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 8
+        }
+      ],
+      "troops": [
+        "oathsworn",
+        "warrior",
+        "warden",
+        "builder",
+        "miner"
+      ]
+    },
+    "raids": [
+      {
+        "at": 60,
+        "count": 4
+      },
+      {
+        "at": 150,
+        "count": 6
+      },
+      {
+        "at": 240,
+        "count": 8
+      }
+    ],
+    "scaling": {
+      "hp": 18,
+      "damage": 3
+    },
+    "rewards": {
+      "gold": 350,
+      "wood": 250
+    },
+    "unlocks": [
+      "oathsworn",
+      "oathblade",
+      "tower-shield",
+      "oathstone"
+    ],
+    "requires": [
+      "coin-and-cinder"
+    ]
+  },
+  {
+    "id": "red-banner",
+    "name": "Red Banner",
+    "chapter": "11",
+    "act": "VII",
+    "beat": "Shield wall doctrine: halberds forward, stones high, no ground given.",
+    "ceremony": {
+      "warning": "Take the red banner, plant the shieldwall, and let the halberds do the talking. Hold the ridge the melee way.",
+      "victory": "The ridge held under red. The shieldwall never took a step back - and the grey scouts took notes for their own road.",
+      "defeat": "The line bent and the red went down in the mud. Pick it up, plant it deeper, and hold."
+    },
+    "description": "The Red Banner flies for the shield wall: halberdiers shoulder to shoulder behind stone, arrows a rumor from the far ridge. Hold three raids the melee way.",
+    "timeLimit": 320,
+    "troopLimit": 8,
+    "objectives": [
+      {
+        "resource": "gold",
+        "amount": 250
+      },
+      {
+        "resource": "food",
+        "amount": 200
+      }
+    ],
+    "startingResources": {
+      "wood": 300,
+      "food": 180,
+      "gold": 140
+    },
+    "map": {
+      "buildings": [
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "farm",
+          "x": 6,
+          "y": 9
+        },
+        {
+          "type": "tower",
+          "x": 6,
+          "y": 7
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 7
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 8
+        },
+        {
+          "type": "shieldwall-yard",
+          "x": 8,
+          "y": 5
+        }
+      ],
+      "troops": [
+        "halberdier",
+        "oathsworn",
+        "warrior",
+        "farmer",
+        "builder"
+      ]
+    },
+    "raids": [
+      {
+        "at": 70,
+        "count": 5
+      },
+      {
+        "at": 170,
+        "count": 7
+      },
+      {
+        "at": 260,
+        "count": 8
+      }
+    ],
+    "rewards": {
+      "gold": 300,
+      "food": 250
+    },
+    "unlocks": [
+      "halberdier",
+      "halberd",
+      "fletcher",
+      "banner-cloak",
+      "longbowman"
+    ],
+    "requires": [
+      "the-pale-host"
+    ]
+  },
+  {
+    "id": "grey-banner",
+    "name": "Grey Banner",
+    "chapter": "11",
+    "act": "VII",
+    "beat": "Arrow storm doctrine: grey cloaks in the pines, the ridge swept clean.",
+    "ceremony": {
+      "warning": "Take the grey banner, string the longbows, and let the pines do the hiding. Sweep the ridge the ranged way.",
+      "victory": "The ridge stands swept under grey. Not a raider reached the stones - and the red guard took notes for their own road.",
+      "defeat": "The strings snapped and the ridge went quiet. Restring, rehide, and loose again."
+    },
+    "description": "The Grey Banner flies for the arrow storm: longbowmen grey-cloaked in the pines, stones a rumor from the far ridge. Hold three raids the ranged way.",
+    "timeLimit": 320,
+    "troopLimit": 8,
+    "objectives": [
+      {
+        "resource": "gold",
+        "amount": 250
+      },
+      {
+        "resource": "food",
+        "amount": 200
+      }
+    ],
+    "startingResources": {
+      "wood": 300,
+      "food": 180,
+      "gold": 140
+    },
+    "map": {
+      "buildings": [
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "farm",
+          "x": 6,
+          "y": 9
+        },
+        {
+          "type": "watchfire",
+          "x": 6,
+          "y": 7
+        },
+        {
+          "type": "fletcher",
+          "x": 8,
+          "y": 5
+        },
+        {
+          "type": "wall",
+          "x": 5,
+          "y": 7
+        },
+        {
+          "type": "wall",
+          "x": 5,
+          "y": 8
+        }
+      ],
+      "troops": [
+        "longbowman",
+        "ranger",
+        "archer",
+        "farmer",
+        "builder"
+      ]
+    },
+    "raids": [
+      {
+        "at": 70,
+        "count": 5
+      },
+      {
+        "at": 170,
+        "count": 7
+      },
+      {
+        "at": 260,
+        "count": 8
+      }
+    ],
+    "rewards": {
+      "gold": 300,
+      "food": 250
+    },
+    "unlocks": [
+      "longbowman",
+      "longbow",
+      "shieldwall-yard",
+      "banner-cloak",
+      "halberdier"
+    ],
+    "requires": [
+      "the-pale-host"
+    ]
   }
 ]

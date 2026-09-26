@@ -191,5 +191,59 @@
     "effect": "aura",
     "value": 0.05,
     "description": "True weights, true prices: +5% to this workplace's aura."
+  },
+  "bulwark": {
+    "name": "Bulwark",
+    "effect": "armor",
+    "value": 0.2,
+    "description": "Oath-tested stance: reduces damage received by 20%."
+  },
+  "armor-ii": {
+    "name": "Ironclad oath",
+    "effect": "armor",
+    "value": 0.35,
+    "description": "Plate over oath: reduces damage received by 35%."
+  },
+  "oath": {
+    "name": "Oathcall",
+    "effect": "taunt",
+    "radius": 2.5,
+    "duration": 8,
+    "cooldown": 30,
+    "active": true,
+    "description": "Sworn challenge: nearby raiders turn on the oathbound for 8s. 30s cooldown."
+  },
+  "unbroken": {
+    "name": "Unbroken",
+    "effect": "unbroken",
+    "description": "Once per raid, a killing blow leaves the oathbound at 1 HP instead."
+  },
+  "volley": {
+    "name": "Volley",
+    "effect": "splash",
+    "radius": 1.5,
+    "factor": 0.5,
+    "description": "Loosed shafts fall among the raiders for 50% damage."
+  },
+  "keen": {
+    "name": "Keen eye",
+    "effect": "damage",
+    "value": 0.15,
+    "description": "A hunter's patience: 15% more attack damage."
+  },
+  "camouflage": {
+    "name": "Grey cloak",
+    "effect": "armor",
+    "value": 0.15,
+    "description": "Hard to spot, hard to hit: reduces damage received by 15%."
+  },
+  "arrowstorm": {
+    "name": "Arrowstorm",
+    "effect": "splash",
+    "radius": 2,
+    "factor": 1.5,
+    "cooldown": 30,
+    "active": true,
+    "description": "The sky darkens: loose a storm for 150% damage in a wide arc. 30s cooldown."
   }
 }

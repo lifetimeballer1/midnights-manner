@@ -13,7 +13,7 @@ test('village data: workplaces, jobs, gear and quest chain all resolve', async (
   assert.ok(data.quests.length >= 8);
   for (const q of data.quests) {
     assert.ok(q.id && q.name && q.text && Number.isFinite(q.xp));
-    assert.ok(['build', 'recruit', 'assign', 'population', 'level', 'gather', 'upgrade'].includes(q.task.kind), q.id);
+    assert.ok(['build', 'recruit', 'assign', 'population', 'level', 'gather', 'upgrade', 'defeat'].includes(q.task.kind), q.id);
     if (q.task.kind === 'build') assert.ok(data.buildings[q.task.type], q.id);
     if (q.task.kind === 'recruit') assert.ok(data.troops[q.task.type], q.id);
     if (q.task.kind === 'upgrade') {
@@ -24,8 +24,17 @@ test('village data: workplaces, jobs, gear and quest chain all resolve', async (
   for (const [id, t] of Object.entries(data.troops)) {
     if (!t.job) continue;
     assert.ok(data.buildings[t.job.workplace], `${id} workplace`);
-    assert.equal(data.buildings[t.job.workplace].workplace, id, `${id} workplace hosts back`);
     assert.ok(data.items[t.defaultGear], `${id} gear`);
+  }
+  // Every workplace's declared line resolves — posting back directly
+  // (chapel declares healer) or through hosting (the Schoolroom declares
+  // apprentices, whom it welcomes via `hosts`). Second-choir lines like
+  // the chorister resolve through their own posting above.
+  for (const [bid, b] of Object.entries(data.buildings)) {
+    if (!b.workplace) continue;
+    const line = data.troops[b.workplace];
+    assert.ok(line, `${bid} line resolves`);
+    assert.ok(line.job?.workplace === bid || (b.hosts || []).includes(b.workplace), `${bid} line posts back or is hosted`);
   }
   const sprites = [];
   for (const b of Object.values(data.buildings)) for (const tier of b.tiers) sprites.push(tier.sprite);

@@ -283,8 +283,18 @@
         "rateMultiplier": 3,
         "damage": 45,
         "range": 4.9
+      },
+      {
+        "sprite": "tower-4.png",
+        "hp": 1280,
+        "rateMultiplier": 4,
+        "damage": 65,
+        "range": 5.2
       }
-    ]
+    ],
+    "tierGates": {
+      "4": 8
+    }
   },
   "trap": {
     "name": "Spike Trap",
@@ -583,8 +593,20 @@
         "rateMultiplier": 2,
         "damage": 0,
         "range": 0.75
+      },
+      {
+        "sprite": "chapel-3.png",
+        "hp": 660,
+        "rateMultiplier": 3,
+        "damage": 0,
+        "range": 0.75
       }
-    ]
+    ],
+    "tierUnlocks": {
+      "3": [
+        "bellcote"
+      ]
+    }
   },
   "forge": {
     "name": "Emberforge",
@@ -758,9 +780,19 @@
         "hp": 400,
         "rateMultiplier": 2,
         "damage": 20,
-        "range": 6.0
+        "range": 6
+      },
+      {
+        "sprite": "watchfire-3.png",
+        "hp": 600,
+        "rateMultiplier": 3,
+        "damage": 30,
+        "range": 6.5
       }
-    ]
+    ],
+    "tierGates": {
+      "3": 8
+    }
   },
   "mason_yard": {
     "name": "Mason Yard",
@@ -963,6 +995,159 @@
         "sprite": "market-2.png",
         "hp": 800,
         "rateMultiplier": 2,
+        "damage": 0,
+        "range": 0.75
+      }
+    ]
+  },
+  "oathstone": {
+    "name": "Oathstone",
+    "size": 1,
+    "cost": {
+      "wood": 100,
+      "gold": 100,
+      "plate": 6
+    },
+    "buildSeconds": 6,
+    "production": null,
+    "rate": 0,
+    "proximityAura": {
+      "armor": 0.1,
+      "radius": 3
+    },
+    "tiers": [
+      {
+        "sprite": "oathstone-1.png",
+        "hp": 400,
+        "rateMultiplier": 1,
+        "damage": 0,
+        "range": 0.75
+      }
+    ]
+  },
+  "fire-trap": {
+    "name": "Fire Trap",
+    "size": 1,
+    "cost": {
+      "wood": 40,
+      "gold": 40,
+      "frostwood": 20
+    },
+    "buildSeconds": 5,
+    "production": null,
+    "rate": 0,
+    "tiers": [
+      {
+        "sprite": "fire-trap-1.png",
+        "hp": 120,
+        "rateMultiplier": 1,
+        "damage": 60,
+        "range": 0.75,
+        "burn": 4,
+        "burnDuration": 3
+      }
+    ]
+  },
+  "bellcote": {
+    "name": "Bellcote",
+    "size": 1,
+    "cost": {
+      "wood": 90,
+      "gold": 70
+    },
+    "buildSeconds": 5,
+    "production": null,
+    "rate": 0,
+    "reviveMult": 0.5,
+    "tiers": [
+      {
+        "sprite": "bellcote-1.png",
+        "hp": 220,
+        "rateMultiplier": 1,
+        "damage": 0,
+        "range": 0.75
+      }
+    ]
+  },
+  "schoolroom": {
+    "name": "Schoolroom",
+    "size": 2,
+    "cost": {
+      "wood": 120,
+      "gold": 100
+    },
+    "buildSeconds": 6,
+    "production": null,
+    "rate": 0,
+    "workplace": "apprentice",
+    "xpRate": 0.06,
+    "tutorDiscount": 0.34,
+    "tiers": [
+      {
+        "sprite": "schoolroom-1.png",
+        "hp": 260,
+        "rateMultiplier": 1,
+        "damage": 0,
+        "range": 0.75
+      },
+      {
+        "sprite": "schoolroom-2.png",
+        "hp": 520,
+        "rateMultiplier": 2,
+        "damage": 0,
+        "range": 0.75
+      }
+    ],
+    "hosts": [
+      "apprentice"
+    ]
+  },
+  "fletcher": {
+    "name": "Fletcher",
+    "size": 1,
+    "cost": {
+      "wood": 100,
+      "gold": 60
+    },
+    "buildSeconds": 5,
+    "production": null,
+    "rate": 0,
+    "stockRate": 0.008333333333333333,
+    "arrowBuff": {
+      "roles": [
+        "archer",
+        "ranger",
+        "longbowman"
+      ],
+      "stat": "damage",
+      "value": 0.15
+    },
+    "tiers": [
+      {
+        "sprite": "fletcher-1.png",
+        "hp": 200,
+        "rateMultiplier": 1,
+        "damage": 0,
+        "range": 0.75
+      }
+    ]
+  },
+  "shieldwall-yard": {
+    "name": "Shieldwall Yard",
+    "size": 2,
+    "cost": {
+      "wood": 120,
+      "gold": 80
+    },
+    "buildSeconds": 6,
+    "production": null,
+    "rate": 0,
+    "serviceArmor": true,
+    "tiers": [
+      {
+        "sprite": "shieldwall-yard-1.png",
+        "hp": 300,
+        "rateMultiplier": 1,
         "damage": 0,
         "range": 0.75
       }

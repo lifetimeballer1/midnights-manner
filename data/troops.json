@@ -836,6 +836,23 @@
       "5": "attune",
       "10": "armor",
       "15": "mend"
+    },
+    "promotions": {
+      "healer": {
+        "minLevel": 15,
+        "from": [
+          "cottage",
+          "schoolroom"
+        ],
+        "text": "Takes the healer vows under the chapel lamp."
+      },
+      "haggler": {
+        "minLevel": 15,
+        "from": [
+          "schoolroom"
+        ],
+        "text": "Learns the true weights in Tam school market-term."
+      }
     }
   },
   "pikewoman": {
@@ -1082,6 +1099,155 @@
       "15": "appraise",
       "20": "veteran-x",
       "25": "master"
+    }
+  },
+  "oathsworn": {
+    "name": "Oathsworn",
+    "role": "combat",
+    "sprite": "oathsworn.png",
+    "color": "#b9c4d6",
+    "maxLevel": 25,
+    "base": {
+      "hp": 260,
+      "damage": 18,
+      "speed": 0.9,
+      "range": 1
+    },
+    "growth": {
+      "hp": 0.09,
+      "damage": 0.085,
+      "speed": 0.006
+    },
+    "levelCost": {
+      "gold": 24,
+      "food": 16
+    },
+    "recruitCost": {
+      "food": 60,
+      "gold": 45
+    },
+    "defaultGear": "oathblade",
+    "gatherResource": null,
+    "carry": 10,
+    "abilities": {
+      "5": "bulwark",
+      "10": "armor-ii",
+      "15": "oath",
+      "20": "veteran",
+      "25": "unbroken"
+    }
+  },
+  "chorister": {
+    "name": "Chorister",
+    "role": "keeper",
+    "sprite": "chorister.png",
+    "color": "#cfd8ea",
+    "maxLevel": 25,
+    "base": {
+      "hp": 85,
+      "damage": 6,
+      "speed": 1.2,
+      "range": 0.85
+    },
+    "growth": {
+      "hp": 0.09,
+      "damage": 0.085,
+      "speed": 0.006
+    },
+    "levelCost": {
+      "gold": 18,
+      "food": 12
+    },
+    "recruitCost": {
+      "food": 35,
+      "gold": 20
+    },
+    "defaultGear": "hymnal",
+    "gatherResource": null,
+    "carry": 6,
+    "job": {
+      "workplace": "chapel",
+      "effect": "chorus",
+      "text": "Sings the night offices; every posted chorister lifts the chapel's mending."
+    },
+    "abilities": {
+      "5": "attune",
+      "10": "armor",
+      "15": "mend",
+      "20": "veteran-x",
+      "25": "sage"
+    }
+  },
+  "halberdier": {
+    "name": "Halberdier",
+    "role": "combat",
+    "sprite": "halberdier.png",
+    "color": "#a33f31",
+    "maxLevel": 25,
+    "base": {
+      "hp": 170,
+      "damage": 20,
+      "speed": 1.1,
+      "range": 1.9
+    },
+    "growth": {
+      "hp": 0.09,
+      "damage": 0.085,
+      "speed": 0.006
+    },
+    "levelCost": {
+      "gold": 18,
+      "food": 12
+    },
+    "recruitCost": {
+      "food": 45,
+      "gold": 30
+    },
+    "defaultGear": "halberd",
+    "gatherResource": null,
+    "carry": 10,
+    "abilities": {
+      "5": "brace",
+      "10": "armor",
+      "15": "rally",
+      "20": "veteran",
+      "25": "phalanx"
+    }
+  },
+  "longbowman": {
+    "name": "Longbowman",
+    "role": "combat",
+    "sprite": "longbowman.png",
+    "color": "#6b7f5e",
+    "maxLevel": 25,
+    "base": {
+      "hp": 75,
+      "damage": 22,
+      "speed": 1.3,
+      "range": 5.5
+    },
+    "growth": {
+      "hp": 0.09,
+      "damage": 0.085,
+      "speed": 0.006
+    },
+    "levelCost": {
+      "gold": 18,
+      "food": 12
+    },
+    "recruitCost": {
+      "food": 45,
+      "gold": 30
+    },
+    "defaultGear": "longbow",
+    "gatherResource": null,
+    "carry": 10,
+    "abilities": {
+      "5": "volley",
+      "10": "keen",
+      "15": "camouflage",
+      "20": "veteran",
+      "25": "arrowstorm"
     }
   }
 }

@@ -447,7 +447,7 @@
       "wood": 30
     },
     "stats": {
-      "healAura": 1.0
+      "healAura": 1
     },
     "animation": "tap",
     "sprite": "item-brass-chalice.png"
@@ -462,7 +462,7 @@
       "wood": 30
     },
     "stats": {
-      "damage": 1.0,
+      "damage": 1,
       "range": 1.6
     },
     "animation": "brace",
@@ -769,5 +769,227 @@
     },
     "animation": "tap",
     "sprite": "item-coinmail.png"
+  },
+  "oathblade": {
+    "name": "Oathblade",
+    "roles": [
+      "oathsworn"
+    ],
+    "cost": {
+      "gold": 90,
+      "wood": 40
+    },
+    "stats": {
+      "damage": 1.3,
+      "range": 1.1
+    },
+    "animation": "oath",
+    "sprite": "item-oathblade.png"
+  },
+  "tower-shield": {
+    "name": "Tower Shield",
+    "slot": "armor",
+    "roles": [
+      "warrior",
+      "archer",
+      "warden",
+      "ranger",
+      "pikewoman",
+      "oathsworn",
+      "halberdier",
+      "longbowman"
+    ],
+    "cost": {
+      "gold": 100,
+      "plate": 2
+    },
+    "stats": {
+      "armor": 0.2,
+      "speed": 0.9
+    },
+    "animation": "tap",
+    "sprite": "item-tower-shield.png"
+  },
+  "siege-tongs": {
+    "name": "Siege Tongs",
+    "roles": [
+      "builder",
+      "mason"
+    ],
+    "cost": {
+      "gold": 90,
+      "wood": 30
+    },
+    "stats": {
+      "buildSpeed": 1.5,
+      "trapDamage": 0.2
+    },
+    "animation": "tap",
+    "sprite": "item-siege-tongs.png"
+  },
+  "ashen-cloak": {
+    "name": "Ashen Cloak",
+    "slot": "armor",
+    "roles": [
+      "builder",
+      "mason",
+      "smelter",
+      "scholar",
+      "scout",
+      "healer",
+      "weaponsmith",
+      "armorer",
+      "toolsmith",
+      "leatherworker",
+      "apprentice",
+      "haggler",
+      "chorister"
+    ],
+    "cost": {
+      "gold": 70,
+      "frostwood": 20
+    },
+    "stats": {
+      "armor": 0.12,
+      "burnResist": 1
+    },
+    "animation": "tap",
+    "sprite": "item-ashen-cloak.png"
+  },
+  "hymnal": {
+    "name": "Chapel Hymnal",
+    "roles": [
+      "chorister"
+    ],
+    "cost": {
+      "gold": 90,
+      "wood": 30
+    },
+    "stats": {
+      "healAura": 0.8
+    },
+    "animation": "tap",
+    "sprite": "item-hymnal.png"
+  },
+  "choir-robe": {
+    "name": "Choir Robe",
+    "slot": "armor",
+    "roles": [
+      "scholar",
+      "scout",
+      "healer",
+      "weaponsmith",
+      "armorer",
+      "toolsmith",
+      "leatherworker",
+      "apprentice",
+      "haggler",
+      "chorister"
+    ],
+    "cost": {
+      "gold": 80,
+      "wood": 40
+    },
+    "stats": {
+      "armor": 0.12,
+      "heal": 10
+    },
+    "animation": "tap",
+    "sprite": "item-choir-robe.png"
+  },
+  "primer": {
+    "name": "Tam Primer",
+    "roles": [
+      "apprentice"
+    ],
+    "cost": {},
+    "stats": {
+      "xp": 0.03
+    },
+    "animation": "tap",
+    "sprite": "item-primer.png"
+  },
+  "masters-ring": {
+    "name": "Master Ring",
+    "slot": "armor",
+    "roles": [
+      "scholar",
+      "scout",
+      "healer",
+      "weaponsmith",
+      "armorer",
+      "toolsmith",
+      "leatherworker",
+      "apprentice",
+      "haggler",
+      "chorister"
+    ],
+    "cost": {
+      "gold": 120,
+      "plate": 2
+    },
+    "stats": {
+      "armor": 0.1,
+      "aura": 0.05
+    },
+    "animation": "tap",
+    "sprite": "item-masters-ring.png"
+  },
+  "halberd": {
+    "name": "Red Halberd",
+    "roles": [
+      "halberdier"
+    ],
+    "cost": {
+      "gold": 80,
+      "wood": 40
+    },
+    "stats": {
+      "damage": 1.35,
+      "range": 1.9
+    },
+    "animation": "sweep",
+    "sprite": "item-halberd.png"
+  },
+  "longbow": {
+    "name": "Grey Longbow",
+    "roles": [
+      "longbowman",
+      "ranger",
+      "archer"
+    ],
+    "cost": {
+      "gold": 90,
+      "wood": 50
+    },
+    "stats": {
+      "damage": 1.3,
+      "range": 5.5
+    },
+    "animation": "arrow",
+    "sprite": "item-longbow.png"
+  },
+  "banner-cloak": {
+    "name": "Banner Cloak",
+    "slot": "armor",
+    "roles": [
+      "warrior",
+      "archer",
+      "warden",
+      "ranger",
+      "pikewoman",
+      "oathsworn",
+      "halberdier",
+      "longbowman"
+    ],
+    "cost": {
+      "gold": 60,
+      "wood": 30
+    },
+    "stats": {
+      "armor": 0.1
+    },
+    "animation": "tap",
+    "sprite": "item-banner-cloak.png"
   }
 }

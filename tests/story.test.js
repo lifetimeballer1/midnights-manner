@@ -15,11 +15,11 @@ function freshState(d) {
 }
 
 test('story item 1: every quest carries giver, flavor and act', () => {
-  assert.equal(data.quests.length, 16);
+  assert.equal(data.quests.length, 19, "nineteen steps: sixteen shipped plus the three Act VII trials");
   for (const q of data.quests) {
     assert.ok(typeof q.giver === 'string' && q.giver.length > 0, `${q.id} giver`);
     assert.ok(typeof q.flavor === 'string' && q.flavor.length > 0, `${q.id} flavor`);
-    assert.ok(['I', 'II', 'V', 'VI'].includes(q.act), `${q.id} act`);
+    assert.ok(['I', 'II', 'V', 'VI', 'VII'].includes(q.act), `${q.id} act`);
   }
   assert.deepEqual(data.quests.slice(0, 5).map(q => q.act), ['I', 'I', 'I', 'I', 'I']);
   assert.deepEqual(data.quests.slice(5, 8).map(q => q.act), ['II', 'II', 'II']);
@@ -42,9 +42,9 @@ test('story item 1: every quest carries giver, flavor and act', () => {
 });
 
 test('story item 1: every mission carries act, beat and ceremony lines', () => {
-  assert.equal(data.missions.length, 9);
+  assert.equal(data.missions.length, 12, "twelve chapters: nine shipped plus the pale host and twin banners");
   for (const m of data.missions) {
-    assert.ok(['III', 'IV', 'V', 'VI'].includes(m.act), `${m.id} act`);
+    assert.ok(['III', 'IV', 'V', 'VI', 'VII'].includes(m.act), `${m.id} act`);
     assert.ok(typeof m.beat === 'string' && m.beat.length > 0, `${m.id} beat`);
     for (const key of ['warning', 'victory', 'defeat'])
       assert.ok(typeof m.ceremony?.[key] === 'string' && m.ceremony[key].length > 0, `${m.id} ceremony.${key}`);

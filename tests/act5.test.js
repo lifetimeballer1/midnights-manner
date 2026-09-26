@@ -118,7 +118,7 @@ test('ph1: chart log pages persist for completed giver quests', () => {
 });
 
 test('ph1: no cloned kits; the branch missions arrive in phase 5', () => {
-  assert.equal(data.missions.length, 9);
+  assert.ok(data.missions.length >= 9, "nine chapters shipped; Act VII grows the campaign (exact count pinned in act7)");
   for (const [, t] of Object.entries(data.troops))
     for (const ab of Object.values(t.abilities)) assert.ok(data.abilities[ab], `ability ${ab} resolves`);
 });
@@ -289,7 +289,7 @@ test('ph4: sarella-s-standard demands two tier-2 upgrades, then a real choice', 
   assert.equal(q.giver, 'Sarella Emberwright');
   assert.ok(q.log && q.log.length > 0, 'Sarella persists as forge vendor');
   const total = data.quests.reduce((n, x) => n + x.xp, 0);
-  assert.equal(total, 1690, 'Quest 16 pushes the running total to 1690 (Act V still closed 20 short of 7)');
+  assert.equal(data.quests.filter(q => (q.act || "I") !== "VII").reduce((n, x) => n + x.xp, 0), 1690, 'Quest 16 pushes the running total to 1690 (Act V still closed 20 short of 7)');
   // All five tools are new SKUs in the toolkit cost band, quest-gated.
   const tools = {
     'runed-forgehammer': ['weaponsmith', 'damageAura', 0.1],
@@ -353,7 +353,7 @@ test('ph4: upgraded keeper tools buff their workplace auras when posted', () => 
 });
 
 test('ph5: the Pikewoman debuts the C1 melee-control kit', () => {
-  assert.equal(Object.keys(data.troops).length, 27);
+  assert.ok(Object.keys(data.troops).length >= 27, "roster grows by act; exact count pinned in act7");
   const p = data.troops.pikewoman;
   assert.equal(p.role, 'combat');
   assert.deepEqual([p.base.hp, p.base.damage, p.base.range], [150, 14, 1.6]);
@@ -462,5 +462,5 @@ test('ph5: kite-shield pads max HP; quest XP totals 1420 after the first pour', 
   assert.equal(u.armor, 'kite-shield');
   assert.equal(stats(u, d).hp, bare + 20);
   assert.ok(Math.abs(gearArmor(u, d) - 0.15) < 1e-9);
-  assert.equal(data.quests.reduce((n, q) => n + q.xp, 0), 1690, 'Quest 16 keeps level 7 landed through quest play');
+  assert.equal(data.quests.filter(q => (q.act || "I") !== "VII").reduce((n, x) => n + x.xp, 0), 1690, 'Quest 16 keeps level 7 landed through quest play');
 });
