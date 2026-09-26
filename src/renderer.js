@@ -1,20 +1,26 @@
 import {center,canPlace,stats,housing,assignedWorkers} from './model.js';
 export class Renderer {
- constructor(canvas,data,images){this.canvas=canvas;this.ctx=canvas.getContext('2d');this.data=data;this.images=images;this.grid=false;this.hover=null;this.selection=null;this.placing=null;this.moving=null;this.tw=43;this.th=22;this.ox=510;this.oy=97;this.shake=0;try{this.calm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch{this.calm=false;}}
- project(x,y){return {x:this.ox+(x-y)*this.tw/2,y:this.oy+(x+y)*this.th/2};}
- unproject(x,y){return {x:Math.floor((x-this.ox)/this.tw+(y-this.oy)/this.th),y:Math.floor((y-this.oy)/this.th-(x-this.ox)/this.tw)};}
+ constructor(canvas,data,images){this.canvas=canvas;this.ctx=canvas.getContext('2d');this.data=data;this.images=images;this.grid=false;this.hover=null;this.selection=null;this.placing=null;this.moving=null;this.tw=43;this.th=22;this.ox=510;this.oy=97;this.shake=0;this.cam={x:10,y:8,zoom:1};this.cx=550;this.cy=320;try{this.calm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch{this.calm=false;}}
+ base(x,y){return {x:this.ox+(x-y)*this.tw/2,y:this.oy+(x+y)*this.th/2};}
+ camBase(){return this.base(this.cam.x,this.cam.y);}
+ project(x,y){const b=this.base(x,y),c=this.camBase(),z=this.cam.zoom;return {x:this.cx+(b.x-c.x)*z,y:this.cy+(b.y-c.y)*z};}
+ unproject(x,y){const c=this.camBase(),z=this.cam.zoom,bx=c.x+(x-this.cx)/z,by=c.y+(y-this.cy)/z;return {x:Math.floor((bx-this.ox)/this.tw+(by-this.oy)/this.th),y:Math.floor((by-this.oy)/this.th-(bx-this.ox)/this.tw)};}
+ pan(dx,dy){const W=this.data.world.width,H=this.data.world.height;this.cam.x=Math.max(0,Math.min(W,this.cam.x+dx));this.cam.y=Math.max(0,Math.min(H,this.cam.y+dy));}
+ zoomBy(f){this.cam.zoom=Math.max(.5,Math.min(2,this.cam.zoom*f));}
+ resetCam(){this.cam={x:this.data.world.width/2,y:this.data.world.height/2,zoom:1};}
  cell(event){const r=this.canvas.getBoundingClientRect();return this.unproject((event.clientX-r.left)*this.canvas.width/r.width,(event.clientY-r.top)*this.canvas.height/r.height);}
- diamond(x,y,color,stroke){const c=this.ctx,p=this.project(x,y);c.beginPath();c.moveTo(p.x,p.y);c.lineTo(p.x+this.tw/2,p.y+this.th/2);c.lineTo(p.x,p.y+this.th);c.lineTo(p.x-this.tw/2,p.y+this.th/2);c.closePath();c.fillStyle=color;c.fill();if(stroke){c.strokeStyle=stroke;c.lineWidth=.6;c.stroke();}}
- sprite(name,x,y,size=56,alpha=1){const p=this.project(x,y),img=this.images[name];if(!img)return;this.ctx.globalAlpha=alpha;this.ctx.drawImage(img,Math.round(p.x-size/2),Math.round(p.y-size+12),size,size);this.ctx.globalAlpha=1;}
+ diamond(x,y,color,stroke){const c=this.ctx,p=this.project(x,y),z=this.cam.zoom,hw=this.tw/2*z,hh=this.th/2*z;c.beginPath();c.moveTo(p.x,p.y);c.lineTo(p.x+hw,p.y+hh);c.lineTo(p.x,p.y+hh*2);c.lineTo(p.x-hw,p.y+hh);c.closePath();c.fillStyle=color;c.fill();if(stroke){c.strokeStyle=stroke;c.lineWidth=.6;c.stroke();}}
+ sprite(name,x,y,size=56,alpha=1){const p=this.project(x,y),img=this.images[name];if(!img)return;const s=size*this.cam.zoom;this.ctx.globalAlpha=alpha;this.ctx.drawImage(img,Math.round(p.x-s/2),Math.round(p.y-s+12*this.cam.zoom),s,s);this.ctx.globalAlpha=1;}
  tree(x,y,n){const c=this.ctx,p=this.project(x,y),h=26+n%3*8;c.fillStyle='#0e1f1833';c.beginPath();c.ellipse(p.x+8,p.y+7,14,5,0,0,Math.PI*2);c.fill();c.fillStyle='#4a3826';c.fillRect(p.x-2,p.y-h/3,4,h/3+6);for(let l=0;l<3;l++){c.fillStyle=['#1f4a34','#2a5f42','#3a7a52'][l];const top=p.y-h+l*8;c.beginPath();c.moveTo(p.x,top);c.lineTo(p.x+14-l*2,top+20);c.lineTo(p.x-14+l*2,top+20);c.closePath();c.fill();}}
  draw(world,time){
   const c=this.ctx;c.clearRect(0,0,1100,740);c.imageSmoothingEnabled=false;
   if(!this.calm&&this.shake>0.2){c.save();c.translate((Math.random()-.5)*this.shake,(Math.random()-.5)*this.shake);this.shake*=.88;}
   // Ambient moonlit clearing over deep night soil.
   c.fillStyle='#16281f45';c.beginPath();c.ellipse(543,385,410,190,0,0,Math.PI*2);c.fill();
-  for(let y=-3;y<20;y++)for(let x=-3;x<24;x++){
+  const W=this.data.world.width,H=this.data.world.height;
+  for(let y=-3;y<H+4;y++)for(let x=-3;x<W+4;x++){
    const n=((x*67+y*113+10000)*17)%101, checker=(x+y)%2===0;
-   const edge=x<0||y<0||x>=20||y>=16;
+   const edge=x<0||y<0||x>=W||y>=H;
    const bounds=world.bounds||{w:20,h:16};
    // Wild rows: inside the map but outside the settled bounds — darker, red grid.
    const usable=edge||(x>=1&&y>=1&&x<=bounds.w-2&&y<=bounds.h-2);
@@ -26,8 +32,8 @@ export class Renderer {
    if(!edge&&n%9===0){const p=this.project(x+.5,y+.5);c.fillStyle='#6fae7a88';c.fillRect(p.x,p.y,2,3);c.fillRect(p.x+3,p.y-1,1,3);}
   }
   // Moonlit stream outside the settlement; a readable cool border for the map.
-  for(let i=-2;i<21;i++){this.diamond(i,17+(i%4===0?1:0),'#2e6b7a');const p=this.project(i+.5,17.5);c.fillStyle='#7fc4d4';c.fillRect(p.x-6,p.y+2,8,1);}
-  for(let i=0;i<20;i++){if(i%3!==0)this.tree(i,-1.5,i);if(i%2===0)this.tree(-1.5,i%16,i+2);if(i%3===0)this.tree(21,i%16,i);}
+  for(let i=-2;i<W+1;i++){this.diamond(i,H+1+(i%4===0?1:0),'#2e6b7a');const p=this.project(i+.5,H+1.5);c.fillStyle='#7fc4d4';c.fillRect(p.x-6,p.y+2,8,1);}
+  for(let i=0;i<W;i++){if(i%3!==0)this.tree(i,-1.5,i);if(i%2===0)this.tree(-1.5,i%H,i+2);if(i%3===0)this.tree(W+1,i%H,i);}
   // Lantern-lit dirt paths join the manor clearing, with a spur to the east fields.
   for(let x=4;x<16;x++)this.diamond(x,11,'#a8895a');for(let y=4;y<11;y++)this.diamond(10,y,'#a8895a');for(let y=8;y<11;y++)this.diamond(13,y,'#a8895a');
   if(this.placing&&this.hover){const valid=canPlace(world,this.data,this.placing,this.hover.x,this.hover.y,this.moving);const size=this.data.buildings[this.placing].size;for(let y=0;y<size;y++)for(let x=0;x<size;x++)this.diamond(this.hover.x+x,this.hover.y+y,valid?'#69a06bcc':'#c05a4ecc',valid?'#fff6d8':'#ffe3dc');}

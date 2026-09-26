@@ -14,9 +14,15 @@ async function boot(){
  canvas.addEventListener('pointermove',event=>{renderer.hover=renderer.cell(event);});
  canvas.addEventListener('pointerleave',()=>{renderer.hover=null;});
  canvas.addEventListener('click',event=>{renderer.hover=renderer.cell(event);ui.selectCell(renderer.hover);});
+ canvas.addEventListener('wheel',event=>{event.preventDefault();renderer.zoomBy(event.deltaY>0?0.9:1.1);},{passive:false});
  canvas.addEventListener('keydown',event=>{const arrows={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]};
   if(arrows[event.key]){event.preventDefault();const current=renderer.hover||{x:9,y:8},[dx,dy]=arrows[event.key];renderer.hover={x:Math.max(1,Math.min(data.world.width-2,current.x+dx)),y:Math.max(1,Math.min(data.world.height-2,current.y+dy))};renderer.grid=true;}
   if(event.key==='Enter'){event.preventDefault();ui.selectCell(renderer.hover||{x:9,y:8});}
+  const pan={w:[0,-1],s:[0,1],a:[-1,0],d:[1,0]}[event.key.toLowerCase()];
+  if(pan&&!arrows[event.key]){event.preventDefault();renderer.pan(pan[0],pan[1]);}
+  if(event.key==='+'||event.key==='=')renderer.zoomBy(1.1);
+  if(event.key==='-')renderer.zoomBy(0.9);
+  if(event.key==='0')renderer.resetCam();
  });
  document.addEventListener('keydown',event=>{if(event.key==='Escape')ui.cancel();});
  document.addEventListener('visibilitychange',()=>{if(document.hidden)game.persist();last=performance.now();accumulator=0;});
