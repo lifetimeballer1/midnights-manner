@@ -1,5 +1,6 @@
 ## 0.1.2 — Home Screen updates
 
+- Fixed a current-main merge regression that referenced wall-row controls before initialization and broke building selection; retained the Cairnfield memorial panel.
 - Settings now includes Check for updates and Save & refresh, with a map notice when a build is ready.
 - Refresh persists the village first and cancels on storage failure; updates wait for a player click.
 - Built games check on resume and every five visible minutes, with offline/download failure feedback.
