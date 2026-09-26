@@ -62,8 +62,36 @@
   ],
   "locked": [
     "trap",
+    "axe",
     "warhammer",
     "grove",
-    "watchfire"
-  ]
+    "watchfire",
+    "toolkit"
+  ],
+  "homeRaids": {
+    "firstAt": 300,
+    "interval": 240,
+    "warning": 15,
+    "firstCount": 2,
+    "baseCount": 3,
+    "perWave": 1,
+    "maxCount": 8,
+    "warningLines": [
+      "Horns on the west wind — riders under a pale moon. To the walls! They come in {count} heartbeats of {seconds}.",
+      "Dust on the west road and a horn through the pines. {count} raiders, {seconds} breaths out. Light the lamps.",
+      "The watchfire gutters — hoofbeats past the treeline. {count} coming, {seconds} to bar the doors."
+    ],
+    "attackLines": [
+      "Wave {wave} — {count} raiders! Hold the manor!",
+      "They are over the fence! Wave {wave}, {count} strong — stand together!"
+    ],
+    "victoryLines": [
+      "The bell rings long — the Manner stands. {kills} fell, their pouches ours (+{loot} gold). Mend what broke.",
+      "Quiet again. {kills} raiders down, +{loot} gold in salvage. Oil the hinges and reset the traps."
+    ],
+    "defeatLines": [
+      "The hall is ash and the bell is silent. Take the salvage wood and raise the beams again at dawn.",
+      "They broke the manor and melted into the trees. Salvage what you can — the village rises again."
+    ]
+  }
 }

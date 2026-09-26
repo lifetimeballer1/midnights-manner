@@ -32,7 +32,8 @@ export function makeBuilding(type,x,y,data,level=1) {
 export function createWorld(data,layout=data.world) {
   const full = {w:data.world.width,h:data.world.height};
   const bounds = copy(layout.bounds || (layout.map ? full : START_BOUNDS));
-  return {resources:copy(layout.startingResources),bounds,survey:0,childTimer:0,buildings:(layout.buildings||layout.map.buildings).map(b=>makeBuilding(b.type,b.x,b.y,data,b.level||1)),troops:(layout.troops||layout.map.troops).map((t,i)=>makeUnit(t,data,i)),enemies:[],effects:[],elapsed:0,gathered:{wood:0,food:0,gold:0},wave:0,raidTimer:0};
+  const cfg = data.world.homeRaids || {};
+  return {resources:copy(layout.startingResources),bounds,survey:0,childTimer:0,buildings:(layout.buildings||layout.map.buildings).map(b=>makeBuilding(b.type,b.x,b.y,data,b.level||1)),troops:(layout.troops||layout.map.troops).map((t,i)=>makeUnit(t,data,i)),enemies:[],effects:[],elapsed:0,gathered:{wood:0,food:0,gold:0},wave:0,raidTimer:0,nextRaidAt:Number.isFinite(cfg.firstAt)?cfg.firstAt:300};
 }
 export function afford(resources,cost) { return Object.entries(cost).every(([k,v])=>resources[k]>=v); }
 export function pay(resources,cost) {if(!afford(resources,cost)) return false; for(const [k,v] of Object.entries(cost)) resources[k]-=v; return true;}

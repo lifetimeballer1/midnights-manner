@@ -118,7 +118,7 @@
       "food": 150
     },
     "unlocks": [
-      "trap"
+      "axe"
     ],
     "requires": [
       "first-harvest"
@@ -293,7 +293,7 @@
     },
     "raids": [{ "at": 40, "count": 4 }, { "at": 130, "count": 6 }, { "at": 220, "count": 8 }],
     "rewards": { "gold": 400, "wood": 300, "food": 250 },
-    "unlocks": [],
+    "unlocks": ["toolkit"],
     "requires": ["moonwell"]
   }
 ]

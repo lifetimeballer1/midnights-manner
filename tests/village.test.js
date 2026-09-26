@@ -186,7 +186,7 @@ test('v1 saves migrate to v2 with progress intact', () => {
   const old = {version: 1, world: w, home: null, mission: null, completed: ['first-harvest'], unlocks: ['tower'], xp: undefined, questsCompleted: undefined};
   const wood = w.resources.wood, troops = w.troops.length;
   const out = migrate(structuredClone(old), data);
-  assert.equal(out.version, 3); // v1 -> v2 village-sim -> v3 living world
+  assert.equal(out.version, 4); // v1 -> v2 village-sim -> v3 living world -> v4 raid horns
   assert.deepEqual(out.bounds ?? out.world.bounds, {w: 20, h: 16}); // veterans keep the whole map
   assert.equal(out.world.resources.wood, wood);
   assert.equal(out.world.troops.length, troops);

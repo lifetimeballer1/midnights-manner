@@ -182,16 +182,17 @@ test('living world: MIGRATIONS[2] backfills old saves, touches nothing else', ()
   const v1 = {version: 1, world: structuredClone(w), home: null, mission: null, completed: ['x'], unlocks: ['tower'], xp: 42, questsCompleted: []};
   const a = migrateToLatest(structuredClone(v1), data);
   assert.equal(a.version, VERSION);
-  assert.equal(a.version, 3);
+  assert.equal(a.version, 4);
   assert.equal(a.tradeDay, null, 'last-claimed day defaults sanely');
   assert.deepEqual(a.tradesUsed, {});
   assert.equal(a.calendarDay, null, 'the bell will ring once on return');
+  assert.ok(Number.isFinite(a.world.nextRaidAt), 'a fresh raid clock starts');
   assert.equal(a.world.resources.wood, wood, 'stores untouched');
   assert.equal(a.world.troops.length, troops, 'people untouched');
   assert.equal(a.xp, 42, 'progress untouched');
   const v2 = {version: 2, world: structuredClone(w), home: null, mission: null, completed: [], unlocks: [], xp: 1, vlevel: 1, questsCompleted: [], survey: 0};
   const b = migrateToLatest(structuredClone(v2), data);
-  assert.equal(b.version, 3);
+  assert.equal(b.version, 4);
   assert.deepEqual(b.tradesUsed, {});
   // unknown futures still refuse to load
   assert.equal(migrateToLatest({version: 99, world: w}, data), null);
@@ -210,7 +211,7 @@ test('living world: export/import blob carries the new keys through the same reg
   assert.deepEqual(res.state.tradesUsed, {'lantern-timber': 1});
   const old = importSaveBlob(JSON.stringify({version: 2, world: createWorld(data), home: null, mission: null, completed: [], unlocks: [], xp: 0, vlevel: 1, questsCompleted: []}), data);
   assert.equal(old.ok, true);
-  assert.equal(old.state.version, 3, 'blobs migrate like local loads');
+  assert.equal(old.state.version, 4, 'blobs migrate like local loads');
 });
 
 test('living world: deal lines read clean', () => {

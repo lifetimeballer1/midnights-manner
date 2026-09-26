@@ -7,6 +7,30 @@ import {startMission,tickMission,finishMission} from './systems/campaign.js';
 import {load,save} from './storage.js';
 import {dayKey,seasonFor,modifierFor,calendarEffects,performTrade,marketOpen,describeDeal} from './systems/calendar.js';
 import {sfx} from './systems/audio.js';
+// Scheduled home raids: all timing and ceremony lines come from
+// data.world.homeRaids so balance and voice stay in JSON, not logic.
+function raidConfig(data) {
+  const c = data.world.homeRaids || {};
+  return {
+    firstAt: Number.isFinite(c.firstAt) ? c.firstAt : 300,
+    interval: Number.isFinite(c.interval) ? c.interval : 240,
+    warning: Number.isFinite(c.warning) ? c.warning : 15,
+    firstCount: Number.isFinite(c.firstCount) ? c.firstCount : 2,
+    baseCount: Number.isFinite(c.baseCount) ? c.baseCount : 3,
+    perWave: Number.isFinite(c.perWave) ? c.perWave : 1,
+    maxCount: Number.isFinite(c.maxCount) ? c.maxCount : 8,
+    warningLines: Array.isArray(c.warningLines) && c.warningLines.length ? c.warningLines : ['Horns in the west — {count} raiders, {seconds} to the walls!'],
+    attackLines: Array.isArray(c.attackLines) && c.attackLines.length ? c.attackLines : ['Wave {wave} — {count} raiders! Defend the manor!'],
+    victoryLines: Array.isArray(c.victoryLines) && c.victoryLines.length ? c.victoryLines : ['Raid repelled! {kills} raiders fell · +{loot} gold loot.'],
+    defeatLines: Array.isArray(c.defeatLines) && c.defeatLines.length ? c.defeatLines : ['The manor fell. Salvaged wood is available for repairs.']
+  };
+}
+function pickLine(lines, wave) { return lines[Math.max(0, wave) % lines.length]; }
+function fillLine(line, vars) { return String(line).replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? ''); }
+function scheduledCount(world, cfg) {
+  if (world.wave === 0) return cfg.firstCount;
+  return Math.min(cfg.maxCount, cfg.baseCount + world.wave * cfg.perWave);
+}
 export class Game {
  constructor(data){this.data=data;this.state=load(data)||{world:createWorld(data),home:null,mission:null,completed:[],unlocks:['tower'],xp:0,vlevel:1,questsCompleted:[],tradeDay:null,tradesUsed:{},calendarDay:dayKey(new Date()),gatheredAtBell:null};this.paused=false;this.message='Welcome home. Build a farm, equip your people, and prepare for the night.';this.dirty=true;this.saveTimer=0;}
  get world(){return this.state.world;}
@@ -112,8 +136,21 @@ export class Game {
  importState(state){this.state=state;this.paused=false;this.saveTimer=0;this.dirty=true;this.notify('Save restored. Welcome back to the village.');}
  tick(dt){if(this.paused||this.state.mission?.status&&this.state.mission.status!=='active')return;
   this.checkCalendar();
+  const cfg=raidConfig(this.data);
+  if(!this.state.mission&&!this.world.enemies.length&&!this.world.raidPending){
+   if(!Number.isFinite(this.world.nextRaidAt))this.world.nextRaidAt=this.world.elapsed+cfg.interval;
+   // Scheduled horns: the frontier comes calling on its own. Gentle first
+   // raid (a scouting pair) so new villages get five quiet minutes; the
+   // test button still works for the impatient. Never during a mission.
+   if(this.world.elapsed>=this.world.nextRaidAt&&this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)){
+    const count=scheduledCount(this.world,cfg);
+    this.world.raidPending={timer:cfg.warning,count,scheduled:true};this.world.raidKills=0;this.world.raidLoot=0;this.world.raidResult=null;sfx.horn();
+    this.notify(fillLine(pickLine(cfg.warningLines,this.world.wave),{count,seconds:Math.ceil(cfg.warning),wave:this.world.wave+1}));
+   }
+  }
   if(this.world.raidPending&&!this.state.mission){this.world.raidPending.timer-=dt;
-   if(this.world.raidPending.timer<=0){const {count}=this.world.raidPending;this.world.raidPending=null;spawnRaid(this.world,count);this.notify(`Wave ${this.world.wave} — ${count} raiders! Defend the manor!`);}}
+   if(this.world.raidPending.timer<=0){const {count,scheduled}=this.world.raidPending;this.world.raidPending=null;spawnRaid(this.world,count);
+    this.notify(scheduled?fillLine(pickLine(cfg.attackLines,this.world.wave),{count,wave:this.world.wave}):`Wave ${this.world.wave} — ${count} raiders! Defend the manor!`);}}
   const raided=!this.state.mission&&(this.world.enemies.length>0||this.world.raidPending);
   for(const b of this.world.buildings){const spec=this.data.buildings[b.type];if(spec.harvest&&b.hp>0&&b.remaining<=0)b.harvestBonus=Math.min(spec.harvest.capacity,Math.max(0,Number.isFinite(b.harvestBonus)?b.harvestBonus:0)+spec.harvest.bonusRate*b.level*dt);}
   this.world.elapsed+=dt;tickEconomy(this.world,this.data,dt);tickCombat(this.world,this.data,dt);tickVillage(this.state,this.data,dt,m=>this.notify(m));const before=this.state.mission?.status;tickMission(this.state,this.data);
@@ -121,9 +158,10 @@ export class Game {
    const damaged=this.world.buildings.filter(b=>b.hp<this.data.buildings[b.type].tiers[b.level-1].hp);
    const repairWood=damaged.reduce((n,b)=>n+Math.ceil((this.data.buildings[b.type].tiers[b.level-1].hp-b.hp)/15),0);
    this.world.raidResult={won:true,kills,loot,damaged:damaged.length,repairWood};sfx.win();
-   this.notify(`Raid repelled! ${kills} raiders fell · +${loot} gold loot${damaged.length?` · ${damaged.length} buildings need repair (${repairWood} wood)`:'. All buildings stand strong.'}`);this.persist();}
+   this.world.nextRaidAt=this.world.elapsed+cfg.interval;
+   this.notify(`${fillLine(pickLine(cfg.victoryLines,this.world.wave),{kills,loot,wave:this.world.wave})}${damaged.length?` ${damaged.length} buildings need repair (${repairWood} wood).`:' All buildings stand strong.'}`);this.persist();}
   if(before!==this.state.mission?.status){const m=this.data.missions.find(m=>m.id===this.state.mission.id);this.notify(this.state.mission.status==='won'?`${m?.ceremony?.victory||'Mission complete!'} Return home to claim your rewards.`:`${m?.ceremony?.defeat||'Expedition lost.'} Return home and try a different layout.`);this.persist();}
-  if(!this.state.mission&&!this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)&&this.world.enemies.length){const kills=this.world.raidKills??0,loot=this.world.raidLoot??0;this.world.enemies=[];this.world.resources.wood=Math.max(80,this.world.resources.wood);this.world.raidResult={won:false,kills,loot,damaged:this.world.buildings.filter(b=>b.hp<=0).length,repairWood:0};sfx.lose();this.notify('The manor fell. Salvaged wood is available for repairs.');}
+  if(!this.state.mission&&!this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)&&this.world.enemies.length){const kills=this.world.raidKills??0,loot=this.world.raidLoot??0;this.world.enemies=[];this.world.resources.wood=Math.max(80,this.world.resources.wood);this.world.raidResult={won:false,kills,loot,damaged:this.world.buildings.filter(b=>b.hp<=0).length,repairWood:0};sfx.lose();this.world.nextRaidAt=this.world.elapsed+cfg.interval;this.notify(fillLine(pickLine(cfg.defeatLines,this.world.wave),{kills,loot,wave:this.world.wave}));}
   this.saveTimer+=dt;if(this.saveTimer>5){this.saveTimer=0;this.persist();}
  }
 }

@@ -1,6 +1,6 @@
 const KEY='midnights-manner-v2';
 const OLD_KEY='midnights-manner-v1';
-export const VERSION = 3;
+export const VERSION = 4;
 // In-memory fallback when localStorage is missing (private mode, SSR, tests)
 // or full (quota). Saves still work for the session; persist() warns.
 const memFallback = new Map();
@@ -77,9 +77,39 @@ function migrateV2toV3(value, data) {
   value.version = 3;
   return value;
 }
+// v3 -> v4: scheduled home raids + unlock re-deal. Old saves get a raid
+// clock that starts fresh (one full interval of peace, never an instant
+// horn), and anyone who already cleared timber-line / last-stand gains the
+// new axe / toolkit unlocks their victories now earn. Additive only:
+// resources, buildings, troops and progress are never touched or removed.
+function migrateV3toV4(value, data) {
+  if (!value || typeof value !== 'object') return null;
+  const cfg = data.world.homeRaids || {};
+  const firstAt = Number.isFinite(cfg.firstAt) ? cfg.firstAt : 300;
+  const interval = Number.isFinite(cfg.interval) ? cfg.interval : 240;
+  for (const key of ['world', 'home']) {
+    const w = value[key];
+    if (!w || typeof w !== 'object') continue;
+    if (!Number.isFinite(w.nextRaidAt)) {
+      const elapsed = Number.isFinite(w.elapsed) ? w.elapsed : 0;
+      w.nextRaidAt = elapsed >= firstAt ? elapsed + interval : firstAt;
+    }
+  }
+  if (Array.isArray(value.completed) && Array.isArray(data.missions)) {
+    const earned = [];
+    for (const id of value.completed) {
+      const m = data.missions.find(m => m.id === id);
+      if (m && Array.isArray(m.unlocks)) earned.push(...m.unlocks);
+    }
+    if (!Array.isArray(value.unlocks)) value.unlocks = [];
+    value.unlocks = [...new Set([...value.unlocks, ...earned])];
+  }
+  value.version = 4;
+  return value;
+}
 // Versioned migration registry — add future steps here, never wipe saves.
 // Each entry maps version N -> function upgrading to N+1.
-const MIGRATIONS = {1: migrateV1toV2, 2: migrateV2toV3};
+const MIGRATIONS = {1: migrateV1toV2, 2: migrateV2toV3, 3: migrateV3toV4};
 export function migrate(value, data) {
   return migrateToLatest(value, data);
 }
