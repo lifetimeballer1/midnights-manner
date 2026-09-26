@@ -70,7 +70,14 @@ export function tickEconomy(world,data,dt) {
  const hall=world.buildings.find(b=>b.type==='hall'&&b.hp>0);if(!hall)return;
  for(const u of world.troops) {
   if(u.hp<=0)continue;
-  const spec=data.troops[u.type];if(spec.role!=='collector')continue;
+  const spec=data.troops[u.type];
+  // Posted specialists physically travel to their workshop; collectors keep
+  // their normal gather/deliver loop. Explicit player orders retain priority.
+  if(spec.role!=='collector'){
+   const workplace=world.buildings.find(b=>b.id===u.workplace&&b.hp>0&&b.remaining<=0);
+   if(workplace&&spec.role!=='combat'&&!u.order)move(world,data,u,center(workplace,data),stats(u,data).speed,dt,data.buildings[workplace.type].size/2+.6);
+   continue;
+  }
   if(u.order&&u.order.kind==='move'&&Number.isFinite(u.order.x)){if(move(world,data,u,u.order,stats(u,data).speed,dt,.4))u.order=null;continue;}
   if(u.order&&u.order.kind==='hold')continue;
   const source=sourceFor(world,data,spec,u);if(!source)continue;

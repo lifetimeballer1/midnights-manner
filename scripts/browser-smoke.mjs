@@ -43,6 +43,20 @@ try{
  await click('[data-action="close"]');await click('[data-tab="troops"]');await click('[data-gear="cart"]');await click('[data-level]');
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[2].gear'),'cart','equipment applies');
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[0].level'),2,'training applies');
+ await click('#close-panel');
+ // Manage a workplace from its map selection, then hire directly into it.
+ // The starting warrior stands in front of the crop bed: tap its upper half.
+ await tap(await evaluate('(()=>{const p=window.midnightsManner.project(7,10);return {x:p.x,y:p.y-40};})()'));
+ await screenshot('workplace-selection');
+ console.log('Workplace selection:',await evaluate('document.querySelector("#inspector").textContent'));
+ await click('[data-action="assign"]');
+ await click('[data-staff]');
+ assert.ok(await evaluate('window.midnightsManner.snapshot().world.troops.find(t=>t.type==="farmer").workplace'),'worker assigned from workplace');
+ await click('[data-release]');
+ assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops.find(t=>t.type==="farmer").workplace'),null,'release opens the job');
+ await click('[data-recruit="farmer"][data-workplace]');
+ assert.ok(await evaluate('window.midnightsManner.snapshot().world.troops.filter(t=>t.type==="farmer").at(-1).workplace'),'direct hire is assigned');
+ await screenshot('workplace');
  await click('#close-panel');await click('[data-tab="story"]');await click('[data-mission="first-harvest"]');
  assert.ok(await evaluate('window.midnightsManner.snapshot().mission'),'expedition starts');
  await click('[data-tab="story"]');await click('[data-home]');assert.equal(await evaluate('window.midnightsManner.snapshot().mission'),null,'return restores home');
