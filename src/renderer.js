@@ -78,7 +78,7 @@ export class Renderer {
    c.textAlign='left';
   }
   // Raid event banners: incoming warning, then wave + live kill counter.
-  const banner=(line,sub,color)=>{c.fillStyle=color;c.fillRect(300,58,500,54);c.strokeStyle='#f2c96e';c.lineWidth=2;c.strokeRect(300,58,500,54);c.fillStyle='#f6ecbb';c.font='bold 17px Arial';c.textAlign='center';c.fillText(line,550,80);c.font='12px Arial';c.fillStyle='#e8dcc0';c.fillText(sub,550,100);c.textAlign='left';};
+  const banner=(line,sub,color)=>{c.fillStyle=color;c.fillRect(280,52,540,66);c.strokeStyle='#f2c96e';c.lineWidth=3;c.strokeRect(280,52,540,66);c.lineWidth=1;c.strokeStyle='#f2c96e88';c.strokeRect(286,58,528,54);c.fillStyle='#f6ecbb';c.font='bold 20px Arial';c.textAlign='center';c.fillText(line,550,80);c.font='bold 13px Arial';c.fillStyle='#e8dcc0';c.fillText(sub,550,103);c.textAlign='left';};
   if(world.raidPending)banner('⚠ RAIDERS INCOMING ⚠',`${world.raidPending.count} raiders from the west — ${Math.ceil(world.raidPending.timer)}…`,'#7a2e26ee');
   else if(world.enemies.length&&(world.raidAge??99)<5)banner(`WAVE ${world.wave} — FIGHT!`,`${world.enemies.length} raiders remain · ${world.raidKills??0} slain`,'#3d3220ee');
   if(!this.calm&&this.shake>0.2)c.restore();else this.shake=0;
