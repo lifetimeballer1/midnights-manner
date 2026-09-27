@@ -57,3 +57,13 @@ test('reserveReady gates every tap surface the same way',()=>{
  assert.equal(reserveReady({...ready,harvestBonus:5,hp:0},spec),false,'ruins are not tappable');
  assert.equal(reserveReady({...ready,harvestBonus:5},data.buildings.hall),false,'the manor holds no reserve');
 });
+
+test('reaching full chimes once, stays quiet while full, and rearms after a tap',()=>{
+ const g=new Game(data);g.world.troops=[];const farms=g.world.buildings.filter(b=>data.buildings[b.type].production);for(const b of farms)b.harvestBonus=(data.buildings[b.type].harvest?.capacity??40)-.001;
+ const sound=muteCollect();try{
+  tickEconomy(g.world,data,.05);assert.equal(sound.calls(),1,'simultaneous fills have one chime');
+  for(let i=0;i<40;i++)tickEconomy(g.world,data,.05);assert.equal(sound.calls(),1,'full reserves never repeat');
+  g.harvest(farms[0].id);assert.equal(sound.calls(),2,'manual collection chimes');
+  farms[0].harvestBonus=data.buildings[farms[0].type].harvest.capacity-.001;tickEconomy(g.world,data,.05);assert.equal(sound.calls(),3,'refill chimes again');
+ }finally{sound.restore();}
+});

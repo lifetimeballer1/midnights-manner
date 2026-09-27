@@ -1,3 +1,9 @@
+## 3D orbit camera
+
+The village is rendered as original low-poly geometry with an orthographic orbit camera. Open the ↻ camera panel to turn through 360°, adjust the viewing height, or choose Low, Village, and Overhead views. Enable Orbit to rotate with one finger; turn it off to pan. Two fingers pan, pinch to zoom, and twist to rotate. On desktop, right-drag or Shift-drag rotates, Q/E turn, R/F tilt, and 0 restores the village view. Build placement automatically returns to pan mode. This is an orbit camera, not first-person movement.
+
+Buildings, walls, villagers, raiders, trees, and placement previews share the same 3D projection and visible-face selection. Existing saves and game rules are preserved. Resource chimes play on manual collection or once when a producer reaches capacity.
+
 # Midnights Manner
 
 ▶ **Play it here:** https://lifetimeballer1.github.io/midnights-manner/

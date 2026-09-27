@@ -1,3 +1,10 @@
+## 0.3.0 — A village from every angle
+
+- Original low-poly buildings, connected walls, trees, villagers, raiders, and placement previews replace fixed-angle map sprites.
+- Full 360° orbit, adjustable tilt, touch twist, desktop orbit controls, and three view presets.
+- Ground placement, selection, and defense ranges follow the camera angle; saved villages remain compatible.
+- Resource sounds play when collecting or when storage first fills, with simultaneous fills combined into one chime.
+
 ## 0.1.3 — Resource clarity and mobile finish
 
 - Original wood, food, gold, frostwood and plate icons replace tool placeholders in the resource HUD; labels remain visible on phones.

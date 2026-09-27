@@ -192,7 +192,6 @@ export function tickVillage(state, data, dt, notify) {
         const post = w.buildings.find(b => b.type === 'scout_post' && b.hp > 0);
         const at = post ? center(post, data) : {x:10, y:8};
         push(w, {x:at.x, y:at.y, tx:at.x, ty:at.y - 1.1, kind:'float', text:`Wild harvest +${WILD_HARVEST} food`, color:'#bfe3a8', life:.9});
-        sfx.collect();
       }
     }
   }

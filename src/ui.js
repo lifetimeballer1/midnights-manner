@@ -36,6 +36,14 @@ export class UI {
    if(b.id==='fullscreen'){if(document.fullscreenElement)document.exitFullscreen?.();else if(document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(()=>this.game.notify('Use Add to Home Screen for full-screen play.'));else this.game.notify('On iPhone: Safari → Share → Add to Home Screen.');}
    if(b.id==='help')$('#controls-recap').classList.toggle('help-highlight');this.refresh();
   };
+  $('#camera-menu').onclick=()=>{const p=$('#camera-panel');p.hidden=!p.hidden;$('#camera-menu').setAttribute('aria-expanded',String(!p.hidden));};
+  $('#camera-close').onclick=()=>{$('#camera-panel').hidden=true;$('#camera-menu').setAttribute('aria-expanded','false');};
+  $('#orbit-mode').onclick=()=>{this.renderer.orbitMode=!this.renderer.orbitMode;this.syncCamera();};
+  $('#turn-left').onclick=()=>{this.renderer.orbit(-Math.PI/8);this.syncCamera();};
+  $('#turn-right').onclick=()=>{this.renderer.orbit(Math.PI/8);this.syncCamera();};
+  $('#camera-tilt').oninput=e=>{this.renderer.cam.pitch=Number(e.target.value)*Math.PI/180;};
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{this.renderer.cam.pitch=({low:22,classic:31,top:78}[b.dataset.view])*Math.PI/180;this.syncCamera();});
+  $('#camera-reset').onclick=()=>{this.renderer.resetView();this.renderer.fitVillage(this.game.world);this.renderer.orbitMode=false;this.syncCamera();};
   $('#grid').onclick=()=>{this.renderer.grid=!this.renderer.grid;$('#grid').setAttribute('aria-pressed',String(this.renderer.grid));};
   $('#zoom-in').onclick=()=>this.renderer.zoomBy(1.18);$('#zoom-out').onclick=()=>this.renderer.zoomBy(1/1.18);$('#recenter').onclick=()=>this.renderer.fitVillage(this.game.world);
   $('#cancel').onclick=()=>this.cancel();$('#confirm-place').onclick=()=>this.confirmPlacement();
@@ -85,11 +93,12 @@ export class UI {
  renderFilters(){const filters=this.tab==='build'?[['all','All'],['economy','Resources'],['defense','Defenses'],['village','Village & jobs']]:this.tab==='troops'?[['all','Everyone'],['combat','Fighters'],['workers','Workers'],['recruit','Recruit']]:this.tab==='story'?[['chapters','Expeditions'],['quests','Village path'],['market','Trading'],['lore','Chronicle']]:[];$('#panel-filters').hidden=!filters.length;$('#panel-filters').innerHTML=filters.map(([id,label])=>`<button data-category="${id}" class="${id===this.category?'active':''}" aria-pressed="${id===this.category}">${label}</button>`).join('');}
  openPause(){if(!this.started)return;this.closePanel();this.cancel();this.game.paused=true;$('#pause-overlay').hidden=false;this.syncPause();$('#resume').focus();}
  closePause(){this.game.paused=false;$('#pause-overlay').hidden=true;$('#world').focus({preventScroll:true});this.refresh();}
+ syncCamera(){const r=this.renderer;$('#orbit-mode').textContent=`Orbit: ${r.orbitMode?'on':'off'}`;$('#orbit-mode').setAttribute('aria-pressed',String(r.orbitMode));$('#camera-heading').textContent=`${Math.round((r.cam.yaw||0)*180/Math.PI)}°`;if(document.activeElement!==$('#camera-tilt'))$('#camera-tilt').value=Math.round((r.cam.pitch||.536)*180/Math.PI);document.body.classList.toggle('orbit-mode',r.orbitMode);}
  syncPause(){$('#opt-sound').textContent=`Sound: ${isMuted()?'off':'on'}`;$('#opt-motion').textContent=`Motion: ${this.renderer.calm?'calm':'full'}`;$('#opt-grid').textContent=`Grid: ${this.renderer.grid?'on':'off'}`;}
  closeSelectionOnly(){this.selected=null;this.selectedTroop=null;this.renderer.selection=null;$('#inspector').hidden=true;}
  clearSelection(){this.closeSelectionOnly();this.refresh();}
  cancel(){this.expandMode=false;this.renderer.wallStart=null;this.renderer.placing=null;this.renderer.moving=null;this.closeSelectionOnly();this.placementHint();this.refresh();}
- startPlacement(type,id=null){this.closePanel();this.closeSelectionOnly();this.expandMode=false;this.renderer.placing=type;this.renderer.moving=id;this.renderer.grid=true;this.renderer.hover=null;this.renderer.wallStart=null;this.placementHint();this.game.notify('Tap or slide to position. Two fingers pan/zoom. Confirm when ready.');this.refresh();}
+ startPlacement(type,id=null){this.renderer.orbitMode=false;this.syncCamera();this.closePanel();this.closeSelectionOnly();this.expandMode=false;this.renderer.placing=type;this.renderer.moving=id;this.renderer.grid=true;this.renderer.hover=null;this.renderer.wallStart=null;this.placementHint();this.game.notify('Tap or slide to position. Two fingers pan/zoom. Confirm when ready.');this.refresh();}
  placementHint(){const r=this.renderer,type=r.placing;$('#placement').hidden=!type;document.body.classList.toggle('placing',!!type);if(!type)return;const b=this.game.data.buildings[type],cells=placementCells(r),unitCost=r.moving?{}:buildingCost(type,1,this.game.world,this.game.data),costs=Object.fromEntries(Object.entries(unitCost).map(([k,v])=>[k,v*Math.max(1,cells.length)]));const valid=cells.length&&cells.every(p=>canPlace(this.game.world,this.game.data,type,p.x,p.y,r.moving));const affordable=afford(this.game.world.resources,costs);$('#placement-hint').textContent=b.name+(cells.length>1?` · ${cells.length} segments`:'');$('#placement-cost').textContent=r.moving?'Move for free':cost(costs);$('#placement-state').textContent=!r.hover?'TAP OR SLIDE TO POSITION':!valid?'BLOCKED · CHOOSE ANOTHER TILE':!affordable?'NOT ENOUGH RESOURCES':'READY TO PLACE';$('#confirm-place').disabled=!valid||!affordable;$('#confirm-place').textContent=r.moving?'Move ✓':'Build ✓';}
  confirmPlacement(){const r=this.renderer;if(!r.placing||!r.hover)return;const {x,y}=r.hover;const type=r.placing;if(r.moving){if(this.game.relocate(r.moving,x,y))this.cancel();}else if(isWall({type})&&r.wallStart){if(this.game.buildWallRow(type,r.wallStart,r.hover)){r.wallStart=null;r.hover=null;}}else{const b=this.game.build(type,x,y);if(b){if(this.game.data.buildings[type].repeatPlace){r.hover=null;this.placementHint();}else{this.cancel();this.selected=b.id;r.selection=b.id;}}}this.refresh();}
  selectTroop(id){this.cancel();const unit=this.game.world.troops.find(t=>t.id===id&&t.hp>0);if(!unit)return;this.selectedTroop=id;this.renderer.selection=id;this.renderer.cam.x=unit.x;this.renderer.cam.y=unit.y;this.refresh();sfx.click();}
@@ -99,6 +108,7 @@ export class UI {
   const unit=hit?.kind==='unit'?g.world.troops.find(t=>t.id===hit.id):null;
   if(unit){this.selected=null;this.selectedTroop=unit.id;r.selection=unit.id;this.refresh();sfx.click();return;}
   if(this.selectedTroop){if(hit?.kind==='enemy')g.commandAttack(this.selectedTroop,hit.id);else g.commandMove(this.selectedTroop,cell.x,cell.y);this.refresh();return;}
+  if(hit?.kind==='scenery'){this.clearSelection();return;}
   const building=hit?.kind==='building'?g.world.buildings.find(b=>b.id===hit.id):g.world.buildings.find(b=>cell.x>=b.x&&cell.x<b.x+g.data.buildings[b.type].size&&cell.y>=b.y&&cell.y<b.y+g.data.buildings[b.type].size);
   // Clash-style tap: picking a building with a full reserve collects it first.
   const took=building&&reserveReady(building,g.data.buildings[building.type])?g.harvest(building.id):false;
@@ -113,7 +123,7 @@ export class UI {
   for(const el of this.panel.querySelectorAll('.gear-list'))el.scrollLeft=rails.get(railKey(el))||0;
   this.panel.scrollTop=scroll;this.lastPanel=html;
  }
- refresh(){const g=this.game,w=g.world,d=g.data;
+ refresh(){this.syncCamera();const g=this.game,w=g.world,d=g.data;
   const visibleResources=Object.entries(w.resources).filter(([key,value])=>['wood','food','gold'].includes(key)||value>0||w.buildings.some(b=>d.buildings[b.type].production===key));
   document.body.classList.toggle('many-resources',visibleResources.length>3);
   const resourceHTML=visibleResources.map(([key,value])=>`<button class="resource ${value<30?'low':''}" data-resource="${key}" aria-label="${Math.floor(value)} ${resourceInfo(key).label}. Open resource stores" style="--resource-color:${resourceInfo(key).color}">${img(resourceInfo(key).sprite)}<span><b>${Math.floor(value).toLocaleString()}</b><small>${resourceInfo(key).label}</small></span></button>`).join('');if($('#resources').innerHTML!==resourceHTML)$('#resources').innerHTML=resourceHTML;
@@ -132,7 +142,7 @@ export class UI {
   const units=w.troops.filter(t=>d.troops[t.type].role==='combat'),rail=units.map(u=>`<button class="army-card ${this.selectedTroop===u.id?'selected':''}" data-select-unit="${u.id}" aria-label="Select ${d.troops[u.type].name}, level ${u.level}" ${u.hp<=0?'disabled':''}><span class="unit-level">${u.level}</span>${img(d.troops[u.type].sprite)}<small>${d.troops[u.type].name}</small><span class="unit-health"><i style="width:${Math.ceil(u.hp/stats(u,d).hp*100)}%"></i></span></button>`).join('');if(rail!==this.lastRail){const scroll=$('#army-rail').scrollLeft;$('#army-rail').innerHTML=rail;$('#army-rail').scrollLeft=scroll;this.lastRail=rail;}
   if(!$('#drawer').hidden){if(this.tab==='build')this.renderBuild();else if(this.tab==='troops')this.renderTroops();else if(this.tab==='workplace')this.renderWorkplace();else if(this.tab==='resources')this.renderResources();else this.renderStory();}
   this.renderInspector();this.placementHint();this.renderRaidOverlay();
-  this.renderer.collectionObstacles=[...document.querySelectorAll('.chief,#resources,#quest-chip,.camera-tools,.bottom-hud,#inspector,#battle-hud')].filter(el=>el.getClientRects().length).map(el=>{const r=el.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height};});
+  this.renderer.collectionObstacles=[...document.querySelectorAll('.chief,#resources,#quest-chip,.camera-tools,.bottom-hud,#inspector,#battle-hud,#camera-panel')].filter(el=>el.getClientRects().length).map(el=>{const r=el.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height};});
   g.dirty=false;
  }
  renderRaidOverlay(){const g=this.game,w=g.world,el=$('#raid-overlay'),mission=g.state.mission;

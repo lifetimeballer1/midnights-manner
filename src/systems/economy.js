@@ -7,7 +7,7 @@ import {sfx} from './audio.js';
 export function addResource(world,resource,amount) {world.resources[resource]=(world.resources[resource]||0)+amount;world.gathered[resource]=(world.gathered[resource]||0)+amount;}
 // Clash-style reserves: production piles up on the building (capped by data
 // `harvest.capacity`) and only lands in the pool when tapped. Passive ticks
-// never spawn floaters and never play a sound — harvest() owns the feedback.
+// never spawn floaters; only a transition to full gives an automatic chime.
 let lastSplash=0;
 function push(world,effect){if(world.effects.length<140)world.effects.push(effect);}
 export function floatText(world,x,y,text,color){push(world,{x,y,tx:x,ty:y-1.1,kind:'float',text,color,life:.9});}
@@ -49,6 +49,7 @@ export function tickEconomy(world,data,dt) {
  if(!Number.isFinite(dt)||dt<=0)return;
  const bonus=builderBonuses(world,data);
  const aura=auras(world,data);
+ let filled=false;
  for(const b of world.buildings) {
   if(b.hp<=0)continue;
   if(b.remaining>0){b.remaining=Math.max(0,b.remaining-dt*bonus.speed);continue;}
@@ -65,8 +66,9 @@ export function tickEconomy(world,data,dt) {
    drain(b, made);
    const cap = spec.harvest?.capacity ?? 40;
    const held = Number.isFinite(b.harvestBonus) ? Math.max(0, b.harvestBonus) : 0;
-   b.harvestBonus = Math.min(cap, held + made);}
+   b.harvestBonus = Math.min(cap, held + made);if(held<cap&&b.harvestBonus>=cap)filled=true;}
  }
+ if(filled)sfx.collect(); // Batch simultaneous full sources into one chime.
  const hall=world.buildings.find(b=>b.type==='hall'&&b.hp>0);if(!hall)return;
  for(const u of world.troops) {
   if(u.hp<=0)continue;
