@@ -18,6 +18,13 @@ export class UI {
  constructor(game,renderer){this.game=game;this.renderer=renderer;this.tab='build';this.category='all';this.expandMode=false;this.selected=null;this.selectedTroop=null;this.clock=0;this.panel=$('#panel');this.lastMessage='';this.toastTime=0;this.lastPanel='';this.lastRail='';this.lastResult='';this.started=false;this.game.paused=true;this.bind();this.refresh();}
  blocked(){return !this.started||this.game.paused||!$('#drawer').hidden||!$('#raid-overlay').hidden;}
  bind(){
+  // Keep controls mounted between press and click, including slow touch taps.
+  this.controlPressed=false;
+  document.addEventListener('pointerdown',e=>{if(e.target.closest('button,input,select'))this.controlPressed=true;},true);
+  const release=()=>setTimeout(()=>{this.controlPressed=false;},0);
+  document.addEventListener('pointerup',release,true);
+  document.addEventListener('pointercancel',release,true);
+  window.addEventListener('blur',()=>{this.controlPressed=false;});
   $('#begin').onclick=()=>{this.started=true;$('#title').hidden=true;this.game.paused=false;this.renderer.fitVillage(this.game.world);$('#world').focus({preventScroll:true});this.game.notify('Your village awaits. Drag to explore; pinch to zoom.');this.refresh();};
   document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>this.openPanel(b.dataset.tab));
   $('#close-panel').onclick=()=>this.closePanel();$('#drawer-backdrop').onclick=()=>this.closePanel();
@@ -327,5 +334,5 @@ export class UI {
  }).join(''):'';
  el.innerHTML=`${close}<div class="inspector-head">${img(tier.sprite)}<div><span class="eyebrow">TIER ${b.level} · ${b.hp<=0?'RUINED':b.remaining>0?'BUILDING':'READY'}</span><h2>${spec.name}</h2><p>♥ ${Math.ceil(b.hp)} / ${tier.hp}${b.remaining>0?` · ${Math.ceil(b.remaining)}s remaining`:spec.production?` · ${spec.rate*tier.rateMultiplier} ${spec.production}/s into reserve`:tier.damage?` · ${tier.damage} damage`:''}</p></div></div><div class="hpbar"><div style="width:${hp*100}%"></div></div><div class="actions"><button class="gold-button" data-action="upgrade" ${max||tierGated||b.remaining>0||b.hp<=0||!afford(w.resources,upgradeCost)?'disabled':''}>${max?'Max tier':tierGated?`Tier ${b.level+1} needs LVL ${tierGate}`:`Upgrade<br><small>${cost(upgradeCost)}</small>`}</button><button data-action="move" ${w.enemies.length||w.raidPending?'disabled':''}>Move</button>${b.hp<tier.hp?`<button data-action="repair" ${w.resources.wood<repairCost?'disabled':''}>Repair<br><small>${repairCost} wood</small></button>`:''}${spec.workplace?`<button data-action="assign">Workers ${assignedWorkers(w,b.id).length}/${workplaceCapacity(b,d)}</button>`:''}${spec.production&&b.harvestBonus>=1?`<button data-action="harvest">Collect +${Math.floor(b.harvestBonus)} ${resourceInfo(spec.production).label}</button>`:''}${spec.serviceArmor?'<button data-action="service">Service armor<br><small>20 wood</small></button>':''}</div>${rowActions?`<div class="actions wall-row-actions">${rowActions}</div><p>Each ready segment gains one tier. Busy, ruined, gated and max-tier walls stay unchanged.</p>`:''}${spec.cairn?`<div class="cairn-roll"><h4>THE FALLEN — THE LAST WATCH</h4><p>${(w.fallen||[]).length? w.fallen.map(f=>`🕯 ${f.name} (${d.troops[f.type]?.name||f.type})`).join('<br>'):'No oathbound have fallen. The cairns stand ready, and pray they stand empty.'}</p></div>`:''}`;
 }
- tick(dt){this.clock+=dt;this.toastTime=Math.max(0,this.toastTime-dt);if(this.toastTime===0)$('#status').classList.remove('show');if(this.game.dirty||this.clock>.5){this.clock=0;this.refresh();}}
+ tick(dt){this.clock+=dt;this.toastTime=Math.max(0,this.toastTime-dt);if(this.toastTime===0)$('#status').classList.remove('show');if(!this.controlPressed&&(this.game.dirty||this.clock>.5)){this.clock=0;this.refresh();}}
 }
