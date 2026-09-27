@@ -89,10 +89,11 @@ try{
  await waitFor('window.midnightsManner.collectionBubbles().length > 0');
  const bubbles=await evaluate('window.midnightsManner.collectionBubbles()');
  assert.ok(bubbles.every(b=>/\+\d+ (Wood|Food|Gold|Frostwood|Plate)/.test(b.label)),'collection bubbles name their resources');
+ await screenshot('polished-village');
  const visiblePill=await evaluate('window.midnightsManner.collectionBubbles().find(b=>document.elementFromPoint(b.x+b.w/2,b.y+b.h/2)?.id==="world")');
  assert.ok(visiblePill,'collection touch target visible');
  const bonusBefore=await evaluate(`window.midnightsManner.snapshot().world.buildings.find(b=>b.id===${JSON.stringify(visiblePill.id)}).harvestBonus`);
- await screenshot('polished-village');await tap({x:visiblePill.x+visiblePill.w/2,y:visiblePill.y+visiblePill.h/2});
+ await tap({x:visiblePill.x+visiblePill.w/2,y:visiblePill.y+visiblePill.h/2});
  assert.ok((await evaluate(`window.midnightsManner.snapshot().world.buildings.find(b=>b.id===${JSON.stringify(visiblePill.id)}).harvestBonus`))<bonusBefore,'labeled bubble collects the right building');
  await click('[data-resource="wood"]');assert.ok(await evaluate('document.querySelector("#panel").textContent.includes("Wood")'),'resource stores open');await screenshot('polished-resources');await click('#close-panel');
  await click('[data-tab="build"]');await screenshot('polished-build');await click('#panel-search');await call('Input.insertText',{text:'Wheat'});
