@@ -278,3 +278,9 @@ Vignette/moon-glow/day-grade stay dynamic overlays (not baked) so the cached bui
 - Wiring: quest list + completion toasts show giver/flavor; mission cards show act/beat/warning, result overlay and return-home toasts speak ceremony lines; notice board rotates daily in the story panel; legends rotate on the title screen; every 10th newborn arrival earns a trade-name shown in the People panel.
 - Tests: tests/story.test.js (7 checks: field shape, stripped-data compat, deterministic picks, named arrival, no save keys). Next: calendar + traders (needs MIGRATIONS[2]), charters + records (needs UI surface) — design only.
 
+
+## Survival city Phase 2 — raid director
+- Added bounded, randomized home-raid pacing and threat from settlement growth.
+- Added longer scout warnings, saved recovery periods, and Adventure survival feedback.
+- Preserved campaign raid schedules, manual defense tests, first scouts, building damage, repair and salvage.
+- Verified 312 unit tests and production build. Browser verification runs in GitHub Actions; local Chrome is unavailable.

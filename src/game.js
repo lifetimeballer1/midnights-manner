@@ -1,3 +1,4 @@
+import {ensureDirector,directorConfig,directorParty,scheduleRecovery} from './systems/raid-director.js';
 import {resourceLabel,resourceInfo} from './resources.js';
 import {wallRowQuote,wallLine,isWall} from './systems/walls.js';
 import {nextStep,blocked} from './systems/pathfinding.js';
@@ -7,7 +8,7 @@ import {claimCheck,setClaimed,claimRect,claimRegion,claimPreclaimed,regionFor} f
 import {tickVillage,gainXp} from './systems/village.js';
 import {tickEconomy} from './systems/economy.js';
 import {tickExpeditions,startExpedition} from './systems/expeditions.js';
-import {tickCombat,spawnRaid,activateAbility} from './systems/combat.js';
+import {tickCombat,spawnRaid,activateAbility,raidSides} from './systems/combat.js';
 import {startMission,tickMission,finishMission} from './systems/campaign.js';
 import {load,save} from './storage.js';
 import {dayKey,seasonFor,modifierFor,calendarEffects,performTrade,marketOpen,describeDeal} from './systems/calendar.js';
@@ -32,10 +33,6 @@ function raidConfig(data) {
 }
 function pickLine(lines, wave) { return lines[Math.max(0, wave) % lines.length]; }
 function fillLine(line, vars) { return String(line).replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? ''); }
-function scheduledCount(world, cfg) {
-  if (world.wave === 0) return cfg.firstCount;
-  return Math.min(cfg.maxCount, cfg.baseCount + world.wave * cfg.perWave);
-}
 export class Game {
  constructor(data){this.data=data;this.state=load(data)||{world:createWorld(data),home:null,mission:null,completed:[],unlocks:['tower'],xp:0,vlevel:1,questsCompleted:[],tradeDay:null,tradesUsed:{},calendarDay:dayKey(new Date()),gatheredAtBell:null};
  // Frontier claims (Phase 2b): pre-expansion saves have no tile grid —
@@ -271,7 +268,7 @@ export class Game {
  }
  clearOrder(id){const u=this.world.troops.find(t=>t.id===id);if(!u)return false;u.order=null;this.notify(`${this.data.troops[u.type].name} resuming duties.`);return true;}
  raid(count){if(this.state.mission)return this.notify('Campaign raids follow the mission timeline.');if(this.world.enemies.length||this.world.raidPending)return this.notify('A raid is already underway.');if(!this.world.buildings.some(b=>b.type==='hall'&&b.hp>0))return this.notify('Repair the manor before another raid.');
-  const party=count??(this.world.wave===0?3:4+this.world.wave);this.world.raidPending={timer:3,count:party};this.world.raidKills=0;this.world.raidLoot=0;this.world.raidResult=null;sfx.horn();this.notify(`Scouts report ${party} raiders from the west — 3 seconds to positions!`);}
+  const party=count??(this.world.wave===0?3:4+this.world.wave);this.world.raidPending={timer:3,count:party};this.world.raidKills=0;this.world.raidLoot=0;this.world.raidResult=null;sfx.horn();this.notify(`Scouts report ${party} raiders from ${raidSides(this.world.wave+1,party).join(" / ")} — 3 seconds to positions!`);}
  mission(id){const m=this.data.missions.find(m=>m.id===id);if(startMission(this.state,this.data,id))this.notify(`${m?.ceremony?.warning||'Expedition begun.'} Your home village is safely paused.`);else this.notify('Finish the current raid or unlock the previous chapter first.');}
  returnHome(){const m=this.data.missions.find(m=>m.id===this.state.mission?.id);const result=finishMission(this.state,this.data);if(result?.first)this.notify(`${m?.ceremony?.victory||'Victory!'} Rewards and unlocks delivered to your village.`);else if(result?.won)this.notify('Returned home. First-clear rewards can only be claimed once.');else this.notify(`${m?.ceremony?.defeat||'Expedition lost.'} Your home is safe.`);this.persist();}
  trade(id,date=new Date()){
@@ -330,13 +327,15 @@ export class Game {
  tick(dt){if(this.paused||this.state.mission?.status&&this.state.mission.status!=='active')return;
   this.checkCalendar();
   const cfg=raidConfig(this.data);
+  if(!this.state.mission)ensureDirector(this.world,this.data);
   if(!this.state.mission&&!this.world.enemies.length&&!this.world.raidPending){
    if(!Number.isFinite(this.world.nextRaidAt))this.world.nextRaidAt=this.world.elapsed+cfg.interval;
    // Scheduled horns: the frontier comes calling on its own. Gentle first
    // raid (a scouting pair) so new villages get five quiet minutes; the
    // test button still works for the impatient. Never during a mission.
    if(this.world.elapsed>=this.world.nextRaidAt&&this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)){
-    const count=scheduledCount(this.world,cfg);
+    const count=directorParty(this.state,this.data);
+    cfg.warning=directorConfig(this.data).warning;
     this.world.raidPending={timer:cfg.warning,count,scheduled:true};this.world.raidKills=0;this.world.raidLoot=0;this.world.raidResult=null;sfx.horn();
     this.notify(fillLine(pickLine(cfg.warningLines,this.world.wave),{count,seconds:Math.ceil(cfg.warning),wave:this.world.wave+1}));
    }
@@ -350,10 +349,10 @@ export class Game {
    const damaged=this.world.buildings.filter(b=>b.hp<this.data.buildings[b.type].tiers[b.level-1].hp);
    const repairWood=damaged.reduce((n,b)=>n+Math.ceil((this.data.buildings[b.type].tiers[b.level-1].hp-b.hp)/15),0);
    this.world.raidResult={won:true,kills,loot,damaged:damaged.length,repairWood};sfx.win();
-   this.world.nextRaidAt=this.world.elapsed+cfg.interval;
+   scheduleRecovery(this.state,this.data,true);
    this.notify(`${fillLine(pickLine(cfg.victoryLines,this.world.wave),{kills,loot,wave:this.world.wave})}${damaged.length?` ${damaged.length} buildings need repair (${repairWood} wood).`:' All buildings stand strong.'}`);this.persist();}
   if(before!==this.state.mission?.status){const m=this.data.missions.find(m=>m.id===this.state.mission.id);this.notify(this.state.mission.status==='won'?`${m?.ceremony?.victory||'Mission complete!'} Return home to claim your rewards.`:`${m?.ceremony?.defeat||'Expedition lost.'} Return home and try a different layout.`);this.persist();}
-  if(!this.state.mission&&!this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)&&this.world.enemies.length){const kills=this.world.raidKills??0,loot=this.world.raidLoot??0;this.world.enemies=[];this.world.inRaid=false;this.world.raidLosses=0;this.world.resources.wood=Math.max(80,this.world.resources.wood);this.world.raidResult={won:false,kills,loot,damaged:this.world.buildings.filter(b=>b.hp<=0).length,repairWood:0};sfx.lose();this.world.nextRaidAt=this.world.elapsed+cfg.interval;this.notify(fillLine(pickLine(cfg.defeatLines,this.world.wave),{kills,loot,wave:this.world.wave}));}
+  if(!this.state.mission&&!this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)&&this.world.enemies.length){const kills=this.world.raidKills??0,loot=this.world.raidLoot??0;this.world.enemies=[];this.world.inRaid=false;this.world.raidLosses=0;this.world.resources.wood=Math.max(80,this.world.resources.wood);this.world.raidResult={won:false,kills,loot,damaged:this.world.buildings.filter(b=>b.hp<=0).length,repairWood:0};sfx.lose();scheduleRecovery(this.state,this.data,false);this.notify(fillLine(pickLine(cfg.defeatLines,this.world.wave),{kills,loot,wave:this.world.wave}));}
   this.saveTimer+=dt;if(this.saveTimer>5){this.saveTimer=0;this.persist();}
  }
 }

@@ -1,3 +1,4 @@
+import {survivalStatus} from './systems/raid-director.js';
 // Adventure drawer helpers (Phase 1): pure, DOM-free derivations for the
 // restructured Adventure panel (Home / Quests / Expeditions / Campaign /
 // Chronicle). No rendering, no state mutation, no save keys — presentation
@@ -145,6 +146,7 @@ export function homeSummary(state, data) {
     quest, progress, questsDone, questsTotal,
     lvl, xp, xpLo: lo, xpHi: hi, nextLevel,
     beds, foodBalance, growth,
+    survival: survivalStatus(state,data),
     wave: (w.wave || 0) + 1, raidIncoming, raidActive,
     raidCount: raidIncoming ? w.raidPending.count : raidActive ? w.enemies.length : 0,
     away: !!state?.mission,

@@ -3,9 +3,27 @@
   "height": 34,
   "seed": 7,
   "tiles": [
-    {"x": 3, "y": 3, "biome": "water", "landmark": "Stillwater", "claimed": true},
-    {"x": 15, "y": 12, "biome": "forest", "landmark": "Timber Line", "claimed": true},
-    {"x": 16, "y": 4, "biome": "plains", "landmark": "Moonwell", "claimed": true}
+    {
+      "x": 3,
+      "y": 3,
+      "biome": "water",
+      "landmark": "Stillwater",
+      "claimed": true
+    },
+    {
+      "x": 15,
+      "y": 12,
+      "biome": "forest",
+      "landmark": "Timber Line",
+      "claimed": true
+    },
+    {
+      "x": 16,
+      "y": 4,
+      "biome": "plains",
+      "landmark": "Moonwell",
+      "claimed": true
+    }
   ],
   "startingResources": {
     "wood": 320,
@@ -147,21 +165,28 @@
     "perWave": 1,
     "maxCount": 8,
     "warningLines": [
-      "Horns on the night wind — riders under a pale moon. To the walls! They come in {count} heartbeats of {seconds}.",
+      "Horns on the night wind \u2014 riders under a pale moon. To the walls! They come in {count} heartbeats of {seconds}.",
       "Dust on the border roads and a horn through the pines. {count} raiders, {seconds} breaths out. Light the lamps.",
-      "The watchfire gutters — hoofbeats past the treeline. {count} coming, {seconds} to bar the doors."
+      "The watchfire gutters \u2014 hoofbeats past the treeline. {count} coming, {seconds} to bar the doors."
     ],
     "attackLines": [
-      "Wave {wave} — {count} raiders! Hold the manor!",
-      "They are over the fence! Wave {wave}, {count} strong — stand together!"
+      "Wave {wave} \u2014 {count} raiders! Hold the manor!",
+      "They are over the fence! Wave {wave}, {count} strong \u2014 stand together!"
     ],
     "victoryLines": [
-      "The bell rings long — the Manner stands. {kills} fell, their pouches ours (+{loot} gold). Mend what broke.",
+      "The bell rings long \u2014 the Manner stands. {kills} fell, their pouches ours (+{loot} gold). Mend what broke.",
       "Quiet again. {kills} raiders down, +{loot} gold in salvage. Oil the hinges and reset the traps."
     ],
     "defeatLines": [
       "The hall is ash and the bell is silent. Take the salvage wood and raise the beams again at dawn.",
-      "They broke the manor and melted into the trees. Salvage what you can — the village rises again."
-    ]
+      "They broke the manor and melted into the trees. Salvage what you can \u2014 the village rises again."
+    ],
+    "director": {
+      "minQuiet": 240,
+      "maxQuiet": 480,
+      "recovery": 180,
+      "defeatRecovery": 360,
+      "warning": 25
+    }
   }
 }
