@@ -172,3 +172,11 @@ Read this README before editing. Keep game data separate from logic. Maintain ho
 > Deliverables: a GitHub repo with a clear folder structure (/src, /assets, /data for JSON configs), a working GitHub Actions deploy to GitHub Pages, and a README describing how to add new troops/buildings/missions via the data files.
 > Start by scaffolding the repo structure and the core game loop (grid rendering, troop object model, resource ticking), then layer in the ability/leveling system, then base defenses, then story mode.
 > Can you start in the call it midnights manner save this prompt in the readme so all the workers can work off it
+
+## Survival city upgrade — Phase 2
+
+Adventure uses five sections: Home, Quests, Expeditions, Campaign, and Chronicle; the Grey Market remains reachable from Home. Home now shows settlement threat (buildings, people, stores, progression and previous waves) and recovery status.
+
+The home raid director preserves the first scouting pair after five minutes. Later attacks roll a saved quiet window of 4–8 active-play minutes; higher threat shortens the random portion and increases the party within the existing eight-raider cap. Scouts give 25 seconds of warning. Victory grants at least three minutes of recovery, defeat six, plus time for damaged buildings. The next deadline cannot precede recovery. Buildings still require repair and ruins stop production; the manor defeat salvage and troop revival rules remain intact. Test your defenses explicitly bypasses quiet time. Campaign maps keep their authored timelines and pause the home clock. These optional saved fields load additively without resetting existing saves.
+
+Balance settings live in `data/world.json` under `homeRaids.director`. Factions, emergency AI, research and the later survival-city phases are separate follow-up work.
