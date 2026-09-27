@@ -59,7 +59,6 @@ test('ready badge waits for the data-driven threshold, taps still sweep drips',(
  assert.equal(reserveReady({...ready,harvestBonus:at,remaining:3},spec),false,'construction is not announced');
  assert.equal(reserveReady({...ready,harvestBonus:at,hp:0},spec),false,'ruins are not announced');
  assert.equal(reserveReady({...ready,harvestBonus:at},data.buildings.hall),false,'the manor holds no reserve');
- // Taps ignore the threshold: whatever is banked can always be collected.
  assert.equal(reserveCollectible({...ready,harvestBonus:at-1},spec),true,'drips stay collectible');
  assert.equal(reserveCollectible({...ready,harvestBonus:0.9},spec),false,'fractions wait');
  const g=new Game(data);const b=g.world.buildings.find(b=>b.type==='farm');
@@ -74,13 +73,13 @@ test('reserveNotifyAt falls back to ~30% of the cap without code',()=>{
  assert.equal(reserveNotifyAt({production:'food'}),150,'missing harvest block still silences drips');
 });
 
-test('reaching full chimes once, stays quiet while full, and rearms after a tap',()=>{
+test('reserve fill stays quiet; only manual collection chimes',()=>{
  const g=new Game(data);g.world.troops=[];const farms=g.world.buildings.filter(b=>data.buildings[b.type].production);for(const b of farms)b.harvestBonus=reserveCapacity(data.buildings[b.type],b.level)-.001;
  const sound=muteCollect();try{
-  tickEconomy(g.world,data,.05);assert.equal(sound.calls(),1,'simultaneous fills have one chime');
-  for(let i=0;i<40;i++)tickEconomy(g.world,data,.05);assert.equal(sound.calls(),1,'full reserves never repeat');
-  g.harvest(farms[0].id);assert.equal(sound.calls(),2,'manual collection chimes');
-  farms[0].harvestBonus=reserveCapacity(data.buildings[farms[0].type],farms[0].level)-.001;tickEconomy(g.world,data,.05);assert.equal(sound.calls(),3,'refill chimes again');
+  tickEconomy(g.world,data,.05);assert.equal(sound.calls(),0,'filling to capacity never chimes');
+  for(let i=0;i<40;i++)tickEconomy(g.world,data,.05);assert.equal(sound.calls(),0,'full reserves stay quiet');
+  g.harvest(farms[0].id);assert.equal(sound.calls(),1,'manual collection chimes once');
+  farms[0].harvestBonus=reserveCapacity(data.buildings[farms[0].type],farms[0].level)-.001;tickEconomy(g.world,data,.05);assert.equal(sound.calls(),1,'refill does not chime');
  }finally{sound.restore();}
 });
 
@@ -101,7 +100,6 @@ test('capacity and threshold grow with tier, tunable without code',()=>{
  assert.equal(reserveCapacity(spec,3),1500);
  assert.equal(reserveNotifyAt(spec,2),300,'badge scales with the tier cap (~30%)');
  assert.equal(reserveNotifyAt(spec,3),450);
- // Explicit per-tier arrays win without code changes.
  const custom={production:'food',harvest:{capacity:500,notifyAt:150,capacities:[500,750,2000]}};
  assert.equal(reserveCapacity(custom,2),750);
  assert.equal(reserveCapacity(custom,3),2000);
