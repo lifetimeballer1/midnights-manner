@@ -1,7 +1,7 @@
 import {resourceLabel,resourceInfo} from './resources.js';
 import {wallRowQuote,wallLine,isWall} from './systems/walls.js';
 import {nextStep,blocked} from './systems/pathfinding.js';
-import {createWorld,makeBuilding,makeUnit,canPlace,inBounds,pay,afford,stats,buildingCost,center,assignmentValid,promotionOptions} from './model.js';
+import {createWorld,makeBuilding,makeUnit,canPlace,inBounds,pay,afford,stats,buildingCost,center,assignmentValid,promotionOptions,housing} from './model.js';
 import {buildTiles} from './systems/biomes.js';
 import {claimCheck,setClaimed,claimRect,claimRegion,claimPreclaimed,regionFor} from './systems/expansion.js';
 import {tickVillage,gainXp} from './systems/village.js';
@@ -179,8 +179,8 @@ export class Game {
   if(!this.data.troops[type])return this.notify('Unknown calling.');
   if(this.locked(type))return this.notify('That calling is not yet earned — quests and campaign chapters unlock new people.');
   if(!this.world.buildings.some(b=>b.type==='barracks'&&b.hp>0&&b.remaining<=0))return this.notify('Build a barracks first.');
-  const mission=this.data.missions.find(m=>m.id===this.state.mission?.id),limit=mission?.troopLimit||16;
-  if(this.world.troops.length>=limit)return this.notify(`Your troop limit is ${limit}.`);
+  const mission=this.data.missions.find(m=>m.id===this.state.mission?.id),limit=mission?mission.troopLimit||16:Math.max(16,housing(this.world,this.data).beds);
+  if(this.world.troops.length>=limit)return this.notify(`Your troop limit is ${limit}${mission?'':' — build homes to raise it'}.`);
   const unit=makeUnit(type,this.data,this.world.troops.length%5);
   const preferred=workplaceId?this.world.buildings.find(b=>b.id===workplaceId):null;
   if(workplaceId&&(!preferred||!assignmentValid(this.world,this.data,unit,preferred)))return this.notify('This workplace is full, unfinished, or unavailable. No resources spent.');
