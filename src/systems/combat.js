@@ -1,3 +1,4 @@
+import {enemyRole,defenseTarget,retreat,enemyBuildingTarget} from './tactics.js';
 import {distance,center,stats,unlockedAbilities,auras,gearArmor,proximityArmor,reviveFraction,siegeBonus} from '../model.js';
 import {move,blocked} from './pathfinding.js';
 import {isWall} from './walls.js';
@@ -6,7 +7,7 @@ export function raidSides(wave,count) {
  const sides=['west','north','east','south'];
  return Array.from({length:Math.min(4,count)},(_,i)=>sides[(Math.max(0,wave-1)+i)%4]);
 }
-export function spawnRaid(world,count=4,scaling=null,data=null) {
+export function spawnRaid(world,count=4,scaling=null,data=null,faction=null) {
  world.wave++;world.raidTimer=0;world.raidAge=0;world.raidKills=world.raidKills??0;world.raidLoot=world.raidLoot??0;
  // Wave-scaled missions (the Pale Host onward): a mission may steepen the
  // climb through data `scaling: {hp, damage}` per wave. Home raids omit
@@ -25,7 +26,8 @@ export function spawnRaid(world,count=4,scaling=null,data=null) {
    return vertical?{x:side==='west'?.5:width-.5,y:along}:{x:along,y:side==='north'?.5:height-.5};
   });
   const entry=entries.find(p=>!data||!blocked(world,data,Math.floor(p.x),Math.floor(p.y)));
-  if(entry)world.enemies.push({id:crypto.randomUUID(),...entry,hp,maxHp:hp,damage:dmg,attackTimer:i*.2,animation:0});
+  if(entry){const role=faction?.roles[i%faction.roles.length],spec=data?.world.enemyRoles?.[role]||{};
+   world.enemies.push({id:crypto.randomUUID(),...entry,hp:hp*(spec.hp||1),maxHp:hp*(spec.hp||1),damage:dmg*(spec.damage||1),role,faction:faction?.id,attackTimer:i*.2,animation:0});}
  }
  // Flawless tracking (Rue's terms): a fresh raid opens the ledger with
  // zero building losses; multi-wave assaults keep one ledger per raid.
@@ -75,7 +77,7 @@ export function tickCombat(world,data,dt) {
   // challenges (taunt) burn down beside them.
   if(unit.buffs)for(const k of Object.keys(unit.buffs)){unit.buffs[k].timer-=dt;if(unit.buffs[k].timer<=0)delete unit.buffs[k];}
   if(unit.taunt){unit.taunt.timer-=dt;if(unit.taunt.timer<=0)delete unit.taunt;}
-  if(unit.hp<=0)continue;
+  if(unit.hp<=0||unit.expedition)continue;
   // Quiet hands: passive 'heal'-effect abilities without `active` mend
   // their bearer each second (the K1 track's Mend). Castable heals still
   // go through activateAbility; this never spends a cooldown.
@@ -100,7 +102,8 @@ export function tickCombat(world,data,dt) {
    if(move(world,data,unit,tgt,s.speed,dt,s.range)&&unit.attackTimer<=0){const dealt=s.damage*(1+aura.damage);tgt.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,tgt,data.items[unit.gear].animation);dmgNum(world,tgt,dealt);}continue;}
   if(!world.enemies.length){unit.hp=Math.min(stats(unit,data).hp,unit.hp+dt*2);continue;}
   if(data.troops[unit.type].role!=='combat')continue;
-  const enemy=world.enemies.filter(e=>e.hp>0).sort((a,b)=>distance(unit,a)-distance(unit,b))[0];if(!enemy)continue;
+  const enemy=defenseTarget(world,data,unit);if(!enemy)continue;
+  if(s.range>2&&distance(unit,enemy)<1.7)retreat(world,data,unit,enemy,s.speed,dt);
   if(move(world,data,unit,enemy,s.speed,dt,s.range)&&unit.attackTimer<=0){
    const dealt=s.damage*(1+aura.damage);
    enemy.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,enemy,data.items[unit.gear].animation);dmgNum(world,enemy,dealt);
@@ -129,15 +132,16 @@ export function tickCombat(world,data,dt) {
   // Sworn challenges first: a living oathbound whose taunt covers this
   // ground pulls the raider off its path. Otherwise the nearest hand.
   const sworn=world.troops.filter(t=>t.hp>0&&t.taunt&&t.taunt.timer>0&&distance(enemy,t)<=t.taunt.radius).sort((a,b)=>distance(enemy,a)-distance(enemy,b))[0];
-  const targetUnit=sworn||world.troops.filter(t=>t.hp>0&&distance(enemy,t)<1.4).sort((a,b)=>distance(enemy,a)-distance(enemy,b))[0];
-  const buildings=world.buildings.filter(b=>b.hp>0&&b.type!=='trap').sort((a,b)=>distance(enemy,center(a,data))-distance(enemy,center(b,data)));
-  const target=targetUnit||buildings[0];if(!target)continue;
-  const targetPoint=targetUnit?target:center(target,data),range=targetUnit?1.1:data.buildings[target.type].size/2+.7;
-  const arrived=move(world,data,enemy,targetPoint,.95,dt,range);
+  const targetUnit=sworn||world.troops.filter(t=>t.hp>0&&!t.expedition&&distance(enemy,t)<Math.max(1.4,enemyRole(data,enemy).range||0)).sort((a,b)=>distance(enemy,a)-distance(enemy,b))[0];
+  const role=enemyRole(data,enemy);
+  const target=targetUnit||enemyBuildingTarget(world,data,enemy);if(!target)continue;
+  enemy.targetId=target.id;
+  const targetPoint=targetUnit?target:center(target,data),range=targetUnit?(role.range||1.1):data.buildings[target.type].size/2+Math.max(.7,(role.range||1.1)-.4);
+  const arrived=move(world,data,enemy,targetPoint,role.speed||.95,dt,range);
   if(!arrived){
    const barrier=world.buildings.filter(b=>isWall(b)&&b.hp>0&&distance(enemy,center(b,data))<=1.2).sort((a,b)=>distance(enemy,center(a,data))-distance(enemy,center(b,data)))[0];
    if(barrier&&enemy.attackTimer<=0){
-    barrier.hp=Math.max(0,barrier.hp-enemy.damage);enemy.attackTimer=1.3;
+    barrier.hp=Math.max(0,barrier.hp-enemy.damage*(role.wallDamage||1));enemy.attackTimer=1.3;
     effect(world,enemy,center(barrier,data),'slash');
     if(barrier.hp<=0)world.raidLosses=(world.raidLosses||0)+1;
     continue;
@@ -148,7 +152,7 @@ export function tickCombat(world,data,dt) {
    const bb=target;let adjacent=false;
    const bx0=Math.floor(enemy.x),by0=Math.floor(enemy.y);
    for(let yy=bb.y-1;yy<bb.y+data.buildings[bb.type].size+1&&!adjacent;yy++)for(let xx=bb.x-1;xx<bb.x+data.buildings[bb.type].size+1&&!adjacent;xx++)if(xx===bx0&&yy===by0)adjacent=true;
-   if(adjacent&&enemy.attackTimer<=0){bb.hp=Math.max(0,bb.hp-enemy.damage);if(bb.hp<=0)world.raidLosses=(world.raidLosses||0)+1;enemy.attackTimer=1.3;effect(world,enemy,center(bb,data),'slash');push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y,kind:'hit',life:.18});continue;}
+   if(adjacent&&enemy.attackTimer<=0){bb.hp=Math.max(0,bb.hp-enemy.damage*(isWall(bb)?role.wallDamage||1:1));if(bb.hp<=0)world.raidLosses=(world.raidLosses||0)+1;enemy.attackTimer=1.3;effect(world,enemy,center(bb,data),'slash');push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y,kind:'hit',life:.18});continue;}
   }
   if(arrived&&enemy.attackTimer<=0){
    // Armor stacks: sky aura + ability resolve + worn gear (Padded Coat
@@ -161,9 +165,9 @@ export function tickCombat(world,data,dt) {
     if(targetUnit.oath)reduction+=0.25;try{reduction+=gearArmor(target,data);}catch{}
     try{reduction+=proximityArmor(target,world,data);}catch{}
     if(targetUnit.hp>0)for(const ally of world.troops){if(ally.id===target.id||ally.hp<=0)continue;try{for(const a of unlockedAbilities(ally,data))if(a.effect==='guard'&&distance(ally,target)<=a.radius)reduction+=a.value;}catch{}}}
-   const raw=enemy.damage*(1-Math.min(.8,reduction));
+   const raw=enemy.damage*(1-Math.min(.8,reduction))*(!targetUnit&&isWall(target)?role.wallDamage||1:1);
    if(targetUnit&&raw>=target.hp&&!target.unbrokenUsed){try{if(unlockedAbilities(target,data).some(a=>a.effect==='unbroken')){target.hp=1;target.unbrokenUsed=true;enemy.attackTimer=1.3;push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y-1,kind:'float',text:'UNBROKEN!',color:'#ffe9a8',life:.9});effect(world,enemy,targetPoint,'slash');sfx.hit();continue;}}catch{}}
-   target.hp=Math.max(0,target.hp-raw);enemy.attackTimer=1.3;effect(world,enemy,targetPoint,'slash');push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y,kind:'hit',life:.18});sfx.hit();
+   target.hp=Math.max(0,target.hp-raw);enemy.attackTimer=1.3;effect(world,enemy,targetPoint,role.range>2?'arrow':'slash');push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y,kind:'hit',life:.18});sfx.hit();
    // Rue's ledger: a building that falls while raiders walk counts against
    // the flawless defense. Troops falling never do — only walls and roofs.
    if(!targetUnit&&target.hp<=0)world.raidLosses=(world.raidLosses||0)+1;

@@ -284,3 +284,9 @@ Vignette/moon-glow/day-grade stay dynamic overlays (not baked) so the cached bui
 - Added longer scout warnings, saved recovery periods, and Adventure survival feedback.
 - Preserved campaign raid schedules, manual defense tests, first scouts, building damage, repair and salvage.
 - Verified 312 unit tests and production build. Browser verification runs in GitHub Actions; local Chrome is unavailable.
+
+## Survival city Phase 3 — factions and combat tactics
+- Added three gradually introduced home-raid factions and four data-driven enemy roles.
+- Added ranged attacks, wall-breaking specialization, structure defense priorities and archer retreat.
+- Added faction warning/lore feedback and original 3D equipment silhouettes.
+- Verified 317 unit tests and production build. Phase 2 Actions browser/mobile suite passed.

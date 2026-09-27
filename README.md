@@ -180,3 +180,9 @@ Adventure uses five sections: Home, Quests, Expeditions, Campaign, and Chronicle
 The home raid director preserves the first scouting pair after five minutes. Later attacks roll a saved quiet window of 4–8 active-play minutes; higher threat shortens the random portion and increases the party within the existing eight-raider cap. Scouts give 25 seconds of warning. Victory grants at least three minutes of recovery, defeat six, plus time for damaged buildings. The next deadline cannot precede recovery. Buildings still require repair and ruins stop production; the manor defeat salvage and troop revival rules remain intact. Test your defenses explicitly bypasses quiet time. Campaign maps keep their authored timelines and pause the home clock. These optional saved fields load additively without resetting existing saves.
 
 Balance settings live in `data/world.json` under `homeRaids.director`. Factions, emergency AI, research and the later survival-city phases are separate follow-up work.
+
+### Phase 3 — faction combat foundation
+
+Home raids now introduce the Thornband (raiders and fast scouts), Pale Host (bowmen, from wave 3), and Cinder Clan (wall breakers, from wave 5). Each has its own roster, colors, lore and counterplay; archers and breakers carry distinct low-poly equipment. `world.enemyFactions` and `world.enemyRoles` define the rotation and stats. Campaign spawns keep their existing compositions.
+
+Automatic defenders prioritize enemies threatening structures, especially the manor; archers retreat to a safe neighboring tile when pressed. Wall breakers prefer nearby walls and deal bonus structural damage, while enemy bowmen attack from range. Explicit player orders still take priority. Ranging villagers are excluded from ordinary combat. This is the initial faction roster: bosses, support enemies, siege engines and faction-specific campaign encounters remain for later phases.
