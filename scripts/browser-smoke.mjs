@@ -40,6 +40,7 @@ try{
  await click('[data-tab="build"]');await click('[data-build="farm"]');
  await tap(await evaluate('window.midnightsManner.project(2.5,2.5)'));
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.buildings.length'),count,'preview does not spend');
+ console.log('Placement state',await evaluate(`({hint:document.querySelector('#placement-state').textContent,point:window.midnightsManner.project(2.5,2.5),target:(()=>{const p=window.midnightsManner.project(2.5,2.5);return document.elementFromPoint(p.x,p.y)?.outerHTML.slice(0,300)})()})`));await screenshot('placement-check');
  await click('#confirm-place');assert.equal(await evaluate('window.midnightsManner.snapshot().world.buildings.length'),count+1,'confirm builds once');
  // Touch wall rows on a phone: preview is free, confirm builds the line,
  // and the inspector upgrades the complete connected row with one action.
@@ -72,7 +73,8 @@ try{
  await click('#close-panel');
  // Manage a workplace from its map selection, then hire directly into it.
  // The starting warrior stands in front of the crop bed: tap its upper half.
- await tap(await evaluate('(()=>{const p=window.midnightsManner.project(7,10);return {x:p.x,y:p.y-40};})()'));
+ const workplacePoint=await evaluate('(()=>{const g=window.midnightsManner,b=g.snapshot().world.buildings.find(b=>b.type==="farm"&&b.x===6);return g.modelPoints(b.id).find(p=>document.elementFromPoint(p.x,p.y)?.id==="world");})()');
+ assert.ok(workplacePoint,'farm has an exposed model face');await tap(workplacePoint);
  await screenshot('workplace-selection');
  console.log('Workplace selection:',await evaluate('document.querySelector("#inspector").textContent'));
  await click('[data-action="assign"]');
@@ -95,6 +97,18 @@ try{
  const bonusBefore=await evaluate(`window.midnightsManner.snapshot().world.buildings.find(b=>b.id===${JSON.stringify(visiblePill.id)}).harvestBonus`);
  await tap({x:visiblePill.x+visiblePill.w/2,y:visiblePill.y+visiblePill.h/2});
  assert.ok((await evaluate(`window.midnightsManner.snapshot().world.buildings.find(b=>b.id===${JSON.stringify(visiblePill.id)}).harvestBonus`))<bonusBefore,'labeled bubble collects the right building');
+ // Exercise orbit controls through actual phone touch and menu input.
+ await click('#camera-menu');await click('#orbit-mode');await click('#camera-close');
+ const orbitBefore=await evaluate('window.midnightsManner.camera()');
+ await call('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:180,y:470,id:1}]});
+ await call('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:290,y:510,id:1}]});
+ await call('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+ const orbitAfter=await evaluate('window.midnightsManner.camera()');assert.notEqual(orbitAfter.yaw,orbitBefore.yaw,'phone orbit changes heading');assert.notEqual(orbitAfter.pitch,orbitBefore.pitch,'phone orbit changes elevation');assert.equal(orbitAfter.x,orbitBefore.x,'orbit keeps the focus point');
+ await click('#camera-menu');await click('#orbit-mode');
+ for(const view of ['low','top','classic']){await click(`[data-view="${view}"]`);await screenshot('orbit-phone-'+view);}
+ for(let i=0;i<16;i++)await click('#turn-right');
+ const turned=await evaluate('window.midnightsManner.camera().yaw');assert.ok(Math.abs(turned-orbitAfter.yaw)<1e-6,'full 360 degree turn returns to heading');
+ await click('#camera-reset');await click('#camera-close');
  await click('[data-resource="wood"]');assert.ok(await evaluate('document.querySelector("#panel").textContent.includes("Wood")'),'resource stores open');await screenshot('polished-resources');await click('#close-panel');
  await click('[data-tab="build"]');await screenshot('polished-build');await click('#panel-search');await call('Input.insertText',{text:'Wheat'});
  assert.equal(await evaluate('document.querySelectorAll("[data-build]").length'),1,'building search narrows cards');await click('#close-panel');
