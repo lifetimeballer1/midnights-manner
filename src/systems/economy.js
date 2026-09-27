@@ -1,4 +1,4 @@
-import {resourceLabel} from '../resources.js';
+import {resourceLabel, reserveCapacity} from '../resources.js';
 import {builderBonuses,center,unlockedAbilities,stats,auras,gatherBonus} from '../model.js';
 import {move} from './pathfinding.js';
 import {sfx} from './audio.js';
@@ -6,7 +6,8 @@ import {sfx} from './audio.js';
 // change, and pre-frostwood saves (no frostwood key yet) haul without NaN-ing.
 export function addResource(world,resource,amount) {if(!resource)return;world.resources[resource]=(world.resources[resource]||0)+amount;world.gathered[resource]=(world.gathered[resource]||0)+amount;}
 // Clash-style reserves: production piles up on the building (capped by data
-// `harvest.capacity`) and only lands in the pool when tapped. Passive ticks
+// `harvest.capacity` + `harvest.perTier`, see resources.js) and only lands
+// in the pool when tapped. Passive ticks
 // never spawn floaters; only a transition to full gives an automatic chime.
 let lastSplash=0;
 function push(world,effect){if(world.effects.length<140)world.effects.push(effect);}
@@ -64,7 +65,7 @@ export function tickEconomy(world,data,dt) {
    const mid = (world.elapsed||0) > 300 ? 0.75 : 1;
    const made = spec.rate*spec.tiers[b.level-1].rateMultiplier*mult*mid*dt;
    drain(b, made);
-   const cap = spec.harvest?.capacity ?? 40;
+   const cap = reserveCapacity(spec, b.level);
    const held = Number.isFinite(b.harvestBonus) ? Math.max(0, b.harvestBonus) : 0;
    b.harvestBonus = Math.min(cap, held + made);if(held<cap&&b.harvestBonus>=cap)filled=true;}
  }

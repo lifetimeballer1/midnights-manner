@@ -12,13 +12,44 @@ export const resourceSpriteNames=Object.values(RESOURCES).map(r=>r.sprite);
 // Keep labels readable at the normal camera scale while letting the map breathe
 // when players zoom out. Touch padding is added by the renderer separately.
 export const collectionBubbleScale=zoom=>Math.max(.68,Math.min(1,Number(zoom)||1));
-// Badge/bubble threshold: per-building `harvest.notifyAt`, falling back to a
-// quarter of the reserve cap so future buildings stay quiet on drips too.
-// Tune it in buildings.json — no code change needed.
-export function reserveNotifyAt(spec){
- const cap=spec?.harvest?.capacity??40;
- const at=spec?.harvest?.notifyAt??Math.ceil(cap*0.25);
- return Math.max(1,Math.floor(at));
+// Tap-reserve sizing (Jesce rebalance 2026-09-27): base capacity 500, badge
+// around 150 (~30% of cap) so flags mean a real haul. Capacity grows with
+// building tier, fully data-driven — tune it in buildings.json, no code:
+//   harvest: { capacity: 500, notifyAt: 150, perTier: 500 }
+//   - capacity: tier-1 cap (default 500)
+//   - perTier (aka capacityPerTier / tierGrowth): added per tier above 1
+//     (default: one full base capacity, so 500/1000/1500 — time-to-full
+//     stays flat while rateMultiplier climbs 1x/2x/3x)
+//   - capacities: optional explicit per-tier array, wins over perTier
+//     (level beyond the array reads the last entry)
+//   - notifyAt: tier-1 badge threshold (default ~30% of base cap); the
+//     effective threshold scales proportionally with the tier cap so the
+//     ~30% ratio holds at every tier. Taps always sweep any whole unit.
+export const HARVEST_BASE_CAPACITY = 500;
+export const HARVEST_NOTIFY_RATIO = 0.3;
+export function reserveCapacity(spec, level = 1) {
+  const h = spec?.harvest;
+  const lvl = Number.isFinite(+level) ? Math.max(1, Math.floor(+level)) : 1;
+  if (Array.isArray(h?.capacities) && h.capacities.length) {
+    const pick = h.capacities[Math.min(lvl, h.capacities.length) - 1];
+    if (Number.isFinite(+pick) && +pick >= 1) return Math.floor(+pick);
+  }
+  const base = Number.isFinite(+h?.capacity) && +h.capacity >= 1 ? Math.floor(+h.capacity) : HARVEST_BASE_CAPACITY;
+  const stepRaw = h?.perTier ?? h?.capacityPerTier ?? h?.tierGrowth ?? h?.capacityGrowth ?? base;
+  const step = Number.isFinite(+stepRaw) && +stepRaw >= 0 ? Math.floor(+stepRaw) : base;
+  return base + step * (lvl - 1);
+}
+export function reserveNotifyAt(spec, level = 1) {
+  const h = spec?.harvest;
+  const baseCap = Array.isArray(h?.capacities) && h.capacities.length && Number.isFinite(+h.capacities[0])
+    ? Math.max(1, Math.floor(+h.capacities[0]))
+    : (Number.isFinite(+h?.capacity) && +h.capacity >= 1 ? Math.floor(+h.capacity) : HARVEST_BASE_CAPACITY);
+  const baseNotify = Number.isFinite(+h?.notifyAt) && +h.notifyAt >= 1
+    ? Math.floor(+h.notifyAt)
+    : Math.ceil(baseCap * HARVEST_NOTIFY_RATIO);
+  const cap = reserveCapacity(spec, level);
+  const scaled = Math.floor(baseNotify * cap / Math.max(1, baseCap));
+  return Math.max(1, scaled);
 }
 // Worth collecting by hand: any whole unit on a finished, living producer.
 // Taps and Collect buttons use this so small drips are never stranded.
@@ -28,7 +59,8 @@ export function reserveCollectible(building,spec){
 // One predicate for every "ready" announcement: bubbles and badges only.
 // Finished, living production buildings holding at least notifyAt.
 export function reserveReady(building,spec){
- return reserveCollectible(building,spec) && Math.floor(building.harvestBonus||0)>=reserveNotifyAt(spec);
+ const lvl = Number.isFinite(+building?.level) ? +building.level : 1;
+ return reserveCollectible(building,spec) && Math.floor(building.harvestBonus||0)>=reserveNotifyAt(spec, lvl);
 }
 export function collectionTotals(world,data){
  const totals={};

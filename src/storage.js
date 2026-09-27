@@ -1,6 +1,6 @@
 const KEY='midnights-manner-v2';
 const OLD_KEY='midnights-manner-v1';
-export const VERSION = 7;
+export const VERSION = 8;
 // In-memory fallback when localStorage is missing (private mode, SSR, tests)
 // or full (quota). Saves still work for the session; persist() warns.
 const memFallback = new Map();
@@ -166,7 +166,41 @@ function migrateV6toV7(value, data) {
   value.version = 7;
   return value;
 }
-const MIGRATIONS = {1: migrateV1toV2, 2: migrateV2toV3, 3: migrateV3toV4, 4: migrateV4toV5, 5: migrateV5toV6, 6: migrateV6toV7};
+// v7 -> v8: tap-reserve rebalance (Jesce 2026-09-27). Base capacity 40 -> 500
+// with per-tier growth (data `harvest.perTier`, default one base per tier).
+// Old reserves (<=40) already fit the new caps, so nothing is lost — this
+// step only sanitizes: finite numbers, no negatives, clamped into the
+// level-aware cap so hand-edited or very old saves can never overfill.
+// Additive only: resources, buildings, troops and progress never touched.
+function migrateV7toV8(value, data) {
+  if (!value || typeof value !== 'object') return null;
+  const capFor = (b) => {
+    const spec = data?.buildings?.[b?.type];
+    if (!spec?.production) return null;
+    const h = spec.harvest || {};
+    const lvl = Number.isInteger(b?.level) && b.level >= 1 ? b.level : 1;
+    if (Array.isArray(h.capacities) && h.capacities.length) {
+      const pick = h.capacities[Math.min(lvl, h.capacities.length) - 1];
+      if (Number.isFinite(+pick) && +pick >= 1) return Math.floor(+pick);
+    }
+    const base = Number.isFinite(+h.capacity) && +h.capacity >= 1 ? Math.floor(+h.capacity) : 500;
+    const stepRaw = h.perTier ?? h.capacityPerTier ?? h.tierGrowth ?? h.capacityGrowth ?? base;
+    const step = Number.isFinite(+stepRaw) && +stepRaw >= 0 ? Math.floor(+stepRaw) : base;
+    return base + step * (lvl - 1);
+  };
+  for (const key of ['world', 'home']) {
+    const w = value[key];
+    if (!w || typeof w !== 'object') continue;
+    for (const b of w.buildings || []) {
+      if (!Number.isFinite(+b.harvestBonus) || +b.harvestBonus < 0) { if (b.harvestBonus !== undefined) b.harvestBonus = Math.max(0, Number.isFinite(+b.harvestBonus) ? +b.harvestBonus : 0); continue; }
+      const cap = capFor(b);
+      if (cap != null) b.harvestBonus = Math.min(+b.harvestBonus, cap);
+    }
+  }
+  value.version = 8;
+  return value;
+}
+const MIGRATIONS = {1: migrateV1toV2, 2: migrateV2toV3, 3: migrateV3toV4, 4: migrateV4toV5, 5: migrateV5toV6, 6: migrateV6toV7, 7: migrateV7toV8};
 export function migrate(value, data) {
   return migrateToLatest(value, data);
 }

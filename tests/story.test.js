@@ -112,9 +112,10 @@ test('story item 2: every 10th arrival earns a trade-name; flavor needs no save 
   // Flavor-only: no persisted state of its own. (The living-world layer
   // later added calendar/trade keys under save version 3, the raid
   // clock + unlock re-deal under save version 4, the armor wardrobe
-  // under save version 5, and prestige stars + the cairn roll under
-  // save version 6.)
-  assert.equal(VERSION, 7);
+  // under save version 5, prestige stars + the cairn roll under save
+  // version 6, the phantom-null cleanup under save version 7, and the
+  // tap-reserve clamp under save version 8.)
+  assert.equal(VERSION, 8);
   for (const key of ['records', 'boardSeen', 'tradeDay', 'calendarDay', 'tradeNames'])
     assert.ok(!(key in state), `no save key ${key}`);
 });

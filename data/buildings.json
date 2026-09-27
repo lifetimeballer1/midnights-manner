@@ -65,8 +65,9 @@
       }
     ],
     "harvest": {
-      "capacity": 40,
-      "notifyAt": 10
+      "capacity": 500,
+      "notifyAt": 150,
+      "perTier": 500
     }
   },
   "lumber": {
@@ -105,8 +106,9 @@
       }
     ],
     "harvest": {
-      "capacity": 40,
-      "notifyAt": 10
+      "capacity": 500,
+      "notifyAt": 150,
+      "perTier": 500
     }
   },
   "timber_yard": {
@@ -133,8 +135,9 @@
       }
     ],
     "harvest": {
-      "capacity": 40,
-      "notifyAt": 10
+      "capacity": 500,
+      "notifyAt": 150,
+      "perTier": 500
     }
   },
   "mine": {
@@ -173,8 +176,9 @@
       }
     ],
     "harvest": {
-      "capacity": 40,
-      "notifyAt": 10
+      "capacity": 500,
+      "notifyAt": 150,
+      "perTier": 500
     }
   },
   "barracks": {
@@ -457,8 +461,9 @@
       }
     ],
     "harvest": {
-      "capacity": 40,
-      "notifyAt": 10
+      "capacity": 500,
+      "notifyAt": 150,
+      "perTier": 500
     },
     "hosts": [
       "tidecaller"
@@ -493,8 +498,9 @@
       }
     ],
     "harvest": {
-      "capacity": 40,
-      "notifyAt": 10
+      "capacity": 500,
+      "notifyAt": 150,
+      "perTier": 500
     }
   },
   "butchery": {
@@ -526,8 +532,9 @@
       }
     ],
     "harvest": {
-      "capacity": 40,
-      "notifyAt": 10
+      "capacity": 500,
+      "notifyAt": 150,
+      "perTier": 500
     }
   },
   "scriptorium": {
@@ -784,8 +791,9 @@
       }
     ],
     "harvest": {
-      "capacity": 40,
-      "notifyAt": 10
+      "capacity": 500,
+      "notifyAt": 150,
+      "perTier": 500
     }
   },
   "watchfire": {
@@ -884,8 +892,9 @@
       }
     ],
     "harvest": {
-      "capacity": 40,
-      "notifyAt": 10
+      "capacity": 500,
+      "notifyAt": 150,
+      "perTier": 500
     }
   },
   "smeltery": {
@@ -922,8 +931,9 @@
       }
     ],
     "harvest": {
-      "capacity": 40,
-      "notifyAt": 10
+      "capacity": 500,
+      "notifyAt": 150,
+      "perTier": 500
     }
   },
   "deephole": {
@@ -959,8 +969,9 @@
       }
     ],
     "harvest": {
-      "capacity": 40,
-      "notifyAt": 10
+      "capacity": 500,
+      "notifyAt": 150,
+      "perTier": 500
     },
     "hosts": [
       "tidecaller"
@@ -1000,8 +1011,9 @@
       }
     ],
     "harvest": {
-      "capacity": 40,
-      "notifyAt": 10
+      "capacity": 500,
+      "notifyAt": 150,
+      "perTier": 500
     }
   },
   "market": {
