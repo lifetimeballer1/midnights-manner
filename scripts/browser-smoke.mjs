@@ -37,7 +37,9 @@ try{
  await screenshot('desktop');
  assert.equal(await evaluate('document.documentElement.scrollHeight > innerHeight'),false,'game has no document scrolling');
  const count=await evaluate('window.midnightsManner.snapshot().world.buildings.length');
- await click('[data-tab="build"]');await click('[data-build="farm"]');
+ await click('[data-tab="build"]');
+ for(let i=0;i<3;i++){await click('[data-build="farm"]');if(await evaluate('document.querySelector("#placement-hint").textContent.startsWith("Wheat")'))break;await new Promise(r=>setTimeout(r,250));await click('[data-tab="build"]');}
+ await waitFor('document.querySelector("#placement-hint").textContent.startsWith("Wheat")');
  await tap(await evaluate('window.midnightsManner.project(2.5,2.5)'));
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.buildings.length'),count,'preview does not spend');
  console.log('Placement state',await evaluate(`({hint:document.querySelector('#placement-state').textContent,point:window.midnightsManner.project(2.5,2.5),target:(()=>{const p=window.midnightsManner.project(2.5,2.5);return document.elementFromPoint(p.x,p.y)?.outerHTML.slice(0,300)})()})`));await screenshot('placement-check');
@@ -47,7 +49,9 @@ try{
  await click('[data-action="close"]');
  await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:2,mobile:true});
  await new Promise(r=>setTimeout(r,200));await click('#recenter');
- await click('[data-tab="build"]');await click('[data-build="wall"]');
+ await click('[data-tab="build"]');
+ for(let i=0;i<3;i++){await click('[data-build="wall"]');if(await evaluate('document.querySelector("#placement-hint").textContent.startsWith("Wall")'))break;await new Promise(r=>setTimeout(r,250));await click('[data-tab="build"]');}
+ await waitFor('document.querySelector("#placement-hint").textContent.startsWith("Wall")');
  const wallStart=await evaluate('window.midnightsManner.project(7.5,3.5)'),wallEnd=await evaluate('window.midnightsManner.project(9.5,3.5)');
  const wallBefore=await evaluate('window.midnightsManner.snapshot().world.buildings.length');
  const wallCamera=await evaluate('window.midnightsManner.camera()');
