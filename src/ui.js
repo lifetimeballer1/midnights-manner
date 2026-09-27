@@ -7,6 +7,7 @@ import {missionLocked} from './systems/campaign.js';
 import {exportSave,importSaveBlob} from './storage.js';
 import {pickRumor,pickLegend,daySeed} from './systems/story.js';
 import {dayKey,seasonFor,modifierFor,dealsFor,marketOpen,tradeCap,describeDeal} from './systems/calendar.js';
+import {expeditionStatus} from './systems/expeditions.js';
 import {sfx,isMuted,toggleMute} from './systems/audio.js';
 const icons={wood:'▰',food:'♧',gold:'◆',frostwood:'❄',plate:'▣'};
 const cost=c=>Object.entries(c).map(([k,v])=>`${icons[k]} ${Math.ceil(v)} ${k}`).join(' · ')||'Included';
@@ -47,6 +48,7 @@ export class UI {
    if(action==='repair')this.game.repair(this.selected);
    if(action==='hold'&&this.selectedTroop)this.game.commandHold(this.selectedTroop);
    if(action==='resume'&&this.selectedTroop)this.game.clearOrder(this.selectedTroop);
+   if(action==='expedition'&&this.selectedTroop)this.game.sendExpedition(this.selectedTroop);
    if(action==='gear'){this.openPanel('troops');return;}
    if(action==='harvest')this.game.harvest(this.selected);
    if(action==='service')this.game.serviceArmor();
@@ -216,7 +218,7 @@ export class UI {
  }
  renderInspector(){const g=this.game,d=g.data,w=g.world,el=$('#inspector');const u=w.troops.find(t=>t.id===this.selectedTroop),b=w.buildings.find(b=>b.id===this.selected);if((!u&&!b)||this.renderer.placing||!$('#drawer').hidden){el.hidden=true;return;}el.hidden=false;
  const close='<button class="close-selection" data-action="close" aria-label="Clear selection">✕</button>';
- if(u){const spec=d.troops[u.type];el.innerHTML=`${close}<div class="inspector-head">${img(spec.sprite)}<div><span class="eyebrow">LEVEL ${u.level} · ${u.order?.kind?.toUpperCase()||'AUTO'}</span><h2>${spec.name}</h2><p>Tap ground to move · Tap an enemy to attack</p></div></div><div class="actions"><button data-action="hold">Hold position</button><button data-action="resume">Auto duties</button><button class="gold-button" data-action="gear">Equipment</button></div>`;return;}
+ if(u){const spec=d.troops[u.type];const exp=expeditionStatus(u,d);el.innerHTML=`${close}<div class="inspector-head">${img(spec.sprite)}<div><span class="eyebrow">LEVEL ${u.level} · ${u.order?.kind?.toUpperCase()||'AUTO'}</span><h2>${spec.name}</h2><p>Tap ground to move · Tap an enemy to attack${exp?` · ${exp}`:''}</p></div></div><div class="actions"><button data-action="hold">Hold position</button><button data-action="resume">Auto duties</button>${spec.expedition?`<button data-action="expedition" ${u.expedition?'disabled':''}>${u.expedition?exp:'Send expedition'}</button>`:''}<button class="gold-button" data-action="gear">Equipment</button></div>`;return;}
  const spec=d.buildings[b.type],tier=spec.tiers[b.level-1],max=b.level>=spec.tiers.length,upgradeCost=b.type==='hall'?{wood:200*b.level,gold:150*b.level}:buildingCost(b.type,b.level+1,w,d),repairCost=Math.ceil((tier.hp-b.hp)/15);const hp=Math.max(0,b.hp/tier.hp);
  const tierGate=spec.tierGates?.[b.level+1],tierGated=tierGate&&(g.state.vlevel||1)<tierGate;
  const rowActions=isWall(b)?['x','y'].map(axis=>{

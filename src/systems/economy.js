@@ -71,6 +71,9 @@ export function tickEconomy(world,data,dt) {
  for(const u of world.troops) {
   if(u.hp<=0)continue;
   const spec=data.troops[u.type];
+  // Ranging hands (Phase 3 expeditions) walk their own road — the
+  // expedition handler moves them, never the economy loop.
+  if(u.expedition)continue;
   // Posted specialists physically travel to their workshop; collectors keep
   // their normal gather/deliver loop. Explicit player orders retain priority.
   if(spec.role!=='collector'){
@@ -80,6 +83,7 @@ export function tickEconomy(world,data,dt) {
   }
   if(u.order&&u.order.kind==='move'&&Number.isFinite(u.order.x)){if(move(world,data,u,u.order,stats(u,data).speed,dt,.4))u.order=null;continue;}
   if(u.order&&u.order.kind==='hold')continue;
+  if(u.expedition)continue;
   const source=sourceFor(world,data,spec,u);if(!source)continue;
   const gear=data.items[u.gear];if(!gear)continue;
   const item=gear.stats||{};

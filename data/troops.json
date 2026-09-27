@@ -301,6 +301,11 @@
     "defaultGear": "fellingaxe",
     "gatherResource": "wood",
     "carry": 12,
+    "expedition": {
+      "yields": {"wood": 40},
+      "durationSec": 75,
+      "risk": 0.12
+    },
     "job": {
       "workplace": "lumber",
       "effect": "fell",
@@ -426,6 +431,11 @@
     "defaultGear": "compass",
     "gatherResource": null,
     "carry": 8,
+    "expedition": {
+      "yields": {"gold": 20, "food": 15},
+      "durationSec": 90,
+      "risk": 0.05
+    },
     "job": {
       "workplace": "scout_post",
       "effect": "survey",
@@ -787,6 +797,11 @@
     "gatherResource": "food",
     "gatherFrom": "grove",
     "carry": 8,
+    "expedition": {
+      "yields": {"food": 25, "wood": 15},
+      "durationSec": 60,
+      "risk": 0.1
+    },
     "job": {
       "workplace": "grove",
       "effect": "pick",
