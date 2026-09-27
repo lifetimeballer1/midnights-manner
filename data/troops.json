@@ -38,7 +38,7 @@
   "archer": {
     "name": "Archer",
     "role": "combat",
-    "sprite": "archer.png",
+    "sprite": "troop_archer_32x32.png",
     "color": "#9dce7a",
     "maxLevel": 25,
     "base": {
@@ -151,7 +151,7 @@
   "farmer": {
     "name": "Farmer",
     "role": "collector",
-    "sprite": "troop_collector_32x32.png",
+    "sprite": "troop_farmer_32x32.png",
     "color": "#83caaa",
     "maxLevel": 25,
     "base": {
@@ -192,7 +192,7 @@
   "fisherman": {
     "name": "Fisherman",
     "role": "collector",
-    "sprite": "fisherman.png",
+    "sprite": "troop_fisherman_32x32.png",
     "color": "#6fb7c9",
     "maxLevel": 25,
     "base": {
@@ -234,7 +234,7 @@
   "shepherd": {
     "name": "Shepherd",
     "role": "collector",
-    "sprite": "shepherd.png",
+    "sprite": "troop_shepherd_32x32.png",
     "color": "#b9cfa4",
     "maxLevel": 25,
     "base": {
@@ -276,7 +276,7 @@
   "lumberjack": {
     "name": "Lumberjack",
     "role": "collector",
-    "sprite": "lumberjack.png",
+    "sprite": "troop_lumberjack_32x32.png",
     "color": "#8aa85e",
     "maxLevel": 25,
     "base": {
@@ -322,7 +322,7 @@
   "butcher": {
     "name": "Butcher",
     "role": "collector",
-    "sprite": "butcher.png",
+    "sprite": "troop_butcher_32x32.png",
     "color": "#d9a0a0",
     "maxLevel": 25,
     "base": {
@@ -365,7 +365,7 @@
   "scholar": {
     "name": "Scholar",
     "role": "keeper",
-    "sprite": "scholar.png",
+    "sprite": "troop_scholar_32x32.png",
     "color": "#9a8fd0",
     "maxLevel": 25,
     "base": {
@@ -406,7 +406,7 @@
   "scout": {
     "name": "Wayfinder",
     "role": "keeper",
-    "sprite": "scout.png",
+    "sprite": "troop_scout_32x32.png",
     "color": "#7fa877",
     "maxLevel": 25,
     "base": {
@@ -452,7 +452,7 @@
   "healer": {
     "name": "Mooncleric",
     "role": "keeper",
-    "sprite": "healer.png",
+    "sprite": "troop_healer_32x32.png",
     "color": "#e8e0c8",
     "maxLevel": 25,
     "base": {
@@ -493,7 +493,7 @@
   "weaponsmith": {
     "name": "Weaponsmith",
     "role": "keeper",
-    "sprite": "weaponsmith.png",
+    "sprite": "troop_weaponsmith_32x32.png",
     "color": "#c79a5e",
     "maxLevel": 25,
     "base": {
@@ -534,7 +534,7 @@
   "armorer": {
     "name": "Armorer",
     "role": "keeper",
-    "sprite": "armorer.png",
+    "sprite": "troop_armorer_32x32.png",
     "color": "#9aa8b8",
     "maxLevel": 25,
     "base": {
@@ -575,7 +575,7 @@
   "toolsmith": {
     "name": "Toolsmith",
     "role": "keeper",
-    "sprite": "toolsmith.png",
+    "sprite": "troop_toolsmith_32x32.png",
     "color": "#a8b89a",
     "maxLevel": 25,
     "base": {
@@ -616,7 +616,7 @@
   "leatherworker": {
     "name": "Leatherworker",
     "role": "keeper",
-    "sprite": "leatherworker.png",
+    "sprite": "troop_leatherworker_32x32.png",
     "color": "#c79175",
     "maxLevel": 25,
     "base": {
@@ -657,7 +657,7 @@
   "mason": {
     "name": "Mason",
     "role": "builder",
-    "sprite": "mason.png",
+    "sprite": "troop_mason_32x32.png",
     "color": "#a09a8a",
     "maxLevel": 25,
     "base": {
@@ -698,7 +698,7 @@
   "warden": {
     "name": "Warden",
     "role": "combat",
-    "sprite": "warden.png",
+    "sprite": "troop_warden_32x32.png",
     "color": "#7b96b8",
     "maxLevel": 25,
     "base": {
@@ -735,7 +735,7 @@
   "ranger": {
     "name": "Ranger",
     "role": "combat",
-    "sprite": "ranger.png",
+    "sprite": "troop_ranger_32x32.png",
     "color": "#5f8f5a",
     "maxLevel": 25,
     "base": {
@@ -771,7 +771,7 @@
   "forager": {
     "name": "Forager",
     "role": "collector",
-    "sprite": "forager.png",
+    "sprite": "troop_forager_32x32.png",
     "color": "#c9713f",
     "maxLevel": 25,
     "base": {
@@ -818,7 +818,7 @@
   "apprentice": {
     "name": "Apprentice",
     "role": "keeper",
-    "sprite": "apprentice.png",
+    "sprite": "troop_apprentice_32x32.png",
     "color": "#e9dab2",
     "maxLevel": 15,
     "base": {
@@ -874,7 +874,7 @@
   "pikewoman": {
     "name": "Pikewoman",
     "role": "combat",
-    "sprite": "pikewoman.png",
+    "sprite": "troop_pikewoman_32x32.png",
     "color": "#9db3c7",
     "maxLevel": 25,
     "base": {
@@ -910,7 +910,7 @@
   "woodward": {
     "name": "Woodward",
     "role": "collector",
-    "sprite": "woodward.png",
+    "sprite": "troop_woodward_32x32.png",
     "color": "#a9c6de",
     "maxLevel": 25,
     "base": {
@@ -952,7 +952,7 @@
   "smelter": {
     "name": "Smelter",
     "role": "builder",
-    "sprite": "smelter.png",
+    "sprite": "troop_smelter_32x32.png",
     "color": "#d08a4e",
     "maxLevel": 25,
     "base": {
@@ -995,7 +995,7 @@
   "diver": {
     "name": "Diver",
     "role": "collector",
-    "sprite": "diver.png",
+    "sprite": "troop_diver_32x32.png",
     "color": "#35707f",
     "maxLevel": 25,
     "base": {
@@ -1037,7 +1037,7 @@
   "sapper": {
     "name": "Sapper",
     "role": "collector",
-    "sprite": "sapper.png",
+    "sprite": "troop_sapper_32x32.png",
     "color": "#c2502f",
     "maxLevel": 25,
     "base": {
@@ -1079,7 +1079,7 @@
   "haggler": {
     "name": "Haggler",
     "role": "keeper",
-    "sprite": "haggler.png",
+    "sprite": "troop_haggler_32x32.png",
     "color": "#d9b64a",
     "maxLevel": 25,
     "base": {
@@ -1120,7 +1120,7 @@
   "oathsworn": {
     "name": "Oathsworn",
     "role": "combat",
-    "sprite": "oathsworn.png",
+    "sprite": "troop_oathsworn_32x32.png",
     "color": "#b9c4d6",
     "maxLevel": 25,
     "base": {
@@ -1156,7 +1156,7 @@
   "chorister": {
     "name": "Chorister",
     "role": "keeper",
-    "sprite": "chorister.png",
+    "sprite": "troop_chorister_32x32.png",
     "color": "#cfd8ea",
     "maxLevel": 25,
     "base": {
@@ -1197,7 +1197,7 @@
   "halberdier": {
     "name": "Halberdier",
     "role": "combat",
-    "sprite": "halberdier.png",
+    "sprite": "troop_halberdier_32x32.png",
     "color": "#a33f31",
     "maxLevel": 25,
     "base": {
@@ -1233,7 +1233,7 @@
   "longbowman": {
     "name": "Longbowman",
     "role": "combat",
-    "sprite": "longbowman.png",
+    "sprite": "troop_longbowman_32x32.png",
     "color": "#6b7f5e",
     "maxLevel": 25,
     "base": {
@@ -1269,7 +1269,7 @@
   "tidecaller": {
     "name": "Tidecaller",
     "role": "keeper",
-    "sprite": "tidecaller.png",
+    "sprite": "troop_tidecaller_32x32.png",
     "color": "#2e5f7a",
     "maxLevel": 25,
     "base": {
@@ -1311,7 +1311,7 @@
   "squire": {
     "name": "Squire",
     "role": "combat",
-    "sprite": "squire.png",
+    "sprite": "troop_squire_32x32.png",
     "color": "#7a8ba0",
     "maxLevel": 25,
     "base": {

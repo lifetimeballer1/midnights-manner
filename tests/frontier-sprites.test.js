@@ -20,7 +20,7 @@ test('frontier kit wiring: troops, manor tiers, timber camp, tools', () => {
   assert.equal(data.troops.warrior.sprite, 'troop_warrior_32x32.png');
   assert.equal(data.troops.miner.sprite, 'troop_miner_32x32.png');
   assert.equal(data.troops.builder.sprite, 'troop_builder_32x32.png');
-  assert.equal(data.troops.farmer.sprite, 'troop_collector_32x32.png');
+  assert.equal(data.troops.farmer.sprite, 'troop_farmer_32x32.png');
   assert.equal(data.buildings.hall.tiers[0].sprite, 'building_manor_tier1_32x32.png');
   assert.equal(data.buildings.hall.tiers[1].sprite, 'building_manor_tier2_32x32.png');
   const camp = data.buildings.timber_yard;
