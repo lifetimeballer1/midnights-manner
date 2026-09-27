@@ -50,8 +50,8 @@ try{
  await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:2,mobile:true});
  await new Promise(r=>setTimeout(r,200));await click('#recenter');
  await click('[data-tab="build"]');
- for(let i=0;i<3;i++){await click('[data-build="wall"]');if(await evaluate('document.querySelector("#placement-hint").textContent.startsWith("Wall")'))break;await new Promise(r=>setTimeout(r,250));await click('[data-tab="build"]');}
- await waitFor('document.querySelector("#placement-hint").textContent.startsWith("Wall")');
+ for(let i=0;i<3;i++){await click('[data-build="wall"]');if(await evaluate('document.querySelector("#placement-hint").textContent.startsWith("Palisade")'))break;await new Promise(r=>setTimeout(r,250));await click('[data-tab="build"]');}
+ await waitFor('document.querySelector("#placement-hint").textContent.startsWith("Palisade")');
  const wallStart=await evaluate('window.midnightsManner.project(7.5,3.5)'),wallEnd=await evaluate('window.midnightsManner.project(9.5,3.5)');
  const wallBefore=await evaluate('window.midnightsManner.snapshot().world.buildings.length');
  const wallCamera=await evaluate('window.midnightsManner.camera()');
