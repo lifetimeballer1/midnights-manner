@@ -1,4 +1,4 @@
-import {resourceInfo,collectionTotals,RESOURCES} from './resources.js';
+import {resourceInfo,collectionTotals} from './resources.js';
 import {wallRowQuote,isWall,placementCells} from './systems/walls.js';
 import {raidSides} from './systems/combat.js';
 import {stats,unlockedAbilities,buildingCost,housing,XP_LEVELS,center,assignedWorkers,workplaceCapacity,canPlace,afford,promotionOptions} from './model.js';
@@ -9,7 +9,6 @@ import {pickRumor,pickLegend,daySeed} from './systems/story.js';
 import {dayKey,seasonFor,modifierFor,dealsFor,marketOpen,tradeCap,describeDeal} from './systems/calendar.js';
 import {sfx,isMuted,toggleMute} from './systems/audio.js';
 const icons={wood:'▰',food:'♧',gold:'◆',frostwood:'❄',plate:'▣'};
-const resourceSprites=Object.fromEntries(Object.entries(RESOURCES).map(([id,r])=>[id,r.sprite]));
 const cost=c=>Object.entries(c).map(([k,v])=>`${icons[k]} ${Math.ceil(v)} ${k}`).join(' · ')||'Included';
 const img=name=>`<img src="./assets/sprites/${name}" alt="">`;
 const $=s=>document.querySelector(s);
@@ -99,7 +98,15 @@ export class UI {
   const building=hit?.kind==='building'?g.world.buildings.find(b=>b.id===hit.id):g.world.buildings.find(b=>cell.x>=b.x&&cell.x<b.x+g.data.buildings[b.type].size&&cell.y>=b.y&&cell.y<b.y+g.data.buildings[b.type].size);
   this.selected=building?.id||null;r.selection=this.selected;if(building)sfx.click();this.refresh();
  }
- setPanelHTML(html){if(this.lastPanel===html||this.panel.contains(document.activeElement)&&document.activeElement.tagName==='SELECT')return;const scroll=this.panel.scrollTop,opened=[...this.panel.querySelectorAll('details[open][data-detail]')].map(e=>e.dataset.detail);this.panel.innerHTML=html;for(const el of this.panel.querySelectorAll('details[data-detail]'))el.open=opened.includes(el.dataset.detail);this.panel.scrollTop=scroll;this.lastPanel=html;}
+ setPanelHTML(html){
+  if(this.lastPanel===html||this.panel.contains(document.activeElement)&&document.activeElement.tagName==='SELECT')return;
+  const scroll=this.panel.scrollTop;
+  const railKey=el=>`${el.querySelector('[data-unit]')?.dataset.unit}:${el.classList.contains('armor-list')?'armor':'tools'}`;
+  const rails=new Map([...this.panel.querySelectorAll('.gear-list')].map(el=>[railKey(el),el.scrollLeft]));
+  this.panel.innerHTML=html;
+  for(const el of this.panel.querySelectorAll('.gear-list'))el.scrollLeft=rails.get(railKey(el))||0;
+  this.panel.scrollTop=scroll;this.lastPanel=html;
+ }
  refresh(){const g=this.game,w=g.world,d=g.data;
   const visibleResources=Object.entries(w.resources).filter(([key,value])=>['wood','food','gold'].includes(key)||value>0||w.buildings.some(b=>d.buildings[b.type].production===key));
   document.body.classList.toggle('many-resources',visibleResources.length>3);

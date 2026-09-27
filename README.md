@@ -45,7 +45,7 @@ The architecture pass uses original Canvas geometry in `src/building-art.js`: co
 
 The map fills the viewport (including iPhone safe-area handling); the document never scrolls. Build, Army & people, and Adventure are overlay drawers. On phones they are bottom sheets; in landscape/desktop they use a side drawer. A quick fighter rail supports direct orders. Quest and raid status stay visible on the map. Menus have keyboard focus containment and labeled controls. The welcome and settings screens pause simulation; Build/Army/Adventure remain live during raids.
 
-Production buildings keep generating automatically. They also accumulate a **capped, manually collected bonus**: tap a gold `+N` bubble or the selected building's Collect button. Configure `harvest.bonusRate` and `harvest.capacity` in buildings.json. This bonus accrues only during active simulation, cannot be double-claimed, and counts toward collection objectives.
+Production buildings keep generating automatically. They also accumulate a **capped, manually collected bonus**: tap a labeled resource bubble or the selected building's Collect button. Configure `harvest.bonusRate` and `harvest.capacity` in buildings.json. This bonus accrues only during active simulation, cannot be double-claimed, and counts toward collection objectives.
 
 Use **Safari → Share → Add to Home Screen** on iPhone for standalone play. The relative-path web manifest and local app icons support a home-screen shortcut. This does not promise offline operation or cross-device saves. Full Screen in Settings uses the browser Fullscreen API where supported.
 

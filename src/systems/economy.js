@@ -1,11 +1,10 @@
-import {resourceInfo,resourceLabel} from '../resources.js';
+import {resourceLabel} from '../resources.js';
 import {builderBonuses,center,unlockedAbilities,stats,auras,gatherBonus} from '../model.js';
 import {move} from './pathfinding.js';
 import {sfx} from './audio.js';
 // Open resource maps: new keys (frostwood onward) ride without a schema
 // change, and pre-frostwood saves (no frostwood key yet) haul without NaN-ing.
 export function addResource(world,resource,amount) {world.resources[resource]=(world.resources[resource]||0)+amount;world.gathered[resource]=(world.gathered[resource]||0)+amount;}
-const GLYPH={wood:'▰',food:'♧',gold:'◆',frostwood:'❄',plate:'▣'};
 const INK={wood:'#e8c98a',food:'#bfe3a8',gold:'#f2d878',frostwood:'#cfe6f5',plate:'#e8a87c'};
 function push(world,effect){if(world.effects.length<140)world.effects.push(effect);}
 export function floatText(world,x,y,text,color){push(world,{x,y,tx:x,ty:y-1.1,kind:'float',text,color,life:.9});}
