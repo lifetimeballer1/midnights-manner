@@ -92,6 +92,7 @@ export function tickCombat(world,data,dt) {
    unit.hp-=unit.burn.dps*(1-Math.min(1,resist))*dt;unit.burn.timer-=dt;
   }
   const s=stats(unit,data);
+  if(unit.emergency)continue;
   const order=unit.order;
   if(order&&order.kind==='move'&&Number.isFinite(order.x)&&Number.isFinite(order.y)){
    if(move(world,data,unit,order,s.speed,dt,.4))unit.order=null;
@@ -131,7 +132,7 @@ export function tickCombat(world,data,dt) {
   if(enemy.hp<=0)continue;
   // Sworn challenges first: a living oathbound whose taunt covers this
   // ground pulls the raider off its path. Otherwise the nearest hand.
-  const sworn=world.troops.filter(t=>t.hp>0&&t.taunt&&t.taunt.timer>0&&distance(enemy,t)<=t.taunt.radius).sort((a,b)=>distance(enemy,a)-distance(enemy,b))[0];
+  const sworn=world.troops.filter(t=>t.hp>0&&!t.expedition&&t.taunt&&t.taunt.timer>0&&distance(enemy,t)<=t.taunt.radius).sort((a,b)=>distance(enemy,a)-distance(enemy,b))[0];
   const targetUnit=sworn||world.troops.filter(t=>t.hp>0&&!t.expedition&&distance(enemy,t)<Math.max(1.4,enemyRole(data,enemy).range||0)).sort((a,b)=>distance(enemy,a)-distance(enemy,b))[0];
   const role=enemyRole(data,enemy);
   const target=targetUnit||enemyBuildingTarget(world,data,enemy);if(!target)continue;

@@ -57,6 +57,7 @@ function person(s,u,data,time,enemy=false){if(u.hp<=0)return;s.owner={kind:enemy
  if(enemy&&u.role==='archer')s.box(x+.25,y-.09,.4,.05,.35,.5,timber);
  if(enemy&&u.role==='breaker'){s.box(x+.13,y-.09,.78,.34,.18,.22,'#7b8990');s.box(x-.2,y-.15,.28,.4,.05,.28,'#656e73');}
  if(enemy&&u.role==='scout')s.pyramid(x,y,.81,.18,.24,base);
+ if(u.emergency)s.box(x-.07,y-.06,1.05,.14,.12,.08,u.emergency.kind==='heal'?'#8ad2ad':u.emergency.kind==='repair'?'#bcd4e8':'#e2c578');
  if(u.armor)s.box(x-.16,y-.13,.28,.32,.04,.25,'#aab7bd');if(u.carry>0)s.box(x-.14,y-.23,.32,.28,.14,.26,'#c5a363');
 }
 export function drawVillage3D(r,world,time){const s=new MeshScene(r),W=r.data.world.width,H=r.data.world.height;

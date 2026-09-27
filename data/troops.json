@@ -146,7 +146,8 @@
       "15": "second-wind",
       "20": "haste",
       "25": "armor"
-    }
+    },
+    "emergency": "repair"
   },
   "farmer": {
     "name": "Farmer",
@@ -302,7 +303,9 @@
     "gatherResource": "wood",
     "carry": 12,
     "expedition": {
-      "yields": {"wood": 40},
+      "yields": {
+        "wood": 40
+      },
       "durationSec": 75,
       "risk": 0.12
     },
@@ -432,7 +435,10 @@
     "gatherResource": null,
     "carry": 8,
     "expedition": {
-      "yields": {"gold": 20, "food": 15},
+      "yields": {
+        "gold": 20,
+        "food": 15
+      },
       "durationSec": 90,
       "risk": 0.05
     },
@@ -488,7 +494,8 @@
       "15": "heal",
       "20": "armor",
       "25": "focus"
-    }
+    },
+    "emergency": "heal"
   },
   "weaponsmith": {
     "name": "Weaponsmith",
@@ -693,7 +700,8 @@
       "15": "second-wind",
       "20": "haste",
       "25": "armor"
-    }
+    },
+    "emergency": "repair"
   },
   "warden": {
     "name": "Warden",
@@ -798,7 +806,10 @@
     "gatherFrom": "grove",
     "carry": 8,
     "expedition": {
-      "yields": {"food": 25, "wood": 15},
+      "yields": {
+        "food": 25,
+        "wood": 15
+      },
       "durationSec": 60,
       "risk": 0.1
     },
@@ -1192,7 +1203,8 @@
       "15": "mend",
       "20": "veteran-x",
       "25": "sage"
-    }
+    },
+    "emergency": "heal"
   },
   "halberdier": {
     "name": "Halberdier",
@@ -1306,7 +1318,8 @@
       "15": "mend",
       "20": "veteran-x",
       "25": "sage"
-    }
+    },
+    "emergency": "heal"
   },
   "squire": {
     "name": "Squire",

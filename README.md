@@ -186,3 +186,9 @@ Balance settings live in `data/world.json` under `homeRaids.director`. Factions,
 Home raids now introduce the Thornband (raiders and fast scouts), Pale Host (bowmen, from wave 3), and Cinder Clan (wall breakers, from wave 5). Each has its own roster, colors, lore and counterplay; archers and breakers carry distinct low-poly equipment. `world.enemyFactions` and `world.enemyRoles` define the rotation and stats. Campaign spawns keep their existing compositions.
 
 Automatic defenders prioritize enemies threatening structures, especially the manor; archers retreat to a safe neighboring tile when pressed. Wall breakers prefer nearby walls and deal bonus structural damage, while enemy bowmen attack from range. Explicit player orders still take priority. Ranging villagers are excluded from ordinary combat. This is the initial faction roster: bosses, support enemies, siege engines and faction-specific campaign encounters remain for later phases.
+
+### Phase 4 — emergency village behavior
+
+Scout warnings and active raids switch civilians into emergency duties. Civilians seek a safe living manor or home using routes that avoid nearby enemies. Builders and masons repair safe damaged defenses (6 HP/second, paid at the usual 15 HP per wood); healers, choristers and tidecallers mend safe wounded allies. Exposed workers try to retreat. Small gold, blue or green markers show shelter, repair or healing duties. Fighters retain the Phase 3 defense response.
+
+Ordinary construction pauses during alarms. Carried goods, workplace assignments and manual orders are preserved and resume after the raid. Ranging villagers continue their separate expedition. Passive building reserves and existing support auras remain active. No automatic rebuilding of ruins or permanent civilian losses were added. This is local danger-aware routing, not a simulation of indoor occupancy or guaranteed safety behind every wall layout.

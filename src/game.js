@@ -1,3 +1,4 @@
+import {tickEmergency} from './systems/emergency.js';
 import {factionFor} from './systems/tactics.js';
 import {ensureDirector,directorConfig,directorParty,scheduleRecovery} from './systems/raid-director.js';
 import {resourceLabel,resourceInfo} from './resources.js';
@@ -345,7 +346,7 @@ export class Game {
    if(this.world.raidPending.timer<=0){const {count,scheduled}=this.world.raidPending;this.world.raidPending=null;spawnRaid(this.world,count,null,this.data,factionFor(this.data,this.world.wave+1));
     this.notify(scheduled?fillLine(pickLine(cfg.attackLines,this.world.wave),{count,wave:this.world.wave}):`Wave ${this.world.wave} — ${count} raiders! Defend the manor!`);}}
   const raided=!this.state.mission&&(this.world.enemies.length>0||this.world.raidPending);
-  this.world.elapsed+=dt;tickEconomy(this.world,this.data,dt);tickExpeditions(this.world,this.data,dt);tickCombat(this.world,this.data,dt);tickVillage(this.state,this.data,dt,m=>this.notify(m));const before=this.state.mission?.status;tickMission(this.state,this.data);
+  this.world.elapsed+=dt;tickEmergency(this.world,this.data,dt);tickEconomy(this.world,this.data,dt);tickExpeditions(this.world,this.data,dt);tickCombat(this.world,this.data,dt);tickVillage(this.state,this.data,dt,m=>this.notify(m));const before=this.state.mission?.status;tickMission(this.state,this.data);
   if(raided&&!this.world.enemies.length&&!this.world.raidPending&&this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)){const kills=this.world.raidKills??0,loot=this.world.raidLoot??0;
    const damaged=this.world.buildings.filter(b=>b.hp<this.data.buildings[b.type].tiers[b.level-1].hp);
    const repairWood=damaged.reduce((n,b)=>n+Math.ceil((this.data.buildings[b.type].tiers[b.level-1].hp-b.hp)/15),0);

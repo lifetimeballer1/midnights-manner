@@ -132,6 +132,9 @@ try{
  assert.ok(await evaluate('window.midnightsManner.snapshot().mission'),'expedition starts');
  await click('[data-tab="story"]');await click('[data-category="expeditions"]');await waitFor('Boolean(document.querySelector(\'#panel [data-home="true"]\'))');await click('#panel [data-home="true"]');assert.equal(await evaluate('window.midnightsManner.snapshot().mission'),null,'return restores home');
  await click('#raid');await waitFor('window.midnightsManner.snapshot().world.enemies.length > 0');
+ await waitFor('window.midnightsManner.snapshot().world.troops.some(t=>t.emergency)');
+ assert.ok(await evaluate('window.midnightsManner.snapshot().world.enemies.every(e=>e.faction)'), 'home raiders have faction identity');
+ await screenshot('survival-emergency');
  await click('#pause');assert.equal(await evaluate('window.midnightsManner.paused'),true);await click('#opt-save');await click('#resume');
  await call('Page.reload');await waitFor('Boolean(window.midnightsManner)');await click('#begin');
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[0].level'),2,'level restored');
