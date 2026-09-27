@@ -110,7 +110,7 @@ try{
  await call('Emulation.setDeviceMetricsOverride',{width:1440,height:1100,deviceScaleFactor:1,mobile:false});await new Promise(r=>setTimeout(r,150));await click('#recenter');
  await click('[data-tab="story"]');await click('[data-mission="first-harvest"]');
  assert.ok(await evaluate('window.midnightsManner.snapshot().mission'),'expedition starts');
- await click('[data-tab="story"]');await waitFor('Boolean(document.querySelector("[data-home]"))');await click('[data-home]');assert.equal(await evaluate('window.midnightsManner.snapshot().mission'),null,'return restores home');
+ await click('[data-tab="story"]');await waitFor('Boolean(document.querySelector("[data-home]"))');await click('#panel [data-home]');assert.equal(await evaluate('window.midnightsManner.snapshot().mission'),null,'return restores home');
  await click('#raid');await waitFor('window.midnightsManner.snapshot().world.enemies.length > 0');
  await click('#pause');assert.equal(await evaluate('window.midnightsManner.paused'),true);await click('#opt-save');await click('#resume');
  await call('Page.reload');await waitFor('Boolean(window.midnightsManner)');await click('#begin');
