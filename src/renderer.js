@@ -166,7 +166,7 @@ export class Renderer {
    c.font='bold 12px system-ui';
    return {id:b.id,x:p.x,y:p.y-(spec.size===2?79:51)*this.cam.zoom-18,anchor:p,text,info,width:Math.max(104,c.measureText(text).width+44)};
   });
-  for(const pill of layoutCollectionBubbles(items,this.width,this.height,this.collectionObstacles||[])){
+  for(const pill of layoutCollectionBubbles(items,this.width,this.height,this.width<600?(this.collectionObstacles||[]):[])){
    const {x,y,w,h,info}=pill;
    c.save();c.strokeStyle=info.color+'aa';c.lineWidth=1.5;c.beginPath();c.moveTo(x+w/2,y+h-4);c.lineTo(pill.anchor.x,pill.anchor.y-28*this.cam.zoom);c.stroke();
    c.shadowColor='#0c22194d';c.shadowBlur=8;c.shadowOffsetY=3;c.fillStyle=info.paper;c.strokeStyle=info.color;c.lineWidth=1.5;c.beginPath();c.roundRect(x,y+3,w,h-6,12);c.fill();c.stroke();c.shadowBlur=0;c.shadowOffsetY=0;
