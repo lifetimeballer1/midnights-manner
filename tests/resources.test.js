@@ -15,6 +15,7 @@ test('all production resources have named, distinct original icons',async()=>{
 });
 test('dense collection labels stay separated and inside a phone viewport',()=>{
  const rows=layoutCollectionBubbles(Array.from({length:5},(_,i)=>({id:i,x:195+i*4,y:400,width:120})),390,844);
+ assert.equal(rows.length,5);
  for(let i=0;i<rows.length;i++){
   const a=rows[i];assert.ok(a.x>=0&&a.x+a.w<=390&&a.y>=0&&a.y+a.h<=844);assert.ok(a.h>=40);
   for(const b of rows.slice(i+1))assert.ok(!(a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y));
@@ -28,4 +29,11 @@ test('resource overview counts only collectable bonuses and collection feedback 
  assert.deepEqual(collectionTotals(g.world,data),{food:8,gold:4});
  assert.equal(g.harvest(g.world.buildings[0].id),8);assert.equal(g.world.effects.at(-1).text,'+8 Food');
  assert.deepEqual(collectionTotals(g.world,data),{gold:4});
+});
+
+test('collection labels avoid HUD controls',()=>{
+ const hud={x:260,y:0,w:130,h:400};
+ const rows=layoutCollectionBubbles([{id:1,x:330,y:290,width:110}],390,844,[hud]);
+ assert.equal(rows.length,1);
+ for(const a of rows)assert.ok(!(a.x<hud.x+hud.w&&a.x+a.w>hud.x&&a.y<hud.y+hud.h&&a.y+a.h>hud.y));
 });

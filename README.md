@@ -69,7 +69,7 @@ These are design references only. No screenshots or commercial game assets are b
 
 ### Verification
 
-`npm test` includes 245 simulation/rendering/input/update regression checks. `npm run test:browser` requires a locally installed Chrome (`CHROME_BIN` may override its path). CI runs real pointer/touch input checks for placement preview/confirm, menus, equipment/training, missions, raids, save/reload, one-finger pan, pinch zoom, and no document overflow at portrait/landscape sizes. Screenshots are attached to the Actions run. A browser test failure blocks deployment.
+`npm test` includes 246 simulation/rendering/input/update regression checks. `npm run test:browser` requires a locally installed Chrome (`CHROME_BIN` may override its path). CI runs real pointer/touch input checks for placement preview/confirm, menus, equipment/training, missions, raids, save/reload, one-finger pan, pinch zoom, and no document overflow at portrait/landscape sizes. Screenshots are attached to the Actions run. A browser test failure blocks deployment.
 
 ## Repository structure
 

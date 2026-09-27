@@ -15,19 +15,19 @@ export function collectionTotals(world,data){
  return totals;
 }
 // Fixed CSS-pixel touch targets; shifting pills prevents dense villages hiding labels.
-export function layoutCollectionBubbles(items,width,height){
+export function layoutCollectionBubbles(items,width,height,obstacles=[]){
  const placed=[];
  for(const item of [...items].sort((a,b)=>a.y-b.y||a.x-b.x)){
   if(item.x<-50||item.x>width+50||item.y<-50||item.y>height+50)continue;
   const w=Math.min(item.width,width-16),h=40;
-  const fits=box=>!placed.some(p=>box.x<p.x+p.w+4&&box.x+box.w+4>p.x&&box.y<p.y+p.h+4&&box.y+box.h+4>p.y);
+  const fits=box=>![...placed,...obstacles].some(p=>box.x<p.x+p.w+4&&box.x+box.w+4>p.x&&box.y<p.y+p.h+4&&box.y+box.h+4>p.y);
   let box;
-  for(const dy of [0,-44,44,-88,88,-132])for(const dx of [0,-w-6,w+6]){
+  for(const dy of [0,-44,44,-88,88,-132,132,-176,176])for(const dx of [0,-w-6,w+6]){
    const candidate={...item,x:Math.max(8,Math.min(width-w-8,item.x-w/2+dx)),y:Math.max(8,Math.min(height-h-8,item.y-h/2+dy)),w,h};
    if(!box&&fits(candidate))box=candidate;
   }
-  // Preserve access even when a very dense/zoomed-out map cannot fit every pill.
-  placed.push(box||{...item,x:Math.max(8,Math.min(width-w-8,item.x-w/2)),y:Math.max(8,Math.min(height-h-8,item.y-h/2)),w,h});
+  // Crowded/offscreen bonuses remain available in the Resources panel.
+  if(box)placed.push(box);
  }
  return placed;
 }
