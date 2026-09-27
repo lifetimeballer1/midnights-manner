@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {RESOURCES,resourceInfo,resourceLabel,layoutCollectionBubbles,collectionTotals} from '../src/resources.js';
+import {RESOURCES,resourceInfo,resourceLabel,layoutCollectionBubbles,collectionBubbleScale,collectionTotals} from '../src/resources.js';
 import {Game} from '../src/game.js';
 import {makeBuilding} from '../src/model.js';
 const data=Object.fromEntries(await Promise.all(['world','troops','items','abilities','buildings','missions','quests'].map(async n=>[n,JSON.parse(await readFile(new URL(`../data/${n}.json`,import.meta.url)))])));
@@ -12,6 +12,9 @@ test('all production resources have named, distinct original icons',async()=>{
  }
  assert.equal(new Set(Object.values(RESOURCES).map(r=>r.sprite)).size,5);
  assert.equal(resourceInfo('new-resource').label,'new-resource');
+});
+test('zoomed-out collection labels scale without losing readable targets',()=>{
+ assert.equal(collectionBubbleScale(1.65),1);assert.ok(collectionBubbleScale(.7)<1);assert.ok(collectionBubbleScale(.7)>=.68);
 });
 test('dense collection labels stay separated and inside a phone viewport',()=>{
  const rows=layoutCollectionBubbles(Array.from({length:5},(_,i)=>({id:i,x:195+i*4,y:400,width:120})),390,844);

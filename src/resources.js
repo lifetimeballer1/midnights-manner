@@ -9,6 +9,9 @@ export const RESOURCES={
 export const resourceInfo=key=>RESOURCES[key]||{label:String(key||'Resource'),sprite:'resource-gold.svg',color:'#f3cf66',paper:'#fff6cc',description:'Gathered by your village.'};
 export const resourceLabel=(key,amount)=>`+${Math.floor(amount)} ${resourceInfo(key).label}`;
 export const resourceSpriteNames=Object.values(RESOURCES).map(r=>r.sprite);
+// Keep labels readable at the normal camera scale while letting the map breathe
+// when players zoom out. Touch padding is added by the renderer separately.
+export const collectionBubbleScale=zoom=>Math.max(.68,Math.min(1,Number(zoom)||1));
 export function collectionTotals(world,data){
  const totals={};
  for(const b of world.buildings){const key=data.buildings[b.type]?.production;if(!key||b.hp<=0||b.remaining>0)continue;const amount=Math.floor(b.harvestBonus||0);if(amount>0)totals[key]=(totals[key]||0)+amount;}
@@ -19,15 +22,15 @@ export function layoutCollectionBubbles(items,width,height,obstacles=[]){
  const placed=[];
  for(const item of [...items].sort((a,b)=>a.y-b.y||a.x-b.x)){
   if(item.x<-50||item.x>width+50||item.y<-50||item.y>height+50)continue;
-  const w=Math.min(item.width,width-16),h=40;
+  const w=Math.min(item.width,width-16),h=item.height||40;
   const fits=box=>![...placed,...obstacles].some(p=>box.x<p.x+p.w+4&&box.x+box.w+4>p.x&&box.y<p.y+p.h+4&&box.y+box.h+4>p.y);
   let box;
   for(const dy of [0,-44,44,-88,88,-132,132,-176,176])for(const dx of [0,-w-6,w+6]){
    const candidate={...item,x:Math.max(8,Math.min(width-w-8,item.x-w/2+dx)),y:Math.max(8,Math.min(height-h-8,item.y-h/2+dy)),w,h};
    if(!box&&fits(candidate))box=candidate;
   }
-  // Crowded/offscreen bonuses remain available in the Resources panel.
-  if(box)placed.push(box);
+  // Keep every visible source represented even in a very dense village.
+  placed.push(box||{...item,x:Math.max(8,Math.min(width-w-8,item.x-w/2)),y:Math.max(8,Math.min(height-h-8,item.y-h/2)),w,h});
  }
  return placed;
 }
