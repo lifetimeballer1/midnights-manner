@@ -31,6 +31,12 @@ There are no npm dependencies to install. Serve over HTTP; opening `index.html` 
 
 ## Mobile game interface
 
+### Resource clarity and mobile polish
+
+Collection bubbles show the exact resource with an original icon and a full label, such as **+40 Wood** or **+7 Food**. Automatic income and delivery feedback also name their resource. Bubbles keep fixed-size touch targets and spread apart in crowded villages. Tap a resource total in the HUD to open **Resources**, see stored amounts and ready bonuses, and collect from individual sources.
+
+The mobile interface uses larger text, persistent resource names, matching resource colors, clearer equipment states and parchment cards. **Build** and **Army & people** support search. **Adventure** separates Expeditions, Village path, Trading and Chronicle; the quest chip opens Village path directly. Settings groups play preferences, saves and update controls. The same layouts adapt to narrow phones, landscape and desktop. These changes preserve game balance, progression, saves, wall controls and workplace hiring.
+
 ### Workplace management and architecture preview
 
 Select a workplace on the map and tap **Workers** to view its crew, assign an available matching profession, transfer someone from another workplace, or release a worker. **Hire** in this panel recruits directly into that building. Hiring from People automatically chooses the nearest finished, living matching workplace with a vacancy. If none is open, the recruit remains unassigned. A full or unavailable explicitly targeted workplace rejects the hire before charging resources. Existing barracks, unlock, and troop-limit requirements still apply. Assigned noncombat specialists walk to their workplace; collectors retain their gather/deliver cycle and explicit player orders take priority.
@@ -39,9 +45,17 @@ The architecture pass uses original Canvas geometry in `src/building-art.js`: co
 
 The map fills the viewport (including iPhone safe-area handling); the document never scrolls. Build, Army & people, and Adventure are overlay drawers. On phones they are bottom sheets; in landscape/desktop they use a side drawer. A quick fighter rail supports direct orders. Quest and raid status stay visible on the map. Menus have keyboard focus containment and labeled controls. The welcome and settings screens pause simulation; Build/Army/Adventure remain live during raids.
 
-Production buildings keep generating automatically. They also accumulate a **capped, manually collected bonus**: tap a gold `+N` bubble or the selected building's Collect button. Configure `harvest.bonusRate` and `harvest.capacity` in buildings.json. This bonus accrues only during active simulation, cannot be double-claimed, and counts toward collection objectives.
+Production buildings keep generating automatically. They also accumulate a **capped, manually collected bonus**: tap a labeled resource bubble or the selected building's Collect button. Configure `harvest.bonusRate` and `harvest.capacity` in buildings.json. This bonus accrues only during active simulation, cannot be double-claimed, and counts toward collection objectives.
 
 Use **Safari → Share → Add to Home Screen** on iPhone for standalone play. The relative-path web manifest and local app icons support a home-screen shortcut. This does not promise offline operation or cross-device saves. Full Screen in Settings uses the browser Fullscreen API where supported.
+
+### Updates from a Home Screen shortcut
+
+Open **Settings → Check for updates**. When a new build finishes downloading, tap **Update ready · Save & refresh**, or the gold **Update ready ↻** notice on the map. **Save & refresh** also reloads the current game at any time. Refresh saves first and is cancelled if saving fails. It never clears village storage or removes the Home Screen shortcut.
+
+Built games check on reopening/resuming and every five visible minutes. New versions wait for your click rather than interrupting play. Offline/update-download errors leave the current build playable. Every changed build gets a content-based cache ID, even without a package-version bump. Caches are scoped to this game; missing assets never return HTML. Local development has Save & refresh but does not register a service worker.
+
+Existing shortcuts need to load this release once: fully close the game and reopen it online (close any other open copies too if the older build remains). Safari and a Home Screen installation can have separate storage; updating does not transfer saves between them.
 
 ### Visual direction and references
 
@@ -55,7 +69,7 @@ These are design references only. No screenshots or commercial game assets are b
 
 ### Verification
 
-`npm test` includes 218 simulation/rendering/input regression checks. `npm run test:browser` requires a locally installed Chrome (`CHROME_BIN` may override its path). CI runs real pointer/touch input checks for placement preview/confirm, menus, equipment/training, missions, raids, save/reload, one-finger pan, pinch zoom, and no document overflow at portrait/landscape sizes. Screenshots are attached to the Actions run. A browser test failure blocks deployment.
+`npm test` includes 246 simulation/rendering/input/update regression checks. `npm run test:browser` requires a locally installed Chrome (`CHROME_BIN` may override its path). CI runs real pointer/touch input checks for placement preview/confirm, menus, equipment/training, missions, raids, save/reload, one-finger pan, pinch zoom, and no document overflow at portrait/landscape sizes. Screenshots are attached to the Actions run. A browser test failure blocks deployment.
 
 ## Repository structure
 

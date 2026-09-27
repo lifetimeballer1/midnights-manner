@@ -7,7 +7,8 @@ import {join,extname,resolve} from 'node:path';
 import {createServer} from 'node:http';
 import assert from 'node:assert/strict';
 const root=resolve('dist'),profile=await mkdtemp(join(tmpdir(),'midnight-browser-'));
-const server=createServer(async(req,res)=>{try{let path=decodeURIComponent(new URL(req.url,'http://localhost').pathname).replace(/^\/midnights-manner\//,'');if(!path||path==='/')path='index.html';const file=resolve(root,path);if(!file.startsWith(root+'/'))throw Error('Invalid path');res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.json':'application/json','.css':'text/css','.png':'image/png','.svg':'image/svg+xml'})[extname(file)]||'application/octet-stream');res.end(await readFile(file));}catch{res.writeHead(404);res.end('Not found');}});
+let updateFixture=false;
+const server=createServer(async(req,res)=>{try{let path=decodeURIComponent(new URL(req.url,'http://localhost').pathname).replace(/^\/midnights-manner\//,'');if(!path||path==='/')path='index.html';const file=resolve(root,path);if(!file.startsWith(root+'/'))throw Error('Invalid path');res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.json':'application/json','.css':'text/css','.png':'image/png','.svg':'image/svg+xml'})[extname(file)]||'application/octet-stream');let contents=await readFile(file);if(updateFixture&&path==='sw.js')contents=Buffer.from(contents.toString().replace(/const CACHE=PREFIX\+"[^"]+";/,'const CACHE=PREFIX+"browser-update-fixture";'));if(updateFixture&&path==='index.html')contents=Buffer.from(contents.toString().replace(/name="game-build" content="[^"]+"/,'name="game-build" content="browser-update-fixture"'));res.end(contents);}catch{res.writeHead(404);res.end('Not found');}});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const port=server.address().port;
 const chrome=spawn(process.env.CHROME_BIN||'google-chrome',['--headless=new','--no-sandbox','--disable-gpu','--remote-debugging-port=0',`--user-data-dir=${profile}`,'about:blank'],{stdio:['ignore','ignore','pipe']});
@@ -59,7 +60,8 @@ try{
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.buildings.length'),wallBefore+3,'three wall segments built');
  await click('#cancel');
  await waitFor('window.midnightsManner.snapshot().world.buildings.filter(b=>b.type==="wall"&&b.y===3&&b.x>=7&&b.x<=9).every(b=>b.remaining<=0)');
- await tap(await evaluate('(()=>{const p=window.midnightsManner.project(8.5,3.5);return {x:p.x,y:p.y-20};})()'));
+ const wallPoint=await evaluate('(()=>{const g=window.midnightsManner;const ids=new Set(g.snapshot().world.buildings.filter(b=>b.type==="wall"&&b.y===3&&b.x>=7&&b.x<=9).map(b=>b.id));for(let y=160;y<innerHeight-160;y+=4)for(let x=8;x<innerWidth-60;x+=4){const hit=g.pick(x,y);if(hit?.kind==="building"&&ids.has(hit.id)&&document.elementFromPoint(x,y)?.id==="world")return {x,y};}return null;})()');
+ assert.ok(wallPoint,'a wall segment remains selectable beside collection labels');await tap(wallPoint);
  await screenshot('mobile-wall-upgrade');await click('[data-action="upgrade-row"][data-axis="x"]');
  assert.ok(await evaluate('window.midnightsManner.snapshot().world.buildings.filter(b=>b.type==="wall"&&b.y===3&&b.x>=7&&b.x<=9).every(b=>b.level===2)'),'row upgrade applies to all segments');
  await click('[data-action="close"]');
@@ -81,9 +83,34 @@ try{
  await click('[data-recruit="farmer"][data-workplace]');
  assert.ok(await evaluate('window.midnightsManner.snapshot().world.troops.filter(t=>t.type==="farmer").at(-1).workplace'),'direct hire is assigned');
  await screenshot('workplace');
- await click('#close-panel');await click('[data-tab="story"]');await click('[data-mission="first-harvest"]');
+ await click('#close-panel');
+ // Resource identities, collection, search and every main menu on a phone.
+ await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:2,mobile:true});await new Promise(r=>setTimeout(r,150));await click('#recenter');
+ await waitFor('window.midnightsManner.collectionBubbles().length > 0');
+ const bubbles=await evaluate('window.midnightsManner.collectionBubbles()');
+ assert.ok(bubbles.every(b=>/\+\d+ (Wood|Food|Gold|Frostwood|Plate)/.test(b.label)),'collection bubbles name their resources');
+ await screenshot('polished-village');
+ const visiblePill=await evaluate('window.midnightsManner.collectionBubbles().find(b=>document.elementFromPoint(b.x+b.w/2,b.y+b.h/2)?.id==="world")');
+ assert.ok(visiblePill,'collection touch target visible');
+ const bonusBefore=await evaluate(`window.midnightsManner.snapshot().world.buildings.find(b=>b.id===${JSON.stringify(visiblePill.id)}).harvestBonus`);
+ await tap({x:visiblePill.x+visiblePill.w/2,y:visiblePill.y+visiblePill.h/2});
+ assert.ok((await evaluate(`window.midnightsManner.snapshot().world.buildings.find(b=>b.id===${JSON.stringify(visiblePill.id)}).harvestBonus`))<bonusBefore,'labeled bubble collects the right building');
+ await click('[data-resource="wood"]');assert.ok(await evaluate('document.querySelector("#panel").textContent.includes("Wood")'),'resource stores open');await screenshot('polished-resources');await click('#close-panel');
+ await click('[data-tab="build"]');await screenshot('polished-build');await click('#panel-search');await call('Input.insertText',{text:'Wheat'});
+ assert.equal(await evaluate('document.querySelectorAll("[data-build]").length'),1,'building search narrows cards');await click('#close-panel');
+ await click('[data-tab="troops"]');await screenshot('polished-people');await click('#close-panel');
+ await click('[data-tab="story"]');await screenshot('polished-adventure');await click('[data-category="quests"]');await screenshot('polished-quests');
+ await click('[data-category="market"]');await screenshot('polished-trading');await click('#close-panel');
+ await click('#pause');await screenshot('polished-settings');await click('#resume');
+ for(const width of [320,390,430]){
+  await call('Emulation.setDeviceMetricsOverride',{width,height:844,deviceScaleFactor:2,mobile:true});await new Promise(r=>setTimeout(r,80));
+  assert.equal(await evaluate('document.documentElement.scrollWidth > innerWidth'),false,`no overflow at ${width}`);
+  assert.ok(await evaluate('[...document.querySelectorAll(".resource small")].every(e=>getComputedStyle(e).display!=="none")'),'resource names stay visible');
+ }
+ await call('Emulation.setDeviceMetricsOverride',{width:1440,height:1100,deviceScaleFactor:1,mobile:false});await new Promise(r=>setTimeout(r,150));await click('#recenter');
+ await click('[data-tab="story"]');await click('[data-mission="first-harvest"]');
  assert.ok(await evaluate('window.midnightsManner.snapshot().mission'),'expedition starts');
- await click('[data-tab="story"]');await click('[data-home]');assert.equal(await evaluate('window.midnightsManner.snapshot().mission'),null,'return restores home');
+ await click('[data-tab="story"]');await waitFor('Boolean(document.querySelector("[data-home]"))');await click('#panel [data-home]');assert.equal(await evaluate('window.midnightsManner.snapshot().mission'),null,'return restores home');
  await click('#raid');await waitFor('window.midnightsManner.snapshot().world.enemies.length > 0');
  await click('#pause');assert.equal(await evaluate('window.midnightsManner.paused'),true);await click('#opt-save');await click('#resume');
  await call('Page.reload');await waitFor('Boolean(window.midnightsManner)');await click('#begin');
@@ -109,6 +136,26 @@ try{
  assert.equal(await evaluate('document.documentElement.scrollHeight > innerHeight'),false,'landscape has no scrolling');
  await click('[data-tab="troops"]');await click('[data-category="recruit"]');
  assert.ok((await evaluate('document.querySelectorAll("[data-recruit]").length'))>=20,'all professions retained');
+ // Serve a second build while the standalone-sized page stays open.
+ await click('#close-panel');await click('#pause');
+ await evaluate('navigator.serviceWorker.ready.then(()=>true)');
+ await waitFor('!!navigator.serviceWorker.controller');
+ const savedUnit=await evaluate('window.midnightsManner.snapshot().world.troops[0].id');
+ await call('Network.enable');
+ await call('Network.emulateNetworkConditions',{offline:true,latency:0,downloadThroughput:0,uploadThroughput:0});
+ await click('#opt-update');await waitFor('document.querySelector("#update-status").textContent.includes("internet")');
+ assert.ok(await evaluate('window.midnightsManner.ready'),'offline check does not reload the game');
+ await call('Network.emulateNetworkConditions',{offline:false,latency:0,downloadThroughput:-1,uploadThroughput:-1});
+ await waitFor('!document.querySelector("#opt-update").disabled');
+ updateFixture=true;
+ await click('#opt-update');await waitFor('!document.querySelector("#update-notice").hidden');
+ assert.notEqual(await evaluate('document.querySelector("meta[name=game-build]").content'),'browser-update-fixture','update waits for a click');
+ await screenshot('update-ready');await click('#opt-update');
+ await waitFor('document.querySelector("meta[name=game-build]")?.content==="browser-update-fixture" && !!window.midnightsManner');
+ assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[0].id'),savedUnit,'update preserves village');
+ await click('#begin');await click('#pause');await click('#opt-refresh');
+ await waitFor('!!window.midnightsManner && !document.querySelector("#title").hidden');
+ assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[0].id'),savedUnit,'ordinary in-app refresh preserves village');
  assert.deepEqual(errors,[],'no browser runtime errors');
- console.log(JSON.stringify({placementConfirmation:true,touchWallRows:true,wallRowUpgrade:true,equipment:true,training:true,mission:true,raid:true,saveReload:true,portrait:true,landscape:true,touchPan:true,pinchZoom:true,consoleErrors:errors}));
+ console.log(JSON.stringify({resourceCollection:true,menuSearch:true,mobileMenuPolish:true,inAppUpdate:true,saveAndRefresh:true,offlineUpdateCheck:true,placementConfirmation:true,touchWallRows:true,wallRowUpgrade:true,equipment:true,training:true,mission:true,raid:true,saveReload:true,portrait:true,landscape:true,touchPan:true,pinchZoom:true,consoleErrors:errors}));
 }finally{ws?.close();chrome.kill();server.close();await new Promise(r=>setTimeout(r,300));await rm(profile,{recursive:true,force:true,maxRetries:3,retryDelay:100});}

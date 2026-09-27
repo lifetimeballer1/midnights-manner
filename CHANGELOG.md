@@ -1,3 +1,20 @@
+## 0.1.3 — Resource clarity and mobile finish
+
+- Original wood, food, gold, frostwood and plate icons replace tool placeholders in the resource HUD; labels remain visible on phones.
+- Collection bubbles and floating income name their resource. Touch targets stay a readable size and avoid overlap where space allows.
+- Resource totals open a stores panel with per-building bonus collection.
+- Build and People menus gain search; Adventure separates expeditions, quests, trading and lore.
+- Polished HUD, cards, equipment rows, workplace controls, building inspector, settings, raid feedback, and portrait/landscape spacing.
+- Includes the pending safe Home Screen update controls and the building-inspector merge fix.
+
+## 0.1.2 — Home Screen updates
+
+- Fixed a current-main merge regression that referenced wall-row controls before initialization and broke building selection; retained the Cairnfield memorial panel.
+- Settings now includes Check for updates and Save & refresh, with a map notice when a build is ready.
+- Refresh persists the village first and cancels on storage failure; updates wait for a player click.
+- Built games check on resume and every five visible minutes, with offline/download failure feedback.
+- Content-based, scope-specific service-worker caches detect code/data/art changes without manual version bumps and keep complete builds together.
+
 ## 0.1.1 — All-side raids and wall controls
 
 - Home, test and campaign raids enter from rotating perimeter sides; four-or-more raiders cover all four sides. Countdown warnings list the sides.

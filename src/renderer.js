@@ -1,3 +1,4 @@
+import {resourceInfo,resourceLabel,layoutCollectionBubbles} from './resources.js';
 import {placementCells} from './systems/walls.js';
 import {screenToWorld,panPixels,zoomAt,phaseSeed} from './camera.js';
 import {tileFor} from './systems/biomes.js';
@@ -108,7 +109,7 @@ export class Renderer {
      for(let i=0;i<crew;i++){c.fillStyle='#f2c96e';c.beginPath();c.arc(p2.x-(crew*8)/2+i*8+4,p2.y-size-10,3,0,Math.PI*2);c.fill();c.strokeStyle='#1c302c';c.lineWidth=1;c.stroke();}}
     if(b.maxReserve&&b.hp>0){const frac=Math.max(0,Math.min(1,b.reserve/b.maxReserve));
      if(frac<0.66)this.bar(p2.x,p2.y+20,frac,36,frac>0.35?'#c9a44e':'#c9766a');}
-    if(spec.production&&b.hp>0&&b.remaining<=0&&(b.harvestBonus||0)>=1){const by=p.y-size-21;const amount=Math.floor(b.harvestBonus);c.fillStyle='#f4d47b';c.strokeStyle='#695330';c.lineWidth=2;c.beginPath();c.roundRect(p.x-24,by-12,48,24,9);c.fill();c.stroke();c.fillStyle='#4b4027';c.font='bold 11px system-ui';c.textAlign='center';c.fillText('+'+amount,p.x,by+4);c.textAlign='left';this.hitAreas.push({kind:'harvest',id:b.id,x:p.x-27,y:by-16,w:54,h:32});}
+
     // Chimney smoke: houses breathe. Stateless phase per building, capped to homes.
     if(b.hp>0&&b.remaining<=0&&['hall','cottage','barracks','forge','chapel','farm'].includes(b.type)&&(Math.floor(time/1600)+phaseSeed(b.id))%3===0){
      const rise=this.calm?6:((time/45+phaseSeed(b.id)*37)%26);c.globalAlpha=this.calm?.1:.22*(1-rise/30);
@@ -151,14 +152,10 @@ export class Renderer {
    if(e.kind==='hit'){c.globalAlpha=Math.max(0,e.life)/.18;c.fillStyle='#fff';c.beginPath();c.arc(b.x,b.y-10,9,0,Math.PI*2);c.fill();c.globalAlpha=1;continue;}
    if(e.kind==='poof'){const t=1-Math.max(0,e.life)/.4;c.globalAlpha=Math.max(0,e.life)/.4;c.strokeStyle='#b8c4bb';c.lineWidth=2;c.beginPath();c.ellipse(b.x,b.y-8,6+t*12,4+t*6,0,0,Math.PI*2);c.stroke();c.globalAlpha=1;continue;}
    if(e.kind==='slam')this.shake=Math.max(this.shake,3);c.globalAlpha=e.life/.3;c.strokeStyle=e.kind==='heal'?'#e4efb0':e.kind==='arrow'?'#f6ecbb':'#f5d78d';c.lineWidth=e.kind==='slam'?5:2;c.beginPath();if(e.kind==='heal'||e.kind==='slam'){c.ellipse(b.x,b.y-8,25,12,0,0,Math.PI*2);}else{c.moveTo(a.x,a.y-12);c.lineTo(b.x,b.y-12);}c.stroke();c.globalAlpha=1;}
-  // Raid readability: red western edge + marching chevrons while raiders live.
+  // Raiders can arrive from every side: a quiet border glow never points west by mistake.
   if(world.enemies.length){
-   const pulse=this.calm?.14:.14+Math.sin(time/300)*.05;
-   const g=c.createLinearGradient(0,0,150,0);g.addColorStop(0,`rgba(178,60,50,${pulse+.18})`);g.addColorStop(1,'rgba(178,60,50,0)');
-   c.fillStyle=g;c.fillRect(0,0,150,this.height);
-   c.fillStyle='#b23c32';c.font='bold 14px system-ui';c.textAlign='center';
-   for(let y=2;y<16;y+=2){const p=this.project(.6,y+.5);c.fillText('▶',p.x-30+(this.calm?0:Math.sin(time/250+y)*5),p.y);}
-   c.textAlign='left';
+   const radius=Math.max(this.width,this.height)*.7,g=c.createRadialGradient(this.width/2,this.height/2,Math.min(this.width,this.height)*.35,this.width/2,this.height/2,radius);
+   g.addColorStop(0,'rgba(145,54,42,0)');g.addColorStop(1,`rgba(145,54,42,${this.calm?.2:.2+Math.sin(time/500)*.035})`);c.fillStyle=g;c.fillRect(0,0,this.width,this.height);
   }
  // Vignette + moon glow: depth and night air over the whole map (static, motion-safe).
   {const vg=c.createRadialGradient(this.width/2,this.height/2,Math.min(this.width,this.height)*.3,this.width/2,this.height/2,Math.max(this.width,this.height)*.75);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(5,10,8,0.42)');c.fillStyle=vg;c.fillRect(0,0,this.width,this.height);
@@ -171,6 +168,23 @@ export class Renderer {
   if(!this.calm)for(let i=0;i<8;i++){const p=this.project(4+i*1.8,4+(i*3)%9);c.globalAlpha=.25+Math.sin(time/1000+i)*.2;c.fillStyle='#fcf4c0';c.fillRect(p.x+Math.sin(time/1500+i)*8,p.y-25,2,2);}c.globalAlpha=1;
   // Butterflies by day: three gold wanderers over the fields.
   if(!this.calm)for(let i=0;i<3;i++){const bp=this.project(5+4*Math.sin(time/3100+i*2.1),6+3*Math.cos(time/2600+i*1.7));const flap=Math.abs(Math.sin(time/180+i))*2;c.fillStyle='#f2c96ecc';c.fillRect(bp.x-2-flap,bp.y,2,2);c.fillRect(bp.x+flap,bp.y,2,2);}
+  if(!this.placing)this.drawCollections(world);
+ }
+ drawCollections(world){
+  const c=this.ctx;
+  const items=world.buildings.filter(b=>this.data.buildings[b.type].production&&b.hp>0&&b.remaining<=0&&(b.harvestBonus||0)>=1).map(b=>{
+   const spec=this.data.buildings[b.type],p=this.project(b.x+spec.size/2,b.y+spec.size/2),info=resourceInfo(spec.production),text=resourceLabel(spec.production,b.harvestBonus);
+   c.font='bold 12px system-ui';
+   return {id:b.id,x:p.x,y:p.y-(spec.size===2?79:51)*this.cam.zoom-18,anchor:p,text,info,width:Math.max(104,c.measureText(text).width+44)};
+  });
+  for(const pill of layoutCollectionBubbles(items,this.width,this.height,this.width<600?(this.collectionObstacles||[]):[])){
+   const {x,y,w,h,info}=pill;
+   c.save();c.strokeStyle=info.color+'aa';c.lineWidth=1.5;c.beginPath();c.moveTo(x+w/2,y+h-4);c.lineTo(pill.anchor.x,pill.anchor.y-28*this.cam.zoom);c.stroke();
+   c.shadowColor='#0c22194d';c.shadowBlur=8;c.shadowOffsetY=3;c.fillStyle=info.paper;c.strokeStyle=info.color;c.lineWidth=1.5;c.beginPath();c.roundRect(x,y+3,w,h-6,12);c.fill();c.stroke();c.shadowBlur=0;c.shadowOffsetY=0;
+   const icon=this.images[info.sprite];if(icon)c.drawImage(icon,x+5,y+6,28,28);
+   c.fillStyle='#293c30';c.font='bold 12px system-ui';c.textAlign='left';c.fillText(pill.text,x+36,y+25);c.restore();
+   this.hitAreas.push({kind:'harvest',id:pill.id,x,y,w,h,resource:info.label,label:pill.text});
+  }
  }
  // Juice: renderer-local transition detection. Simulation untouched — the
  // renderer watches hp/remaining edges and spawns its own capped effects.
