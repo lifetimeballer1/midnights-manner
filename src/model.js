@@ -1,7 +1,7 @@
 export const copy = value => structuredClone(value);
 export const distance = (a,b) => Math.hypot(a.x-b.x,a.y-b.y);
 import {buildTiles, seedFor} from './systems/biomes.js';
-import {isClaimed} from './systems/expansion.js';
+import {isClaimed, claimPreclaimed, regionsOf} from './systems/expansion.js';
 // New villages start small; the frontier opens as village XP grows (see village.js).
 export const START_BOUNDS = {w:14,h:12};
 export const XP_LEVELS = [0,100,220,380,580,830,1150,1500,2100,2400,2600];
@@ -79,6 +79,22 @@ export function createWorld(data,layout=data.world) {
   // layout.tiles win; every other cell fills deterministically.
   let tiles = [];
   try { tiles = buildTiles({...data.world, ...layout, tiles: layout.tiles || data.world.tiles, seed: layout.seed ?? data.world.seed}, bounds); } catch { tiles = []; }
+  // Region model (Phase 2b): fresh home worlds claim only the pre-claimed
+  // center region; the other 8 regions start wild. Landmark tiles keep
+  // their explicit flag. Mission maps (layout.map) keep legacy behavior.
+  // Old saves never reach this path with existing tiles — migration in
+  // game.js only ever adds claims, never removes them.
+  try {
+    if (!layout.map && regionsOf(data.expansion).length && Array.isArray(tiles)) {
+      const pre = regionsOf(data.expansion).filter(r => r?.preclaimed && r.rect);
+      const insidePre = (x, y) => pre.some(r => x >= r.rect.x && y >= r.rect.y && x < r.rect.x + r.rect.w && y < r.rect.y + r.rect.h);
+      for (const t of tiles) {
+        if (t.landmark) continue;
+        t.claimed = insidePre(t.x, t.y);
+      }
+      claimPreclaimed({tiles}, data.expansion);
+    }
+  } catch {}
   return {resources:copy(layout.startingResources),bounds,survey:0,childTimer:0,tiles,biomeSeed:seedFor({...data.world, ...layout}),buildings:(layout.buildings||layout.map.buildings).map(b=>makeBuilding(b.type,b.x,b.y,data,b.level||1)),troops:(layout.troops||layout.map.troops).map((t,i)=>makeUnit(t,data,i)),enemies:[],effects:[],elapsed:0,gathered:{wood:0,food:0,gold:0,frostwood:0,plate:0},wave:0,raidTimer:0,nextRaidAt:Number.isFinite(cfg.firstAt)?cfg.firstAt:300};
 }
 export function afford(resources,cost) { return Object.entries(cost).every(([k,v])=>resources[k]>=v); }
