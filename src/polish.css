@@ -59,3 +59,42 @@ button{transition:filter .14s,transform .14s,box-shadow .14s}
 /* Keep transient feedback above a phone sheet, clear of its title and controls. */
 @media(max-width:700px) and (orientation:portrait){.drawer-open .toast,.drawer-open.raid-active .toast{top:calc(65px + var(--safe-top));max-width:calc(100% - 32px)}}
 .drawer-header>div{min-width:0}.drawer-header h2{overflow-wrap:break-word}
+
+/* Phase 1 Adventure: Home / Quests / Expeditions / Campaign / Chronicle.
+   Mobile-first single-column cards; every action is a thumb-sized target
+   (>=44px), nothing scrolls sideways, desktop inherits the same column. */
+.adv-hero{border-radius:16px;padding:16px;background:linear-gradient(140deg,#355c43,#1e3a2c);color:#f9edcd;border:1px solid #d8c38a80;margin-bottom:14px;max-width:100%}
+.adv-hero h3{font-size:19px;line-height:1.25;margin:6px 0;overflow-wrap:break-word}
+.adv-hero p{font-size:12px;line-height:1.6;color:#cfe0bd;margin-bottom:12px;overflow-wrap:break-word}
+.adv-eyebrow{font-size:9px;font-weight:800;letter-spacing:2px;color:#d6c68e}
+.adv-hero .adv-eyebrow{color:#f0d48a}
+.adv-next-btn{display:block;width:100%;min-height:48px;font-size:13px;margin-top:10px;overflow-wrap:break-word}
+.adv-hero .adv-next-btn{color:#493c23;background:linear-gradient(#f7df95,#d0a24d);border:1px solid #ffebb0;box-shadow:inset 0 2px #fff5bd,0 4px #8a612d;border-radius:12px;font-weight:800}
+.adv-card{border:1px solid #ced4bb;border-radius:13px;background:#fffaf0;padding:14px;margin-bottom:12px;max-width:100%}
+.adv-card h3{font-size:16px;line-height:1.3;color:#354f31;margin:6px 0;overflow-wrap:break-word}
+.adv-card p{font-size:12px;line-height:1.6;color:#687858;margin:6px 0;overflow-wrap:break-word}
+.adv-card .progress{margin:10px 0 4px}
+.adv-meta{font-size:11px;font-weight:700;color:#6d7f55;margin-top:6px;overflow-wrap:break-word}
+.adv-row{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12px;line-height:1.5;color:#546346;padding:7px 0;border-bottom:1px dashed #d5dcc4;overflow-wrap:anywhere}
+.adv-row:last-child{border-bottom:0}
+.adv-row b{font-size:11px;letter-spacing:1px;color:#7a5f2e;white-space:nowrap}
+.adv-row small{display:block;font-size:10px;font-weight:400;color:#80916c}
+.adv-row.adv-danger span{color:#a45033;font-weight:700}
+.adv-done{background:#eef2dd}
+.adv-trade{background:#f3ecd4;border-style:dashed}
+.adv-note{font-size:11px;line-height:1.6;color:#7a8568;margin:0 0 12px;overflow-wrap:break-word}
+.adv-empty{font-size:12px;line-height:1.6;color:#7a8568;margin:4px 0 12px}
+.adv-back{min-height:44px;margin-bottom:10px;color:#5b6a52;background:#dce0c9;border:1px solid #c0c7ae;box-shadow:none;border-radius:20px;font-size:12px}
+.adv-ranger{display:flex;align-items:center;gap:10px;border:1px solid #ced4bb;border-radius:13px;background:#fffaf0;padding:12px 14px;margin-bottom:9px;max-width:100%}
+.adv-ranger>div{flex:1;min-width:0}
+.adv-ranger b{font-size:13px;color:#354f31;display:block;overflow-wrap:break-word}
+.adv-ranger small{display:block;font-size:10px;line-height:1.5;color:#80916c;margin-top:3px;overflow-wrap:break-word}
+.adv-ranger button{min-height:44px;min-width:76px;flex-shrink:0;font-size:12px;color:#f9edcd;background:linear-gradient(#4a6b52,#2c4634);border-color:#8aa37e}
+.qpill{display:inline-block;font-size:9px;font-weight:800;letter-spacing:1.4px;border-radius:20px;padding:3px 10px;margin-bottom:7px}
+.qpill-active{background:#355c43;color:#fff3cf}
+.qpill-done{background:#d1b673;color:#4a3f22}
+.qpill-upcoming{background:#dce0c9;color:#75805f}
+.quest.qnext{opacity:.85}
+.quest .progress{margin:9px 0 4px}
+.quest .qpill+ b{margin-top:2px}
+.mission-card .chapter{overflow-wrap:break-word}

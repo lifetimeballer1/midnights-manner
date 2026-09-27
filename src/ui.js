@@ -3,11 +3,11 @@ import {wallRowQuote,isWall,placementCells} from './systems/walls.js';
 import {raidSides} from './systems/combat.js';
 import {stats,unlockedAbilities,buildingCost,housing,XP_LEVELS,center,assignedWorkers,workplaceCapacity,canPlace,afford,promotionOptions} from './model.js';
 import {currentQuest,questProgress,growthStatus} from './systems/village.js';
-import {missionLocked} from './systems/campaign.js';
 import {exportSave,importSaveBlob} from './storage.js';
 import {pickRumor,pickLegend,daySeed} from './systems/story.js';
 import {dayKey,seasonFor,modifierFor,dealsFor,marketOpen,tradeCap,describeDeal} from './systems/calendar.js';
 import {expeditionStatus} from './systems/expeditions.js';
+import {ADVENTURE_LABELS, campaignCards, expeditionRoster, homeSummary, questCards, taskHint} from './adventure.js';
 import {sfx,isMuted,toggleMute} from './systems/audio.js';
 const icons={wood:'▰',food:'♧',gold:'◆',frostwood:'❄',plate:'▣'};
 const cost=c=>Object.entries(c).map(([k,v])=>`${icons[k]} ${Math.ceil(v)} ${k}`).join(' · ')||'Included';
@@ -20,7 +20,7 @@ export class UI {
   $('#begin').onclick=()=>{this.started=true;$('#title').hidden=true;this.game.paused=false;this.renderer.fitVillage(this.game.world);$('#world').focus({preventScroll:true});this.game.notify('Your village awaits. Drag to explore; pinch to zoom.');this.refresh();};
   document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>this.openPanel(b.dataset.tab));
   $('#close-panel').onclick=()=>this.closePanel();$('#drawer-backdrop').onclick=()=>this.closePanel();
-  $('#quest-chip').onclick=()=>{this.openPanel('story');this.category='quests';this.renderFilters();this.refresh();};
+  $('#quest-chip').onclick=()=>{this.openPanel('story');this.category='quests';this.lastPanel='';this.renderFilters();this.refresh();};
   $('#resources').onclick=e=>{if(e.target.closest('[data-resource]'))this.openPanel('resources');};
   $('#panel-search').oninput=e=>{this.search=e.target.value.trim().toLowerCase();this.lastPanel='';this.refresh();};
   $('#panel-filters').onclick=e=>{const button=e.target.closest('[data-category]');if(!button)return;this.category=button.dataset.category;this.lastPanel='';this.renderFilters();this.refresh();};
@@ -78,6 +78,8 @@ export class UI {
    if(b.dataset.oath)this.game.takeOath(b.dataset.oath);
    if(b.dataset.reforge)this.game.reforge(b.dataset.reforge);
    if(b.dataset.ability)this.game.ability(b.dataset.unit,b.dataset.ability);
+   if(b.dataset.goto){this.category=b.dataset.goto;this.lastPanel='';this.renderFilters();this.refresh();return;}
+   if(b.dataset.expedition){this.game.sendExpedition(b.dataset.expedition);this.lastPanel='';this.refresh();return;}
    if(b.dataset.mission){this.cancel();this.clearSelection();this.game.mission(b.dataset.mission);if(this.game.state.mission){this.closePanel();this.renderer.fitVillage(this.game.world);}}
    if(b.dataset.trade){this.game.trade(b.dataset.trade);}
    if(b.dataset.home){this.game.returnHome();this.cancel();this.clearSelection();this.closePanel();this.renderer.fitVillage(this.game.world);}
@@ -88,9 +90,9 @@ export class UI {
   document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('#pause-overlay').hidden)this.closePause();else if(!$('#drawer').hidden)this.closePanel();else this.cancel();}if(e.key==='Tab')this.trapFocus(e);});
  }
  trapFocus(e){const container=!$('#title').hidden?$('#title'):!$('#pause-overlay').hidden?$('#pause-overlay'):!$('#raid-overlay').hidden?$('#raid-overlay'):!$('#drawer').hidden?$('#drawer'):null;if(!container)return;const items=[...container.querySelectorAll('button:not(:disabled),select,input')].filter(el=>el.getClientRects().length);if(!items.length)return;const first=items[0],last=items.at(-1);if(e.shiftKey&&(document.activeElement===first||!container.contains(document.activeElement))){e.preventDefault();last.focus();}else if(!e.shiftKey&&(document.activeElement===last||!container.contains(document.activeElement))){e.preventDefault();first.focus();}}
- openPanel(tab){if(!this.started||this.game.paused)return;this.cancel();this.tab=tab;this.category=tab==='story'?'chapters':'all';this.search='';$('#panel-search').value='';$('#panel-search-wrap').hidden=!['build','troops'].includes(tab);$('#panel-search').placeholder=tab==='build'?'Find a building…':'Find a person or profession…';this.panel.scrollTop=0;this.lastPanel='';this.closeSelectionOnly();$('#drawer').hidden=false;$('#drawer-backdrop').hidden=false;document.body.classList.add('drawer-open');const titles={build:['VILLAGE WORKSHOP','Build your village'],troops:['YOUR PEOPLE','Army & people'],workplace:['WORKPLACE','Manage this job'],story:['BEYOND THE TREELINE','Adventure'],resources:['THE VILLAGE STORES','Resources']};$('#panel-kicker').textContent=titles[tab][0];$('#panel-title').textContent=titles[tab][1];document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));this.renderFilters();this.refresh();$('#close-panel').focus({preventScroll:true});sfx.click();}
+ openPanel(tab){if(!this.started||this.game.paused)return;this.cancel();this.tab=tab;this.category=tab==='story'?'home':'all';this.search='';$('#panel-search').value='';$('#panel-search-wrap').hidden=!['build','troops'].includes(tab);$('#panel-search').placeholder=tab==='build'?'Find a building…':'Find a person or profession…';this.panel.scrollTop=0;this.lastPanel='';this.closeSelectionOnly();$('#drawer').hidden=false;$('#drawer-backdrop').hidden=false;document.body.classList.add('drawer-open');const titles={build:['VILLAGE WORKSHOP','Build your village'],troops:['YOUR PEOPLE','Army & people'],workplace:['WORKPLACE','Manage this job'],story:['BEYOND THE TREELINE','Adventure'],resources:['THE VILLAGE STORES','Resources']};$('#panel-kicker').textContent=titles[tab][0];$('#panel-title').textContent=titles[tab][1];document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));this.renderFilters();this.refresh();$('#close-panel').focus({preventScroll:true});sfx.click();}
  closePanel(){const wasOpen=!$('#drawer').hidden;$('#drawer').hidden=true;$('#drawer-backdrop').hidden=true;document.body.classList.remove('drawer-open');document.querySelectorAll('[data-tab]').forEach(b=>b.classList.remove('active'));if(wasOpen)$('#world').focus({preventScroll:true});}
- renderFilters(){const filters=this.tab==='build'?[['all','All'],['economy','Resources'],['defense','Defenses'],['village','Village & jobs']]:this.tab==='troops'?[['all','Everyone'],['combat','Fighters'],['workers','Workers'],['recruit','Recruit']]:this.tab==='story'?[['chapters','Expeditions'],['quests','Village path'],['market','Trading'],['lore','Chronicle']]:[];$('#panel-filters').hidden=!filters.length;$('#panel-filters').innerHTML=filters.map(([id,label])=>`<button data-category="${id}" class="${id===this.category?'active':''}" aria-pressed="${id===this.category}">${label}</button>`).join('');}
+ renderFilters(){const filters=this.tab==='build'?[['all','All'],['economy','Resources'],['defense','Defenses'],['village','Village & jobs']]:this.tab==='troops'?[['all','Everyone'],['combat','Fighters'],['workers','Workers'],['recruit','Recruit']]:this.tab==='story'?[['home',ADVENTURE_LABELS.home],['quests',ADVENTURE_LABELS.quests],['expeditions',ADVENTURE_LABELS.expeditions],['chapters',ADVENTURE_LABELS.chapters],['lore',ADVENTURE_LABELS.lore]]:[];$('#panel-filters').hidden=!filters.length;$('#panel-filters').innerHTML=filters.map(([id,label])=>`<button data-category="${id}" class="${id===this.category?'active':''}" aria-pressed="${id===this.category}">${label}</button>`).join('');}
  openPause(){if(!this.started)return;this.closePanel();this.cancel();this.game.paused=true;$('#pause-overlay').hidden=false;this.syncPause();$('#resume').focus();}
  closePause(){this.game.paused=false;$('#pause-overlay').hidden=true;$('#world').focus({preventScroll:true});this.refresh();}
  syncCamera(){const r=this.renderer;$('#orbit-mode').textContent=`Orbit: ${r.orbitMode?'on':'off'}`;$('#orbit-mode').setAttribute('aria-pressed',String(r.orbitMode));$('#camera-heading').textContent=`${Math.round((r.cam.yaw||0)*180/Math.PI)}°`;if(document.activeElement!==$('#camera-tilt'))$('#camera-tilt').value=Math.round((r.cam.pitch||.536)*180/Math.PI);document.body.classList.toggle('orbit-mode',r.orbitMode);}
@@ -174,10 +176,79 @@ export class UI {
   const unlockChapter=id=>{const m=d.missions.find(m=>(m.unlocks||[]).includes(id));return m?`Ch ${m.chapter}`:'Campaign';};
   this.setPanelHTML(`<div class="panel-heading"><span>YOUR PEOPLE · ${g.world.troops.length}</span><span>Train. Equip. Defend.</span></div>${this.category==='recruit'?`<div class="recruit">${Object.entries(d.troops).filter(([,t])=>!this.search||t.name.toLowerCase().includes(this.search)).map(([id,t])=>`<button data-recruit="${id}" title="${cost(t.recruitCost)}" ${g.locked(id)?'disabled':''}>${img(t.sprite)}+ ${t.name}<small>${g.locked(id)?'Locked — quests/campaign':cost(t.recruitCost)}</small></button>`).join('')}</div><p class="cost">Recruitment requires a finished barracks.</p>`:''}${g.world.troops.filter(u=>(!this.search||`${u.name||''} ${d.troops[u.type].name}`.toLowerCase().includes(this.search))&&this.category!=='recruit'&&(this.category==='all'||this.category==='combat'&&d.troops[u.type].role==='combat'||this.category==='workers'&&d.troops[u.type].role!=='combat')).map(u=>{const s=stats(u,d),spec=d.troops[u.type],abilities=unlockedAbilities(u,d),next=Object.keys(spec.abilities).map(Number).find(n=>n>u.level);return `<article class="person-card"><div class="person-head">${img(spec.sprite)}<div><h3>${'★'.repeat(u.prestigeStars||0)}${u.oath?'⚔ ':''}${u.name||spec.name} <em class="role role-${spec.role}">${spec.role}</em></h3><small>${u.name?spec.name+' · ':''}LEVEL ${u.level} / ${spec.maxLevel}</small><div class="levelbar"><div style="width:${u.level/spec.maxLevel*100}%"></div></div></div><button data-level="${u.id}" ${u.level>=spec.maxLevel?'disabled':''}>Train ↑</button></div><div class="statline">♥ ${Math.ceil(u.hp)}/${Math.round(s.hp)} · ⚔ ${Math.round(s.damage)} · Speed ${s.speed.toFixed(2)}<br>Next level: ${cost(Object.fromEntries(Object.entries(spec.levelCost).map(([k,v])=>[k,Math.ceil(v*u.level*(u.level>=5?1.5:1))])))}</div><div class="section-label">TOOLS & WEAPONS</div><div class="gear-list">${Object.entries(d.items).filter(([,item])=>!item.slot&&item.roles.includes(u.type)).map(([id,item])=>`<button data-unit="${u.id}" data-gear="${id}" class="gear ${u.gear===id?'selected':''}" title="${item.name}: ${cost(item.cost)}" ${g.locked(id)?'disabled':''}>${img(item.sprite)}${item.name}<small>${g.locked(id)?unlockChapter(id):u.owned.includes(id)?u.gear===id?'Equipped':'Owned':cost(item.cost)}</small></button>`).join('')}</div>${Object.entries(d.items).some(([,item])=>item.slot==='armor'&&item.roles.includes(u.type))?`<div class="section-label">ARMOR</div><div class="gear-list armor-list">${Object.entries(d.items).filter(([,item])=>item.slot==='armor'&&item.roles.includes(u.type)).map(([id,item])=>`<button data-unit="${u.id}" data-gear="${id}" class="gear ${u.armor===id?'selected':''}" title="${item.name} (armor): ${cost(item.cost)}" ${g.locked(id)?'disabled':''}>${img(item.sprite)}${item.name}<small>${g.locked(id)?unlockChapter(id):(u.armorOwned||[]).includes(id)?u.armor===id?'Fitted':'Owned':cost(item.cost)}</small></button>`).join('')}</div>`:''}${spec.job?(()=>{const sites=g.world.buildings.filter(b=>(b.type===spec.job.workplace||(d.buildings[b.type]?.hosts||[]).includes(u.type))&&b.hp>0&&b.remaining<=0);return `<div class="job">⚒ Work: <select data-assign="${u.id}"><option value="">Resting</option>${sites.map(b=>{const n=assignedWorkers(g.world,b.id).length,cap=workplaceCapacity(b,d);return `<option value="${b.id}" ${u.workplace===b.id?'selected':''} ${(n>=cap&&u.workplace!==b.id)?'disabled':''}>${d.buildings[b.type].name} ${n}/${cap}</option>`;}).join('')}</select><small>${spec.job.text}</small></div>`;})():''}<div class="section-label">ABILITIES & PROGRESSION</div><div class="ability">${abilities.map(a=>`<div title="${a.description}">✦ ${a.name}${a.active?` <button data-unit="${u.id}" data-ability="${a.id}" ${u.abilityTimer>0?'disabled':''}>${u.abilityTimer>0?Math.ceil(u.abilityTimer)+'s':'Cast'}</button>`:''}</div>`).join('')||'No abilities unlocked yet.'}${next?`<div>Level ${next} → ${d.abilities[spec.abilities[next]].name}</div>`:''}${(()=>{const opts=promotionOptions(g.world,d,u);return opts.length?`<div class="promote">🎓 Ready to graduate: ${opts.map(o=>`<button data-promote-unit="${u.id}" data-promote-to="${o.type}" title="${o.text}">Graduate → ${d.troops[o.type].name}</button>`).join('')}</div>`:'';})()}${u.level>=spec.maxLevel&&(u.prestigeStars||0)<3?`<div class="promote">★ The Bell Tower remembers: <button data-prestige="${u.id}" title="Reset to level 1, keep gear and kit, +5% all stats per star (max 3)">Ring back${(u.prestigeStars||0)>0?` (★${u.prestigeStars}→★${u.prestigeStars+1})`:''}</button></div>`:''}${d.troops[u.type]?.oathbound&&u.level>=20&&!u.oath?`<div class="promote">⚔ Swear the Last Watch: <button data-oath="${u.id}" title="+50% damage and armor — but if they fall, they fall forever">Take the oath</button></div>`:''}${(()=>{const nid='starforged-'+u.gear;const nx=d.items[nid];return nx&&!g.locked(nid)&&!(u.owned||[]).includes(nid)?`<div class="promote">✦ Starforge line: <button data-reforge="${u.id}" title="${nx.name}: +15% main stat for plate 5 + gold 500">Reforge → ${nx.name}</button></div>`:'';})()}</div></article>`;}).join('')}`);
  }
- renderStory(){const g=this.game,w=g.world;
-  const rumor=pickRumor(g.data.rumors,daySeed());
-  const board=rumor?`<div class="notice-board" aria-live="polite"><span>NOTICE BOARD</span><p>${rumor.text}</p></div>`:'';
-  this.setPanelHTML(`<div class="panel-heading"><span>TALES OF THE FRONTIER</span><span>${g.data.missions.length} chapters</span></div>${this.category==='market'?this.marketBlock(g):''}${this.category==='quests'?this.questBlock(g):''}${this.category==='lore'?board+this.chartLog(g):''}${(this.category==='chapters'?g.data.missions:[]).map(m=>{const current=g.state.mission?.id===m.id,completed=g.state.completed.includes(m.id),locked=missionLocked(m,g.state.completed);return `<article class="mission-card ${current?'current':completed?'completed':locked?'locked':'available'}"><div class="chapter">CHAPTER ${m.chapter}${m.act?` · ACT ${m.act}`:''} ${completed?'· COMPLETE':locked?'· LOCKED':''}</div><h3>${m.name}</h3>${m.giver?`<p class="mission-beat">— ${m.giver}</p>`: ''}<p>${m.description}</p>${m.beat?`<p class="mission-beat">${m.beat}</p>`:''}${current&&m.ceremony?`<p class="ceremony">${m.ceremony.warning}</p>`:''}<div class="details">${m.objectives.map(o=>`${current?Math.floor(w.gathered[o.resource])+' / ':''}${o.amount} ${o.resource} collected${current?`<div class="progress"><div style="width:${Math.min(100,w.gathered[o.resource]/o.amount*100)}%"></div></div>`:'<br>'}`).join('')}${current?Math.max(0,Math.ceil(m.timeLimit-w.elapsed)):m.timeLimit}s ${current?'remaining':'limit'} · ${m.troopLimit} people maximum<br>${m.raids.length} scheduled raids ${m.raids.length?'· defeat every wave':''}<br>First-clear reward: ${cost(m.rewards)}<br>Unlock: ${m.unlocks.map(id=>g.data.buildings[id]?.name||g.data.items[id]?.name||g.data.troops[id]?.name||id).join(', ')}</div>${current?`<p class="result">${g.state.mission.status==='won'?'The frontier is yours. Mission complete.':g.state.mission.status==='lost'?'The expedition was lost. Your home is safe.':'Your home village is paused during this expedition.'}</p><button class="primary" data-home="true">${g.state.mission.status==='won'?'Claim rewards & return':g.state.mission.status==='lost'?'Return home':'Abandon & return home'}</button>`:`<button class="primary" data-mission="${m.id}" ${locked||g.state.mission?'disabled':''}>${locked?'Complete the previous chapter':completed?'Replay chapter (no repeat rewards)':'Begin expedition →'}</button>`}</article>`;}).join('')}`);
+ // Adventure drawer (Phase 1): five sections — Home, Quests, Expeditions
+ // (woodland ranging), Campaign (mission chapters), Chronicle — plus the
+ // Grey Market kept as a deep-link category from Home. Gameplay calls
+ // (mission/home/trade/sendExpedition) are unchanged; this is presentation.
+ renderStory(){const g=this.game;
+  if(this.category==='home')return this.setPanelHTML(this.homeBlock(g));
+  if(this.category==='quests')return this.setPanelHTML(this.questBlock(g));
+  if(this.category==='expeditions')return this.setPanelHTML(this.expeditionBlock(g));
+  if(this.category==='lore')return this.setPanelHTML(this.chronicleBlock(g));
+  if(this.category==='market')return this.setPanelHTML(`<button class="adv-back" data-goto="home">‹ Home</button><div class="panel-heading"><span>GREY MARKET</span><span>Trading</span></div>${this.marketBlock(g)}`);
+  return this.setPanelHTML(this.campaignBlock(g));
+ }
+ homeBlock(g){
+  const s=homeSummary(g.state,g.data);
+  const n=s.next;
+  const nextBtn=n.kind==='chapter'
+   ?`<button class="gold-button adv-next-btn" data-mission="${n.missionId}">${n.label} →</button>`
+   :n.kind==='expedition'
+   ?`<button class="gold-button adv-next-btn" data-expedition="${n.unitId}">${n.label} →</button>`
+   :`<button class="gold-button adv-next-btn" data-goto="${n.goto}">${n.label} →</button>`;
+  const q=s.quest;
+  const objective=q
+   ?`<article class="adv-card"><div class="adv-eyebrow">CURRENT OBJECTIVE · VILLAGE PATH</div><h3>${q.name}</h3><p>${q.text}</p><div class="progress" role="progressbar" aria-valuenow="${Math.min(s.progress.have,s.progress.need)}" aria-valuemax="${s.progress.need}" aria-label="${q.name} progress"><div style="width:${Math.min(100,s.progress.have/Math.max(1,s.progress.need)*100)}%"></div></div><div class="adv-meta">${taskHint(q.task,g.data)} · ${Math.min(s.progress.have,s.progress.need)} / ${s.progress.need} · +${q.xp} XP</div></article>`
+   :`<article class="adv-card adv-done"><div class="adv-eyebrow">CURRENT OBJECTIVE</div><h3>The path is walked.</h3><p>All ${s.questsTotal} village-path quests complete. The frontier is yours to hold.</p></article>`;
+  const survival=s.away
+   ?`<div class="adv-row"><span>Away on expedition — home waits safe.</span><b>AWAY</b></div>`
+   :s.raidIncoming
+   ?`<div class="adv-row adv-danger"><span>Raiders incoming — ${s.raidCount} approaching.</span><b>BRACE</b></div>`
+   :s.raidActive
+   ?`<div class="adv-row adv-danger"><span>Defend the manor — ${s.raidCount} raiders.</span><b>FIGHT</b></div>`
+   :`<div class="adv-row"><span>Wave ${s.wave} — the treeline is quiet.</span><b>CALM</b></div>`;
+  const food=s.foodBalance==null?'—':`${s.foodBalance>=0?'+':''}${s.foodBalance.toFixed(1)} ♧/s`;
+  const beds=s.beds?`${s.beds.used}/${s.beds.beds}`:'—';
+  const xpPct=Math.max(0,Math.min(100,(s.xp-s.xpLo)/Math.max(1,s.xpHi-s.xpLo)*100));
+  const nextCache=s.nextLevel&&Object.keys(s.nextLevel.rewards||{}).length?Object.entries(s.nextLevel.rewards).map(([k,v])=>`+${v} ${k}`).join(' · '):'new rows open';
+  const trade=!g.state.mission&&marketOpen(g.state)
+   ?`<article class="adv-card adv-trade"><div class="adv-eyebrow">TRADE WINDS · GREY MARKET</div><h3>The wagons are in.</h3><p>Three deals today, same faces till dawn.</p><button class="adv-next-btn" data-goto="market">Open the Grey Market →</button></article>`
+   :g.state.mission
+   ?`<article class="adv-card adv-trade"><div class="adv-eyebrow">TRADE WINDS</div><p>The wagons wait at home — finish the expedition first.</p></article>`
+   :`<article class="adv-card adv-trade"><div class="adv-eyebrow">TRADE WINDS</div><p>Dust on the Grey Road — grow the village to level 2 and the traders will find you.</p></article>`;
+  return `<div class="panel-heading"><span>ADVENTURE · HOME</span><span>${s.chaptersDone}/${s.chaptersTotal} chapters</span></div>
+  <article class="adv-hero"><div class="adv-eyebrow">NEXT ACTION</div><h3>${n.label}</h3><p>${n.detail}</p>${nextBtn}</article>
+  ${objective}
+  <div class="panel-heading"><span>SURVIVAL STATUS</span><span>Wave ${s.wave}</span></div>
+  <article class="adv-card">${survival}<div class="adv-row"><span>Food balance</span><b>${food}</b></div><div class="adv-row"><span>Cottage beds spoken for</span><b>${beds}</b></div><div class="adv-row"><span>Growth · ${s.growth.note}</span><b>${s.growth.pct}%</b></div><div class="adv-row"><span>Rangers out · idle hands</span><b>${s.ranging} · ${s.idleRangers}</b></div></article>
+  <div class="panel-heading"><span>SETTLEMENT GOALS</span><span>Lvl ${s.lvl}</span></div>
+  <article class="adv-card"><div class="adv-row"><span>Village level ${s.lvl} · ${s.xp} XP</span><b>${s.questsDone}/${s.questsTotal} quests</b></div><div class="progress" role="progressbar" aria-valuenow="${Math.round(xpPct)}" aria-valuemax="100" aria-label="Village level progress"><div style="width:${xpPct}%"></div></div><div class="adv-meta">Next: level ${s.lvl+1} — ${nextCache}${s.nextLevel?.text?` · ${s.nextLevel.text}`:''}</div><button class="adv-next-btn" data-goto="quests">Walk the village path →</button></article>
+  ${trade}`;
+ }
+ expeditionBlock(g){
+  const w=g.world,d=g.data;
+  if(g.state.mission)return `<div class="panel-heading"><span>EXPEDITIONS · WOODLAND RANGING</span><span>paused away</span></div><div class="notice-board" aria-live="polite"><span>RANGING</span><p>Ranging waits at home — finish the expedition first. Campaign chapters march under their own banner, below the Campaign tab.</p></div><button class="adv-next-btn" data-goto="chapters">Return to the campaign →</button>`;
+  const {out,idle}=expeditionRoster(w,d);
+  const outHtml=out.length?out.map(o=>{const spec=d.troops[o.type];return `<div class="adv-row"><span>${o.name}<small>${spec?.name||o.type} · ${o.status||'ranging'}</small></span><b>OUT</b></div>`;}).join(''):'<p class="adv-empty">No hands in the treeline. The woods keep their counsel.</p>';
+  const idleHtml=idle.length?idle.map(o=>{const spec=d.troops[o.type];const haul=Object.entries(o.yields).map(([k,v])=>`+${v} ${k}`).join(' · ');const riskPct=Math.round((o.risk||0)*100);return `<article class="adv-ranger"><div><b>${o.name}</b><small>${spec?.name||o.type} · hauls ${haul} · ~${o.durationSec}s · ${riskPct}% mishap</small></div><button data-expedition="${o.id}">Send →</button></article>`;}).join(''):'<p class="adv-empty">No idle rangers. Foragers, woodcutters and wayfinders range — fighters hold the walls.</p>';
+  return `<div class="panel-heading"><span>EXPEDITIONS · WOODLAND RANGING</span><span>${out.length} out · ${idle.length} ready</span></div>
+  <p class="adv-note">Rangers slip into the treeline and haul back wild goods. This is ranging — campaign chapters march under the Campaign tab.</p>
+  <div class="panel-heading"><span>OUT NOW</span></div><article class="adv-card">${outHtml}</article>
+  <div class="panel-heading"><span>READY TO SEND</span></div>${idleHtml}`;
+ }
+ campaignBlock(g){const w=g.world;
+  const cards=campaignCards(g.data,g.state);
+  const names=id=>g.data.missions.find(m=>m.id===id)?.name||id;
+  const reqLine=c=>{
+   const bits=[];
+   if(c.requires.length)bits.push(`Needs ${c.requires.map(names).join(' + ')}`);
+   if(c.requiresAny.length)bits.push(`Needs ${c.requiresAny.map(names).join(' or ')}`);
+   return bits.join(' · ');
+  };
+  const firstOpen=cards.find(c=>c.state==='available');
+  return `<div class="panel-heading"><span>CAMPAIGN · ${g.data.missions.length} CHAPTERS</span><span>${cards.filter(c=>c.state==='completed').length} complete</span></div>
+  <p class="adv-note">Expedition chapters under their own banner — timed marches with scheduled raids, far from the woodland ranging above.</p>
+  ${g.data.missions.map(m=>{const c=cards.find(c=>c.id===m.id);const current=c.state==='current',completed=c.state==='completed',locked=c.state==='locked';return `<article class="mission-card ${current?'current':completed?'completed':locked?'locked':'available'}"><div class="chapter">CHAPTER ${m.chapter}${m.act?` · ACT ${m.act}`:''} ${completed?'· COMPLETE':locked?'· LOCKED':current?'· UNDERWAY':''}${m.id===firstOpen?.id?' · NEXT':''}</div><h3>${m.name}</h3>${m.giver?`<p class="mission-beat">— ${m.giver}</p>`: ''}<p>${m.description}</p>${m.beat?`<p class="mission-beat">${m.beat}</p>`:''}${current&&m.ceremony?`<p class="ceremony">${m.ceremony.warning}</p>`:''}<div class="details">${m.objectives.map(o=>`${current?Math.floor(w.gathered[o.resource])+' / ':''}${o.amount} ${o.resource} collected${current?`<div class="progress"><div style="width:${Math.min(100,w.gathered[o.resource]/o.amount*100)}%"></div></div>`:'<br>'}`).join('')}${current?Math.max(0,Math.ceil(m.timeLimit-w.elapsed)):m.timeLimit}s ${current?'remaining':'limit'} · ${m.troopLimit} people maximum<br>${m.raids.length} scheduled raids ${m.raids.length?'· defeat every wave':''}<br>First-clear reward: ${cost(m.rewards)}<br>Unlock: ${m.unlocks.map(id=>g.data.buildings[id]?.name||g.data.items[id]?.name||g.data.troops[id]?.name||id).join(', ')}${(c.requires.length||c.requiresAny.length)?`<br>${reqLine(c)}`:''}</div>${current?`<p class="result">${g.state.mission.status==='won'?'The frontier is yours. Mission complete.':g.state.mission.status==='lost'?'The expedition was lost. Your home is safe.':'Your home village is paused during this expedition.'}</p><button class="primary" data-home="true">${g.state.mission.status==='won'?'Claim rewards & return':g.state.mission.status==='lost'?'Return home':'Abandon & return home'}</button>`:`<button class="primary" data-mission="${m.id}" ${locked||g.state.mission?'disabled':''}>${locked?(reqLine(c)||'Complete the previous chapter'):completed?'Replay chapter (no repeat rewards)':'Begin expedition →'}</button>`}</article>`;}).join('')}`;
  }
  marketBlock(g){
   const d=g.data;
@@ -197,12 +268,23 @@ export class UI {
  }
  questBlock(g){
   const d=g.data,done=g.state.questsCompleted||[];
-  const rows=(d.quests||[]).map(q=>{const isDone=done.includes(q.id),p=questProgress(q.task,g.state),active=!isDone&&currentQuest(g.state,d)?.id===q.id;
+  const states=new Map(questCards(d,g.state).map(s=>[s.id,s]));
+  const rows=(d.quests||[]).map(q=>{const st=states.get(q.id)||{status:'upcoming',progress:questProgress(q.task,g.state)};
+   const p=st.progress,pill=st.status==='done'?'✓ DONE':st.status==='active'?'▶ ACTIVE':'· UPCOMING';
+   const pct=Math.min(100,Math.floor(p.have/Math.max(1,p.need)*100));
    const giver=q.giver?`<span class="qgiver">— ${q.giver}${q.act?` · Act ${q.act}`:''}</span>`:'';
    const flavor=q.flavor?`<span class="qflavor">${q.flavor}</span>`:'';
+   const rewards=Object.entries(q.rewards||{}).map(([k,v])=>`+${v} ${k}`).join(' · ');
    const unlocks=q.unlocks?`<span class="qflavor">Unlocks: ${q.unlocks.map(id=>d.buildings[id]?.name||d.items[id]?.name||d.troops[id]?.name||id).join(', ')}</span>`:'';
-   return `<div class="quest ${isDone?'qdone':active?'qactive':''}"><b>${isDone?'✓':active?'▶':'·'} ${q.name}</b><span>${q.text}</span>${flavor}${unlocks}${giver}<span class="qprog">${Math.min(p.have,p.need)}/${p.need} · +${q.xp} XP</span></div>`;}).join('');
-  return `<div class="panel-heading"><span>VILLAGE PATH · LVL ${g.state.vlevel||1} · ${Math.floor(g.state.xp||0)} XP</span><span>${done.length}/${(d.quests||[]).length}</span></div><div class="quests">${rows}</div>`;
+   return `<article class="quest ${st.status==='done'?'qdone':st.status==='active'?'qactive':'qnext'}"><span class="qpill qpill-${st.status}">${pill}</span><b>${q.name}</b><span>${q.text}</span>${flavor}${unlocks}${giver}<div class="progress" role="progressbar" aria-valuenow="${Math.min(p.have,p.need)}" aria-valuemax="${p.need}" aria-label="${q.name} progress"><div style="width:${st.status==='done'?100:pct}%"></div></div><span class="qprog">${Math.min(p.have,p.need)}/${p.need} · +${q.xp} XP${rewards?` · ${rewards}`:''}</span></article>`;}).join('');
+  return `<div class="panel-heading"><span>VILLAGE PATH · LVL ${g.state.vlevel||1} · ${Math.floor(g.state.xp||0)} XP</span><span>${done.length}/${(d.quests||[]).length}</span></div><p class="adv-note">The village road, step by step — finish the active quest to walk the path.</p><div class="quests">${rows}</div>`;
+ }
+ // Chronicle: notice board + Issa's chart log + the manner's legends.
+ chronicleBlock(g){
+  const rumor=pickRumor(g.data.rumors,daySeed());
+  const board=rumor?`<div class="notice-board" aria-live="polite"><span>NOTICE BOARD</span><p>${rumor.text}</p></div>`:'';
+  const legends=(g.data.legends||[]).map(l=>`<div class="quest qdone"><b>☾ ${l.title}</b><span>${l.text}</span></div>`).join('');
+  return `<div class="panel-heading"><span>CHRONICLE</span><span>memory</span></div><p class="adv-note">What the manner remembers — rumors on the board, Issa's chart pages, old legends.</p>${board}${this.chartLog(g)}${legends?`<div class="panel-heading"><span>LEGENDS OF THE MANNER</span><span>${(g.data.legends||[]).length} tales</span></div><div class="quests">${legends}</div>`:''}`;
  }
  // Chart Log: Issa's persistent record. Quests with a `log` line leave a
  // page here once completed — panel history, never toast-only.
