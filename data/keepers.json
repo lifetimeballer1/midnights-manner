@@ -126,5 +126,37 @@
       "afterScarcity": "I can plate four more. After that the roster gets thin.",
       "afterGrowth": "New shoulders to fit. Bring them before the next horn."
     }
+  },
+  "rue": {
+    "id": "rue",
+    "name": "Rue the turncloak",
+    "workplace": "workshop",
+    "troopHint": "builder",
+    "summary": "Walked out of the treeline with empty hands and a full ledger; ran with the pale bands three winters and now chalks them by name on the hall door.",
+    "wants": "One clean defense to prove the price was worth paying.",
+    "needs": "To believe the walls she once scoped will hold against the bands she once ran with.",
+    "relationships": ["sarella", "mara"],
+    "dialogue": {
+      "default": "They stack their torches low and come at the east joints. Ask me how I know.",
+      "afterRaid": "Not one stone out of place. That is the only ledger I keep now.",
+      "afterScarcity": "Fire is cheap. Regret is dear. Spend the pitch, not the men.",
+      "afterGrowth": "New hands. Teach them the trap-lines before the next horn."
+    }
+  },
+  "master-tam": {
+    "id": "master-tam",
+    "name": "Master Tam",
+    "workplace": "schoolroom",
+    "troopHint": "apprentice",
+    "summary": "Head of the school, keeper of the primer; teaches letters first, ledgers second, and loyalty always.",
+    "wants": "Three filled stools and a roll worth chalking.",
+    "needs": "Graduates who carry the trade further than he can walk it himself.",
+    "relationships": ["issa", "old-bell"],
+    "dialogue": {
+      "default": "Letters first, ledgers second, loyalty always. Sit.",
+      "afterRaid": "The school stood. Lessons resume at dawn.",
+      "afterScarcity": "Primers are ink and patience. Both can be stretched.",
+      "afterGrowth": "A new stool filled. I chalked the roll myself."
+    }
   }
 }
