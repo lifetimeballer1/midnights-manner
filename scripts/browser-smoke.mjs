@@ -82,7 +82,31 @@ try{
  await click('[data-recruit="farmer"][data-workplace]');
  assert.ok(await evaluate('window.midnightsManner.snapshot().world.troops.filter(t=>t.type==="farmer").at(-1).workplace'),'direct hire is assigned');
  await screenshot('workplace');
- await click('#close-panel');await click('[data-tab="story"]');await click('[data-mission="first-harvest"]');
+ await click('#close-panel');
+ // Resource identities, collection, search and every main menu on a phone.
+ await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:2,mobile:true});await new Promise(r=>setTimeout(r,150));await click('#recenter');
+ await waitFor('window.midnightsManner.collectionBubbles().length > 0');
+ const bubbles=await evaluate('window.midnightsManner.collectionBubbles()');
+ assert.ok(bubbles.every(b=>/\+\d+ (Wood|Food|Gold|Frostwood|Plate)/.test(b.label)),'collection bubbles name their resources');
+ const visiblePill=await evaluate('window.midnightsManner.collectionBubbles().find(b=>document.elementFromPoint(b.x+b.w/2,b.y+b.h/2)?.id==="world")');
+ assert.ok(visiblePill,'collection touch target visible');
+ const bonusBefore=await evaluate(`window.midnightsManner.snapshot().world.buildings.find(b=>b.id===${JSON.stringify(visiblePill.id)}).harvestBonus`);
+ await screenshot('polished-village');await tap({x:visiblePill.x+visiblePill.w/2,y:visiblePill.y+visiblePill.h/2});
+ assert.ok((await evaluate(`window.midnightsManner.snapshot().world.buildings.find(b=>b.id===${JSON.stringify(visiblePill.id)}).harvestBonus`))<bonusBefore,'labeled bubble collects the right building');
+ await click('[data-resource="wood"]');assert.ok(await evaluate('document.querySelector("#panel").textContent.includes("Wood")'),'resource stores open');await screenshot('polished-resources');await click('#close-panel');
+ await click('[data-tab="build"]');await screenshot('polished-build');await click('#panel-search');await call('Input.insertText',{text:'Wheat'});
+ assert.equal(await evaluate('document.querySelectorAll("[data-build]").length'),1,'building search narrows cards');await click('#close-panel');
+ await click('[data-tab="troops"]');await screenshot('polished-people');await click('#close-panel');
+ await click('[data-tab="story"]');await screenshot('polished-adventure');await click('[data-category="quests"]');await screenshot('polished-quests');
+ await click('[data-category="market"]');await screenshot('polished-trading');await click('#close-panel');
+ await click('#pause');await screenshot('polished-settings');await click('#resume');
+ for(const width of [320,390,430]){
+  await call('Emulation.setDeviceMetricsOverride',{width,height:844,deviceScaleFactor:2,mobile:true});await new Promise(r=>setTimeout(r,80));
+  assert.equal(await evaluate('document.documentElement.scrollWidth > innerWidth'),false,`no overflow at ${width}`);
+  assert.ok(await evaluate('[...document.querySelectorAll(".resource small")].every(e=>getComputedStyle(e).display!=="none")'),'resource names stay visible');
+ }
+ await call('Emulation.setDeviceMetricsOverride',{width:1440,height:1100,deviceScaleFactor:1,mobile:false});await new Promise(r=>setTimeout(r,150));await click('#recenter');
+ await click('[data-tab="story"]');await click('[data-mission="first-harvest"]');
  assert.ok(await evaluate('window.midnightsManner.snapshot().mission'),'expedition starts');
  await click('[data-tab="story"]');await click('[data-home]');assert.equal(await evaluate('window.midnightsManner.snapshot().mission'),null,'return restores home');
  await click('#raid');await waitFor('window.midnightsManner.snapshot().world.enemies.length > 0');
@@ -131,5 +155,5 @@ try{
  await waitFor('!!window.midnightsManner && !document.querySelector("#title").hidden');
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[0].id'),savedUnit,'ordinary in-app refresh preserves village');
  assert.deepEqual(errors,[],'no browser runtime errors');
- console.log(JSON.stringify({inAppUpdate:true,saveAndRefresh:true,offlineUpdateCheck:true,placementConfirmation:true,touchWallRows:true,wallRowUpgrade:true,equipment:true,training:true,mission:true,raid:true,saveReload:true,portrait:true,landscape:true,touchPan:true,pinchZoom:true,consoleErrors:errors}));
+ console.log(JSON.stringify({resourceCollection:true,menuSearch:true,mobileMenuPolish:true,inAppUpdate:true,saveAndRefresh:true,offlineUpdateCheck:true,placementConfirmation:true,touchWallRows:true,wallRowUpgrade:true,equipment:true,training:true,mission:true,raid:true,saveReload:true,portrait:true,landscape:true,touchPan:true,pinchZoom:true,consoleErrors:errors}));
 }finally{ws?.close();chrome.kill();server.close();await new Promise(r=>setTimeout(r,300));await rm(profile,{recursive:true,force:true,maxRetries:3,retryDelay:100});}

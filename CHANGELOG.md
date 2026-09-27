@@ -1,3 +1,12 @@
+## 0.1.3 — Resource clarity and mobile finish
+
+- Original wood, food, gold, frostwood and plate icons replace tool placeholders in the resource HUD; labels remain visible on phones.
+- Collection bubbles and floating income name their resource. Touch targets stay a readable size and avoid overlap where space allows.
+- Resource totals open a stores panel with per-building bonus collection.
+- Build and People menus gain search; Adventure separates expeditions, quests, trading and lore.
+- Polished HUD, cards, equipment rows, workplace controls, building inspector, settings, raid feedback, and portrait/landscape spacing.
+- Includes the pending safe Home Screen update controls and the building-inspector merge fix.
+
 ## 0.1.2 — Home Screen updates
 
 - Fixed a current-main merge regression that referenced wall-row controls before initialization and broke building selection; retained the Cairnfield memorial panel.

@@ -31,6 +31,12 @@ There are no npm dependencies to install. Serve over HTTP; opening `index.html` 
 
 ## Mobile game interface
 
+### Resource clarity and mobile polish
+
+Collection bubbles show the exact resource with an original icon and a full label, such as **+40 Wood** or **+7 Food**. Automatic income and delivery feedback also name their resource. Bubbles keep fixed-size touch targets and spread apart in crowded villages. Tap a resource total in the HUD to open **Resources**, see stored amounts and ready bonuses, and collect from individual sources.
+
+The mobile interface uses larger text, persistent resource names, matching resource colors, clearer equipment states and parchment cards. **Build** and **Army & people** support search. **Adventure** separates Expeditions, Village path, Trading and Chronicle; the quest chip opens Village path directly. Settings groups play preferences, saves and update controls. The same layouts adapt to narrow phones, landscape and desktop. These changes preserve game balance, progression, saves, wall controls and workplace hiring.
+
 ### Workplace management and architecture preview
 
 Select a workplace on the map and tap **Workers** to view its crew, assign an available matching profession, transfer someone from another workplace, or release a worker. **Hire** in this panel recruits directly into that building. Hiring from People automatically chooses the nearest finished, living matching workplace with a vacancy. If none is open, the recruit remains unassigned. A full or unavailable explicitly targeted workplace rejects the hire before charging resources. Existing barracks, unlock, and troop-limit requirements still apply. Assigned noncombat specialists walk to their workplace; collectors retain their gather/deliver cycle and explicit player orders take priority.
@@ -63,7 +69,7 @@ These are design references only. No screenshots or commercial game assets are b
 
 ### Verification
 
-`npm test` includes 242 simulation/rendering/input/update regression checks. `npm run test:browser` requires a locally installed Chrome (`CHROME_BIN` may override its path). CI runs real pointer/touch input checks for placement preview/confirm, menus, equipment/training, missions, raids, save/reload, one-finger pan, pinch zoom, and no document overflow at portrait/landscape sizes. Screenshots are attached to the Actions run. A browser test failure blocks deployment.
+`npm test` includes 245 simulation/rendering/input/update regression checks. `npm run test:browser` requires a locally installed Chrome (`CHROME_BIN` may override its path). CI runs real pointer/touch input checks for placement preview/confirm, menus, equipment/training, missions, raids, save/reload, one-finger pan, pinch zoom, and no document overflow at portrait/landscape sizes. Screenshots are attached to the Actions run. A browser test failure blocks deployment.
 
 ## Repository structure
 

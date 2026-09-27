@@ -1,3 +1,4 @@
+import {resourceLabel,resourceInfo} from './resources.js';
 import {wallRowQuote,wallLine,isWall} from './systems/walls.js';
 import {nextStep,blocked} from './systems/pathfinding.js';
 import {createWorld,makeBuilding,makeUnit,canPlace,inBounds,pay,afford,stats,buildingCost,center,assignmentValid,promotionOptions} from './model.js';
@@ -261,7 +262,7 @@ export class Game {
   this.persist();
   return true;
  }
- harvest(id){const b=this.world.buildings.find(b=>b.id===id),spec=b&&this.data.buildings[b.type];if(this.paused||!b||!spec.production||b.hp<=0||b.remaining>0)return false;const amount=Math.floor(b.harvestBonus||0);if(amount<1)return false;b.harvestBonus-=amount;this.world.resources[spec.production]=(this.world.resources[spec.production]||0)+amount;this.world.gathered[spec.production]=(this.world.gathered[spec.production]||0)+amount;const at=center(b,this.data);this.world.effects.push({x:at.x,y:at.y,tx:at.x,ty:at.y,kind:'float',text:`+${amount} ${spec.production}`,color:'#ffe595',life:.9});sfx.collect();this.notify(`Collected ${amount} bonus ${spec.production}.`);return amount;}
+ harvest(id){const b=this.world.buildings.find(b=>b.id===id),spec=b&&this.data.buildings[b.type];if(this.paused||!b||!spec.production||b.hp<=0||b.remaining>0)return false;const amount=Math.floor(b.harvestBonus||0);if(amount<1)return false;b.harvestBonus-=amount;this.world.resources[spec.production]=(this.world.resources[spec.production]||0)+amount;this.world.gathered[spec.production]=(this.world.gathered[spec.production]||0)+amount;const at=center(b,this.data);this.world.effects.push({x:at.x,y:at.y,tx:at.x,ty:at.y,kind:'float',text:resourceLabel(spec.production,amount),color:resourceInfo(spec.production).color,life:.9});sfx.collect();this.notify(`Collected ${amount} bonus ${spec.production}.`);return amount;}
  persist(){const ok=save(this.state);if(!ok)this.notify('Browser storage is unavailable. Progress cannot be saved here.');return ok;}
  importState(state){this.state=state;this.paused=false;this.saveTimer=0;this.dirty=true;this.notify('Save restored. Welcome back to the village.');}
  tick(dt){if(this.paused||this.state.mission?.status&&this.state.mission.status!=='active')return;

@@ -1,3 +1,4 @@
+import {resourceInfo,resourceLabel} from '../resources.js';
 import {builderBonuses,center,unlockedAbilities,stats,auras,gatherBonus} from '../model.js';
 import {move} from './pathfinding.js';
 import {sfx} from './audio.js';
@@ -65,7 +66,7 @@ export function tickEconomy(world,data,dt) {
    world._incAcc=world._incAcc||{};const key=spec.production;
    world._incAcc[key]=(world._incAcc[key]||0)+made;
    // Unknown future keys still pop a glyph instead of 'undefined'.
-   if(world._incAcc[key]>=5){const shown=Math.floor(world._incAcc[key]);world._incAcc[key]-=shown;const cp=center(b,data);floatText(world,cp.x,cp.y,`+${shown} ${GLYPH[key]||'◈'}`,INK[key]||'#f2d878');}}
+   if(world._incAcc[key]>=5){const shown=Math.floor(world._incAcc[key]);world._incAcc[key]-=shown;const cp=center(b,data);floatText(world,cp.x,cp.y,resourceLabel(key,shown),INK[key]||'#f2d878');}}
  }
  const hall=world.buildings.find(b=>b.type==='hall'&&b.hp>0);if(!hall)return;
  for(const u of world.troops) {
@@ -95,7 +96,7 @@ export function tickEconomy(world,data,dt) {
   const target=u.phase==='return'?hall:source;
   const speed = stats(u,data).speed;
   if(move(world,data,u,center(target,data),speed,dt,1.6)) {
-   if(u.phase==='return'){addResource(world,spec.gatherResource,u.carry);const cp=center(hall,data);floatText(world,cp.x,cp.y,`+${Math.floor(u.carry)} ${GLYPH[spec.gatherResource]}`,'#ffe9a8');sparkle(world,cp.x,cp.y);sfx.collect();u.carry=0;u.phase='gather';}
+   if(u.phase==='return'){addResource(world,spec.gatherResource,u.carry);const cp=center(hall,data);floatText(world,cp.x,cp.y,resourceLabel(spec.gatherResource,u.carry),'#ffe9a8');sparkle(world,cp.x,cp.y);sfx.collect();u.carry=0;u.phase='gather';}
    else {
     const bonus=unlockedAbilities(u,data).filter(a=>a.effect==='gather').reduce((n,a)=>n+a.value,1);
     const midC = (world.elapsed||0) > 300 ? 0.85 : 1;
