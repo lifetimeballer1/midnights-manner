@@ -1,3 +1,4 @@
+import {factionFor} from './systems/tactics.js';
 import {resourceInfo,collectionTotals,reserveCollectible} from './resources.js';
 import {wallRowQuote,isWall,placementCells} from './systems/walls.js';
 import {raidSides} from './systems/combat.js';
@@ -17,6 +18,13 @@ export class UI {
  constructor(game,renderer){this.game=game;this.renderer=renderer;this.tab='build';this.category='all';this.expandMode=false;this.selected=null;this.selectedTroop=null;this.clock=0;this.panel=$('#panel');this.lastMessage='';this.toastTime=0;this.lastPanel='';this.lastRail='';this.lastResult='';this.started=false;this.game.paused=true;this.bind();this.refresh();}
  blocked(){return !this.started||this.game.paused||!$('#drawer').hidden||!$('#raid-overlay').hidden;}
  bind(){
+  // Keep controls mounted between press and click, including slow touch taps.
+  this.controlPressed=false;
+  document.addEventListener('pointerdown',e=>{if(e.target.closest('button,input,select'))this.controlPressed=true;},true);
+  const release=()=>setTimeout(()=>{this.controlPressed=false;},0);
+  document.addEventListener('pointerup',release,true);
+  document.addEventListener('pointercancel',release,true);
+  window.addEventListener('blur',()=>{this.controlPressed=false;});
   $('#begin').onclick=()=>{this.started=true;$('#title').hidden=true;this.game.paused=false;this.renderer.fitVillage(this.game.world);$('#world').focus({preventScroll:true});this.game.notify('Your village awaits. Drag to explore; pinch to zoom.');this.refresh();};
   document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>this.openPanel(b.dataset.tab));
   $('#close-panel').onclick=()=>this.closePanel();$('#drawer-backdrop').onclick=()=>this.closePanel();
@@ -140,7 +148,7 @@ export class UI {
   const q=currentQuest(g.state,d);$('#quest-name').textContent=q?.name||'Your village is thriving';
   const legendEl=$('#title-legend');if(legendEl&&!$('#title').hidden){const legend=pickLegend(d.legends,daySeed());if(legend)legendEl.textContent=`${legend.title} — ${legend.text}`;}if(q){const p=questProgress(q.task,g.state);$('#quest-progress').textContent=`${Math.min(p.have,p.need)} / ${p.need} · +${q.xp} XP`;}else $('#quest-progress').textContent='Explore the campaign';
   const mission=d.missions.find(m=>m.id===g.state.mission?.id),battle=$('#battle-hud');battle.hidden=!w.enemies.length&&!w.raidPending&&!mission;
-  if(w.raidPending)battle.innerHTML=`<b>RAIDERS INCOMING · ${Math.ceil(w.raidPending.timer)}</b><small>${w.raidPending.count} approaching: ${raidSides(w.wave+1,w.raidPending.count).join(' · ')}</small>`;
+  if(w.raidPending)battle.innerHTML=`<b>RAIDERS INCOMING · ${Math.ceil(w.raidPending.timer)}</b><small>${factionFor(d,w.wave+1)?.name||"Raiders"} · ${w.raidPending.count} approaching: ${raidSides(w.wave+1,w.raidPending.count).join(' · ')}</small>`;
   else if(w.enemies.length)battle.innerHTML=`<b>DEFEND THE MANOR</b><small>${w.enemies.length} raiders left · ${w.raidKills||0} defeated</small>`;
   else if(mission){const o=mission.objectives[0],fraction=Math.min(1,w.gathered[o.resource]/o.amount);battle.innerHTML=`<b>${Math.max(0,Math.ceil(mission.timeLimit-w.elapsed))}s · ${mission.name}</b><small>${Math.floor(w.gathered[o.resource])} / ${o.amount} ${o.resource}</small><div class="battle-progress"><i style="width:${fraction*100}%"></i></div><button data-home="true" class="hud-home">Return home</button>`;}
   const units=w.troops.filter(t=>d.troops[t.type].role==='combat'),rail=units.map(u=>`<button class="army-card ${this.selectedTroop===u.id?'selected':''}" data-select-unit="${u.id}" aria-label="Select ${d.troops[u.type].name}, level ${u.level}" ${u.hp<=0?'disabled':''}><span class="unit-level">${u.level}</span>${img(d.troops[u.type].sprite)}<small>${d.troops[u.type].name}</small><span class="unit-health"><i style="width:${Math.ceil(u.hp/stats(u,d).hp*100)}%"></i></span></button>`).join('');if(rail!==this.lastRail){const scroll=$('#army-rail').scrollLeft;$('#army-rail').innerHTML=rail;$('#army-rail').scrollLeft=scroll;this.lastRail=rail;}
@@ -223,7 +231,7 @@ export class UI {
   <article class="adv-hero"><div class="adv-eyebrow">NEXT ACTION</div><h3>${n.label}</h3><p>${n.detail}</p>${nextBtn}</article>
   ${objective}
   <div class="panel-heading"><span>SURVIVAL STATUS</span><span>Wave ${s.wave}</span></div>
-  <article class="adv-card">${survival}${!s.away?`<div class="adv-row"><span>Settlement threat · size, stores & victories</span><b>${s.survival.label} · ${s.survival.score}/100</b></div><p class="adv-note">Quiet time varies. Scouts warn before an attack. Ruined buildings stop producing until repaired.</p>`:""}<div class="adv-row"><span>Food balance</span><b>${food}</b></div><div class="adv-row"><span>Cottage beds spoken for</span><b>${beds}</b></div><div class="adv-row"><span>Growth · ${s.growth.note}</span><b>${s.growth.pct}%</b></div><div class="adv-row"><span>Rangers out · idle hands</span><b>${s.ranging} · ${s.idleRangers}</b></div></article>
+  <article class="adv-card">${survival}${!s.away?`<div class="adv-row"><span>Settlement threat · size, stores & victories</span><b>${s.survival.label} · ${s.survival.score}/100</b></div><p class="adv-note">${factionFor(g.data,s.wave)?.name||"Raiders"}: ${factionFor(g.data,s.wave)?.lore||"Watch the treeline."}</p><p class="adv-note">Quiet time varies. Scouts warn before an attack. Ruined buildings stop producing until repaired.</p>`:""}<div class="adv-row"><span>Food balance</span><b>${food}</b></div><div class="adv-row"><span>Cottage beds spoken for</span><b>${beds}</b></div><div class="adv-row"><span>Growth · ${s.growth.note}</span><b>${s.growth.pct}%</b></div><div class="adv-row"><span>Rangers out · idle hands</span><b>${s.ranging} · ${s.idleRangers}</b></div></article>
   <div class="panel-heading"><span>SETTLEMENT GOALS</span><span>Lvl ${s.lvl}</span></div>
   <article class="adv-card"><div class="adv-row"><span>Village level ${s.lvl} · ${s.xp} XP</span><b>${s.questsDone}/${s.questsTotal} quests</b></div><div class="progress" role="progressbar" aria-valuenow="${Math.round(xpPct)}" aria-valuemax="100" aria-label="Village level progress"><div style="width:${xpPct}%"></div></div><div class="adv-meta">Next: level ${s.lvl+1} — ${nextCache}${s.nextLevel?.text?` · ${s.nextLevel.text}`:''}</div><button class="adv-next-btn" data-goto="quests">Walk the village path →</button></article>
   ${trade}`;
@@ -326,5 +334,5 @@ export class UI {
  }).join(''):'';
  el.innerHTML=`${close}<div class="inspector-head">${img(tier.sprite)}<div><span class="eyebrow">TIER ${b.level} · ${b.hp<=0?'RUINED':b.remaining>0?'BUILDING':'READY'}</span><h2>${spec.name}</h2><p>♥ ${Math.ceil(b.hp)} / ${tier.hp}${b.remaining>0?` · ${Math.ceil(b.remaining)}s remaining`:spec.production?` · ${spec.rate*tier.rateMultiplier} ${spec.production}/s into reserve`:tier.damage?` · ${tier.damage} damage`:''}</p></div></div><div class="hpbar"><div style="width:${hp*100}%"></div></div><div class="actions"><button class="gold-button" data-action="upgrade" ${max||tierGated||b.remaining>0||b.hp<=0||!afford(w.resources,upgradeCost)?'disabled':''}>${max?'Max tier':tierGated?`Tier ${b.level+1} needs LVL ${tierGate}`:`Upgrade<br><small>${cost(upgradeCost)}</small>`}</button><button data-action="move" ${w.enemies.length||w.raidPending?'disabled':''}>Move</button>${b.hp<tier.hp?`<button data-action="repair" ${w.resources.wood<repairCost?'disabled':''}>Repair<br><small>${repairCost} wood</small></button>`:''}${spec.workplace?`<button data-action="assign">Workers ${assignedWorkers(w,b.id).length}/${workplaceCapacity(b,d)}</button>`:''}${spec.production&&b.harvestBonus>=1?`<button data-action="harvest">Collect +${Math.floor(b.harvestBonus)} ${resourceInfo(spec.production).label}</button>`:''}${spec.serviceArmor?'<button data-action="service">Service armor<br><small>20 wood</small></button>':''}</div>${rowActions?`<div class="actions wall-row-actions">${rowActions}</div><p>Each ready segment gains one tier. Busy, ruined, gated and max-tier walls stay unchanged.</p>`:''}${spec.cairn?`<div class="cairn-roll"><h4>THE FALLEN — THE LAST WATCH</h4><p>${(w.fallen||[]).length? w.fallen.map(f=>`🕯 ${f.name} (${d.troops[f.type]?.name||f.type})`).join('<br>'):'No oathbound have fallen. The cairns stand ready, and pray they stand empty.'}</p></div>`:''}`;
 }
- tick(dt){this.clock+=dt;this.toastTime=Math.max(0,this.toastTime-dt);if(this.toastTime===0)$('#status').classList.remove('show');if(this.game.dirty||this.clock>.5){this.clock=0;this.refresh();}}
+ tick(dt){this.clock+=dt;this.toastTime=Math.max(0,this.toastTime-dt);if(this.toastTime===0)$('#status').classList.remove('show');if(!this.controlPressed&&(this.game.dirty||this.clock>.5)){this.clock=0;this.refresh();}}
 }

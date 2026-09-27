@@ -49,11 +49,14 @@ export function buildingModel(s,b,spec,world){
  if(t==='hall'&&l>=2)tower(s,x+n-.7,y+.25,.48,1.35,stone);
  if(['mason_yard','shieldwall-yard'].includes(t)){for(let i=0;i<3;i++)s.box(x+.25+i*.42,y+n-.15,.13,.28,.16,.3,stone);}
 }
-function person(s,u,data,time,enemy=false){if(u.hp<=0)return;s.owner={kind:enemy?'enemy':'unit',id:u.id};s.alpha=1;const spec=data.troops[u.type]||{},role=spec.role,base=enemy?'#a65c54':role==='combat'?'#557a86':role==='collector'?'#719b68':'#ae9568';const bob=s.r.calm?0:Math.sin(time/230+phaseSeed(u.id))*.018,x=u.x,y=u.y;
+function person(s,u,data,time,enemy=false){if(u.hp<=0)return;s.owner={kind:enemy?'enemy':'unit',id:u.id};s.alpha=1;const spec=data.troops[u.type]||{},role=spec.role,base=enemy?(data.world.enemyFactions?.find(f=>f.id===u.faction)?.color||'#a65c54'):role==='combat'?'#557a86':role==='collector'?'#719b68':'#ae9568';const bob=s.r.calm?0:Math.sin(time/230+phaseSeed(u.id))*.018,x=u.x,y=u.y;
  for(const dx of [-.115,.04])s.box(x+dx,y-.08,.02,.085,.16,.24,'#514939');s.box(x-.15,y-.11,.25,.3,.22,.29,base);s.box(x-.1,y-.09,.57+bob,.2,.18,.19,'#e1ba88');s.box(x-.12,y-.11,.75+bob,.24,.22,.08,role==='combat'?'#a6bac4':enemy?'#6f5344':'#977c51');for(const dx of [-.22,.15])s.box(x+dx,y-.08,.29,.07,.13,.22,'#d5ae7d');s.box(x-.1,y+.095,.65+bob,.035,.012,.025,'#33443a');s.box(x+.045,y+.095,.65+bob,.035,.012,.025,'#33443a');
  const item=data.items[u.gear],anim=u.animation>0?Math.sin(u.animation*14)*.15:0;
  s.box(x+.22,y-.035,.22,.04,.04,.55+anim,timber);
  if(item){if(item.animation==='arrow'||/bow/.test(u.gear))s.box(x+.25,y-.09,.4,.04,.3,.45,timber);else if(item.animation==='slash')s.box(x+.2,y-.04,.7+anim,.09,.06,.3,'#d0d9d4');else s.box(x+.16,y-.05,.72+anim,.23,.09,.12,role==='combat'?'#aebfc3':'#97aaa2');}
+ if(enemy&&u.role==='archer')s.box(x+.25,y-.09,.4,.05,.35,.5,timber);
+ if(enemy&&u.role==='breaker'){s.box(x+.13,y-.09,.78,.34,.18,.22,'#7b8990');s.box(x-.2,y-.15,.28,.4,.05,.28,'#656e73');}
+ if(enemy&&u.role==='scout')s.pyramid(x,y,.81,.18,.24,base);
  if(u.armor)s.box(x-.16,y-.13,.28,.32,.04,.25,'#aab7bd');if(u.carry>0)s.box(x-.14,y-.23,.32,.28,.14,.26,'#c5a363');
 }
 export function drawVillage3D(r,world,time){const s=new MeshScene(r),W=r.data.world.width,H=r.data.world.height;
