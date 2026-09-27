@@ -65,7 +65,8 @@
       }
     ],
     "harvest": {
-      "capacity": 40
+      "capacity": 40,
+      "notifyAt": 10
     }
   },
   "lumber": {
@@ -104,7 +105,8 @@
       }
     ],
     "harvest": {
-      "capacity": 40
+      "capacity": 40,
+      "notifyAt": 10
     }
   },
   "timber_yard": {
@@ -131,7 +133,8 @@
       }
     ],
     "harvest": {
-      "capacity": 40
+      "capacity": 40,
+      "notifyAt": 10
     }
   },
   "mine": {
@@ -170,7 +173,8 @@
       }
     ],
     "harvest": {
-      "capacity": 40
+      "capacity": 40,
+      "notifyAt": 10
     }
   },
   "barracks": {
@@ -453,7 +457,8 @@
       }
     ],
     "harvest": {
-      "capacity": 40
+      "capacity": 40,
+      "notifyAt": 10
     },
     "hosts": [
       "tidecaller"
@@ -488,7 +493,8 @@
       }
     ],
     "harvest": {
-      "capacity": 40
+      "capacity": 40,
+      "notifyAt": 10
     }
   },
   "butchery": {
@@ -520,7 +526,8 @@
       }
     ],
     "harvest": {
-      "capacity": 40
+      "capacity": 40,
+      "notifyAt": 10
     }
   },
   "scriptorium": {
@@ -777,7 +784,8 @@
       }
     ],
     "harvest": {
-      "capacity": 40
+      "capacity": 40,
+      "notifyAt": 10
     }
   },
   "watchfire": {
@@ -876,7 +884,8 @@
       }
     ],
     "harvest": {
-      "capacity": 40
+      "capacity": 40,
+      "notifyAt": 10
     }
   },
   "smeltery": {
@@ -913,7 +922,8 @@
       }
     ],
     "harvest": {
-      "capacity": 40
+      "capacity": 40,
+      "notifyAt": 10
     }
   },
   "deephole": {
@@ -949,7 +959,8 @@
       }
     ],
     "harvest": {
-      "capacity": 40
+      "capacity": 40,
+      "notifyAt": 10
     },
     "hosts": [
       "tidecaller"
@@ -989,7 +1000,8 @@
       }
     ],
     "harvest": {
-      "capacity": 40
+      "capacity": 40,
+      "notifyAt": 10
     }
   },
   "market": {

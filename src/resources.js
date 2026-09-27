@@ -12,10 +12,23 @@ export const resourceSpriteNames=Object.values(RESOURCES).map(r=>r.sprite);
 // Keep labels readable at the normal camera scale while letting the map breathe
 // when players zoom out. Touch padding is added by the renderer separately.
 export const collectionBubbleScale=zoom=>Math.max(.68,Math.min(1,Number(zoom)||1));
-// One predicate for every "ready to tap" surface: bubbles, badges, buttons.
-// Finished, living production buildings holding at least one whole unit.
-export function reserveReady(building,spec){
+// Badge/bubble threshold: per-building `harvest.notifyAt`, falling back to a
+// quarter of the reserve cap so future buildings stay quiet on drips too.
+// Tune it in buildings.json — no code change needed.
+export function reserveNotifyAt(spec){
+ const cap=spec?.harvest?.capacity??40;
+ const at=spec?.harvest?.notifyAt??Math.ceil(cap*0.25);
+ return Math.max(1,Math.floor(at));
+}
+// Worth collecting by hand: any whole unit on a finished, living producer.
+// Taps and Collect buttons use this so small drips are never stranded.
+export function reserveCollectible(building,spec){
  return !!building && !!spec?.production && building.hp>0 && !(building.remaining>0) && Math.floor(building.harvestBonus||0)>=1;
+}
+// One predicate for every "ready" announcement: bubbles and badges only.
+// Finished, living production buildings holding at least notifyAt.
+export function reserveReady(building,spec){
+ return reserveCollectible(building,spec) && Math.floor(building.harvestBonus||0)>=reserveNotifyAt(spec);
 }
 export function collectionTotals(world,data){
  const totals={};

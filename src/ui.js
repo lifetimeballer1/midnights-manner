@@ -1,4 +1,4 @@
-import {resourceInfo,collectionTotals,reserveReady} from './resources.js';
+import {resourceInfo,collectionTotals,reserveCollectible} from './resources.js';
 import {wallRowQuote,isWall,placementCells} from './systems/walls.js';
 import {raidSides} from './systems/combat.js';
 import {stats,unlockedAbilities,buildingCost,housing,XP_LEVELS,center,assignedWorkers,workplaceCapacity,canPlace,afford,promotionOptions} from './model.js';
@@ -110,8 +110,9 @@ export class UI {
   if(this.selectedTroop){if(hit?.kind==='enemy')g.commandAttack(this.selectedTroop,hit.id);else g.commandMove(this.selectedTroop,cell.x,cell.y);this.refresh();return;}
   if(hit?.kind==='scenery'){this.clearSelection();return;}
   const building=hit?.kind==='building'?g.world.buildings.find(b=>b.id===hit.id):g.world.buildings.find(b=>cell.x>=b.x&&cell.x<b.x+g.data.buildings[b.type].size&&cell.y>=b.y&&cell.y<b.y+g.data.buildings[b.type].size);
-  // Clash-style tap: picking a building with a full reserve collects it first.
-  const took=building&&reserveReady(building,g.data.buildings[building.type])?g.harvest(building.id):false;
+  // Clash-style tap: picking a building sweeps whatever its reserve holds (badges
+  // and bubbles wait for the notifyAt threshold, but taps never strand drips).
+  const took=building&&reserveCollectible(building,g.data.buildings[building.type])?g.harvest(building.id):false;
   this.selected=building?.id||null;r.selection=this.selected;if(building&&!took)sfx.click();this.refresh();
  }
  setPanelHTML(html){

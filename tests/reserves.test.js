@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createWorld,makeBuilding} from '../src/model.js';
 import {tickEconomy} from '../src/systems/economy.js';
-import {reserveReady} from '../src/resources.js';
+import {reserveReady,reserveCollectible,reserveNotifyAt} from '../src/resources.js';
 import {sfx} from '../src/systems/audio.js';
 import {Game} from '../src/game.js';
 const data=Object.fromEntries(await Promise.all(['world','troops','items','abilities','buildings','missions','quests'].map(async n=>[n,JSON.parse(await readFile(new URL(`../data/${n}.json`,import.meta.url)))])));
@@ -47,15 +47,30 @@ test('manual harvest pays pool and gathered with one floater and one ding, then 
  assert.equal(sfxTap2.calls(),0,'no ding on an empty tap');
 });
 
-test('reserveReady gates every tap surface the same way',()=>{
+test('ready badge waits for the data-driven threshold, taps still sweep drips',()=>{
  const spec=data.buildings.farm;
+ const at=reserveNotifyAt(spec);
+ assert.equal(at,spec.harvest.notifyAt,'threshold reads straight from buildings.json');
  const ready=makeBuilding('farm',2,2,data);
- assert.equal(reserveReady({...ready,harvestBonus:0},spec),false,'empty is not tappable');
- assert.equal(reserveReady({...ready,harvestBonus:0.9},spec),false,'fractions wait');
- assert.equal(reserveReady({...ready,harvestBonus:5},spec),true,'a stocked farm is tappable');
- assert.equal(reserveReady({...ready,harvestBonus:5,remaining:3},spec),false,'construction is not tappable');
- assert.equal(reserveReady({...ready,harvestBonus:5,hp:0},spec),false,'ruins are not tappable');
- assert.equal(reserveReady({...ready,harvestBonus:5},data.buildings.hall),false,'the manor holds no reserve');
+ assert.equal(reserveReady({...ready,harvestBonus:0},spec),false,'empty shows no badge');
+ assert.equal(reserveReady({...ready,harvestBonus:at-1},spec),false,'drips below notifyAt show no badge and no bubble');
+ assert.equal(reserveReady({...ready,harvestBonus:at},spec),true,'a reserve at notifyAt earns its badge');
+ assert.equal(reserveReady({...ready,harvestBonus:at,remaining:3},spec),false,'construction is not announced');
+ assert.equal(reserveReady({...ready,harvestBonus:at,hp:0},spec),false,'ruins are not announced');
+ assert.equal(reserveReady({...ready,harvestBonus:at},data.buildings.hall),false,'the manor holds no reserve');
+ // Taps ignore the threshold: whatever is banked can always be collected.
+ assert.equal(reserveCollectible({...ready,harvestBonus:at-1},spec),true,'drips stay collectible');
+ assert.equal(reserveCollectible({...ready,harvestBonus:0.9},spec),false,'fractions wait');
+ const g=new Game(data);const b=g.world.buildings.find(b=>b.type==='farm');
+ b.harvestBonus=at-1;const stock=g.world.resources.food;
+ assert.equal(g.harvest(b.id),at-1,'a below-threshold tap still pays in full');
+ assert.equal(g.world.resources.food,stock+at-1);
+});
+
+test('reserveNotifyAt falls back to a quarter of the cap without code',()=>{
+ assert.equal(reserveNotifyAt({production:'food',harvest:{capacity:40}}),10);
+ assert.equal(reserveNotifyAt({production:'food',harvest:{capacity:40,notifyAt:3}}),3,'per-building override wins');
+ assert.equal(reserveNotifyAt({production:'food'}),10,'missing harvest block still silences drips');
 });
 
 test('reaching full chimes once, stays quiet while full, and rearms after a tap',()=>{
