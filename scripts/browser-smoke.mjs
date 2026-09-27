@@ -114,7 +114,9 @@ try{
  assert.equal(await evaluate('document.querySelectorAll("[data-build]").length'),1,'building search narrows cards');await click('#close-panel');
  await click('[data-tab="troops"]');await screenshot('polished-people');await click('#close-panel');
  await click('[data-tab="story"]');await screenshot('polished-adventure');await click('[data-category="quests"]');await screenshot('polished-quests');
- await click('[data-category="market"]');await screenshot('polished-trading');await click('#close-panel');
+ await click('[data-category="home"]');
+ if(await evaluate('Boolean(document.querySelector(\'[data-goto="market"]\'))'))await click('[data-goto="market"]');
+ await screenshot('polished-trading');await click('#close-panel');
  await click('#pause');await screenshot('polished-settings');await click('#resume');
  for(const width of [320,390,430]){
   await call('Emulation.setDeviceMetricsOverride',{width,height:844,deviceScaleFactor:2,mobile:true});await new Promise(r=>setTimeout(r,80));
