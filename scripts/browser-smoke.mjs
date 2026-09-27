@@ -77,7 +77,7 @@ try{
  assert.ok(workplacePoint,'farm has an exposed model face');await tap(workplacePoint);
  await screenshot('workplace-selection');
  console.log('Workplace selection:',await evaluate('document.querySelector("#inspector").textContent'));
- await click('[data-action="assign"]');
+ await click('[data-action="assign"]');await waitFor('Boolean(document.querySelector("[data-staff]"))');
  await click('[data-staff]');
  assert.ok(await evaluate('window.midnightsManner.snapshot().world.troops.find(t=>t.type==="farmer").workplace'),'worker assigned from workplace');
  await click('[data-release]');
@@ -124,9 +124,9 @@ try{
   assert.ok(await evaluate('[...document.querySelectorAll(".resource small")].every(e=>getComputedStyle(e).display!=="none")'),'resource names stay visible');
  }
  await call('Emulation.setDeviceMetricsOverride',{width:1440,height:1100,deviceScaleFactor:1,mobile:false});await new Promise(r=>setTimeout(r,150));await click('#recenter');
- await click('[data-tab="story"]');await click('[data-category="chapters"]');await click('[data-mission="first-harvest"]');
+ await click('[data-tab="story"]');await click('[data-category="chapters"]');await waitFor('Boolean(document.querySelector(\'[data-mission="first-harvest"]\'))');await click('[data-mission="first-harvest"]');
  assert.ok(await evaluate('window.midnightsManner.snapshot().mission'),'expedition starts');
- await click('[data-tab="story"]');await click('[data-category="expeditions"]');await click('#panel [data-home="true"]');assert.equal(await evaluate('window.midnightsManner.snapshot().mission'),null,'return restores home');
+ await click('[data-tab="story"]');await click('[data-category="expeditions"]');await waitFor('Boolean(document.querySelector(\'#panel [data-home="true"]\'))');await click('#panel [data-home="true"]');assert.equal(await evaluate('window.midnightsManner.snapshot().mission'),null,'return restores home');
  await click('#raid');await waitFor('window.midnightsManner.snapshot().world.enemies.length > 0');
  await click('#pause');assert.equal(await evaluate('window.midnightsManner.paused'),true);await click('#opt-save');await click('#resume');
  await call('Page.reload');await waitFor('Boolean(window.midnightsManner)');await click('#begin');
