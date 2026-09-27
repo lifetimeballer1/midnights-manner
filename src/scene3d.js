@@ -57,9 +57,15 @@ function person(s,u,data,time,enemy=false){if(u.hp<=0)return;s.owner={kind:enemy
  if(u.armor)s.box(x-.16,y-.13,.28,.32,.04,.25,'#aab7bd');if(u.carry>0)s.box(x-.14,y-.23,.32,.28,.14,.26,'#c5a363');
 }
 export function drawVillage3D(r,world,time){const s=new MeshScene(r),W=r.data.world.width,H=r.data.world.height;
+ // Project static meshes only when the camera, footprint, or building state changes.
+ const key=JSON.stringify([r.width,r.height,r.cx,r.cy,r.cam,W,H,world.buildings.map(b=>[b.id,b.type,b.x,b.y,b.level,b.hp<=0,b.remaining>0])]);
+ if(r._meshStatic?.key===key)s.faces=r._meshStatic.faces.slice();else{
  // Border trees share depth sorting with the village, including reverse views.
  for(let i=-1;i<W+2;i++){s.owner=null;if(i%2)pine(s,i,-1.5,1.4+(i%3)*.22);if(i%3===0)pine(s,-1.5,((i%H)+H)%H,1.5);if(i%3===1)pine(s,W+1,i%H,1.6);if(i%4===0)pine(s,i,H+3,1.5);}
  for(const b of world.buildings)buildingModel(s,b,r.data.buildings[b.type],world);
+ r._meshStatic={key,faces:s.faces.slice()};
+ }
+
  for(const u of world.troops)person(s,u,r.data,time);for(const e of world.enemies)person(s,e,r.data,time,true);
  if(r.placing&&r.hover){const source=world.buildings.find(b=>b.id===r.moving),ghosts=placementCells(r).map(p=>({type:r.placing,...p,level:source?.level||1,hp:1,remaining:1,id:null})),preview={buildings:[...world.buildings.filter(b=>b.id!==r.moving),...ghosts]};for(const b of ghosts)buildingModel(s,b,r.data.buildings[b.type],preview);}
  s.paint();

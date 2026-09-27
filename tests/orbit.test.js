@@ -28,3 +28,7 @@ test('face picking follows the visible 3D building rather than its old sprite re
 test('camera rotation invalidates terrain cache and model rendering never changes saves',()=>{
  const r=renderer(),g=new Game(data);r.calm=true;const state=JSON.stringify(g.state),key=r.staticCacheKey(g.world);r.orbit(.3,.1);assert.notEqual(r.staticCacheKey(g.world),key);r.draw(g.world,1000);assert.equal(JSON.stringify(g.state),state);
 });
+test('static mesh cache refreshes for camera, upgrade, construction and ruin changes',()=>{
+ const r=renderer(),g=new Game(data);r.draw(g.world,1000);let cached=r._meshStatic;r.draw(g.world,1016);assert.equal(r._meshStatic,cached);
+ const b=g.world.buildings.find(b=>b.type==='hall');for(const change of [()=>r.orbit(.2),()=>b.level++,()=>b.remaining=10,()=>b.remaining=0,()=>b.hp=0,()=>b.x++]){cached=r._meshStatic;change();r.draw(g.world,1032);assert.notEqual(r._meshStatic,cached);}
+});
