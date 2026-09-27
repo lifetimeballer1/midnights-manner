@@ -574,7 +574,8 @@
         "damage": 0,
         "range": 0.75
       }
-    ]
+    ],
+    "researchRate": 0.15
   },
   "scout_post": {
     "name": "Wayfinder Post",

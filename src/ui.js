@@ -1,3 +1,4 @@
+import {researchPanel} from './research-ui.js';
 import {factionFor} from './systems/tactics.js';
 import {resourceInfo,collectionTotals,reserveCollectible} from './resources.js';
 import {wallRowQuote,isWall,placementCells} from './systems/walls.js';
@@ -89,6 +90,7 @@ export class UI {
    if(b.dataset.goto){this.category=b.dataset.goto;this.lastPanel='';this.renderFilters();this.refresh();return;}
    if(b.dataset.expedition){this.game.sendExpedition(b.dataset.expedition);this.lastPanel='';this.refresh();return;}
    if(b.dataset.mission){this.cancel();this.clearSelection();this.game.mission(b.dataset.mission);if(this.game.state.mission){this.closePanel();this.renderer.fitVillage(this.game.world);}}
+   if(b.dataset.research)this.game.research(b.dataset.research);
    if(b.dataset.trade){this.game.trade(b.dataset.trade);}
    if(b.dataset.home){this.game.returnHome();this.cancel();this.clearSelection();this.closePanel();this.renderer.fitVillage(this.game.world);}
    this.lastPanel='';this.refresh();
@@ -190,6 +192,7 @@ export class UI {
  // Grey Market kept as a deep-link category from Home. Gameplay calls
  // (mission/home/trade/sendExpedition) are unchanged; this is presentation.
  renderStory(){const g=this.game;
+  if(this.category==='research')return this.setPanelHTML(researchPanel(g));
   if(this.category==='home')return this.setPanelHTML(this.homeBlock(g));
   if(this.category==='quests')return this.setPanelHTML(this.questBlock(g));
   if(this.category==='expeditions')return this.setPanelHTML(this.expeditionBlock(g));
@@ -231,7 +234,7 @@ export class UI {
   <article class="adv-hero"><div class="adv-eyebrow">NEXT ACTION</div><h3>${n.label}</h3><p>${n.detail}</p>${nextBtn}</article>
   ${objective}
   <div class="panel-heading"><span>SURVIVAL STATUS</span><span>Wave ${s.wave}</span></div>
-  <article class="adv-card">${survival}${!s.away?`<div class="adv-row"><span>Settlement threat · size, stores & victories</span><b>${s.survival.label} · ${s.survival.score}/100</b></div><p class="adv-note">${factionFor(g.data,s.wave)?.name||"Raiders"}: ${factionFor(g.data,s.wave)?.lore||"Watch the treeline."}</p><p class="adv-note">Quiet time varies. Scouts warn before an attack. Ruined buildings stop producing until repaired. Civilians shelter during alarms; builders repair safe defenses and healers aid allies behind the fighting.</p>`:""}<div class="adv-row"><span>Food balance</span><b>${food}</b></div><div class="adv-row"><span>Cottage beds spoken for</span><b>${beds}</b></div><div class="adv-row"><span>Growth · ${s.growth.note}</span><b>${s.growth.pct}%</b></div><div class="adv-row"><span>Rangers out · idle hands</span><b>${s.ranging} · ${s.idleRangers}</b></div></article>
+  <button class="gold-button adv-next-btn" data-goto="research">Technology tree →</button><article class="adv-card">${survival}${!s.away?`<div class="adv-row"><span>Settlement threat · size, stores & victories</span><b>${s.survival.label} · ${s.survival.score}/100</b></div><p class="adv-note">${factionFor(g.data,s.wave)?.name||"Raiders"}: ${factionFor(g.data,s.wave)?.lore||"Watch the treeline."}</p><p class="adv-note">Quiet time varies. Scouts warn before an attack. Ruined buildings stop producing until repaired. Civilians shelter during alarms; builders repair safe defenses and healers aid allies behind the fighting.</p>`:""}<div class="adv-row"><span>Food balance</span><b>${food}</b></div><div class="adv-row"><span>Cottage beds spoken for</span><b>${beds}</b></div><div class="adv-row"><span>Growth · ${s.growth.note}</span><b>${s.growth.pct}%</b></div><div class="adv-row"><span>Rangers out · idle hands</span><b>${s.ranging} · ${s.idleRangers}</b></div></article>
   <div class="panel-heading"><span>SETTLEMENT GOALS</span><span>Lvl ${s.lvl}</span></div>
   <article class="adv-card"><div class="adv-row"><span>Village level ${s.lvl} · ${s.xp} XP</span><b>${s.questsDone}/${s.questsTotal} quests</b></div><div class="progress" role="progressbar" aria-valuenow="${Math.round(xpPct)}" aria-valuemax="100" aria-label="Village level progress"><div style="width:${xpPct}%"></div></div><div class="adv-meta">Next: level ${s.lvl+1} — ${nextCache}${s.nextLevel?.text?` · ${s.nextLevel.text}`:''}</div><button class="adv-next-btn" data-goto="quests">Walk the village path →</button></article>
   ${trade}`;

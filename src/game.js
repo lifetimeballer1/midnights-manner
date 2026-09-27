@@ -1,3 +1,4 @@
+import {startResearch,tickResearch,researchReason} from './systems/research.js';
 import {tickEmergency} from './systems/emergency.js';
 import {factionFor} from './systems/tactics.js';
 import {ensureDirector,directorConfig,directorParty,scheduleRecovery} from './systems/raid-director.js';
@@ -273,6 +274,7 @@ export class Game {
   const party=count??(this.world.wave===0?3:4+this.world.wave);this.world.raidPending={timer:3,count:party};this.world.raidKills=0;this.world.raidLoot=0;this.world.raidResult=null;sfx.horn();this.notify(`Scouts report ${party} raiders from ${raidSides(this.world.wave+1,party).join(" / ")} — 3 seconds to positions!`);}
  mission(id){const m=this.data.missions.find(m=>m.id===id);if(startMission(this.state,this.data,id))this.notify(`${m?.ceremony?.warning||'Expedition begun.'} Your home village is safely paused.`);else this.notify('Finish the current raid or unlock the previous chapter first.');}
  returnHome(){const m=this.data.missions.find(m=>m.id===this.state.mission?.id);const result=finishMission(this.state,this.data);if(result?.first)this.notify(`${m?.ceremony?.victory||'Victory!'} Rewards and unlocks delivered to your village.`);else if(result?.won)this.notify('Returned home. First-clear rewards can only be claimed once.');else this.notify(`${m?.ceremony?.defeat||'Expedition lost.'} Your home is safe.`);this.persist();}
+ research(id){if(this.paused)return false;const reason=researchReason(this.state,this.data,id);if(reason){this.notify(reason);return false;}const ok=startResearch(this.state,this.data,id);if(ok){this.notify('Research begun. Your scholars are at work.');this.persist();}return ok;}
  trade(id,date=new Date()){
   if(this.paused)return this.notify('Resume the village to trade.');
   if(this.state.mission)return this.notify('The traders wait at home — finish the expedition first.');
@@ -346,7 +348,7 @@ export class Game {
    if(this.world.raidPending.timer<=0){const {count,scheduled}=this.world.raidPending;this.world.raidPending=null;spawnRaid(this.world,count,null,this.data,factionFor(this.data,this.world.wave+1));
     this.notify(scheduled?fillLine(pickLine(cfg.attackLines,this.world.wave),{count,wave:this.world.wave}):`Wave ${this.world.wave} — ${count} raiders! Defend the manor!`);}}
   const raided=!this.state.mission&&(this.world.enemies.length>0||this.world.raidPending);
-  this.world.elapsed+=dt;tickEmergency(this.world,this.data,dt);tickEconomy(this.world,this.data,dt);tickExpeditions(this.world,this.data,dt);tickCombat(this.world,this.data,dt);tickVillage(this.state,this.data,dt,m=>this.notify(m));const before=this.state.mission?.status;tickMission(this.state,this.data);
+  this.world.elapsed+=dt;tickResearch(this.state,this.data,dt,m=>this.notify(m));tickEmergency(this.world,this.data,dt);tickEconomy(this.world,this.data,dt);tickExpeditions(this.world,this.data,dt);tickCombat(this.world,this.data,dt);tickVillage(this.state,this.data,dt,m=>this.notify(m));const before=this.state.mission?.status;tickMission(this.state,this.data);
   if(raided&&!this.world.enemies.length&&!this.world.raidPending&&this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)){const kills=this.world.raidKills??0,loot=this.world.raidLoot??0;
    const damaged=this.world.buildings.filter(b=>b.hp<this.data.buildings[b.type].tiers[b.level-1].hp);
    const repairWood=damaged.reduce((n,b)=>n+Math.ceil((this.data.buildings[b.type].tiers[b.level-1].hp-b.hp)/15),0);
