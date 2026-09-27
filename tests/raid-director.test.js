@@ -150,8 +150,8 @@ test('integration: a hard-won defense steals stores and lays villagers low', () 
   g.world.raidPending.timer = 0.01;
   g.tick(0.05);
   assert.ok(g.world.enemies.length > 0, 'raiders walk');
-  // The mill burns; a defender falls — real but survivable consequences.
-  const mill = g.world.buildings.find(b => b.type !== 'trap' && b.hp > 0);
+  // A farm burns (never the manor — that would be defeat); a defender falls.
+  const mill = g.world.buildings.find(b => b.type !== 'trap' && b.type !== 'hall' && b.hp > 0);
   mill.hp = 0;
   const fallen = g.world.troops.find(t => t.hp > 0);
   fallen.hp = 0;

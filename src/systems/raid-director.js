@@ -21,7 +21,8 @@ export function directorConfig(data) {
   };
 }
 
-// Weighted settlement pressure, roughly 0..5+. Fresh villages sit under 1.2.
+// Weighted settlement pressure. A fresh starting village scores ~2, so QUIET
+// spans the early game; GUARDED/THREATENED/MENACING arrive with real growth.
 export function threatOf(world, state, data) {
   const w = world || {};
   const buildings = (w.buildings || []).filter(b => b && b.hp > 0 && !b.remaining).length;
@@ -38,7 +39,7 @@ export function threatOf(world, state, data) {
     victories: victories / 6,
   };
   const score = parts.size + parts.wealth + parts.population + parts.progress + parts.victories;
-  const band = score < 1.2 ? 0 : score < 2.2 ? 1 : score < 3.4 ? 2 : 3;
+  const band = score < 2.4 ? 0 : score < 3.6 ? 1 : score < 5.2 ? 2 : 3;
   return { score, band, label: THREAT_LABELS[band], parts };
 }
 
