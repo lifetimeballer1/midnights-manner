@@ -95,7 +95,7 @@ export function tickEconomy(world,data,dt) {
   const target=u.phase==='return'?hall:source;
   const speed = stats(u,data).speed;
   if(move(world,data,u,center(target,data),speed,dt,1.6)) {
-   if(u.phase==='return'){addResource(world,spec.gatherResource,u.carry);const cp=center(hall,data);floatText(world,cp.x,cp.y,resourceLabel(spec.gatherResource,u.carry),'#ffe9a8');sparkle(world,cp.x,cp.y);sfx.collect();u.carry=0;u.phase='gather';}
+   if(u.phase==='return'){addResource(world,spec.gatherResource,u.carry);const cp=center(hall,data);floatText(world,cp.x,cp.y,resourceLabel(spec.gatherResource,u.carry),'#ffe9a8');sparkle(world,cp.x,cp.y);u.carry=0;u.phase='gather';}
    else {
     const bonus=unlockedAbilities(u,data).filter(a=>a.effect==='gather').reduce((n,a)=>n+a.value,1);
     const midC = (world.elapsed||0) > 300 ? 0.85 : 1;
