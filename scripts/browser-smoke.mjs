@@ -40,6 +40,7 @@ try{
  await click('[data-tab="build"]');await click('[data-build="farm"]');
  await tap(await evaluate('window.midnightsManner.project(2.5,2.5)'));
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.buildings.length'),count,'preview does not spend');
+ console.log('Placement state',await evaluate(`({hint:document.querySelector('#placement-state').textContent,point:window.midnightsManner.project(2.5,2.5),target:(()=>{const p=window.midnightsManner.project(2.5,2.5);return document.elementFromPoint(p.x,p.y)?.outerHTML.slice(0,300)})()})`));await screenshot('placement-check');
  await click('#confirm-place');assert.equal(await evaluate('window.midnightsManner.snapshot().world.buildings.length'),count+1,'confirm builds once');
  // Touch wall rows on a phone: preview is free, confirm builds the line,
  // and the inspector upgrades the complete connected row with one action.
