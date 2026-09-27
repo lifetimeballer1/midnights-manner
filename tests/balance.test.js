@@ -6,12 +6,17 @@ import {tickEconomy} from '../src/systems/economy.js';
 import {Game} from '../src/game.js';
 const data = Object.fromEntries(await Promise.all(['world','troops','items','abilities','buildings','missions'].map(async n=>[n,JSON.parse(await readFile(new URL(`../data/${n}.json`,import.meta.url)))])));
 
-// Simulate a chapter: fresh mission world, run economy, check objective reachable.
+// Simulate a chapter: fresh mission world, run economy, tap reserves like an
+// active player (Clash-style: income only lands via taps and deliveries).
+function tapAll(w){
+  for(const b of w.buildings){const spec=data.buildings[b.type];if(!spec.production||b.hp<=0||b.remaining>0)continue;const amt=Math.floor(b.harvestBonus||0);if(amt<1)continue;b.harvestBonus-=amt;w.resources[spec.production]=(w.resources[spec.production]||0)+amt;w.gathered[spec.production]=(w.gathered[spec.production]||0)+amt;}
+}
 function simulateGather(missionId, seconds) {
   const m = data.missions.find(m=>m.id===missionId);
   const w = createWorld(data, m);
   w.elapsed = 0;
-  for (let i=0;i<seconds*20;i++) { w.elapsed += .05; tickEconomy(w, data, .05); }
+  for (let i=0;i<seconds*20;i++) { w.elapsed += .05; tickEconomy(w, data, .05); if(i%20===0)tapAll(w); }
+  tapAll(w);
   return {m, w};
 }
 
@@ -25,15 +30,9 @@ test('chapter 1-3 objectives reachable within limits (quick wins kept)', ()=>{
   }
 });
 
-test('mid-game income slower than opening (economy note applied)', ()=>{
-  const w1 = createWorld(data); w1.troops = []; w1.elapsed = 60;
-  const f1 = w1.resources.food;
-  for (let i=0;i<20;i++) { w1.elapsed += .05; tickEconomy(w1, data, .05); }
-  const earlyRate = w1.resources.food - f1;
-  const w2 = createWorld(data); w2.troops = []; w2.elapsed = 400;
-  const f2 = w2.resources.food;
-  for (let i=0;i<20;i++) { w2.elapsed += .05; tickEconomy(w2, data, .05); }
-  const midRate = w2.resources.food - f2;
+test('mid-game reserve fill slower than opening (economy note applied)', ()=>{
+  const fill=elapsed=>{const w=createWorld(data);w.troops=[];w.elapsed=elapsed;const farm=w.buildings.find(b=>b.type==='farm');farm.harvestBonus=0;for(let i=0;i<20;i++){w.elapsed+=.05;tickEconomy(w,data,.05);}return farm.harvestBonus||0;};
+  const earlyRate=fill(60),midRate=fill(400);
   assert.ok(midRate < earlyRate, `mid-game ${midRate.toFixed(2)}/s should trail opening ${earlyRate.toFixed(2)}/s`);
   assert.ok(midRate > earlyRate * 0.5, 'slowdown should bite, not starve');
 });

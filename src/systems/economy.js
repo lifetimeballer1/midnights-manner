@@ -5,7 +5,10 @@ import {sfx} from './audio.js';
 // Open resource maps: new keys (frostwood onward) ride without a schema
 // change, and pre-frostwood saves (no frostwood key yet) haul without NaN-ing.
 export function addResource(world,resource,amount) {world.resources[resource]=(world.resources[resource]||0)+amount;world.gathered[resource]=(world.gathered[resource]||0)+amount;}
-const INK={wood:'#e8c98a',food:'#bfe3a8',gold:'#f2d878',frostwood:'#cfe6f5',plate:'#e8a87c'};
+// Clash-style reserves: production piles up on the building (capped by data
+// `harvest.capacity`) and only lands in the pool when tapped. Passive ticks
+// never spawn floaters and never play a sound — harvest() owns the feedback.
+let lastSplash=0;
 function push(world,effect){if(world.effects.length<140)world.effects.push(effect);}
 export function floatText(world,x,y,text,color){push(world,{x,y,tx:x,ty:y-1.1,kind:'float',text,color,life:.9});}
 function sparkle(world,x,y){push(world,{x,y,tx:x,ty:y,kind:'sparkle',life:.4});}
@@ -55,17 +58,14 @@ export function tickEconomy(world,data,dt) {
   if(spec.production) {
    const mult = reserveMult(b);
    // Mid-game pacing: first 5 minutes run full tilt (snappy opening);
-   // after that passive nodes yield 75% so expansion must come from
-   // collectors, upgrades and new buildings instead of idle income.
+   // after that nodes fill reserves at 75% so expansion must come from
+   // taps, collectors, upgrades and new buildings instead of idle income.
    const mid = (world.elapsed||0) > 300 ? 0.75 : 1;
    const made = spec.rate*spec.tiers[b.level-1].rateMultiplier*mult*mid*dt;
    drain(b, made);
-   addResource(world,spec.production,made);
-   // Batch passive income into visible +N popups on the producing building.
-   world._incAcc=world._incAcc||{};const key=spec.production;
-   world._incAcc[key]=(world._incAcc[key]||0)+made;
-   // Unknown future keys still pop a glyph instead of 'undefined'.
-   if(world._incAcc[key]>=5){const shown=Math.floor(world._incAcc[key]);world._incAcc[key]-=shown;const cp=center(b,data);floatText(world,cp.x,cp.y,resourceLabel(key,shown),INK[key]||'#f2d878');}}
+   const cap = spec.harvest?.capacity ?? 40;
+   const held = Number.isFinite(b.harvestBonus) ? Math.max(0, b.harvestBonus) : 0;
+   b.harvestBonus = Math.min(cap, held + made);}
  }
  const hall=world.buildings.find(b=>b.type==='hall'&&b.hp>0);if(!hall)return;
  for(const u of world.troops) {
@@ -110,9 +110,12 @@ export function tickEconomy(world,data,dt) {
     drain(source, fill);
     u.carry+=fill;
     // Assigned fishers make a visible splash while they work the pond.
+    // The sound is throttled well below the visual rate: a creel of fishers
+    // must never machine-gun the ding channel while nobody is looking.
     if (u.type === 'fisherman' && u.workplace === source.id && Math.random() < dt * 1.2) {
       splash(world, source.x + 1 + Math.random() * 0.4, source.y + 1 + Math.random() * 0.4);
-      sfx.splash();
+      const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+      if (now - lastSplash > 1500) { lastSplash = now; sfx.splash(); }
     }
    }
   }

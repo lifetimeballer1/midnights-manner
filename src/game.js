@@ -312,7 +312,7 @@ export class Game {
   this.persist();
   return true;
  }
- harvest(id){const b=this.world.buildings.find(b=>b.id===id),spec=b&&this.data.buildings[b.type];if(this.paused||!b||!spec.production||b.hp<=0||b.remaining>0)return false;const amount=Math.floor(b.harvestBonus||0);if(amount<1)return false;b.harvestBonus-=amount;this.world.resources[spec.production]=(this.world.resources[spec.production]||0)+amount;this.world.gathered[spec.production]=(this.world.gathered[spec.production]||0)+amount;const at=center(b,this.data);this.world.effects.push({x:at.x,y:at.y,tx:at.x,ty:at.y,kind:'float',text:resourceLabel(spec.production,amount),color:resourceInfo(spec.production).color,life:.9});sfx.collect();this.notify(`Collected ${amount} bonus ${spec.production}.`);return amount;}
+ harvest(id){const b=this.world.buildings.find(b=>b.id===id),spec=b&&this.data.buildings[b.type];if(this.paused||!b||!spec.production||b.hp<=0||b.remaining>0)return false;const amount=Math.floor(b.harvestBonus||0);if(amount<1)return false;b.harvestBonus-=amount;this.world.resources[spec.production]=(this.world.resources[spec.production]||0)+amount;this.world.gathered[spec.production]=(this.world.gathered[spec.production]||0)+amount;const at=center(b,this.data);this.world.effects.push({x:at.x,y:at.y,tx:at.x,ty:at.y,kind:'float',text:resourceLabel(spec.production,amount),color:resourceInfo(spec.production).color,life:.9});sfx.collect();this.notify(`Collected ${amount} ${spec.production}.`);return amount;}
  persist(){const ok=save(this.state);if(!ok)this.notify('Browser storage is unavailable. Progress cannot be saved here.');return ok;}
  importState(state){this.state=state;
  // Imported blobs predate tile grids the same way old saves do — build
@@ -345,7 +345,6 @@ export class Game {
    if(this.world.raidPending.timer<=0){const {count,scheduled}=this.world.raidPending;this.world.raidPending=null;spawnRaid(this.world,count,null,this.data);
     this.notify(scheduled?fillLine(pickLine(cfg.attackLines,this.world.wave),{count,wave:this.world.wave}):`Wave ${this.world.wave} — ${count} raiders! Defend the manor!`);}}
   const raided=!this.state.mission&&(this.world.enemies.length>0||this.world.raidPending);
-  for(const b of this.world.buildings){const spec=this.data.buildings[b.type];if(spec.harvest&&b.hp>0&&b.remaining<=0)b.harvestBonus=Math.min(spec.harvest.capacity,Math.max(0,Number.isFinite(b.harvestBonus)?b.harvestBonus:0)+spec.harvest.bonusRate*b.level*dt);}
   this.world.elapsed+=dt;tickEconomy(this.world,this.data,dt);tickExpeditions(this.world,this.data,dt);tickCombat(this.world,this.data,dt);tickVillage(this.state,this.data,dt,m=>this.notify(m));const before=this.state.mission?.status;tickMission(this.state,this.data);
   if(raided&&!this.world.enemies.length&&!this.world.raidPending&&this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)){const kills=this.world.raidKills??0,loot=this.world.raidLoot??0;
    const damaged=this.world.buildings.filter(b=>b.hp<this.data.buildings[b.type].tiers[b.level-1].hp);

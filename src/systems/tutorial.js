@@ -3,7 +3,7 @@
 const KEY = 'midnights-manner-guide-v1';
 export const STEPS = [
   { id: 'build', text: 'Raise a building — open BUILD, pick a card, tap an empty tile. A Watchtower or extra Farm is a fine start.' },
-  { id: 'collect', text: 'Your people are working. Gather 20 food from your farms (watch for +N popups at the manor).' },
+  { id: 'collect', text: 'Tap a farm (gold badge) or its +N bubble to gather 20 food into your stores.' },
   { id: 'recruit', text: 'Open PEOPLE and recruit a Warrior (+ Warrior). Needs a barracks and a little food + gold.' },
   { id: 'raid', text: 'Brave the night — tap TEST YOUR DEFENSES below the map. A small scouting party is coming.' },
   { id: 'survive', text: 'Hold the line! Towers and warriors fight on their own. Keep the manor standing.' },

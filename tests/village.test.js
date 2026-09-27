@@ -186,9 +186,9 @@ test('nodes drain visibly as worked and breathe back when rested', () => {
   a.buildings[0].remaining = 0; a.buildings[0].reserve = 1;
   const b = createWorld(data); b.troops = []; b.buildings = [makeBuilding('farm', 2, 2, data), makeBuilding('hall', 9, 7, data)];
   b.buildings[0].remaining = 0;
-  const fa = a.resources.food, fb = b.resources.food;
+  const fa = a.buildings[0].harvestBonus||0, fb = b.buildings[0].harvestBonus||0;
   for (let i = 0; i < 20; i++) { tickEconomy(a, data, .05); tickEconomy(b, data, .05); }
-  assert.ok(b.resources.food - fb > a.resources.food - fa, 'full nodes out-produce tapped ones');
+  assert.ok((b.buildings[0].harvestBonus||0) - fb > (a.buildings[0].harvestBonus||0) - fa, 'full nodes out-produce tapped ones');
 });
 
 test('v1 saves migrate to v2 with progress intact', () => {

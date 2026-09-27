@@ -1,4 +1,4 @@
-import {resourceInfo,resourceLabel,layoutCollectionBubbles,collectionBubbleScale} from './resources.js';
+import {resourceInfo,resourceLabel,layoutCollectionBubbles,collectionBubbleScale,reserveReady} from './resources.js';
 import {placementCells} from './systems/walls.js';
 import {screenToWorld,panPixels,zoomAt,phaseSeed,zoomLimits,panLimits} from './camera.js';
 import {tileFor} from './systems/biomes.js';
@@ -115,6 +115,8 @@ export class Renderer {
      for(let i=0;i<crew;i++){c.fillStyle='#f2c96e';c.beginPath();c.arc(p2.x-(crew*8)/2+i*8+4,p2.y-size-10,3,0,Math.PI*2);c.fill();c.strokeStyle='#1c302c';c.lineWidth=1;c.stroke();}}
     if(b.maxReserve&&b.hp>0){const frac=Math.max(0,Math.min(1,b.reserve/b.maxReserve));
      if(frac<0.66)this.bar(p2.x,p2.y+20,frac,36,frac>0.35?'#c9a44e':'#c9766a');}
+    // Ready badge: a gold coin-dot on buildings holding a tap reserve.
+    if(reserveReady(b,spec)){c.fillStyle='#f2c96e';c.beginPath();c.arc(p2.x+size*.34,p2.y-size-12,5,0,Math.PI*2);c.fill();c.strokeStyle='#1c302c';c.lineWidth=1.5;c.stroke();c.fillStyle='#1c302c';c.font='bold 8px system-ui';c.textAlign='center';c.fillText('!',p2.x+size*.34,p2.y-size-9);c.textAlign='left';}
 
     // Chimney smoke: houses breathe. Stateless phase per building, capped to homes.
     if(b.hp>0&&b.remaining<=0&&['hall','cottage','barracks','forge','chapel','farm'].includes(b.type)&&(Math.floor(time/1600)+phaseSeed(b.id))%3===0){
@@ -178,7 +180,7 @@ export class Renderer {
  }
  drawCollections(world){
   const c=this.ctx;
-  const items=world.buildings.filter(b=>this.data.buildings[b.type].production&&b.hp>0&&b.remaining<=0&&(b.harvestBonus||0)>=1).map(b=>{
+  const items=world.buildings.filter(b=>reserveReady(b,this.data.buildings[b.type])).map(b=>{
    const spec=this.data.buildings[b.type],p=this.project(b.x+spec.size/2,b.y+spec.size/2),info=resourceInfo(spec.production),text=resourceLabel(spec.production,b.harvestBonus),scale=collectionBubbleScale(this.cam.zoom),fontSize=Math.max(9,12*scale),iconSize=28*scale;
    c.font=`bold ${fontSize}px system-ui`;
    return {id:b.id,x:p.x,y:p.y-(spec.size===2?79:51)*this.cam.zoom-18*scale,anchor:p,text,info,width:Math.max(104*scale,c.measureText(text).width+44*scale),height:40*scale,scale,fontSize,iconSize};

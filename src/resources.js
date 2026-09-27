@@ -12,6 +12,11 @@ export const resourceSpriteNames=Object.values(RESOURCES).map(r=>r.sprite);
 // Keep labels readable at the normal camera scale while letting the map breathe
 // when players zoom out. Touch padding is added by the renderer separately.
 export const collectionBubbleScale=zoom=>Math.max(.68,Math.min(1,Number(zoom)||1));
+// One predicate for every "ready to tap" surface: bubbles, badges, buttons.
+// Finished, living production buildings holding at least one whole unit.
+export function reserveReady(building,spec){
+ return !!building && !!spec?.production && building.hp>0 && !(building.remaining>0) && Math.floor(building.harvestBonus||0)>=1;
+}
 export function collectionTotals(world,data){
  const totals={};
  for(const b of world.buildings){const key=data.buildings[b.type]?.production;if(!key||b.hp<=0||b.remaining>0)continue;const amount=Math.floor(b.harvestBonus||0);if(amount>0)totals[key]=(totals[key]||0)+amount;}
