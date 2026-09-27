@@ -1,0 +1,32 @@
+{
+  "plains": {
+    "name": "Plains",
+    "tint": "#6b9148",
+    "spriteVariant": "plains",
+    "yieldModifier": 1.0
+  },
+  "forest": {
+    "name": "Timber Forest",
+    "tint": "#2d6340",
+    "spriteVariant": "forest",
+    "yieldModifier": 1.25
+  },
+  "water": {
+    "name": "Stillwater",
+    "tint": "#2e6b7a",
+    "spriteVariant": "water",
+    "yieldModifier": 1.0
+  },
+  "hills": {
+    "name": "Stone Hills",
+    "tint": "#8a8a7a",
+    "spriteVariant": "hills",
+    "yieldModifier": 1.25
+  },
+  "unclaimed-fringe": {
+    "name": "Unclaimed Fringe",
+    "tint": "#3e6037",
+    "spriteVariant": "fringe",
+    "yieldModifier": 1.0
+  }
+}

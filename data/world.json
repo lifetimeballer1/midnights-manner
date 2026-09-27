@@ -1,6 +1,12 @@
 {
   "width": 20,
   "height": 17,
+  "seed": 7,
+  "tiles": [
+    {"x": 3, "y": 3, "biome": "water", "landmark": "Stillwater", "claimed": true},
+    {"x": 15, "y": 12, "biome": "forest", "landmark": "Timber Line", "claimed": true},
+    {"x": 16, "y": 4, "biome": "plains", "landmark": "Moonwell", "claimed": true}
+  ],
   "startingResources": {
     "wood": 320,
     "food": 180,
