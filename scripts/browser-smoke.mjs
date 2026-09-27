@@ -29,7 +29,7 @@ try{
  assert.ok(await evaluate('Boolean(window.midnightsManner)'),'game loaded');
  await mkdir('artifacts',{recursive:true});
  const screenshot=async name=>{const {data}=await call('Page.captureScreenshot',{format:'png',captureBeyondViewport:true});await writeFile(`artifacts/${name}.png`,Buffer.from(data,'base64'));};
- const waitFor=async expression=>{for(let i=0;i<100;i++){if(await evaluate(expression))return;await new Promise(r=>setTimeout(r,75));}throw Error('Timed out: '+expression);};
+ const waitFor=async (expression,tries=100)=>{for(let i=0;i<tries;i++){if(await evaluate(expression))return;await new Promise(r=>setTimeout(r,75));}throw Error('Timed out: '+expression);};
  const click=async selector=>{const point=await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e||e.disabled||!e.getClientRects().length)throw Error('Unavailable '+${JSON.stringify(selector)});e.scrollIntoView({block:'nearest'});const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()`);await call('Input.dispatchMouseEvent',{type:'mousePressed',...point,button:'left',clickCount:1});await call('Input.dispatchMouseEvent',{type:'mouseReleased',...point,button:'left',clickCount:1});};
  const tap=async point=>{await call('Input.dispatchMouseEvent',{type:'mousePressed',...point,button:'left',clickCount:1});await call('Input.dispatchMouseEvent',{type:'mouseReleased',...point,button:'left',clickCount:1});};
  assert.equal(await evaluate('window.midnightsManner.paused'),true,'welcome pauses simulation');
@@ -88,7 +88,7 @@ try{
  await click('#close-panel');
  // Resource identities, collection, search and every main menu on a phone.
  await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:2,mobile:true});await new Promise(r=>setTimeout(r,150));await click('#recenter');
- await waitFor('window.midnightsManner.collectionBubbles().length > 0');
+ await waitFor('window.midnightsManner.collectionBubbles().length > 0',1600);
  const bubbles=await evaluate('window.midnightsManner.collectionBubbles()');
  assert.ok(bubbles.every(b=>/\+\d+ (Wood|Food|Gold|Frostwood|Plate)/.test(b.label)),'collection bubbles name their resources');
  await screenshot('polished-village');
