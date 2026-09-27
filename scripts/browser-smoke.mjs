@@ -121,6 +121,9 @@ try{
  await click('[data-tab="troops"]');await screenshot('polished-people');await click('#close-panel');
  await click('[data-tab="story"]');await screenshot('polished-adventure');await click('[data-category="quests"]');await screenshot('polished-quests');
  await click('[data-category="home"]');
+ await click('[data-goto="research"]');await waitFor('document.querySelectorAll(".tech-branch").length===6');
+ assert.equal(await evaluate('document.documentElement.scrollWidth>innerWidth'),false,'research fits portrait');
+ await screenshot('mobile-research');await click('[data-goto="home"]');
  if(await evaluate('Boolean(document.querySelector(\'[data-goto="market"]\'))'))await click('[data-goto="market"]');
  await screenshot('polished-trading');await click('#close-panel');
  await click('#pause');await screenshot('polished-settings');await click('#resume');

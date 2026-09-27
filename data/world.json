@@ -254,5 +254,224 @@
       ],
       "lore": "Iron mauls hammer the gates. Slow breakers punish weak walls; layered defenses buy time."
     }
+  ],
+  "technologies": [
+    {
+      "id": "orchards",
+      "branch": "Survival",
+      "name": "Moon orchards",
+      "text": "Cultivate a dependable new food source.",
+      "unlocks": [
+        "grove"
+      ],
+      "requires": [],
+      "points": 10,
+      "cost": {
+        "wood": 90,
+        "gold": 50
+      },
+      "seconds": 60
+    },
+    {
+      "id": "medicine",
+      "branch": "Survival",
+      "name": "Village medicine",
+      "text": "Train the choir and establish a recovery bell.",
+      "unlocks": [
+        "bellcote",
+        "chorister",
+        "hymnal"
+      ],
+      "requires": [
+        "orchards"
+      ],
+      "points": 30,
+      "cost": {
+        "wood": 240,
+        "gold": 180
+      },
+      "seconds": 120
+    },
+    {
+      "id": "masonry",
+      "branch": "Construction",
+      "name": "Stone construction",
+      "text": "Replace exposed timber with stone defenses.",
+      "unlocks": [
+        "stonewall"
+      ],
+      "requires": [],
+      "points": 10,
+      "cost": {
+        "wood": 90,
+        "gold": 50
+      },
+      "seconds": 60
+    },
+    {
+      "id": "engineering",
+      "branch": "Construction",
+      "name": "Master engineering",
+      "text": "Equip your builders for large projects.",
+      "unlocks": [
+        "toolkit",
+        "fine-tinkerkit"
+      ],
+      "requires": [
+        "masonry"
+      ],
+      "points": 30,
+      "cost": {
+        "wood": 240,
+        "gold": 180
+      },
+      "seconds": 120
+    },
+    {
+      "id": "fieldcraft",
+      "branch": "Warfare",
+      "name": "Defensive fieldcraft",
+      "text": "Prepare traps and better melee weapons.",
+      "unlocks": [
+        "trap",
+        "axe"
+      ],
+      "requires": [],
+      "points": 10,
+      "cost": {
+        "wood": 90,
+        "gold": 50
+      },
+      "seconds": 60
+    },
+    {
+      "id": "watchfires",
+      "branch": "Warfare",
+      "name": "Organized watch",
+      "text": "Hold the perimeter with signal defenses and heavy weapons.",
+      "unlocks": [
+        "watchfire",
+        "warhammer"
+      ],
+      "requires": [
+        "fieldcraft"
+      ],
+      "points": 30,
+      "cost": {
+        "wood": 240,
+        "gold": 180
+      },
+      "seconds": 120
+    },
+    {
+      "id": "forging",
+      "branch": "Industry",
+      "name": "Runic forging",
+      "text": "Improve the tools of smiths and armorers.",
+      "unlocks": [
+        "runed-forgehammer",
+        "etched-armorkit"
+      ],
+      "requires": [],
+      "points": 10,
+      "cost": {
+        "wood": 90,
+        "gold": 50
+      },
+      "seconds": 60
+    },
+    {
+      "id": "smelting",
+      "branch": "Industry",
+      "name": "Metalworking",
+      "text": "Recruit smelters to turn the workshop economy toward plate.",
+      "unlocks": [
+        "smelter",
+        "iron-cap"
+      ],
+      "requires": [
+        "forging"
+      ],
+      "points": 30,
+      "cost": {
+        "wood": 240,
+        "gold": 180
+      },
+      "seconds": 120
+    },
+    {
+      "id": "education",
+      "branch": "Society",
+      "name": "Education",
+      "text": "Open a school and recruit apprentices.",
+      "unlocks": [
+        "schoolroom",
+        "apprentice",
+        "primer"
+      ],
+      "requires": [],
+      "points": 10,
+      "cost": {
+        "wood": 90,
+        "gold": 50
+      },
+      "seconds": 60
+    },
+    {
+      "id": "commerce",
+      "branch": "Society",
+      "name": "Frontier commerce",
+      "text": "Bring markets and specialist traders to town.",
+      "unlocks": [
+        "market",
+        "haggler",
+        "scales"
+      ],
+      "requires": [
+        "education"
+      ],
+      "points": 30,
+      "cost": {
+        "wood": 240,
+        "gold": 180
+      },
+      "seconds": 120
+    },
+    {
+      "id": "woodcraft",
+      "branch": "Exploration",
+      "name": "Deep woodcraft",
+      "text": "Train specialists for the cold woods.",
+      "unlocks": [
+        "woodward",
+        "frostaxe"
+      ],
+      "requires": [],
+      "points": 10,
+      "cost": {
+        "wood": 90,
+        "gold": 50
+      },
+      "seconds": 60
+    },
+    {
+      "id": "watercraft",
+      "branch": "Exploration",
+      "name": "Waterway maps",
+      "text": "Recruit divers and equip them for new expeditions.",
+      "unlocks": [
+        "diver",
+        "net"
+      ],
+      "requires": [
+        "woodcraft"
+      ],
+      "points": 30,
+      "cost": {
+        "wood": 240,
+        "gold": 180
+      },
+      "seconds": 120
+    }
   ]
 }

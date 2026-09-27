@@ -7,7 +7,7 @@ export function directorConfig(data) {
 }
 export function settlementThreat(state) {
  const w=state.world;
- const factors={buildings:Math.min(25,w.buildings.filter(b=>b.hp>0).length),population:Math.min(20,w.troops.length),wealth:Math.min(20,Math.floor(Object.values(w.resources).reduce((a,n)=>a+Math.max(0,Number(n)||0),0)/250)),progress:Math.min(20,Math.max(0,(state.vlevel||1)-1)*2+(state.completed||[]).length),victories:Math.min(15,w.wave||0)};
+ const factors={buildings:Math.min(25,w.buildings.filter(b=>b.hp>0).length),population:Math.min(20,w.troops.length),wealth:Math.min(20,Math.floor(Object.values(w.resources).reduce((a,n)=>a+Math.max(0,Number(n)||0),0)/250)),progress:Math.min(20,Math.max(0,(state.vlevel||1)-1)*2+(state.completed||[]).length+(state.research?.completed||[]).length),victories:Math.min(15,w.wave||0)};
  const score=Object.values(factors).reduce((a,b)=>a+b,0);
  return {score,label:score<30?'Low':score<60?'Rising':'High',factors};
 }

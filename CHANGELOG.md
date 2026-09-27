@@ -296,3 +296,9 @@ Vignette/moon-glow/day-grade stay dynamic overlays (not baked) so the cached bui
 - Paused construction and civilian gather loops during alarms; retained assignments and carried goods.
 - Added 6 behavioral regressions and browser smoke assertions for faction raids/emergency state.
 - Verified 323 unit tests and production build.
+
+## Survival city Phase 5 — research foundation
+- Added 12 technologies in six connected mobile research branches, real unlocks and a saved single-project queue.
+- Added insight from the manor and assigned scholars, resource costs, prerequisite validation and raid/campaign pauses.
+- Preserved legacy progression and saves; research provides another route to content rather than removing campaign rewards.
+- Verified 329 unit tests and production build; added mobile research navigation/screenshot to browser suite.
