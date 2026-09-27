@@ -44,13 +44,22 @@ export function tileFor(dataWorld, x, y) {
 }
 
 // Full grid build (w*h tiles). Landmarks preserved by construction.
-export function buildTiles(dataWorld) {
+// Optional bounds: when given, claimed follows the settled usable rect
+// (x>=1&&y>=1&&x<=b.w-2&&y<=b.h-2, mirroring the renderer); landmarks
+// keep their explicit claimed flag. Without bounds every tile reads
+// claimed (Phase 1 visual-only behavior).
+export function buildTiles(dataWorld, bounds = null) {
   const w = dataWorld?.width || 20;
   const h = dataWorld?.height || 17;
   const out = [];
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
-      out.push(tileFor(dataWorld, x, y));
+      const marked = landmarkAt(dataWorld, x, y);
+      if (marked) { out.push({x, y, biome: marked.biome, landmark: marked.landmark, claimed: marked.claimed !== false}); continue; }
+      const claimed = bounds
+        ? (x >= 1 && y >= 1 && x <= bounds.w - 2 && y <= bounds.h - 2)
+        : true;
+      out.push({x, y, biome: biomeFor(x, y, seedFor(dataWorld)), landmark: null, claimed});
     }
   }
   return out;

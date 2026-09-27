@@ -4,6 +4,7 @@
 import {levelForXp, EXPANSION, auras, housing, center, stats, unlockedAbilities} from '../model.js';
 import {sfx} from './audio.js';
 import {makeTradeName} from './story.js';
+import {claimRect} from './expansion.js';
 
 export const CHILD_SECONDS = 75;      // surplus + free bed grows a villager this fast
 const UPKEEP_EACH = 0.03;      // food per second per villager
@@ -82,6 +83,8 @@ function applyExpansion(state, data, notify) {
   const target = EXPANSION[Math.min(state.vlevel - 1, EXPANSION.length - 1)];
   if (w.bounds.w >= target.w && w.bounds.h >= target.h) return;
   w.bounds = {...target};
+  // Settling claims the newly opened rows (XP growth is free land).
+  try{claimRect(w,target.w,target.h);}catch{}
   push(w, {x:target.w - 1, y:target.h - 1, tx:target.w - 1, ty:target.h - 1, kind:'fanfare', life:.8});
   sfx.unlock();
   notify(`The treeline retreats! New rows are open — the village now spans ${target.w}×${target.h}.`);

@@ -1,0 +1,10 @@
+{
+  "homestead": { "w": 20, "h": 17 },
+  "rings": [
+    { "upto": 1, "cost": { "wood": 60, "gold": 25 } },
+    { "upto": 2, "cost": { "wood": 90, "gold": 40 } },
+    { "upto": 3, "cost": { "wood": 130, "gold": 60 } },
+    { "upto": 5, "cost": { "wood": 180, "gold": 90 } },
+    { "upto": 999, "cost": { "wood": 250, "gold": 130 } }
+  ]
+}

@@ -1,6 +1,7 @@
 import {resourceInfo,resourceLabel,layoutCollectionBubbles,collectionBubbleScale} from './resources.js';
 import {placementCells} from './systems/walls.js';
-import {screenToWorld,panPixels,zoomAt,phaseSeed} from './camera.js';
+import {screenToWorld,panPixels,zoomAt,phaseSeed,zoomLimits,panLimits} from './camera.js';
+import {tileFor} from './systems/biomes.js';
 import {center,canPlace,stats,housing,assignedWorkers} from './model.js';
 import {sfx} from './systems/audio.js';
 import {drawWall,drawFoundation,drawArchitecture,isWall} from './building-art.js';
@@ -10,8 +11,8 @@ export class Renderer {
  camBase(){return this.base(this.cam.x,this.cam.y);}
  project(x,y){const b=this.base(x,y),c=this.camBase(),z=this.cam.zoom;return {x:this.cx+(b.x-c.x)*z,y:this.cy+(b.y-c.y)*z};}
  unproject(x,y){const c=this.camBase(),z=this.cam.zoom,bx=c.x+(x-this.cx)/z,by=c.y+(y-this.cy)/z;return {x:Math.floor((bx-this.ox)/this.tw+(by-this.oy)/this.th),y:Math.floor((by-this.oy)/this.th-(bx-this.ox)/this.tw)};}
- pan(dx,dy){const W=this.data.world.width,H=this.data.world.height;this.cam.x=Math.max(0,Math.min(W,this.cam.x+dx));this.cam.y=Math.max(0,Math.min(H,this.cam.y+dy));}
- zoomBy(f){this.cam.zoom=Math.max(.55,Math.min(3.6,this.cam.zoom*f));}
+ pan(dx,dy){const L=panLimits(this.data.world);this.cam.x=Math.max(L.minX,Math.min(L.maxX,this.cam.x+dx));this.cam.y=Math.max(L.minY,Math.min(L.maxY,this.cam.y+dy));}
+ zoomBy(f){const L=zoomLimits(this.data.world);this.cam.zoom=Math.max(L.min,Math.min(L.max,this.cam.zoom*f));}
  panPixels(dx,dy){panPixels(this,dx,dy);}
  zoomAt(f,x,y){zoomAt(this,f,x,y);}
  worldPoint(x,y){return screenToWorld(this,x,y);}
@@ -28,6 +29,8 @@ export class Renderer {
   if(didShake){c.save();c.translate((Math.random()-.5)*this.shake,(Math.random()-.5)*this.shake);this.shake*=.88;}
   const W=this.data.world.width,H=this.data.world.height;
   if(!this.blitCachedStatic(world)){
+  // Claimed lookup for wilderness fog (Phase 2): unclaimed tiles render dimmed.
+  const claimedByKey=Array.isArray(world.tiles)?new Map(world.tiles.map(t=>[(t.x+','+t.y),t])):null;
   // Ambient moonlit clearing over deep night soil.
   c.fillStyle='#16281f45';c.beginPath();c.ellipse(this.width/2,this.height/2,Math.max(200,this.width*.45),Math.max(100,this.height*.4),0,0,Math.PI*2);c.fill();
   for(let y=-3;y<H+4;y++)for(let x=-3;x<W+4;x++){
@@ -40,6 +43,20 @@ export class Renderer {
    const inner=checker?['#668b46','#698e49','#6c924b','#648a43'][Math.abs(n)%4]:['#6b9148','#6e944b','#70964e','#6a8d46'][Math.abs(n)%4];
    const wild=checker?'#3e6037':'#43663b';
    this.diamond(x,y,edge?['#355931','#3a5f35','#32572e'][Math.abs(n)%3]:(usable?inner:wild),this.grid&&!edge?(usable?'#9db87a':'#c9766a'):null);
+   // Biome tint overlay (Phase 1, visual only — no gameplay change).
+   // Reads data/biomes.json tints via deterministic tileFor lookup.
+   if(!edge){
+    try{
+     const tile=tileFor(this.data.world,x,y);
+     const tint=this.data.biomes?.[tile.biome]?.tint;
+     if(tint&&tile.biome!=='plains')this.diamond(x,y,tint+'55');
+     if(tile.landmark){const lp=this.project(x+.5,y+.5);c.fillStyle='#f2e2a8';c.font='bold 10px system-ui';c.textAlign='center';c.fillText('✦ '+tile.landmark,lp.x,lp.y-8);c.textAlign='left';}
+    }catch{}
+    // Wilderness fog (Phase 2): unclaimed land renders dimmed/fogged, still visible.
+    const rt=claimedByKey?.get(x+','+y);
+    const isUnclaimed=rt?rt.claimed!==true:!(x>=1&&y>=1&&x<=(world.bounds?.w||20)-2&&y<=(world.bounds?.h||17)-2);
+    if(isUnclaimed)this.diamond(x,y,'#0a100c8c');
+   }
    if(usable&&!edge){const dx=x-10,dy=y-8;if(dx*dx+dy*dy<17)this.diamond(x,y,'#d6be7130');} // hearth warmth on the village clearing
    if(!edge&&n%5===0){const p=this.project(x+.5,y+.5);c.fillStyle=usable?'#24382c55':'#1a2a2055';c.fillRect(p.x-5,p.y-1,9,3);} // moss blotch
    if(!usable&&!edge&&n%3===0){const p=this.project(x+.5,y+.5);c.fillStyle='#1f4a34';c.beginPath();c.moveTo(p.x,p.y-9);c.lineTo(p.x+6,p.y+2);c.lineTo(p.x-6,p.y+2);c.closePath();c.fill();c.fillStyle='#2a5f42';c.beginPath();c.moveTo(p.x,p.y-5);c.lineTo(p.x+5,p.y+4);c.lineTo(p.x-5,p.y+4);c.closePath();c.fill();} // wild saplings on locked rows
@@ -214,7 +231,7 @@ export class Renderer {
  spriteFlash(name,x,y,size,key,time,dy=0){const until=this.flash.get(key);if(!until||time>until)return;const t=this.tint(name);if(!t)return;const p=this.project(x,y),raw=size*this.cam.zoom,s=32*Math.max(1,Math.round(raw/32)),c=this.ctx;c.globalAlpha=Math.min(1,(until-time)/150);c.drawImage(t,Math.round(p.x-s/2),Math.round(p.y-s+12*this.cam.zoom+dy),s,s);c.globalAlpha=1;}
  recordFrame(now){if(this._lastFrame==null){this._lastFrame=now;return;}const dt=now-this._lastFrame;this._lastFrame=now;if(dt>=0&&dt<1000){this.frameTimes.push(dt);if(this.frameTimes.length>240)this.frameTimes.shift();}}
  frameReport(){const a=[...this.frameTimes].sort((x,y)=>x-y);if(!a.length)return null;const avg=a.reduce((n,v)=>n+v,0)/a.length;const q=f=>a[Math.min(a.length-1,Math.floor(a.length*f))];return {n:a.length,avg:Math.round(avg*100)/100,p50:Math.round(q(.5)*100)/100,p95:Math.round(q(.95)*100)/100};}
- staticCacheKey(world){const b=world.bounds||{w:20,h:16};return [this.cam.x.toFixed(2),this.cam.y.toFixed(2),this.cam.zoom,this.width,this.height,this.dpr,this.grid?1:0,b.w,b.h].join('|');}
+ staticCacheKey(world){const b=world.bounds||{w:20,h:16};const seed=this.data.world?.seed??0;const lm=Array.isArray(this.data.world?.tiles)?this.data.world.tiles.length:0;let claimed=-1;try{if(Array.isArray(world.tiles)){claimed=0;for(const t of world.tiles)if(t.claimed)claimed++;}}catch{}return [this.cam.x.toFixed(2),this.cam.y.toFixed(2),this.cam.zoom,this.width,this.height,this.dpr,this.grid?1:0,b.w,b.h,seed,lm,claimed].join('|');}
  blitCachedStatic(world){if(this._noCache)return false;const key=this.staticCacheKey(world);if(this.staticLayer&&key===this.staticKey){try{this.ctx.drawImage(this.staticLayer,0,0,this.width,this.height);}catch{this._noCache=true;return false;}return true;}this._pendingStaticKey=key;return false;}
  captureStatic(world){const key=this._pendingStaticKey;this._pendingStaticKey=null;if(!key||this._noCache||typeof document==='undefined')return;if(this.shake>0.2)return;try{const pw=Math.round(this.width*this.dpr),ph=Math.round(this.height*this.dpr);if(!this.staticLayer)this.staticLayer=document.createElement('canvas');if(this.staticLayer.width!==pw||this.staticLayer.height!==ph){this.staticLayer.width=pw;this.staticLayer.height=ph;}const g=this.staticLayer.getContext('2d');g.setTransform(1,0,0,1,0,0);g.drawImage(this.canvas,0,0);this.staticKey=key;}catch{this._noCache=true;this.staticLayer=null;this.staticKey='';}}
  bar(x,y,fraction,width,color){const c=this.ctx;c.fillStyle='#43573d66';c.fillRect(x-width/2,y,width,3);c.fillStyle=color;c.fillRect(x-width/2,y,width*Math.max(0,Math.min(1,fraction)),3);}

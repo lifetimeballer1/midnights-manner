@@ -26,10 +26,20 @@ test('camera pan/zoom keeps round-trip accurate', ()=>{
   const cell = r.unproject(p.x, p.y);
   assert.equal(cell.x, 12);
   assert.equal(cell.y, 10);
-  r.zoomBy(0.2); // clamps at 0.5
-  assert.ok(r.cam.zoom >= 0.5 && r.cam.zoom <= 2);
+  r.zoomBy(0.2); // big-grid floor: 40x34 map zooms out to 0.3
+  assert.ok(r.cam.zoom >= 0.3 && r.cam.zoom <= 3.6);
   r.resetCam();
   assert.equal(r.cam.zoom, 1);
+});
+
+test('camera keeps old limits on small maps', ()=>{
+  const small = structuredClone(data);
+  small.world = {...small.world, width: 20, height: 17};
+  const r = new Renderer(fakeCanvas(), small, {});
+  r.zoomBy(0.2); // small-map floor stays 0.55
+  assert.ok(r.cam.zoom >= 0.55 && r.cam.zoom <= 3.6);
+  r.pan(99, 99); // small-map pan stays inside the grid
+  assert.ok(r.cam.x <= 20 && r.cam.y <= 17);
 });
 
 test('hand-edited 40x30 world routes end to end (fixture only)', ()=>{

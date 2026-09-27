@@ -200,7 +200,7 @@ test('v1 saves migrate to v2 with progress intact', () => {
   const wood = w.resources.wood, troops = w.troops.length;
   const out = migrate(structuredClone(old), data);
   assert.equal(out.version, 6); // v1 -> v2 village-sim -> v3 living world -> v4 raid horns -> v5 armor wardrobe -> v6 prestige stars & cairn roll
-  assert.deepEqual(out.bounds ?? out.world.bounds, {w: 20, h: 17}); // veterans keep the whole map (20x17 since Act V)
+  assert.deepEqual(out.bounds ?? out.world.bounds, {w: 20, h: 17}); // veterans keep the homestead (20x17) — never the whole 40x34 frontier
   assert.equal(out.world.resources.wood, wood);
   assert.equal(out.world.troops.length, troops);
   assert.deepEqual(out.completed, ['first-harvest']);

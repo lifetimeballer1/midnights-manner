@@ -1,6 +1,6 @@
 {
-  "width": 20,
-  "height": 17,
+  "width": 40,
+  "height": 34,
   "seed": 7,
   "tiles": [
     {"x": 3, "y": 3, "biome": "water", "landmark": "Stillwater", "claimed": true},

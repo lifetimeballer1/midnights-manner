@@ -30,9 +30,14 @@ export function save(game) {
 // existing resources, buildings, troops, unlocks and progress are untouched.
 function migrateV1toV2(value, data) {
   if (!value || typeof value !== 'object') return null;
+  // Frontier grid (Phase 2): veterans keep the homestead-scale bounds
+  // (20x17 legacy, never the whole 40x34 grid) so settled land stays
+  // claimed and the new wilderness waits to be bought, never gifted.
+  const hs = data.expansion?.homestead;
+  const legacyBounds = () => ({w: Math.min(data.world.width, Number.isFinite(hs?.w) ? hs.w : 20), h: Math.min(data.world.height, Number.isFinite(hs?.h) ? hs.h : 17)});
   const world = value.world;
   if (world) {
-    if (!world.bounds) world.bounds = {w:data.world.width,h:data.world.height};
+    if (!world.bounds) world.bounds = legacyBounds();
     world.survey = world.survey ?? 0;
     world.childTimer = world.childTimer ?? 0;
     for (const b of world.buildings || []) {
@@ -53,7 +58,7 @@ function migrateV1toV2(value, data) {
       if (t.workplace === undefined) t.workplace = null;
       if (t.order === undefined) t.order = null;
     }
-    if (!value.home.bounds) value.home.bounds = {w:data.world.width,h:data.world.height};
+    if (!value.home.bounds) value.home.bounds = legacyBounds();
     value.home.survey = value.home.survey ?? 0;
     value.home.childTimer = value.home.childTimer ?? 0;
   }

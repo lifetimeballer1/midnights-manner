@@ -1,6 +1,7 @@
 export const copy = value => structuredClone(value);
 export const distance = (a,b) => Math.hypot(a.x-b.x,a.y-b.y);
 import {buildTiles, seedFor} from './systems/biomes.js';
+import {isClaimed} from './systems/expansion.js';
 // New villages start small; the frontier opens as village XP grows (see village.js).
 export const START_BOUNDS = {w:14,h:12};
 export const XP_LEVELS = [0,100,220,380,580,830,1150,1500,2100,2400,2600];
@@ -67,12 +68,17 @@ export function makeBuilding(type,x,y,data,level=1) {
 }
 export function createWorld(data,layout=data.world) {
   const full = {w:data.world.width,h:data.world.height};
-  const bounds = copy(layout.bounds || (layout.map ? full : START_BOUNDS));
+  // Campaign maps stay homestead-scale (data/expansion.json homestead,
+  // 20x17 legacy): expeditions keep their designed raid walk distances
+  // even as the home grid grows to 40x34.
+  const hs = data.expansion?.homestead;
+  const missionSize = {w:Math.min(full.w,Number.isFinite(hs?.w)?hs.w:20),h:Math.min(full.h,Number.isFinite(hs?.h)?hs.h:17)};
+  const bounds = copy(layout.bounds || (layout.map ? missionSize : START_BOUNDS));
   const cfg = data.world.homeRaids || {};
   // Biome tile grid (Phase 1, visual only): landmark tiles from
   // layout.tiles win; every other cell fills deterministically.
   let tiles = [];
-  try { tiles = buildTiles({...data.world, ...layout, tiles: layout.tiles || data.world.tiles, seed: layout.seed ?? data.world.seed}); } catch { tiles = []; }
+  try { tiles = buildTiles({...data.world, ...layout, tiles: layout.tiles || data.world.tiles, seed: layout.seed ?? data.world.seed}, bounds); } catch { tiles = []; }
   return {resources:copy(layout.startingResources),bounds,survey:0,childTimer:0,tiles,biomeSeed:seedFor({...data.world, ...layout}),buildings:(layout.buildings||layout.map.buildings).map(b=>makeBuilding(b.type,b.x,b.y,data,b.level||1)),troops:(layout.troops||layout.map.troops).map((t,i)=>makeUnit(t,data,i)),enemies:[],effects:[],elapsed:0,gathered:{wood:0,food:0,gold:0,frostwood:0,plate:0},wave:0,raidTimer:0,nextRaidAt:Number.isFinite(cfg.firstAt)?cfg.firstAt:300};
 }
 export function afford(resources,cost) { return Object.entries(cost).every(([k,v])=>resources[k]>=v); }
@@ -278,7 +284,18 @@ export function buildingCost(type,level,world,data) {
 }
 export function inBounds(world, data, type, x, y) {
   const size = data.buildings[type].size, b = world.bounds || {w:data.world.width,h:data.world.height};
-  return Number.isInteger(x) && Number.isInteger(y) && x >= 1 && y >= 1 && x + size <= b.w - 1 && y + size <= b.h - 1;
+  // Absolute grid margins always hold (1-tile shoreline + stream).
+  if (!Number.isInteger(x) || !Number.isInteger(y)) return false;
+  const W = data.world.width, H = data.world.height;
+  if (x < 1 || y < 1 || x + size > W - 1 || y + size > H - 1) return false;
+  // Settled bounds (XP growth) always allow placement, as before.
+  if (x + size <= b.w - 1 && y + size <= b.h - 1) return true;
+  // Frontier claims (Phase 2): a fully-claimed footprint outside the
+  // settled bounds is buildable — paid wilderness, not wild rows.
+  for (let dy = 0; dy < size; dy++) for (let dx = 0; dx < size; dx++) {
+    if (!isClaimed(world, x + dx, y + dy)) return false;
+  }
+  return true;
 }
 export function canPlace(world,data,type,x,y,ignoreId) {
   if (!inBounds(world, data, type, x, y)) return false;

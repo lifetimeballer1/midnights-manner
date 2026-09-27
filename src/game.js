@@ -2,6 +2,8 @@ import {resourceLabel,resourceInfo} from './resources.js';
 import {wallRowQuote,wallLine,isWall} from './systems/walls.js';
 import {nextStep,blocked} from './systems/pathfinding.js';
 import {createWorld,makeBuilding,makeUnit,canPlace,inBounds,pay,afford,stats,buildingCost,center,assignmentValid,promotionOptions} from './model.js';
+import {buildTiles} from './systems/biomes.js';
+import {claimCheck,setClaimed,claimRect} from './systems/expansion.js';
 import {tickVillage,gainXp} from './systems/village.js';
 import {tickEconomy} from './systems/economy.js';
 import {tickCombat,spawnRaid,activateAbility} from './systems/combat.js';
@@ -34,7 +36,17 @@ function scheduledCount(world, cfg) {
   return Math.min(cfg.maxCount, cfg.baseCount + world.wave * cfg.perWave);
 }
 export class Game {
- constructor(data){this.data=data;this.state=load(data)||{world:createWorld(data),home:null,mission:null,completed:[],unlocks:['tower'],xp:0,vlevel:1,questsCompleted:[],tradeDay:null,tradesUsed:{},calendarDay:dayKey(new Date()),gatheredAtBell:null};this.paused=false;this.message='Welcome home. Build a farm, equip your people, and prepare for the night.';this.dirty=true;this.saveTimer=0;}
+ constructor(data){this.data=data;this.state=load(data)||{world:createWorld(data),home:null,mission:null,completed:[],unlocks:['tower'],xp:0,vlevel:1,questsCompleted:[],tradeDay:null,tradesUsed:{},calendarDay:dayKey(new Date()),gatheredAtBell:null};
+ // Frontier claims (Phase 2): pre-expansion saves have no tile grid —
+ // build it from the settled bounds so old villages keep every tile.
+ try{
+  for(const w of [this.state.world,this.state.home]){
+   if(!w)continue;
+   if(!Array.isArray(w.tiles)||!w.tiles.length)w.tiles=buildTiles(this.data.world,w.bounds);
+   else claimRect(w,w.bounds?.w||this.data.world.width,w.bounds?.h||this.data.world.height);
+  }
+ }catch{}
+ this.paused=false;this.message='Welcome home. Build a farm, equip your people, and prepare for the night.';this.dirty=true;this.saveTimer=0;}
  get world(){return this.state.world;}
  notify(message){this.message=message;this.dirty=true;}
  locked(id){return this.data.world.locked.includes(id)&&!this.state.unlocks.includes(id);}
@@ -124,6 +136,25 @@ export class Game {
   for(const b of damaged){b.hp=this.data.buildings[b.type].tiers[b.level-1].hp;const cp=center(b,this.data);this.world.effects.push({x:cp.x,y:cp.y,tx:cp.x,ty:cp.y,kind:'heal',life:.3});}
   sfx.repair();this.notify(`All buildings repaired for ${cost.wood} wood.`);}
  relocate(id,x,y){const b=this.world.buildings.find(b=>b.id===id);if(!b||this.world.enemies.length||this.world.raidPending)return this.notify('Buildings cannot move during a raid.');if(!inBounds(this.world,this.data,b.type,x,y))return this.notify('That land is still wild. Earn village XP to open new rows.');if(!canPlace(this.world,this.data,b.type,x,y,b.id))return this.notify('Too close — roomy buildings need a one-tile gap.');b.x=x;b.y=y;this.notify('Building moved.');return true;}
+ // Frontier claims (Phase 2, Cities-Skylines style): buy one unclaimed
+ // tile beside claimed land. Cost comes from data/expansion.json rings —
+ // generic by coordinate, never per-tile conditionals.
+ expandClaim(x,y){
+  if(this.paused)return this.notify('Resume the village to claim land.'),false;
+  if(this.state.mission)return this.notify('Expeditions hold no land — claim at home.'),false;
+  const check=claimCheck(this.world,this.data.expansion,this.data.world,x,y);
+  if(!check.ok){
+   if(check.reason==='claimed')return this.notify('That land is already claimed.'),false;
+   if(check.reason==='adjacent')return this.notify('Claims must border your claimed land — push out from the edge.'),false;
+   return this.notify('That land lies beyond the frontier.'),false;
+  }
+  const cost=check.cost||{};
+  if(!pay(this.world.resources,cost))return this.notify(`Claiming needs ${Object.entries(cost).map(([k,v])=>`${v} ${k}`).join(' + ')}. Gather more first.`),false;
+  setClaimed(this.world,x,y,true);
+  this.world.effects.push({x:x+.5,y:y+.5,tx:x+.5,ty:y+.5,kind:'fanfare',life:.8});
+  this.notify(`Claimed (${x}, ${y}) for the village — build on it.`);
+  return true;
+ }
  assign(unitId,buildingId){
   const u=this.world.troops.find(t=>t.id===unitId);if(!u)return this.notify('That villager is gone.');
   if(!buildingId){u.workplace=null;u.order=null;this.notify(`${this.data.troops[u.type].name} is available for work.`);return true;}
@@ -264,7 +295,17 @@ export class Game {
  }
  harvest(id){const b=this.world.buildings.find(b=>b.id===id),spec=b&&this.data.buildings[b.type];if(this.paused||!b||!spec.production||b.hp<=0||b.remaining>0)return false;const amount=Math.floor(b.harvestBonus||0);if(amount<1)return false;b.harvestBonus-=amount;this.world.resources[spec.production]=(this.world.resources[spec.production]||0)+amount;this.world.gathered[spec.production]=(this.world.gathered[spec.production]||0)+amount;const at=center(b,this.data);this.world.effects.push({x:at.x,y:at.y,tx:at.x,ty:at.y,kind:'float',text:resourceLabel(spec.production,amount),color:resourceInfo(spec.production).color,life:.9});sfx.collect();this.notify(`Collected ${amount} bonus ${spec.production}.`);return amount;}
  persist(){const ok=save(this.state);if(!ok)this.notify('Browser storage is unavailable. Progress cannot be saved here.');return ok;}
- importState(state){this.state=state;this.paused=false;this.saveTimer=0;this.dirty=true;this.notify('Save restored. Welcome back to the village.');}
+ importState(state){this.state=state;
+ // Imported blobs predate tile grids the same way old saves do — build
+ // from settled bounds so imports never gift the wilderness.
+ try{
+  for(const w of [this.state.world,this.state.home]){
+   if(!w)continue;
+   if(!Array.isArray(w.tiles)||!w.tiles.length)w.tiles=buildTiles(this.data.world,w.bounds);
+   else claimRect(w,w.bounds?.w||this.data.world.width,w.bounds?.h||this.data.world.height);
+  }
+ }catch{}
+ this.paused=false;this.saveTimer=0;this.dirty=true;this.notify('Save restored. Welcome back to the village.');}
  tick(dt){if(this.paused||this.state.mission?.status&&this.state.mission.status!=='active')return;
   this.checkCalendar();
   const cfg=raidConfig(this.data);
