@@ -6,6 +6,7 @@ import {currentQuest, questProgress, growthStatus} from './systems/village.js';
 import {missionLocked} from './systems/campaign.js';
 import {capable, expeditionSpec, expeditionStatus} from './systems/expeditions.js';
 import {housing, XP_LEVELS} from './model.js';
+import {threatOf} from './systems/raid-director.js';
 
 // Five main sections. 'market' (Grey Market trading) is intentionally NOT a
 // main tab — it stays reachable through the HOME trade-winds block and as a
@@ -138,6 +139,11 @@ export function homeSummary(state, data) {
   const growth = growthStatus(state, data);
   const raidIncoming = !!w.raidPending;
   const raidActive = (w.enemies || []).length > 0;
+  // Raid director (Phase 2): threat band + quiet-until-next-horn for Home.
+  let threat = null, nextRaidIn = null;
+  try { threat = threatOf(w, state, data); } catch { threat = null; }
+  if (!state?.mission && !raidIncoming && !raidActive && Number.isFinite(w.nextRaidAt) && Number.isFinite(w.elapsed))
+    nextRaidIn = Math.max(0, Math.ceil(w.nextRaidAt - w.elapsed));
   const cards = campaignCards(data, state);
   const chaptersDone = cards.filter(c => c.state === 'completed').length;
   const roster = expeditionRoster(w, data);
@@ -145,7 +151,7 @@ export function homeSummary(state, data) {
     quest, progress, questsDone, questsTotal,
     lvl, xp, xpLo: lo, xpHi: hi, nextLevel,
     beds, foodBalance, growth,
-    wave: (w.wave || 0) + 1, raidIncoming, raidActive,
+    wave: (w.wave || 0) + 1, raidIncoming, raidActive, threat, nextRaidIn,
     raidCount: raidIncoming ? w.raidPending.count : raidActive ? w.enemies.length : 0,
     away: !!state?.mission,
     chaptersDone, chaptersTotal: cards.length,

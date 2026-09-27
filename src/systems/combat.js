@@ -7,7 +7,7 @@ export function raidSides(wave,count) {
  return Array.from({length:Math.min(4,count)},(_,i)=>sides[(Math.max(0,wave-1)+i)%4]);
 }
 export function spawnRaid(world,count=4,scaling=null,data=null) {
- world.wave++;world.raidTimer=0;world.raidAge=0;world.raidKills=world.raidKills??0;world.raidLoot=world.raidLoot??0;
+ world.wave++;world.raidTimer=0;world.raidAge=0;world.raidKills=world.raidKills??0;world.raidLoot=world.raidLoot??0;world.raidFell=0;world.raidRecovering=0;
  // Wave-scaled missions (the Pale Host onward): a mission may steepen the
  // climb through data `scaling: {hp, damage}` per wave. Home raids omit
  // it and ride the classic 65+12N curve untouched.
@@ -98,7 +98,9 @@ export function tickCombat(world,data,dt) {
   if(order&&order.kind==='hold'){const e2=world.enemies.filter(e=>e.hp>0).sort((a,b)=>distance(unit,a)-distance(unit,b))[0];if(e2&&distance(unit,e2)<=s.range&&unit.attackTimer<=0){const dealt=s.damage*(1+aura.damage);e2.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,e2,data.items[unit.gear].animation);dmgNum(world,e2,dealt);}continue;}
   if(order&&order.kind==='attack'){const tgt=world.enemies.find(e=>e.id===order.targetId&&e.hp>0);if(!tgt){unit.order=null;continue;}
    if(move(world,data,unit,tgt,s.speed,dt,s.range)&&unit.attackTimer<=0){const dealt=s.damage*(1+aura.damage);tgt.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,tgt,data.items[unit.gear].animation);dmgNum(world,tgt,dealt);}continue;}
-  if(!world.enemies.length){unit.hp=Math.min(stats(unit,data).hp,unit.hp+dt*2);continue;}
+  // The injured do not mend on their feet: recovery timers (Phase 2) pause
+  // the quiet-times regen until the world clock passes injuredUntil.
+  if(!world.enemies.length){if(!Number.isFinite(unit.injuredUntil)||unit.injuredUntil<=(world.elapsed||0))unit.hp=Math.min(stats(unit,data).hp,unit.hp+dt*2);continue;}
   if(data.troops[unit.type].role!=='combat')continue;
   const enemy=world.enemies.filter(e=>e.hp>0).sort((a,b)=>distance(unit,a)-distance(unit,b))[0];if(!enemy)continue;
   if(move(world,data,unit,enemy,s.speed,dt,s.range)&&unit.attackTimer<=0){
@@ -164,6 +166,8 @@ export function tickCombat(world,data,dt) {
    const raw=enemy.damage*(1-Math.min(.8,reduction));
    if(targetUnit&&raw>=target.hp&&!target.unbrokenUsed){try{if(unlockedAbilities(target,data).some(a=>a.effect==='unbroken')){target.hp=1;target.unbrokenUsed=true;enemy.attackTimer=1.3;push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y-1,kind:'float',text:'UNBROKEN!',color:'#ffe9a8',life:.9});effect(world,enemy,targetPoint,'slash');sfx.hit();continue;}}catch{}}
    target.hp=Math.max(0,target.hp-raw);enemy.attackTimer=1.3;effect(world,enemy,targetPoint,'slash');push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y,kind:'hit',life:.18});sfx.hit();
+   // Raid ledger: a defender who falls may need recovery time (Phase 2).
+   if(targetUnit&&target.hp<=0)world.raidFell=(world.raidFell||0)+1;
    // Rue's ledger: a building that falls while raiders walk counts against
    // the flawless defense. Troops falling never do — only walls and roofs.
    if(!targetUnit&&target.hp<=0)world.raidLosses=(world.raidLosses||0)+1;
@@ -191,8 +195,20 @@ export function tickCombat(world,data,dt) {
  // ground 30%, Bellcote mercy 50%. Data, never a hardcoded second rule.
  // The oath carves the one exception: oathbound who fall stay fallen, and
  // their names go on the cairn list — the stakes, by player consent.
- if(!world.enemies.length)for(const u of world.troops)if(u.hp<=0){
-  if(u.oath){world.fallen=world.fallen||[];if(!world.fallen.some(f=>f.id===u.id))world.fallen.push({id:u.id,name:u.name||data.troops[u.type].name,type:u.type});continue;}
-  u.hp=stats(u,data).hp*reviveFraction(world,data);u.x=10.5;u.y=10.5;
+ // Recovery (Phase 2): defenders who fell and rose spend time recovering —
+ // fair and temporary. Grace through wave 1: new villages bleed, then mend
+ // clean. The oathbound exception still holds: they stay fallen by consent.
+ if(!world.enemies.length){
+  const grace=(world.wave||0)<=1;
+  let recovering=0;
+  const cfg=data?.world?.homeRaids||{};
+  const recoverySeconds=Number.isFinite(cfg.recoverySeconds)?cfg.recoverySeconds:90;
+  for(const u of world.troops)if(u.hp<=0){
+   if(u.oath){world.fallen=world.fallen||[];if(!world.fallen.some(f=>f.id===u.id))world.fallen.push({id:u.id,name:u.name||data.troops[u.type].name,type:u.type});continue;}
+   if(!grace){u.injuredUntil=(world.elapsed||0)+recoverySeconds;recovering++;}
+   else delete u.injuredUntil;
+   u.hp=stats(u,data).hp*reviveFraction(world,data);u.x=10.5;u.y=10.5;
+  }
+  world.raidRecovering=(world.raidRecovering||0)+recovering;
  }
 }
