@@ -290,3 +290,9 @@ Vignette/moon-glow/day-grade stay dynamic overlays (not baked) so the cached bui
 - Added ranged attacks, wall-breaking specialization, structure defense priorities and archer retreat.
 - Added faction warning/lore feedback and original 3D equipment silhouettes.
 - Verified 317 unit tests and production build. Phase 2 Actions browser/mobile suite passed.
+
+## Survival city Phase 4 — emergency behavior
+- Added civilian sheltering, safe repair/healing, enemy-avoiding routes and automatic duty resumption.
+- Paused construction and civilian gather loops during alarms; retained assignments and carried goods.
+- Added 6 behavioral regressions and browser smoke assertions for faction raids/emergency state.
+- Verified 323 unit tests and production build.

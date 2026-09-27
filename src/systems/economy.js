@@ -61,6 +61,7 @@ export function tickEconomy(world,data,dt) {
  const aura=auras(world,data);
  for(const b of world.buildings) {
   if(b.hp<=0)continue;
+  if(b.remaining>0&&(world.raidPending||world.enemies.some(e=>e.hp>0)))continue;
   if(b.remaining>0){b.remaining=Math.max(0,b.remaining-dt*bonus.speed);continue;}
   const spec=data.buildings[b.type];
   // Rested nodes breathe back; worked nodes visibly drain below.
@@ -79,7 +80,7 @@ export function tickEconomy(world,data,dt) {
  // Capacity-full is visual only; sound is player-initiated only.
  const hall=world.buildings.find(b=>b.type==='hall'&&b.hp>0);if(!hall)return;
  for(const u of world.troops) {
-  if(u.hp<=0)continue;
+  if(u.hp<=0||u.emergency)continue;
   const spec=data.troops[u.type];
   // Ranging hands (Phase 3 expeditions) walk their own road — the
   // expedition handler moves them, never the economy loop.

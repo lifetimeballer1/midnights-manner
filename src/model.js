@@ -202,7 +202,7 @@ export function auras(world, data) {
   }
   // Assigned butchers smoke food directly; assigned collectors work their source 25% faster each.
   for (const u of world.troops) {
-    if (!u.workplace || u.hp <= 0) continue;
+    if (!u.workplace || u.hp <= 0 || u.emergency) continue;
     const b = world.buildings.find(b => b.id === u.workplace);
     if (!b || b.hp <= 0 || b.remaining > 0) continue;
     const job = data.troops[u.type].job;
