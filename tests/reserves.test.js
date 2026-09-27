@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createWorld,makeBuilding} from '../src/model.js';
 import {tickEconomy} from '../src/systems/economy.js';
-import {reserveReady,reserveCollectible,reserveNotifyAt,reserveCapacity} from '../src/resources.js';
+import {reserveReady,reserveCollectible,reserveNotifyAt} from '../src/resources.js';
 import {sfx} from '../src/systems/audio.js';
 import {Game} from '../src/game.js';
 const data=Object.fromEntries(await Promise.all(['world','troops','items','abilities','buildings','missions','quests'].map(async n=>[n,JSON.parse(await readFile(new URL(`../data/${n}.json`,import.meta.url)))])));
@@ -23,7 +23,7 @@ test('passive ticks pile output on the building: pool flat, no floaters, no ding
 
 test('reserves stop at the data-driven capacity',()=>{
  const w=farmWorld();const farm=w.buildings.find(b=>b.type==='farm');
- const cap=reserveCapacity(data.buildings.farm,farm.level);
+ const cap=data.buildings.farm.harvest.capacity;
  farm.harvestBonus=cap-0.1;
  for(let i=0;i<1200;i++)tickEconomy(w,data,.05);
  assert.ok(farm.harvestBonus<=cap,`reserve ${farm.harvestBonus} respects cap ${cap}`);
@@ -49,9 +49,8 @@ test('manual harvest pays pool and gathered with one floater and one ding, then 
 
 test('ready badge waits for the data-driven threshold, taps still sweep drips',()=>{
  const spec=data.buildings.farm;
- const ready0=makeBuilding('farm',2,2,data);
- const at=reserveNotifyAt(spec,ready0.level);
- assert.equal(at,spec.harvest.notifyAt,'tier-1 threshold reads straight from buildings.json');
+ const at=reserveNotifyAt(spec);
+ assert.equal(at,spec.harvest.notifyAt,'threshold reads straight from buildings.json');
  const ready=makeBuilding('farm',2,2,data);
  assert.equal(reserveReady({...ready,harvestBonus:0},spec),false,'empty shows no badge');
  assert.equal(reserveReady({...ready,harvestBonus:at-1},spec),false,'drips below notifyAt show no badge and no bubble');
@@ -68,65 +67,18 @@ test('ready badge waits for the data-driven threshold, taps still sweep drips',(
  assert.equal(g.world.resources.food,stock+at-1);
 });
 
-test('reserveNotifyAt falls back to ~30% of the cap without code',()=>{
- assert.equal(reserveNotifyAt({production:'food',harvest:{capacity:500}}),150);
- assert.equal(reserveNotifyAt({production:'food',harvest:{capacity:500,notifyAt:30}}),30,'per-building override wins');
- assert.equal(reserveNotifyAt({production:'food'}),150,'missing harvest block still silences drips');
+test('reserveNotifyAt falls back to a quarter of the cap without code',()=>{
+ assert.equal(reserveNotifyAt({production:'food',harvest:{capacity:40}}),10);
+ assert.equal(reserveNotifyAt({production:'food',harvest:{capacity:40,notifyAt:3}}),3,'per-building override wins');
+ assert.equal(reserveNotifyAt({production:'food'}),10,'missing harvest block still silences drips');
 });
 
-test('reaching full chimes once, stays quiet while full, and rearms after a tap',()=>{
- const g=new Game(data);g.world.troops=[];const farms=g.world.buildings.filter(b=>data.buildings[b.type].production);for(const b of farms)b.harvestBonus=reserveCapacity(data.buildings[b.type],b.level)-.001;
+test('reserve fill stays quiet; only manual collection chimes',()=>{
+ const g=new Game(data);g.world.troops=[];const farms=g.world.buildings.filter(b=>data.buildings[b.type].production);for(const b of farms)b.harvestBonus=(data.buildings[b.type].harvest?.capacity??40)-.001;
  const sound=muteCollect();try{
-  tickEconomy(g.world,data,.05);assert.equal(sound.calls(),1,'simultaneous fills have one chime');
-  for(let i=0;i<40;i++)tickEconomy(g.world,data,.05);assert.equal(sound.calls(),1,'full reserves never repeat');
-  g.harvest(farms[0].id);assert.equal(sound.calls(),2,'manual collection chimes');
-  farms[0].harvestBonus=reserveCapacity(data.buildings[farms[0].type],farms[0].level)-.001;tickEconomy(g.world,data,.05);assert.equal(sound.calls(),3,'refill chimes again');
+  tickEconomy(g.world,data,.05);assert.equal(sound.calls(),0,'filling to capacity never chimes');
+  for(let i=0;i<40;i++)tickEconomy(g.world,data,.05);assert.equal(sound.calls(),0,'full reserves stay quiet');
+  g.harvest(farms[0].id);assert.equal(sound.calls(),1,'manual collection chimes once');
+  farms[0].harvestBonus=data.buildings[farms[0].type].harvest.capacity-.001;tickEconomy(g.world,data,.05);assert.equal(sound.calls(),1,'refill does not chime');
  }finally{sound.restore();}
-});
-
-test('Jesce rebalance: base capacity 500, badge ~150 (~30%) on every producer',()=>{
- for(const [type,spec] of Object.entries(data.buildings)){
-  if(!spec.production)continue;
-  assert.equal(reserveCapacity(spec,1),500,`${type} holds 500 at tier 1`);
-  const at=reserveNotifyAt(spec,1);
-  assert.equal(at,150,`${type} notifies at 150 at tier 1`);
-  assert.ok(at/reserveCapacity(spec,1)>=0.29&&at/reserveCapacity(spec,1)<=0.31,`${type} threshold ratio ~30%`);
- }
-});
-
-test('capacity and threshold grow with tier, tunable without code',()=>{
- const spec=data.buildings.farm;
- assert.equal(reserveCapacity(spec,1),500);
- assert.equal(reserveCapacity(spec,2),1000,'default perTier adds one base per tier');
- assert.equal(reserveCapacity(spec,3),1500);
- assert.equal(reserveNotifyAt(spec,2),300,'badge scales with the tier cap (~30%)');
- assert.equal(reserveNotifyAt(spec,3),450);
- // Explicit per-tier arrays win without code changes.
- const custom={production:'food',harvest:{capacity:500,notifyAt:150,capacities:[500,750,2000]}};
- assert.equal(reserveCapacity(custom,2),750);
- assert.equal(reserveCapacity(custom,3),2000);
-});
-
-test('tier upgrades raise the live cap: a tier-3 farm holds 1500',()=>{
- const w=farmWorld();const farm=w.buildings.find(b=>b.type==='farm');
- farm.level=3;farm.harvestBonus=1499;
- for(let i=0;i<1200;i++)tickEconomy(w,data,.05);
- assert.ok(farm.harvestBonus<=1500,'tier-3 reserve respects the grown cap');
- assert.ok(farm.harvestBonus>=1499,'a full tier-3 reserve stays full');
- assert.equal(reserveReady({...farm,harvestBonus:449},data.buildings.farm),false,'449 stays quiet at tier 3');
- assert.equal(reserveReady({...farm,harvestBonus:450},data.buildings.farm),true,'450 earns the tier-3 badge');
-});
-
-test('v7 saves migrate into the new caps with nothing lost',async()=>{
- const {migrateToLatest,VERSION}=await import('../src/storage.js');
- const v7={version:7,world:{buildings:[
-  {id:'a',type:'farm',x:2,y:2,level:1,hp:160,remaining:0,harvestBonus:39.7},
-  {id:'b',type:'mine',x:4,y:4,level:2,hp:460,remaining:0,harvestBonus:9999},
-  {id:'c',type:'farm',x:6,y:6,level:1,hp:160,remaining:0,harvestBonus:-5},
- ],troops:[],enemies:[],effects:[],resources:{wood:0,food:0,gold:0},gathered:{wood:0,food:0,gold:0}},completed:[],unlocks:[],questsCompleted:[],xp:0};
- const out=migrateToLatest(structuredClone(v7),data);
- assert.equal(out.version,VERSION);
- assert.equal(out.world.buildings[0].harvestBonus,39.7,'old 40-era reserves fit untouched');
- assert.equal(out.world.buildings[1].harvestBonus,1000,'overfilled reserves clamp into the tier cap');
- assert.equal(out.world.buildings[2].harvestBonus,0,'negatives sanitize to zero, saves never wiped');
 });

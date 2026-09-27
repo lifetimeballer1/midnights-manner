@@ -1,4 +1,4 @@
-import {resourceLabel, reserveCapacity} from '../resources.js';
+import {resourceLabel} from '../resources.js';
 import {builderBonuses,center,unlockedAbilities,stats,auras,gatherBonus} from '../model.js';
 import {move} from './pathfinding.js';
 import {sfx} from './audio.js';
@@ -6,9 +6,8 @@ import {sfx} from './audio.js';
 // change, and pre-frostwood saves (no frostwood key yet) haul without NaN-ing.
 export function addResource(world,resource,amount) {if(!resource)return;world.resources[resource]=(world.resources[resource]||0)+amount;world.gathered[resource]=(world.gathered[resource]||0)+amount;}
 // Clash-style reserves: production piles up on the building (capped by data
-// `harvest.capacity` + `harvest.perTier`, see resources.js) and only lands
-// in the pool when tapped. Passive ticks
-// never spawn floaters; only a transition to full gives an automatic chime.
+// `harvest.capacity`) and only lands in the pool when tapped. Passive ticks
+// never spawn floaters; capacity-full is visual only — sound is player-driven.
 let lastSplash=0;
 function push(world,effect){if(world.effects.length<140)world.effects.push(effect);}
 export function floatText(world,x,y,text,color){push(world,{x,y,tx:x,ty:y-1.1,kind:'float',text,color,life:.9});}
@@ -17,6 +16,15 @@ function splash(world,x,y){push(world,{x,y,tx:x,ty:y,kind:'splash',life:.5});}
 // Living resources: nodes drain as they are worked and refill slowly when rested.
 // Output scales 25% (tapped out) to 100% (full); nothing ever depletes forever.
 const REGEN_FRACTION = 0.005;
+// Soft mid-game pacing: full rates until 5 min, then lerp down to the floor
+// by 10 min. Avoids a hard cliff while still pushing collectors and taps.
+export function midgameRate(elapsed, floor = 0.75, fullUntil = 300, rampEnd = 600) {
+  const t = Number(elapsed) || 0;
+  if (t <= fullUntil) return 1;
+  if (t >= rampEnd) return floor;
+  const u = (t - fullUntil) / (rampEnd - fullUntil);
+  return 1 - u * (1 - floor);
+}
 export function reserveMult(building) {
   if (!building.maxReserve) return 1;
   return 0.25 + 0.75 * Math.max(0, Math.min(1, building.reserve / building.maxReserve));
@@ -50,7 +58,6 @@ export function tickEconomy(world,data,dt) {
  if(!Number.isFinite(dt)||dt<=0)return;
  const bonus=builderBonuses(world,data);
  const aura=auras(world,data);
- let filled=false;
  for(const b of world.buildings) {
   if(b.hp<=0)continue;
   if(b.remaining>0){b.remaining=Math.max(0,b.remaining-dt*bonus.speed);continue;}
@@ -59,17 +66,17 @@ export function tickEconomy(world,data,dt) {
   if (b.maxReserve && b.reserve < b.maxReserve) b.reserve = Math.min(b.maxReserve, b.reserve + b.maxReserve * REGEN_FRACTION * dt);
   if(spec.production) {
    const mult = reserveMult(b);
-   // Mid-game pacing: first 5 minutes run full tilt (snappy opening);
-   // after that nodes fill reserves at 75% so expansion must come from
-   // taps, collectors, upgrades and new buildings instead of idle income.
-   const mid = (world.elapsed||0) > 300 ? 0.75 : 1;
+   // Mid-game pacing: full tilt for 5 minutes, then eases to 75% by 10 min
+   // so expansion leans on taps, collectors, upgrades and new buildings.
+   const mid = midgameRate(world.elapsed, 0.75);
    const made = spec.rate*spec.tiers[b.level-1].rateMultiplier*mult*mid*dt;
    drain(b, made);
-   const cap = reserveCapacity(spec, b.level);
+   const cap = spec.harvest?.capacity ?? 40;
    const held = Number.isFinite(b.harvestBonus) ? Math.max(0, b.harvestBonus) : 0;
-   b.harvestBonus = Math.min(cap, held + made);if(held<cap&&b.harvestBonus>=cap)filled=true;}
+   b.harvestBonus = Math.min(cap, held + made);}
  }
- if(filled)sfx.collect(); // Batch simultaneous full sources into one chime.
+ // Capacity-full is visual only (ready badge / Collect). Sound is reserved
+ // for player-initiated harvest, trades, and quest beats.
  const hall=world.buildings.find(b=>b.type==='hall'&&b.hp>0);if(!hall)return;
  for(const u of world.troops) {
   if(u.hp<=0)continue;
@@ -106,7 +113,7 @@ export function tickEconomy(world,data,dt) {
    if(u.phase==='return'){addResource(world,spec.gatherResource,u.carry);const cp=center(hall,data);floatText(world,cp.x,cp.y,resourceLabel(spec.gatherResource,u.carry),'#ffe9a8');sparkle(world,cp.x,cp.y);u.carry=0;u.phase='gather';}
    else {
     const bonus=unlockedAbilities(u,data).filter(a=>a.effect==='gather').reduce((n,a)=>n+a.value,1);
-    const midC = (world.elapsed||0) > 300 ? 0.85 : 1;
+    const midC = midgameRate(world.elapsed, 0.85);
     const rate = 3*gatherMult*bonus*(1+(aura.gather||0))*gatherBonus(u,world,data)*midC;
     const room = Math.max(0,capacity-u.carry);
     let fill=Math.min(room,rate*dt*reserveMult(source));
