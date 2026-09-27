@@ -60,7 +60,8 @@ try{
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.buildings.length'),wallBefore+3,'three wall segments built');
  await click('#cancel');
  await waitFor('window.midnightsManner.snapshot().world.buildings.filter(b=>b.type==="wall"&&b.y===3&&b.x>=7&&b.x<=9).every(b=>b.remaining<=0)');
- await tap(await evaluate('(()=>{const p=window.midnightsManner.project(8.5,3.5);return {x:p.x,y:p.y-20};})()'));
+ const wallPoint=await evaluate('(()=>{const g=window.midnightsManner;const ids=new Set(g.snapshot().world.buildings.filter(b=>b.type==="wall"&&b.y===3&&b.x>=7&&b.x<=9).map(b=>b.id));for(let y=160;y<innerHeight-160;y+=4)for(let x=8;x<innerWidth-60;x+=4){const hit=g.pick(x,y);if(hit?.kind==="building"&&ids.has(hit.id)&&document.elementFromPoint(x,y)?.id==="world")return {x,y};}return null;})()');
+ assert.ok(wallPoint,'a wall segment remains selectable beside collection labels');await tap(wallPoint);
  await screenshot('mobile-wall-upgrade');await click('[data-action="upgrade-row"][data-axis="x"]');
  assert.ok(await evaluate('window.midnightsManner.snapshot().world.buildings.filter(b=>b.type==="wall"&&b.y===3&&b.x>=7&&b.x<=9).every(b=>b.level===2)'),'row upgrade applies to all segments');
  await click('[data-action="close"]');
