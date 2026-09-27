@@ -114,7 +114,7 @@ test('story item 2: every 10th arrival earns a trade-name; flavor needs no save 
   // clock + unlock re-deal under save version 4, the armor wardrobe
   // under save version 5, and prestige stars + the cairn roll under
   // save version 6.)
-  assert.equal(VERSION, 6);
+  assert.equal(VERSION, 7);
   for (const key of ['records', 'boardSeen', 'tradeDay', 'calendarDay', 'tradeNames'])
     assert.ok(!(key in state), `no save key ${key}`);
 });

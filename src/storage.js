@@ -1,6 +1,6 @@
 const KEY='midnights-manner-v2';
 const OLD_KEY='midnights-manner-v1';
-export const VERSION = 6;
+export const VERSION = 7;
 // In-memory fallback when localStorage is missing (private mode, SSR, tests)
 // or full (quota). Saves still work for the session; persist() warns.
 const memFallback = new Map();
@@ -146,7 +146,27 @@ function migrateV5toV6(value, data) {
 }
 // Versioned migration registry — add future steps here, never wipe saves.
 // Each entry maps version N -> function upgrading to N+1.
-const MIGRATIONS = {1: migrateV1toV2, 2: migrateV2toV3, 3: migrateV3toV4, 4: migrateV4toV5, 5: migrateV5toV6};
+// v6 -> v7: phantom-null cleanup. Collector crews with no gather resource
+// (the butcher) used to walk a gather loop and pour into resources[null],
+// which the stores panel reads back as a "null" row. The loop and
+// addResource are now guarded, and any banked phantom pays out once to
+// gold, then the key is gone. Saves otherwise untouched.
+function migrateV6toV7(value, data) {
+  if (!value || typeof value !== 'object') return null;
+  for (const key of ['world', 'home']) {
+    const w = value[key];
+    if (!w || typeof w !== 'object') continue;
+    for (const bucket of [w.resources, w.gathered]) {
+      if (!bucket || typeof bucket !== 'object') continue;
+      const phantom = bucket['null'];
+      if (Number.isFinite(phantom) && phantom !== 0) bucket.gold = (bucket.gold || 0) + phantom;
+      delete bucket['null'];
+    }
+  }
+  value.version = 7;
+  return value;
+}
+const MIGRATIONS = {1: migrateV1toV2, 2: migrateV2toV3, 3: migrateV3toV4, 4: migrateV4toV5, 5: migrateV5toV6, 6: migrateV6toV7};
 export function migrate(value, data) {
   return migrateToLatest(value, data);
 }

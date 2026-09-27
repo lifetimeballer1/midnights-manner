@@ -4,7 +4,7 @@ import {move} from './pathfinding.js';
 import {sfx} from './audio.js';
 // Open resource maps: new keys (frostwood onward) ride without a schema
 // change, and pre-frostwood saves (no frostwood key yet) haul without NaN-ing.
-export function addResource(world,resource,amount) {world.resources[resource]=(world.resources[resource]||0)+amount;world.gathered[resource]=(world.gathered[resource]||0)+amount;}
+export function addResource(world,resource,amount) {if(!resource)return;world.resources[resource]=(world.resources[resource]||0)+amount;world.gathered[resource]=(world.gathered[resource]||0)+amount;}
 // Clash-style reserves: production piles up on the building (capped by data
 // `harvest.capacity`) and only lands in the pool when tapped. Passive ticks
 // never spawn floaters; only a transition to full gives an automatic chime.
@@ -86,6 +86,7 @@ export function tickEconomy(world,data,dt) {
   if(u.order&&u.order.kind==='move'&&Number.isFinite(u.order.x)){if(move(world,data,u,u.order,stats(u,data).speed,dt,.4))u.order=null;continue;}
   if(u.order&&u.order.kind==='hold')continue;
   if(u.expedition)continue;
+  if(!spec.gatherResource)continue;
   const source=sourceFor(world,data,spec,u);if(!source)continue;
   const gear=data.items[u.gear];if(!gear)continue;
   const item=gear.stats||{};

@@ -5,7 +5,7 @@ import {auras, housing, gearArmor, levelForXp, makeBuilding, makeUnit, stats, cr
 import {tickVillage} from '../src/systems/village.js';
 import {tickCombat, activateAbility} from '../src/systems/combat.js';
 import {startMission} from '../src/systems/campaign.js';
-import {migrateToLatest} from '../src/storage.js';
+import {migrateToLatest,VERSION} from '../src/storage.js';
 import {Game} from '../src/game.js';
 
 // Act V Phase 1 — Scriptorium's Due: XP levels 5-7 pay out, the Scholar
@@ -275,7 +275,7 @@ test('ph3: mend knits its bearer mid-raid; saves migrate to v5', () => {
   const old = {version: 4, world: structuredClone(g.world), home: null, mission: null, completed: [], unlocks: ['tower'], xp: 0, vlevel: 1, questsCompleted: []};
   delete old.world.troops[0].armor; delete old.world.troops[0].armorOwned;
   const out = migrateToLatest(old, d);
-  assert.equal(out.version, 6);
+  assert.equal(out.version, VERSION);
   assert.equal(out.world.troops[0].armor, null);
   assert.deepEqual(out.world.troops[0].armorOwned, []);
 });

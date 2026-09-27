@@ -4,7 +4,7 @@ import {readFile, access} from 'node:fs/promises';
 import {createWorld, makeUnit, makeBuilding, canPlace, inBounds, auras, housing, assignmentValid, gatherBonus, levelForXp, START_BOUNDS} from '../src/model.js';
 import {tickEconomy, reserveMult} from '../src/systems/economy.js';
 import {tickVillage, currentQuest, questProgress, gainXp} from '../src/systems/village.js';
-import {migrate} from '../src/storage.js';
+import {migrate,VERSION} from '../src/storage.js';
 import {Game} from '../src/game.js';
 const data = Object.fromEntries(await Promise.all(['world', 'troops', 'items', 'abilities', 'buildings', 'missions', 'quests'].map(async n => [n, JSON.parse(await readFile(new URL(`../data/${n}.json`, import.meta.url)))])));
 const noop = () => {};
@@ -199,7 +199,7 @@ test('v1 saves migrate to v2 with progress intact', () => {
   const old = {version: 1, world: w, home: null, mission: null, completed: ['first-harvest'], unlocks: ['tower'], xp: undefined, questsCompleted: undefined};
   const wood = w.resources.wood, troops = w.troops.length;
   const out = migrate(structuredClone(old), data);
-  assert.equal(out.version, 6); // v1 -> v2 village-sim -> v3 living world -> v4 raid horns -> v5 armor wardrobe -> v6 prestige stars & cairn roll
+  assert.equal(out.version, VERSION); // v1 -> v2 village-sim -> v3 living world -> v4 raid horns -> v5 armor wardrobe -> v6 prestige stars & cairn roll
   assert.deepEqual(out.bounds ?? out.world.bounds, {w: 20, h: 17}); // veterans keep the homestead (20x17) — never the whole 40x34 frontier
   assert.equal(out.world.resources.wood, wood);
   assert.equal(out.world.troops.length, troops);
