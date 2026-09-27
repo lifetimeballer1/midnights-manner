@@ -2,7 +2,7 @@
   "warrior": {
     "name": "Warrior",
     "role": "combat",
-    "sprite": "warrior.png",
+    "sprite": "troop_warrior_32x32.png",
     "color": "#e7b777",
     "maxLevel": 25,
     "base": {
@@ -74,7 +74,7 @@
   "miner": {
     "name": "Miner",
     "role": "collector",
-    "sprite": "miner.png",
+    "sprite": "troop_miner_32x32.png",
     "color": "#c0adf2",
     "maxLevel": 25,
     "base": {
@@ -115,7 +115,7 @@
   "builder": {
     "name": "Builder",
     "role": "builder",
-    "sprite": "builder.png",
+    "sprite": "troop_builder_32x32.png",
     "color": "#ebcf85",
     "maxLevel": 25,
     "base": {
@@ -151,7 +151,7 @@
   "farmer": {
     "name": "Farmer",
     "role": "collector",
-    "sprite": "farmer.png",
+    "sprite": "troop_collector_32x32.png",
     "color": "#83caaa",
     "maxLevel": 25,
     "base": {

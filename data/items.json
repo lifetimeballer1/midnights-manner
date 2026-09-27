@@ -45,6 +45,53 @@
     "animation": "slam",
     "sprite": "item-warhammer.png"
   },
+  "frontier_sword": {
+    "name": "Frontier Sword",
+    "roles": [
+      "warrior"
+    ],
+    "cost": {
+      "wood": 10
+    },
+    "stats": {
+      "damage": 1.1,
+      "range": 0.9
+    },
+    "animation": "slash",
+    "sprite": "item_sword_32x32.png"
+  },
+  "frontier_axe": {
+    "name": "Frontier Axe",
+    "roles": [
+      "warrior"
+    ],
+    "cost": {
+      "gold": 80,
+      "wood": 25
+    },
+    "stats": {
+      "damage": 1.35,
+      "range": 1.2
+    },
+    "animation": "sweep",
+    "sprite": "item_axe_32x32.png"
+  },
+  "frontier_warhammer": {
+    "name": "Frontier Warhammer",
+    "roles": [
+      "warrior"
+    ],
+    "cost": {
+      "gold": 150,
+      "wood": 50
+    },
+    "stats": {
+      "damage": 1.7,
+      "range": 1.6
+    },
+    "animation": "slam",
+    "sprite": "item_warhammer_32x32.png"
+  },
   "bow": {
     "name": "Longbow",
     "roles": [
@@ -71,6 +118,22 @@
     },
     "animation": "tap",
     "sprite": "item-hammer.png"
+  },
+  "frontier_hammer": {
+    "name": "Frontier Hammer",
+    "roles": [
+      "builder"
+    ],
+    "cost": {
+      "gold": 30,
+      "wood": 15
+    },
+    "stats": {
+      "buildSpeed": 1.5,
+      "costReduction": 0.1
+    },
+    "animation": "tap",
+    "sprite": "item_hammer_32x32.png"
   },
   "toolkit": {
     "name": "Master toolkit",
@@ -101,6 +164,22 @@
     "animation": "tap",
     "sprite": "item-pickaxe.png"
   },
+  "frontier_pickaxe": {
+    "name": "Frontier Pickaxe",
+    "roles": [
+      "miner"
+    ],
+    "cost": {
+      "gold": 30,
+      "wood": 15
+    },
+    "stats": {
+      "gather": 1.2,
+      "carry": 14
+    },
+    "animation": "tap",
+    "sprite": "item_pickaxe_32x32.png"
+  },
   "cart": {
     "name": "Ore cart",
     "roles": [
@@ -130,6 +209,23 @@
     },
     "animation": "sweep",
     "sprite": "item-sickle.png"
+  },
+  "frontier_sickle": {
+    "name": "Frontier Sickle",
+    "roles": [
+      "farmer",
+      "forager"
+    ],
+    "cost": {
+      "gold": 30,
+      "wood": 15
+    },
+    "stats": {
+      "gather": 1.2,
+      "carry": 12
+    },
+    "animation": "sweep",
+    "sprite": "item_sickle_32x32.png"
   },
   "scythe": {
     "name": "Harvest scythe",

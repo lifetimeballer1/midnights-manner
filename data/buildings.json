@@ -8,14 +8,14 @@
     "rate": 0,
     "tiers": [
       {
-        "sprite": "hall-1.png",
+        "sprite": "building_manor_tier1_32x32.png",
         "hp": 850,
         "rateMultiplier": 1,
         "damage": 0,
         "range": 0.75
       },
       {
-        "sprite": "hall-2.png",
+        "sprite": "building_manor_tier2_32x32.png",
         "hp": 1700,
         "rateMultiplier": 2,
         "damage": 0,
@@ -100,6 +100,34 @@
         "sprite": "lumber-3.png",
         "hp": 570,
         "rateMultiplier": 3,
+        "damage": 0,
+        "range": 0.75
+      }
+    ],
+    "harvest": {
+      "bonusRate": 0.4,
+      "capacity": 40
+    }
+  },
+  "timber_yard": {
+    "name": "Timber Camp",
+    "size": 1,
+    "cost": {
+      "wood": 30
+    },
+    "buildSeconds": 3,
+    "production": "wood",
+    "rate": 1,
+    "reserve": 300,
+    "workplace": "lumberjack",
+    "hosts": [
+      "lumberjack"
+    ],
+    "tiers": [
+      {
+        "sprite": "building_timber_yard_tier1_32x32.png",
+        "hp": 150,
+        "rateMultiplier": 1,
         "damage": 0,
         "range": 0.75
       }
