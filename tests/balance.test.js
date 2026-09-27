@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createWorld, buildingCost} from '../src/model.js';
-import {tickEconomy} from '../src/systems/economy.js';
+import {tickEconomy, midgameRate} from '../src/systems/economy.js';
 import {Game} from '../src/game.js';
 const data = Object.fromEntries(await Promise.all(['world','troops','items','abilities','buildings','missions'].map(async n=>[n,JSON.parse(await readFile(new URL(`../data/${n}.json`,import.meta.url)))])));
 
@@ -32,9 +32,13 @@ test('chapter 1-3 objectives reachable within limits (quick wins kept)', ()=>{
 
 test('mid-game reserve fill slower than opening (economy note applied)', ()=>{
   const fill=elapsed=>{const w=createWorld(data);w.troops=[];w.elapsed=elapsed;const farm=w.buildings.find(b=>b.type==='farm');farm.harvestBonus=0;for(let i=0;i<20;i++){w.elapsed+=.05;tickEconomy(w,data,.05);}return farm.harvestBonus||0;};
-  const earlyRate=fill(60),midRate=fill(400);
+  // Early full rate; by 10 min the lerp floor (0.75) is in effect.
+  const earlyRate=fill(60),midRate=fill(600);
   assert.ok(midRate < earlyRate, `mid-game ${midRate.toFixed(2)}/s should trail opening ${earlyRate.toFixed(2)}/s`);
   assert.ok(midRate > earlyRate * 0.5, 'slowdown should bite, not starve');
+  // Mid-ramp (7.5 min) should sit between opening and floor.
+  const rampRate=fill(450);
+  assert.ok(rampRate < earlyRate && rampRate > midRate * 0.95, 'ramp should ease, not cliff');
 });
 
 test('upgrade pacing: early fast, mid-game slower, tier-3 costs hotter', ()=>{
@@ -63,4 +67,15 @@ test('new chapters 04-06 reachable (no soft-locks)', ()=>{
       assert.ok(w.gathered[o.resource] >= o.amount, `${m.id}: ${o.resource} reachable`);
     }
   }
+});
+
+
+test('midgameRate eases from 1 to floor without a cliff', ()=>{
+  assert.equal(midgameRate(0), 1);
+  assert.equal(midgameRate(300), 1);
+  assert.equal(midgameRate(600, 0.75), 0.75);
+  assert.equal(midgameRate(900, 0.75), 0.75);
+  const mid = midgameRate(450, 0.75);
+  assert.ok(mid > 0.75 && mid < 1, `mid-ramp ${mid}`);
+  assert.ok(Math.abs(mid - 0.875) < 0.01, '450s should be halfway to 0.75');
 });
