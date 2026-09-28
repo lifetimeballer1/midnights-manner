@@ -3,7 +3,7 @@
 // the same season, modifier and deals for every player, which is what makes
 // the frontier feel shared while staying fully local. No RNG, no saves to
 // scum: the date is the seed.
-import {afford, pay} from '../model.js';
+import {afford, pay, auras} from '../model.js';
 
 export const SEASON_LENGTH = 7; // days per season; 4 seasons = a 28-day cycle
 export const CYCLE_DAYS = 28;
@@ -109,8 +109,14 @@ export function performTrade(state, data, dealId, date = new Date()) {
   const cap = tradeCap(deal);
   const used = state.tradesUsed[dealId] || 0;
   if (used >= cap) return {ok: false, error: `${deal.trader || 'The trader'} shakes their head — that deal is done until tomorrow.`};
-  if (!state.world || !afford(state.world.resources, deal.give || {})) return {ok: false, error: 'Your stores fall short — gather a little more first.'};
-  pay(state.world.resources, deal.give || {});
+  // Phase 11 — the Lantern Towns Ledger haggles: recovered trade blessings
+  // trim what the wagons take. Worlds without the shelf read exactly zero.
+  let tradeCut = 0;
+  try { tradeCut = Math.min(0.3, auras(state.world, data).trade || 0); } catch {}
+  const give = {};
+  for (const [k, v] of Object.entries(deal.give || {})) give[k] = tradeCut > 0 && Number.isFinite(v) ? Math.max(0, Math.ceil(v * (1 - tradeCut))) : v;
+  if (!state.world || !afford(state.world.resources, give)) return {ok: false, error: 'Your stores fall short — gather a little more first.'};
+  pay(state.world.resources, give);
   let xp = 0;
   for (const [k, v] of Object.entries(deal.take || {})) {
     if (!Number.isFinite(v) || v <= 0) continue;
@@ -120,5 +126,7 @@ export function performTrade(state, data, dealId, date = new Date()) {
     state.world.gathered[k] = (state.world.gathered[k] || 0) + v;
   }
   state.tradesUsed[dealId] = used + 1;
-  return {ok: true, deal, xp, left: cap - (used + 1)};
+  let haggled = 0;
+  for (const [k, v] of Object.entries(deal.give || {})) haggled += Math.max(0, (Number.isFinite(v) ? v : 0) - (give[k] ?? 0));
+  return {ok: true, deal, xp, left: cap - (used + 1), haggled};
 }

@@ -1,0 +1,72 @@
+{
+  "artifacts": [
+    {
+      "id": "cairn-compass",
+      "name": "Cairn-marked Compass",
+      "text": "Old survey marks, still true. The treeline gives up its shortcuts.",
+      "bonus": { "gather": 0.02 },
+      "weight": 1
+    },
+    {
+      "id": "ashen-clapper",
+      "name": "Ashen Bell-clapper",
+      "text": "Blackened but whole. It remembers every ringing the fire tried to take.",
+      "bonus": { "heal": 0.4 },
+      "weight": 1
+    },
+    {
+      "id": "lantern-ledger",
+      "name": "Lantern Towns Ledger",
+      "text": "Fair weights, sharp margins. Every haggler reads it twice.",
+      "bonus": { "trade": 0.04 },
+      "weight": 1
+    },
+    {
+      "id": "moonwell-seal",
+      "name": "Moonwell Seal",
+      "text": "Cold to the touch. Scholars dream clearer with it on the shelf.",
+      "bonus": { "xp": 0.1 },
+      "weight": 1
+    },
+    {
+      "id": "oath-ring",
+      "name": "Warden's Oath-ring",
+      "text": "Too small for any living finger now. The watch stands straighter anyway.",
+      "bonus": { "damage": 0.02 },
+      "weight": 1
+    },
+    {
+      "id": "true-plumb",
+      "name": "Mason's True Plumb",
+      "text": "It has never lied. Walls raised under it go up plumb and quick.",
+      "bonus": { "build": 0.04 },
+      "weight": 1
+    }
+  ],
+  "rescuePool": ["farmer", "forager", "miner", "fisherman", "apprentice", "lumberjack"],
+  "chances": {
+    "rescue": 0.15,
+    "artifact": 0.07,
+    "intel": 0.5
+  },
+  "intel": [
+    "{faction} sign on the {road} — {detail}",
+    "A cold camp, {faction} work. {detail}",
+    "Tracks at the treeline: {faction}. {detail}"
+  ],
+  "intelDetails": [
+    "they march heavy on the next moon.",
+    "their scouts count our lamps.",
+    "they will come sooner than the last time.",
+    "their axes are fresh-ground."
+  ],
+  "roads": ["west road", "sunken steeple path", "high clearing", "mill cut"],
+  "discoveries": [
+    "A cairn of white stones, each one carried uphill.",
+    "Old survey marks cut into an oak, still true.",
+    "A charcoal pit, cold a year, ringed with mushrooms.",
+    "A child's tin whistle on the mill cut.",
+    "Moon-moth wings pinned to bark in a careful row.",
+    "A boundary stone with the old manor's mark."
+  ]
+}

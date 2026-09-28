@@ -12,7 +12,9 @@
       "default": "The courses are true enough. For now.",
       "afterRaid": "The courses held. Good.",
       "afterGreenTimber": "That wood will twist before winter. I told you.",
-      "afterGrowth": "New hands. Give them a trowel that fits."
+      "afterGrowth": "New hands. Give them a trowel that fits.",
+      "afterMission": "You brought the road home in your boots. Scrape them before you track the hall.",
+      "afterLevel": "New rows mean new courses. Do not rush the green timber."
     }
   },
   "old-bell": {
@@ -28,7 +30,9 @@
       "default": "Three clacks means the owls have gone quiet. Listen.",
       "afterRaid": "Three clacks and the owls went quiet. You heard it too.",
       "afterGrowth": "New hands. Teach them the bells before the next dark.",
-      "afterPastureThreat": "Count the bells twice. Something walked the fence."
+      "afterPastureThreat": "Count the bells twice. Something walked the fence.",
+      "afterMission": "I rang you out and I rang you in. The clapper remembers both.",
+      "afterLevel": "Another feast-length of ringing. The rope will hold."
     }
   },
   "issa": {
@@ -36,31 +40,35 @@
     "name": "Second-Lantern Issa",
     "workplace": "scriptorium",
     "troopHint": "scholar",
-    "summary": "Keeps Sella’s old seed stories and the Chart Log.",
+    "summary": "Keeps Sella's old seed stories and the Chart Log.",
     "wants": "Every useful plant and every useful chart written down before it is forgotten.",
     "needs": "Proof that the Long Dusk is still a place where things can be saved, not only endured.",
     "relationships": ["wayfinder", "mooncleric", "tomm"],
     "dialogue": {
       "default": "The charts remember what the living forget. Write it down.",
       "afterMissionReturn": "A new page for the Chart Log. The road gave us something worth keeping.",
-      "afterFailedHarvest": "Sella carried worse through three dead manners. We can carry this.",
-      "afterGrowth": "New names for the book. Beds before bodies still holds."
+      "afterFailedHearth": "Mark the dry well. No one rebuilds on a lie.",
+      "afterGrowth": "Beds before bodies. The log is clear on that.",
+      "afterMission": "I inked the expedition. The blank page is smaller now.",
+      "afterLevel": "The chart gains a row. Beds before bodies still holds."
     }
   },
   "tomm": {
     "id": "tomm",
     "name": "Tomm Waterwise",
-    "workplace": "pasture",
-    "troopHint": "shepherd",
-    "summary": "Keeps the family teaching: water is older than walls.",
-    "wants": "Full ponds and steady flocks.",
-    "needs": "The village to remember that water is older than walls.",
-    "relationships": ["old-bell", "issa", "fisherman-crew"],
+    "workplace": "pond",
+    "troopHint": "fisherman",
+    "summary": "Says water is older than walls and will not say it twice.",
+    "wants": "Ponds that breathe and pastures that rest when they must.",
+    "needs": "A village that does not overdraw the land until it goes pale.",
+    "relationships": ["issa", "old-bell"],
     "dialogue": {
-      "default": "Rest the node when it pales. Land remembers overdrawing.",
-      "afterPondUpgrade": "Deeper. Good. The glimmerfish will notice.",
-      "afterDrySpell": "The ponds are thinking. Give them a night.",
-      "afterGrowth": "More mouths. More water first."
+      "default": "Water is older than walls. Build it first.",
+      "afterRaid": "The water stayed. Good.",
+      "afterDarkPond": "Rest it. Overdrawn land goes pale.",
+      "afterGrowth": "More mouths. Watch the pond at night.",
+      "afterMission": "The water did not leave while you were gone. Good.",
+      "afterLevel": "More mouths. Rest the pond a night if it goes dark."
     }
   },
   "sarella": {
@@ -68,15 +76,17 @@
     "name": "Sarella of the Forge",
     "workplace": "forge",
     "troopHint": "weaponsmith",
-    "summary": "Keeps the Emberforge hot and the blades honest.",
-    "wants": "Steel that does not fail the hand that holds it.",
-    "needs": "Enough moonstone and charcoal that she never has to choose which warrior goes short.",
-    "relationships": ["armorer", "mara"],
+    "summary": "Honest steel, charcoal arithmetic; will not choose who goes short when coal runs thin.",
+    "wants": "Edges that stay true and coal that arrives on time.",
+    "needs": "A roster that can afford the master's standard without lying about the steel.",
+    "relationships": ["mara", "armorer"],
     "dialogue": {
-      "default": "Bring me the notched ones. The rest can wait.",
-      "afterRaidLowCasualties": "The edges held. Bring me the notched ones.",
-      "afterScarcity": "I can sharpen three more. After that we are choosing.",
-      "afterGrowth": "New hands at the bellows. Teach them heat before haste."
+      "default": "Pick the work, not the shine.",
+      "afterRaid": "Edges came back true. Good.",
+      "afterScarcity": "Coal is thin. I will not choose who goes short — you will.",
+      "afterGrowth": "New hands want steel. Bring them when the coal holds.",
+      "afterMission": "Edges came back true. Pay the coal when the wagons can.",
+      "afterLevel": "More hands want steel. I will not choose who goes short."
     }
   },
   "mooncleric": {
@@ -84,31 +94,35 @@
     "name": "The Mooncleric",
     "workplace": "chapel",
     "troopHint": "healer",
-    "summary": "Lights the ward-lantern and teaches that light steadies; it does not smite.",
-    "wants": "Every watchfire and every cottage lamp kept trimmed.",
-    "needs": "The village to understand that ransom and mercy are also forms of strength.",
-    "relationships": ["old-bell", "issa", "wayfinder"],
+    "summary": "Light steadies; it does not smite. Answers the double-tap with bread, not chain.",
+    "wants": "Ransom over slaughter when the watchfire is tapped twice.",
+    "needs": "A Manner that still believes steadiness is enough theology.",
+    "relationships": ["issa", "old-bell"],
     "dialogue": {
-      "default": "Light steadies. The rest is hands and timber.",
-      "afterRansom": "They tapped the watchfire twice this time. The warning held.",
-      "afterBrutalDefense": "The light did its part. The rest was hands and timber.",
-      "afterGrowth": "New lamps to trim. The chapel has room."
+      "default": "Light steadies. It does not smite.",
+      "afterRaid": "You held. The lamps still burn.",
+      "afterRansom": "Bread, not chain. The warning held.",
+      "afterGrowth": "More lamps in the bowl. I will not call it salvation.",
+      "afterMission": "Light steadies. You held.",
+      "afterLevel": "More lamps in the bowl. I will not call it salvation."
     }
   },
   "wayfinder": {
     "id": "wayfinder",
     "name": "The Wayfinder",
-    "workplace": "scout_post",
+    "workplace": "scriptorium",
     "troopHint": "scout",
-    "summary": "Walks the Timber Line charts and marks the failed hearths so no one rebuilds on a dry well.",
-    "wants": "Accurate charts and no more lost manners.",
-    "needs": "The village to treat every new clearing as temporary until the water is proven.",
-    "relationships": ["issa", "mara", "mooncleric"],
+    "summary": "Marks failed hearths on the Timber Line so no one rebuilds on a dry well.",
+    "wants": "Honest chalk: every dry well, every dead oven, every road that still feeds.",
+    "needs": "A village that builds water before walls when the map says so.",
+    "relationships": ["issa", "mara"],
     "dialogue": {
-      "default": "The charts still show the failed hearths. Do not build on a dry well.",
-      "afterMissionReturn": "New marks on the chart. The road is still there.",
-      "afterRaid": "The western road held. The toll-gangs will remember.",
-      "afterGrowth": "More feet on the Timber Line. Watch the water first."
+      "default": "Build water first. Then the wall.",
+      "afterRaid": "The chart is honest about what you walked.",
+      "afterFailedHearth": "Mark it. No one rebuilds on a lie.",
+      "afterGrowth": "New land on the chalk. Mark the dry wells first.",
+      "afterMission": "The Timber Line chart is honest about what you walked.",
+      "afterLevel": "New land on the chalk. Mark the dry wells first."
     }
   },
   "armorer": {
@@ -116,15 +130,17 @@
     "name": "The Armorer",
     "workplace": "armory",
     "troopHint": "armorer",
-    "summary": "Fits the ward-plates and keeps the village from bleeding for nothing.",
-    "wants": "Every fighter who walks out to come back heavier by the plates, not lighter by blood.",
-    "needs": "Enough metal that the next raid does not find anyone in soft leather.",
+    "summary": "Plates first, pride later; works dents that held back into soft leather.",
+    "wants": "Racks filled with hide and plate, not hopes.",
+    "needs": "Shoulders measured before the next horn.",
     "relationships": ["sarella", "mara"],
     "dialogue": {
       "default": "Plates first. Pride later.",
       "afterRaid": "Count the dents. The ones that held can be worked again.",
       "afterScarcity": "I can plate four more. After that the roster gets thin.",
-      "afterGrowth": "New shoulders to fit. Bring them before the next horn."
+      "afterGrowth": "New shoulders to fit. Bring them before the next horn.",
+      "afterMission": "Plate came home dented, not broken. Good.",
+      "afterLevel": "Racks need filling. Hide and plate, not hopes."
     }
   },
   "rue": {
@@ -140,7 +156,9 @@
       "default": "They stack their torches low and come at the east joints. Ask me how I know.",
       "afterRaid": "Not one stone out of place. That is the only ledger I keep now.",
       "afterScarcity": "Fire is cheap. Regret is dear. Spend the pitch, not the men.",
-      "afterGrowth": "New hands. Teach them the trap-lines before the next horn."
+      "afterGrowth": "New hands. Teach them the trap-lines before the next horn.",
+      "afterMission": "They stacked torches where I said. You listened.",
+      "afterLevel": "Bigger walls make louder targets. Stay sharp."
     }
   },
   "master-tam": {
@@ -156,7 +174,9 @@
       "default": "Letters first, ledgers second, loyalty always. Sit.",
       "afterRaid": "The school stood. Lessons resume at dawn.",
       "afterScarcity": "Primers are ink and patience. Both can be stretched.",
-      "afterGrowth": "A new stool filled. I chalked the roll myself."
+      "afterGrowth": "A new stool filled. I chalked the roll myself.",
+      "afterMission": "The primers stayed open while you were on the road.",
+      "afterLevel": "New stools. Letters first, ledgers second, loyalty always."
     }
   }
 }
