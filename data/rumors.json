@@ -1,82 +1,26 @@
 [
-  {
-    "id": "market-wagons",
-    "text": "Grey Market wagons past the Sunken Steeple — salt and nails, fair but sharp.",
-    "weight": 2
-  },
-  {
-    "id": "wick-thieves",
-    "text": "Lantern crows stole the wicks again. The wayfinder pays buttons for white tail feathers.",
-    "weight": 1
-  },
-  {
-    "id": "masons-seek",
-    "text": "The masons seek 200 wood — the east wall remembers.",
-    "weight": 1
-  },
-  {
-    "id": "moth-deer",
-    "text": "Moth-deer sign in the high clearings. Good luck for a year, says the butcher.",
-    "weight": 1
-  },
-  {
-    "id": "bridge-toll",
-    "text": "Dren Salt's carters mending the west bridge. Toll is up a nail a wheel.",
-    "weight": 1
-  },
-  {
-    "id": "moth-night",
-    "text": "Moon-moths thick on the Grove — a good picking night, say the foragers.",
-    "weight": 1
-  },
-  {
-    "id": "fire-taps",
-    "text": "A poacher tapped the watchfire twice last night. Bread, not chain, says the mooncleric.",
-    "weight": 1
-  },
-  {
-    "id": "bent-clapper",
-    "text": "Old Bell's bent clapper still on the market stall. Touch it for luck — one button.",
-    "weight": 1
-  },
-  {
-    "id": "boar-trouble",
-    "text": "Bristle boars rooting the south kiln-pads. The mason complains. The butcher smiles.",
-    "weight": 1
-  },
-  {
-    "id": "grey-day",
-    "text": "Grey light coming. The builders say grey days set mortar best.",
-    "weight": 1
-  },
-  {
-    "id": "tollman-hat",
-    "text": "Joren's hat still hangs by the hall door. Nobody touches it. Everybody checks.",
-    "weight": 1
-  },
-  {
-    "id": "hollow-knocks",
-    "text": "Two knocks answered by two knocks in the treeline. Grandmothers hurry the children home.",
-    "weight": 1
-  },
-  {
-    "id": "lantern-price",
-    "text": "The Lantern Towns pay premium for blue-veined timber. Everybody sells. Nobody forgot.",
-    "weight": 1
-  },
-  {
-    "id": "dark-pond",
-    "text": "Pond gone dark three nights running? Rest it. Overdrawn land goes pale.",
-    "weight": 1
-  },
-  {
-    "id": "pale-host",
-    "text": "Pale riders past the west bridge, torches stacked like cordwood. Sorrel counts their fires nightly.",
-    "weight": 1
-  },
-  {
-    "id": "rue-band",
-    "text": "Rue old band drinks at the Sunken Steeple and talks too loud. She left them the bill and kept the map.",
-    "weight": 1
-  }
+  {"id": "market-wagons", "text": "Grey Market wagons past the Sunken Steeple — salt and nails, fair but sharp. Sarella says pay on time or the road forgets you.", "weight": 2, "source": "sarella"},
+  {"id": "wick-thieves", "text": "Lantern crows stole the wicks again. The Wayfinder pays buttons for white tail feathers — chart ink wants clean light.", "weight": 1, "source": "wayfinder"},
+  {"id": "masons-seek", "text": "Mara seeks 200 wood — the east wall remembers green timber. She will not lay another course on a twist.", "weight": 1, "source": "mara"},
+  {"id": "moth-deer", "text": "Moth-deer sign in the high clearings. Good luck for a year, says the butcher — or a warning, if you ask Old Bell.", "weight": 1, "source": "old-bell"},
+  {"id": "bridge-toll", "text": "Dren Salt's carters mending the west bridge. Toll is up a nail a wheel. Kess Longaxe takes the other week.", "weight": 1, "source": "tollgangs"},
+  {"id": "moth-night", "text": "Moon-moths thick on the Grove — a good picking night, say the foragers. Issa wants three moth-wings for the Chart Log.", "weight": 1, "source": "issa"},
+  {"id": "fire-taps", "text": "A poacher tapped the watchfire twice last night. Bread, not chain, says the Mooncleric — and the warning held.", "weight": 1, "source": "mooncleric"},
+  {"id": "bent-clapper", "text": "Old Bell's bent clapper still on the market stall. Touch it for luck — one button. Three clacks means the owls have gone quiet.", "weight": 1, "source": "old-bell"},
+  {"id": "boar-trouble", "text": "Bristle boars rooting the south kiln-pads. Mara complains. The butcher smiles. Tomm says rest the pasture a night.", "weight": 1, "source": "tomm"},
+  {"id": "grey-day", "text": "Grey light coming. The builders say grey days set mortar best — Maro's chalk still shows on the Manor sill.", "weight": 1, "source": "mara"},
+  {"id": "tollman-hat", "text": "Joren's hat still hangs by the hall door. Nobody touches it. Everybody checks. The Timber Line remembers the tax.", "weight": 1},
+  {"id": "hollow-knocks", "text": "Two knocks answered by two knocks in the treeline. Grandmothers hurry the children home. The Wayfinder marks failed hearths, not ghosts.", "weight": 1, "source": "wayfinder"},
+  {"id": "lantern-price", "text": "The Lantern Towns pay premium for blue-veined timber. Everybody sells. Nobody forgot the winters the road ran empty.", "weight": 1, "source": "greymarket"},
+  {"id": "dark-pond", "text": "Pond gone dark three nights running? Rest it. Overdrawn land goes pale — Tomm Waterwise will not say it twice.", "weight": 1, "source": "tomm"},
+  {"id": "pale-host", "text": "Pale riders past the west bridge, torches stacked like cordwood. Sorrel counts their fires nightly and chalks the watch roster twice.", "weight": 1},
+  {"id": "rue-band", "text": "Rue's old band drinks at the Sunken Steeple and talks too loud. She left them the bill and kept the map.", "weight": 1},
+  {"id": "thinning-three", "text": "Three accounts of the Thinning hang in the Chart Log. Issa will not pick one. She only writes what the living still do.", "weight": 1, "source": "issa"},
+  {"id": "moonstone-cold", "text": "Mine breathes cold and bright. Assayers call it moonstone; the Mooncleric calls it a debt the hill still pays.", "weight": 1, "source": "mooncleric"},
+  {"id": "ashwood-arithmetic", "text": "Ashwood crews from two failed clearings. Not hate — arithmetic. Ransom them once and some learn to tap the watchfire twice.", "weight": 1, "source": "ashwood"},
+  {"id": "signal-watch", "text": "Signal Watchfire still answers a double-tap. The Mooncleric says light steadies; it does not smite.", "weight": 1, "source": "mooncleric"},
+  {"id": "failed-hearths", "text": "The Wayfinder marks failed hearths on the Timber Line chart so no one rebuilds on a dry well. Build water first.", "weight": 1, "source": "wayfinder"},
+  {"id": "second-lantern", "text": "Second-Lantern Issa keeps Sella's seed stories and the Chart Log. Beds before bodies still holds.", "weight": 1, "source": "issa"},
+  {"id": "ember-road-thin", "text": "Ember Road charcoal trails run thin. Sarella of the Forge will not choose which warrior goes short if the coal holds.", "weight": 1, "source": "sarella"},
+  {"id": "long-dusk-hold", "text": "No one promises the sun. The Manner keeps one light and mends the rest — that is the whole theology of the hall.", "weight": 1, "source": "mooncleric"}
 ]

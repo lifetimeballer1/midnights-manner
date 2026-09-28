@@ -1,32 +1,12 @@
 [
-  {
-    "id": "hobs-cut",
-    "title": "Hob's Cut",
-    "text": "Hob the ditcher dug our stream with a spade, a lamp, and a grudge against standing water. The water didn't mind the crooked line, and neither did he."
-  },
-  {
-    "id": "bell-learned",
-    "title": "The Night the Bell Learned",
-    "text": "Young Pella hung her father's cracked field-bell in the hall frame and rang till the clapper bent. The whole bowl answered with lamp and pitchfork — and found only sheep."
-  },
-  {
-    "id": "sellas-seeds",
-    "title": "Sella's Seeds",
-    "text": "When the wheat failed, Sella Second-Lantern carried her seed box through three dead manners. Half our barley is descended from that box."
-  },
-  {
-    "id": "tollman-hat",
-    "title": "The Tollman's Hat",
-    "text": "Joren Ash taxed every cart on the Timber Line till his own men ate his horses. His hat hangs by the hall door. Nobody touches it. Everybody checks."
-  },
-  {
-    "id": "shepherd-find",
-    "title": "The Shepherd's Find",
-    "text": "A shepherd girl dropped her bell-rod down Moonwell Hollow and heard it ring wrong on stone. The village has been hungry twice over ever since."
-  },
-  {
-    "id": "pale-court",
-    "title": "The Court Where Two Roads Kneel",
-    "text": "When the red road and the grey road both claimed the ridge, the pale one came down between them and sat where two roads kneel. She asked for nothing but a road of her own — and the ridge has held two banners ever since."
-  }
+  {"id": "hobs-cut", "title": "Hob's Cut", "text": "Hob the ditcher dug our stream with a spade, a lamp, and a grudge against standing water. The water didn't mind the crooked line, and neither did he."},
+  {"id": "bell-learned", "title": "The Night the Bell Learned", "text": "Young Pella hung her father's cracked field-bell in the hall frame and rang till the clapper bent. The whole bowl answered with lamp and pitchfork — and found only sheep."},
+  {"id": "sellas-seeds", "title": "Sella's Seeds", "text": "When the wheat failed, Sella Second-Lantern carried her seed box through three dead manners. Half our barley is descended from that box. Issa still keeps the empty lid in the Chart Log."},
+  {"id": "tollman-hat", "title": "The Tollman's Hat", "text": "Joren Ash taxed every cart on the Timber Line till his own men ate his horses. His hat hangs by the hall door. Nobody touches it. Everybody checks."},
+  {"id": "shepherd-find", "title": "The Shepherd's Find", "text": "A shepherd girl dropped her bell-rod down Moonwell Hollow and heard it ring wrong on stone. The village has been hungry twice over ever since."},
+  {"id": "pale-court", "title": "The Court Where Two Roads Kneel", "text": "When the red road and the grey road both claimed the ridge, the pale one came down between them and sat where two roads kneel. She asked for nothing but a road of her own — and the ridge has held two banners ever since."},
+  {"id": "three-accounts", "title": "Three Accounts of the Thinning", "text": "The Mooncleric says the sky owed a debt and paid in shadow. The Wayfinder says the roads failed first and the light followed. Issa writes both and a third: that the living kept fewer lamps, and the dark learned the habit."},
+  {"id": "double-tap", "title": "The Double-Tap", "text": "Ashwood crews from failed clearings used to hit the Signal Watchfire once and run. A child taught them the second tap means bread, not chain. The Mooncleric still answers it."},
+  {"id": "sarellas-rack", "title": "Sarella's Rack", "text": "Five tools, one lesson: pick the work, not the shine. The Emberforge will not choose which warrior goes short when the coal runs thin — Sarella makes you choose first."},
+  {"id": "dawn-is-a-name", "title": "Dawn Is a Name", "text": "Nobody in the Chart Log promises the old sun. The Dawn Gate is the name the Manner earns when the ridge holds and the bell still rings. Keep one light. Mend the rest."}
 ]
