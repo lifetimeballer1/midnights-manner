@@ -12,7 +12,7 @@
 - Held equipment now keeps its own gameplay-scale silhouette instead of falling through broad shape groups: bow/longbow (with visible strings below the detail threshold), carpenter/forge/war hammers, battle/felling axes, cleaver, pike/halberd, fishing and herding tools, carrying gear, craft kits, and calling instruments. Material-tier variants retain their archetype shape.
 - Profession coats and headwear remain individually readable at 1.65× game zoom across all 35 troop definitions. Forager and Archer, Warden and Warrior, and Haggler and Builder now have separate silhouettes; Longbowman and Smelter coats have clearer color contrast. No combat stats, item data, or save fields changed.
 - Review: `node scripts/equipment-preview.mjs` renders the 31 held-tool archetypes plus profession defaults at gameplay zoom from front/reverse camera angles (`artifacts/equipment-{front,reverse}.png`); reviewed: silhouettes remain distinct with detail-only trim disabled, and the profession palette reads across the row.
-- Tests: `tests/character-art.test.js` adds gameplay-scale archetype, bow-string, outfit, same-shape color-contrast, close-uniform, Sawyer goggle-face, and no-extra-pyramid-tessellation checks; `tests/lighting-baseline.test.js` pins the mixed-profession equipment geometry, frozen formula, and day/night/dawn looks. `npm test` count: 482 → 491.
+- Tests: `tests/character-art.test.js` adds gameplay-scale archetype, bow-string, outfit, same-shape color-contrast, close-uniform, Sawyer goggle-face, and no-extra-pyramid-tessellation checks; `tests/lighting-baseline.test.js` pins the mixed-profession equipment geometry, frozen formula, and day/night/dawn looks. `npm test` count: 489 → 496.
 
 ## Presentation pass — Phase 7: Hold the line (2026-09-28)
 
