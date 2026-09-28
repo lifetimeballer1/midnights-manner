@@ -1,6 +1,7 @@
+import {ensureIdentity} from './systems/villagers.js';
 const KEY='midnights-manner-v2';
 const OLD_KEY='midnights-manner-v1';
-export const VERSION = 9;
+export const VERSION = 10;
 // In-memory fallback when localStorage is missing (private mode, SSR, tests)
 // or full (quota). Saves still work for the session; persist() warns.
 const memFallback = new Map();
@@ -217,7 +218,23 @@ function migrateV8toV9(value, data) {
   value.version = 9;
   return value;
 }
-const MIGRATIONS = {1: migrateV1toV2, 2: migrateV2toV3, 3: migrateV3toV4, 4: migrateV4toV5, 5: migrateV5toV6, 6: migrateV6toV7, 7: migrateV7toV8, 8: migrateV8toV9};
+// v9 -> v10: Phase 7 villager identity (names, traits, job XP/levels,
+// manual-post locks). Every new field backfills a safe default; nameless
+// veterans are named from data/names.json, traitless crews roll one.
+// Additive only: resources, buildings, posts, gear and progress untouched.
+function migrateV9toV10(value, data) {
+  if (!value || typeof value !== 'object') return null;
+  for (const key of ['world', 'home']) {
+    const w = value[key];
+    if (!w || typeof w !== 'object') continue;
+    for (const t of w.troops || []) {
+      try { ensureIdentity(t, data, w.troops); } catch { /* identity never blocks a load */ }
+    }
+  }
+  value.version = 10;
+  return value;
+}
+const MIGRATIONS = {1: migrateV1toV2, 2: migrateV2toV3, 3: migrateV3toV4, 4: migrateV4toV5, 5: migrateV5toV6, 6: migrateV6toV7, 7: migrateV7toV8, 8: migrateV8toV9, 9: migrateV9toV10};
 export function migrate(value, data) {
   return migrateToLatest(value, data);
 }
