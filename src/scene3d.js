@@ -1,5 +1,6 @@
 // Original low-poly village geometry, projected by the shared orbit camera.
 // The game simulation stays in ground tiles; meshes add height only for display.
+import {prepareSourceLighting,drawSourceSpill} from './source-lighting.js';
 import {cameraBasis} from './camera.js';
 import {characterModel} from './character-art.js';
 import {isWall,wallNeighbors} from './building-art.js';
@@ -20,15 +21,18 @@ const AO_MIN=.8,AO_HEIGHT=.7;
 // the whole lit value and `fog` mixes far faces (depth01 = 0 near, 1 far)
 // toward the weather veil. `ao` is the face's ground-contact occlusion.
 // Normals stay in world space.
-export function shade(hex,n,light,emissive=0,depth01=0,ao=1){
+export function shade(hex,n,light,emissive=0,depth01=0,ao=1,local=0){
  const value=parseInt(hex.slice(1),16);
  const key=Math.max(0,(n[0]*light.keyDir[0]+n[1]*light.keyDir[1]+n[2]*light.keyDir[2])/light.keyNorm)*light.keyI;
  const up=Math.max(0,n[2])*light.sky,glow=emissive*light.emissive,dim=(light.dim??1)*ao,fog=(light.fog??0)*depth01;
  const lit=[light.ambRGB[0]*light.ambI+light.keyRGB[0]*key+up+glow,light.ambRGB[1]*light.ambI+light.keyRGB[1]*key+up+glow,light.ambRGB[2]*light.ambI+light.keyRGB[2]*key+up+glow];
- return '#'+[value>>16,(value>>8)&255,value&255].map((v,i)=>{let c=Math.min(255,Math.round(v*lit[i]*dim));if(fog>0)c=Math.round(c+(light.fogRGB[i]*255-c)*fog);return c.toString(16).padStart(2,'0');}).join('');
+ return '#'+[value>>16,(value>>8)&255,value&255].map((v,i)=>{let c=Math.min(255,Math.round(v*(lit[i]+local*[1,.57,.22][i])*dim));if(fog>0)c=Math.round(c+(light.fogRGB[i]*255-c)*fog);return c.toString(16).padStart(2,'0');}).join('');
 }
 export class MeshScene {
- constructor(r){this.r=r;this.faces=[];this.owner=null;this.alpha=1;this.depthBias=0;this.light=FALLBACK_LIGHT;this.emissive=0;this.basis=cameraBasis(r);}
+ constructor(r){this.r=r;this.faces=[];this.sources=[];this.owner=null;this.alpha=1;this.depthBias=0;this.light=FALLBACK_LIGHT;this.emissive=0;this.basis=cameraBasis(r);}
+ source(position,direction=null,radius=1.25,power=.7){
+  if(this.alpha===1)this.sources.push({position,direction,radius,power,owner:this.owner});
+ }
  face(vertices,color,split=true){
   // Split broad roof/wall planes so chimneys and neighboring meshes occlude
   // correctly even at low camera angles (painter ordering uses face centers).
@@ -38,7 +42,7 @@ export class MeshScene {
   const B=this.basis;if(n[0]*B.s*B.v+n[1]*B.c*B.v+n[2]*B.p<=.00001)return;
   const points=vertices.map(p=>this.r.project(...p));if(points.every(p=>p.x<-60)||points.every(p=>p.x>this.r.width+60)||points.every(p=>p.y<-80)||points.every(p=>p.y>this.r.height+60))return;
   const zAvg=vertices.reduce((sum,p)=>sum+p[2],0)/vertices.length;
-  this.faces.push({points,color,normal:n,emissive:this.emissive,ao:Math.min(1,AO_MIN+(1-AO_MIN)*Math.max(0,zAvg/AO_HEIGHT)),depth:vertices.reduce((sum,p)=>sum+this.r.depth(...p),0)/vertices.length+this.depthBias,owner:this.owner,alpha:this.alpha});
+  this.faces.push({points,color,center:vertices[0].map((_,i)=>vertices.reduce((sum,p)=>sum+p[i],0)/vertices.length),normal:n,emissive:this.emissive,ao:Math.min(1,AO_MIN+(1-AO_MIN)*Math.max(0,zAvg/AO_HEIGHT)),depth:vertices.reduce((sum,p)=>sum+this.r.depth(...p),0)/vertices.length+this.depthBias,owner:this.owner,alpha:this.alpha});
  }
  box(x,y,z,w,d,h,color,cap=true){const p=[[x,y,z],[x+w,y,z],[x+w,y+d,z],[x,y+d,z],[x,y,z+h],[x+w,y,z+h],[x+w,y+d,z+h],[x,y+d,z+h]];for(const f of [[0,3,2,1],[0,1,5,4],[1,2,6,5],[2,3,7,6],[3,0,4,7],...(cap?[[4,5,6,7]]:[])])this.face(f.map(i=>p[i]),color);}
  roof(x,y,z,w,d,h,color){const p=[[x,y,z],[x+w,y,z],[x+w,y+d,z],[x,y+d,z],[x+w/2,y,z+h],[x+w/2,y+d,z+h]];for(const f of [[0,4,5,3],[4,1,2,5],[0,1,4],[3,5,2]])this.face(f.map(i=>p[i]),color);}
@@ -49,7 +53,7 @@ export class MeshScene {
   if(light.fog>0){dMin=Infinity;let dMax=-Infinity;for(const f of this.faces){if(f.depth<dMin)dMin=f.depth;if(f.depth>dMax)dMax=f.depth;}dSpan=(dMax-dMin)||1;}
   for(const f of this.faces){
   // Shade once per face per light bucket; every other frame reuses the paint.
-  if(f.paintedKey!==key){f.painted=shade(f.color,f.normal,light,f.emissive,light.fog>0?(f.depth-dMin)/dSpan:0,f.ao);f.paintedKey=key;}
+  if(f.paintedKey!==key){f.painted=shade(f.color,f.normal,light,f.emissive,light.fog>0?(f.depth-dMin)/dSpan:0,f.ao,(f.localLight||0)*(light.overlay?.glow||0));f.paintedKey=key;}
   c.globalAlpha=f.alpha;c.fillStyle=f.painted;c.beginPath();f.points.forEach((p,i)=>i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y));c.closePath();c.fill();c.strokeStyle=f.painted;c.lineWidth=.45;c.stroke();}c.globalAlpha=1;this.r.sceneFaces=this.faces;}
 }
 const stone='#b4beb2',timber='#b38a59',gold='#e5bd66';
@@ -84,9 +88,9 @@ function windows(s,x,y,w,d,h){
  // Shallow facade pieces sit on broad wall faces. A small ordering offset
  // avoids their being cut up by the wall's face-center painter sort.
  const bias=s.depthBias;s.depthBias+=.12;
- // Lit windows are emissive: warm at midnight without any point lights yet.
+ // Register each pane at the same world position as its visible geometry.
  s.emissive=1;
- for(const f of [.18,.72]){const z=h*.54,ww=Math.min(.18,w*.15);s.box(x+w*f,y+d+.008,z,ww,.024,.19,'#ffe6ab');s.box(x+w*f,y-.025,z,ww,.024,.19,'#ffe6ab');s.box(x-.025,y+d*f,z,.024,ww,.19,'#ffe6ab');s.box(x+w+.008,y+d*f,z,.024,ww,.19,'#ffe6ab');}
+ for(const f of [.18,.72]){const z=h*.54,ww=Math.min(.18,w*.15);s.source([x+w*f+ww/2,y+d+.05,z+.095],[0,1]);s.source([x+w*f+ww/2,y-.05,z+.095],[0,-1]);s.source([x-.05,y+d*f+ww/2,z+.095],[-1,0]);s.source([x+w+.05,y+d*f+ww/2,z+.095],[1,0]);s.box(x+w*f,y+d+.008,z,ww,.024,.19,'#ffe6ab');s.box(x+w*f,y-.025,z,ww,.024,.19,'#ffe6ab');s.box(x-.025,y+d*f,z,.024,ww,.19,'#ffe6ab');s.box(x+w+.008,y+d*f,z,.024,ww,.19,'#ffe6ab');}
  s.emissive=0;s.box(x+w*.4,y+d+.01,.1,w*.22,.026,.48,'#5b4735');
  s.depthBias=bias;
 }
@@ -123,7 +127,7 @@ function homeDetails(s,b,n,l){
  const x=b.x+.22,y=b.y+.22,w=n-.44,h=.42+l*.16;
  if(l>=2){
   // Loft window in the front gable, with a little rail under it.
-  s.emissive=1;s.box(x+w*.44,y+w-.028,h+.2,.13,.05,.13,'#ffe6ab');s.emissive=0;
+  s.source([x+w*.44+.065,y+w+.03,h+.265],[0,1],.9,.45);s.emissive=1;s.box(x+w*.44,y+w-.028,h+.2,.13,.05,.13,'#ffe6ab');s.emissive=0;
   for(const dx of [.34,.62])s.box(x+w*dx,y+w+.03,.1,.045,.045,h*.72,timber);
   s.box(x+w*.34,y+w+.03,.5,.3,.04,.045,timber);
  }
@@ -243,7 +247,7 @@ function buildingShape(s,b,spec,world,time){
   // range, slow reload (data cooldown), the hardest single hit in town.
   if(t==='ballista'){s.box(x+.14,y+.14,h,width+.1,width+.1,.12,timber);s.box(x+n/2-.3,y+n/2-.03,h+.12,.6,.06,.06,stone);s.box(x+n/2-.03,y+n/2-.3,h+.12,.06,.6,.06,stone);s.box(x+n/2-.02,y+n/2-.02,h+.12,.04,.5,.05,gold);}
   return;}
- if(['watchfire','oathstone','moon-dial','cairnfield'].includes(t)){const spots=t==='cairnfield'?[[.5,.5],[1.3,.6],[.6,1.4],[1.35,1.35]]:[[n/2,n/2]];s.emissive=t==='watchfire'?1:0;for(const [a,c]of spots){s.box(x+a-.18,y+c-.18,.13,.36,.36,.22,stone);if(t==='watchfire')s.pyramid(x+a,y+c,.36,.26,.55,'#f2b35c',5);else if(t==='moon-dial')s.pyramid(x+a,y+c,.35,.17,.55,gold);else s.box(x+a-.09,y+c-.06,.35,.18,.12,.6,t==='oathstone'?'#90b5b5':stone);}s.emissive=0;return;}
+ if(['watchfire','oathstone','moon-dial','cairnfield'].includes(t)){const spots=t==='cairnfield'?[[.5,.5],[1.3,.6],[.6,1.4],[1.35,1.35]]:[[n/2,n/2]];s.emissive=t==='watchfire'?1:0;for(const [a,c]of spots){s.box(x+a-.18,y+c-.18,.13,.36,.36,.22,stone);if(t==='watchfire'){s.source([x+a,y+c,.55],null,2.1,1);s.pyramid(x+a,y+c,.36,.26,.55,'#f2b35c',5);}else if(t==='moon-dial')s.pyramid(x+a,y+c,.35,.17,.55,gold);else s.box(x+a-.09,y+c-.06,.35,.18,.12,.6,t==='oathstone'?'#90b5b5':stone);}s.emissive=0;return;}
  if(t==='dawn-gate'){tower(s,x+.18,y+.35,.62,1.7,stone);tower(s,x+n-.8,y+.35,.62,1.7,stone);s.box(x+.8,y+.43,1.35,n-1.6,.46,.45,gold);s.roof(x+.05,y+.2,2,n-.1,.95,.32,'#638b92');return;}
  if(t==='market'){for(const [a,c,color]of[[.22,.24,'#b76053'],[1.7,.25,'#73956a'],[.6,1.75,'#ccac60']]){s.box(x+a,y+c,.14,1,.5,.35,timber);for(const dx of [0,.94])s.box(x+a+dx,y+c,.14,.06,.06,.95,timber);s.roof(x+a-.06,y+c-.12,1.02,1.12,.75,.12,color);}return;}
  // The new production chain buildings need to read differently at map scale.
@@ -276,7 +280,7 @@ function buildingShape(s,b,spec,world,time){
  hut(s,x+.22,y+.22,n-.44,n-.44,.42+l*.16,colors[t]||'#829a78',l);
  workplaceDetails(s,b,n);
  if(spec.housing)homeDetails(s,b,n,l);
- if(['forge','smeltery'].includes(t)){s.box(x+n-.55,y+.28,.1,.28,.28,1.5,stone);s.box(x+n-.57,y+.26,1.6,.32,.32,.12,'#4d514b');s.emissive=1;s.box(x+.3,y+n-.2,.2,.4,.024,.26,'#eea55d');s.emissive=0;}
+ if(['forge','smeltery'].includes(t)){s.box(x+n-.55,y+.28,.1,.28,.28,1.5,stone);s.box(x+n-.57,y+.26,1.6,.32,.32,.12,'#4d514b');s.source([x+.5,y+n-.15,.33],[0,1],1.65,1);s.emissive=1;s.box(x+.3,y+n-.2,.2,.4,.024,.26,'#eea55d');s.emissive=0;}
  if(t.includes('chapel')){tower(s,x+.25,y+.25,.4,1.35,stone);s.pyramid(x+.45,y+.45,1.65,.33,.6,colors[t]);}
  if(t==='hall'&&l>=2)tower(s,x+n-.7,y+.25,.48,1.35,stone);
  if(['mason_yard','shieldwall-yard'].includes(t)){for(let i=0;i<3;i++)s.box(x+.25+i*.42,y+n-.15,.13,.28,.16,.3,stone);}
@@ -351,14 +355,16 @@ export function drawVillage3D(r,world,time,light){const s=new MeshScene(r),W=r.d
   // visible defense/production stage changes; moving gates quantize to four
   // steps and traps key only their armed state, never every cooldown tick.
   const key=JSON.stringify([r.width,r.height,r.cx,r.cy,r.cam,W,H,world.buildings.map(b=>{const spec=r.data.buildings[b.type];return [b.id,b.type,b.x,b.y,b.level,b.hp<=0,b.remaining>0,productionStage(b,spec),spec?.production&&reserveReady(b,spec)?1:0,b.type==='gate'?gateLiftStage(r,b,world,time):0,b.type.includes('trap')?(trapArmed(b)?1:0):0];})]);
- if(r._meshStatic?.key===key)s.faces=r._meshStatic.faces.slice();else{
+ if(r._meshStatic?.key===key){s.faces=r._meshStatic.faces.slice();s.sources=r._meshStatic.sources;}else{
  // Border trees share depth sorting with the village, including reverse views.
  for(let i=-1;i<W+2;i++){s.owner=null;if(i%2)pine(s,i,-1.5,1.4+(i%3)*.22);if(i%3===0)pine(s,-1.5,((i%H)+H)%H,1.5);if(i%3===1)pine(s,W+1,i%H,1.6);if(i%4===0)pine(s,i,H+3,1.5);}
   for(const b of world.buildings)buildingModel(s,b,r.data.buildings[b.type],world,time);
- r._meshStatic={key,faces:s.faces.slice()};
+ prepareSourceLighting(s);
+ r._meshStatic={key,faces:s.faces.slice(),sources:s.sources};
  }
 
  for(const u of world.troops)characterModel(s,u,r.data,time);for(const e of world.enemies)characterModel(s,e,r.data,time,true);
   if(r.placing&&r.hover){const source=world.buildings.find(b=>b.id===r.moving),ghosts=placementCells(r).map(p=>({type:r.placing,...p,level:source?.level||1,hp:1,remaining:1,id:null})),preview={buildings:[...world.buildings.filter(b=>b.id!==r.moving),...ghosts]};for(const b of ghosts)buildingModel(s,b,r.data.buildings[b.type],preview,time);}
+ drawSourceSpill(s);
  s.paint();
 }
