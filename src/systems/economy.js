@@ -110,6 +110,10 @@ export function tickEconomy(world,data,dt) {
   if(spec.role!=='collector'){
    const workplace=u.workplace?postOf.get(u.workplace):null;
    if(workplace&&workplace.hp>0&&workplace.remaining<=0&&spec.role!=='combat'&&!u.order)move(world,data,u,center(workplace,data),stats(u,data).speed,dt,data.buildings[workplace.type].size/2+.6,false,true);
+   // Living sky (Phase 10): after dark, workless idle hands drift home to
+   // the hall instead of standing in the dark. Posted, ordered and combat
+   // villagers hold their ground; worlds without the flag read day.
+   else if(!workplace&&!u.order&&world.night===true&&spec.role!=='combat'&&hall)move(world,data,u,center(hall,data),stats(u,data).speed,dt,1.6,false,true);
    continue;
   }
   if(u.order&&u.order.kind==='move'&&Number.isFinite(u.order.x)){if(move(world,data,u,u.order,stats(u,data).speed,dt,.4,false,true))u.order=null;continue;}

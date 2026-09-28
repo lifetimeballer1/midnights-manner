@@ -2,6 +2,7 @@ import {towerCrewBonus, raidDamageMult} from './villagers.js';
 import {enemyRole,defenseTarget,retreat,enemyBuildingTarget} from './tactics.js';
 import {distance,center,stats,unlockedAbilities,auras,gearArmor,proximityArmor,reviveFraction,siegeBonus} from '../model.js';
 import {move,blocked} from './pathfinding.js';
+import {enemyDamageMult,enemySpeedMult} from './daynight.js';
 import {isWall} from './walls.js';
 import {sfx} from './audio.js';
 export function raidSides(wave,count) {
@@ -81,6 +82,9 @@ export function tickCombat(world,data,dt) {
  // + urgency memo for defenseTarget (targetIds only change in the enemy
  // loop below, after the troops loop — same values, no re-scans).
  const raidActive=world.enemies.some(e=>e.hp>0);
+ // Living sky (Phase 10): raiders hit harder after dark and trudge in
+ // fog. Worlds without flags (old saves, direct ticks) read exactly 1.
+ const skyDmg=enemyDamageMult(world,data),skySlow=enemySpeedMult(world,data);
  const postOf=new Map();
  for(const b of world.buildings)postOf.set(b.id,b);
  const tgtCtx={postOf,urgCache:new Map()};
@@ -187,7 +191,7 @@ export function tickCombat(world,data,dt) {
   const target=targetUnit||enemyBuildingTarget(world,data,enemy);if(!target)continue;
   enemy.targetId=target.id;
   const targetPoint=targetUnit?target:center(target,data),range=targetUnit?(role.range||1.1):data.buildings[target.type].size/2+Math.max(.7,(role.range||1.1)-.4);
-  const arrived=move(world,data,enemy,targetPoint,role.speed||.95,dt,range);
+  const arrived=move(world,data,enemy,targetPoint,(role.speed||.95)*skySlow,dt,range);
   if(!arrived){
    let barrier=null,barrierD=Infinity;
    for(const b of walls){
@@ -196,7 +200,7 @@ export function tickCombat(world,data,dt) {
     if(d<=1.2&&d<barrierD){barrierD=d;barrier=b;}
    }
    if(barrier&&enemy.attackTimer<=0){
-    barrier.hp=Math.max(0,barrier.hp-enemy.damage*(role.wallDamage||1));enemy.attackTimer=1.3;
+    barrier.hp=Math.max(0,barrier.hp-enemy.damage*skyDmg*(role.wallDamage||1));enemy.attackTimer=1.3;
     effect(world,enemy,center(barrier,data),'slash');
     if(barrier.hp<=0)world.raidLosses=(world.raidLosses||0)+1;
     continue;
@@ -207,7 +211,7 @@ export function tickCombat(world,data,dt) {
    const bb=target;let adjacent=false;
    const bx0=Math.floor(enemy.x),by0=Math.floor(enemy.y);
    for(let yy=bb.y-1;yy<bb.y+data.buildings[bb.type].size+1&&!adjacent;yy++)for(let xx=bb.x-1;xx<bb.x+data.buildings[bb.type].size+1&&!adjacent;xx++)if(xx===bx0&&yy===by0)adjacent=true;
-   if(adjacent&&enemy.attackTimer<=0){bb.hp=Math.max(0,bb.hp-enemy.damage*(isWall(bb)?role.wallDamage||1:1));if(bb.hp<=0)world.raidLosses=(world.raidLosses||0)+1;enemy.attackTimer=1.3;effect(world,enemy,center(bb,data),'slash');push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y,kind:'hit',life:.18});continue;}
+   if(adjacent&&enemy.attackTimer<=0){bb.hp=Math.max(0,bb.hp-enemy.damage*skyDmg*(isWall(bb)?role.wallDamage||1:1));if(bb.hp<=0)world.raidLosses=(world.raidLosses||0)+1;enemy.attackTimer=1.3;effect(world,enemy,center(bb,data),'slash');push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y,kind:'hit',life:.18});continue;}
   }
   if(arrived&&enemy.attackTimer<=0){
    // Armor stacks: sky aura + ability resolve + worn gear (Padded Coat
@@ -220,7 +224,7 @@ export function tickCombat(world,data,dt) {
     if(targetUnit.oath)reduction+=0.25;try{reduction+=gearArmor(target,data);}catch{}
     try{reduction+=proximityArmor(target,world,data);}catch{}
     if(targetUnit.hp>0)for(const ally of world.troops){if(ally.id===target.id||ally.hp<=0)continue;try{for(const a of unlockedAbilities(ally,data))if(a.effect==='guard'&&distance(ally,target)<=a.radius)reduction+=a.value;}catch{}}}
-   const raw=enemy.damage*(1-Math.min(.8,reduction))*(!targetUnit&&isWall(target)?role.wallDamage||1:1);
+   const raw=enemy.damage*skyDmg*(1-Math.min(.8,reduction))*(!targetUnit&&isWall(target)?role.wallDamage||1:1);
    if(targetUnit&&raw>=target.hp&&!target.unbrokenUsed){try{if(unlockedAbilities(target,data).some(a=>a.effect==='unbroken')){target.hp=1;target.unbrokenUsed=true;enemy.attackTimer=1.3;push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y-1,kind:'float',text:'UNBROKEN!',color:'#ffe9a8',life:.9});effect(world,enemy,targetPoint,'slash');sfx.hit();continue;}}catch{}}
    target.hp=Math.max(0,target.hp-raw);enemy.attackTimer=1.3;effect(world,enemy,targetPoint,role.range>2?'arrow':'slash');push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y,kind:'hit',life:.18});sfx.hit();
    // Rue's ledger: a building that falls while raiders walk counts against
