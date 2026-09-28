@@ -21,6 +21,18 @@ test('every building and tier produces finite 3D faces from four camera sides',(
   r.cam.yaw=yaw;const s=new MeshScene(r),b={id:type,type,x:5,y:5,level,hp:100,remaining:0};buildingModel(s,b,spec,{buildings:[b]});assert.ok(s.faces.length>0,`${type} tier ${level}`);assert.ok(s.faces.every(f=>f.points.every(p=>Number.isFinite(p.x)&&Number.isFinite(p.y))));
  }
 });
+test('refineries and construction states keep visible, selectable detail through an orbit',()=>{
+ const r=renderer();r.resize(900,700,1);r.cam.x=6;r.cam.y=6;
+ for(const type of ['sawmill','mill'])for(const yaw of [0,Math.PI/2,Math.PI,Math.PI*1.5]){
+  r.cam.yaw=yaw;const spec=data.buildings[type],b={id:42,type,x:5,y:5,level:2,hp:100,remaining:0};
+  const faces=state=>{const s=new MeshScene(r);buildingModel(s,{...b,...state},spec,{buildings:[b]});return s.faces;};
+  const finished=faces({}),building=faces({remaining:5}),ruined=faces({hp:0});
+  assert.ok(finished.length>20,`${type} has distinct machinery`);
+  assert.ok(building.length>finished.length,`${type} has scaffold`);
+  assert.ok(ruined.length>finished.length,`${type} has rubble`);
+  assert.ok([...building,...ruined].every(f=>f.owner?.id===42&&f.points.every(p=>Number.isFinite(p.x)&&Number.isFinite(p.y))));
+ }
+});
 test('face picking follows the visible 3D building rather than its old sprite rectangle',()=>{
  const r=renderer();r.resize(900,700,1);const g=new Game(data),b=g.world.buildings.find(b=>b.type==='hall');g.world.buildings=[b];g.world.troops=[];r.fitVillage(g.world);
  for(const yaw of [0,1.2,2.8,4.3,5.9]){r.cam.yaw=yaw;r.draw(g.world,1000);const face=r.sceneFaces.filter(f=>f.owner?.id===b.id).at(-1);assert.ok(face);const p={x:face.points.reduce((n,p)=>n+p.x,0)/face.points.length,y:face.points.reduce((n,p)=>n+p.y,0)/face.points.length};assert.ok(pointInPolygon(p.x,p.y,face.points));assert.equal(r.pick(p.x,p.y)?.id,b.id);}
