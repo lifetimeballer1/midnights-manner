@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import {Renderer} from '../src/renderer.js';
 import {MeshScene} from '../src/scene3d.js';
@@ -11,11 +12,15 @@ function valid(faces,id){
  assert.ok(faces.length>0&&faces.length<160,'bounded mesh cost');
  assert.ok(faces.every(f=>f.owner?.id===id&&/^#[0-9a-f]{6}$/i.test(f.color)&&Number.isFinite(f.depth)&&f.points.every(p=>Number.isFinite(p.x)&&Number.isFinite(p.y))));
 }
+function silhouette(gear){return createHash('sha256').update(mesh({id:'tool-'+gear,type:'warrior',hp:100,x:0,y:0,gear}).map(f=>JSON.stringify(f.points.flatMap(p=>[Math.round(p.x*100)/100,Math.round(p.y*100)/100]))).sort().join('|')).digest('hex').slice(0,16);}
+function appearance(type){return createHash('sha256').update(mesh({id:'outfit-probe',type,hp:100,x:0,y:0,gear:''}).map(f=>JSON.stringify([f.color,...f.points.flatMap(p=>[Math.round(p.x*100)/100,Math.round(p.y*100)/100])])).sort().join('|')).digest('hex').slice(0,16);}
+function outfitShape(type){return createHash('sha256').update(mesh({id:'outfit-probe',type,hp:100,x:0,y:0,gear:''}).map(f=>JSON.stringify(f.points.flatMap(p=>[Math.round(p.x*100)/100,Math.round(p.y*100)/100]))).sort().join('|')).digest('hex').slice(0,16);}
+function dominantColor(type){const counts=new Map();for(const face of mesh({id:'outfit-probe',type,hp:100,x:0,y:0,gear:''}))counts.set(face.color,(counts.get(face.color)||0)+1);return [...counts].sort((a,b)=>b[1]-a[1])[0][0];}
 test('every profession and equipped item renders valid selectable geometry through a full orbit',()=>{
  const villagers=Object.entries(data.troops).map(([type,spec])=>({id:type,type,hp:100,x:0,y:0,gear:spec.defaultGear}));
  villagers.push(...Object.entries(data.items).map(([id,item])=>({id,type:item.roles[0],hp:100,x:0,y:0,gear:item.slot==='armor'?'sword':id,armor:item.slot==='armor'?id:null})));
  const before=JSON.stringify(villagers);
- for(const zoom of [.6,2])for(const yaw of [0,Math.PI/2,Math.PI,Math.PI*1.5]){
+  for(const zoom of [.6,1.65,2])for(const yaw of [0,Math.PI/2,Math.PI,Math.PI*1.5]){
   r.cam.zoom=zoom;r.cam.yaw=yaw;
   for(const u of villagers)valid(mesh(u),u.id);
  }
@@ -28,6 +33,59 @@ test('reduced motion is stable, far zoom simplifies detail, and defeated village
  const near=mesh(u).length;r.cam.zoom=.6;
  assert.ok(mesh(u).length<near);
  assert.equal(mesh({...u,hp:0}).length,0);
+});
+test('held tool archetypes keep distinct silhouettes at gameplay zoom',()=>{
+ r.cam.zoom=1.65;r.cam.yaw=Math.PI/4;r.calm=true;
+ const gear=['sword','axe','warhammer','hammer','forgehammer','bow','longbow','pike','halberd','pickaxe','fellingaxe','cleaver','sickle','scythe','rod','crook','net','cart','berry-basket','tome','compass','chalice','orrery','scales','tidebell','toolkit','armorkit','tinkerkit','awl','trowel','tongs'];
+ const byGear=new Map(gear.map(id=>[id,silhouette(id)])),groups=new Map();
+ for(const [id,shape]of byGear){const group=groups.get(shape)||[];group.push(id);groups.set(shape,group);}
+ assert.deepEqual([...groups.values()].filter(group=>group.length>1),[],'weapon and profession-tool silhouettes should not collapse to the same mesh');
+ for(const [variant,base]of[['frontier_sword','sword'],['oathblade','sword'],['starforged-oathblade','sword'],['squires-blade','sword'],['frontier_axe','axe'],['frostaxe','axe'],['woodcutteraxe','axe'],['frontier_warhammer','warhammer'],['frontier_hammer','hammer'],['runed-forgehammer','forgehammer'],['frontier_pickaxe','pickaxe'],['glasspick','pickaxe'],['frontier_sickle','sickle'],['herding-crook','crook'],['brass-chalice','chalice'],['siege-tongs','tongs'],['starforged-halberd','halberd'],['starforged-longbow','longbow'],['hymnal','tome'],['primer','tome']])assert.equal(silhouette(variant),byGear.get(base),`${variant} keeps the ${base} archetype`);
+});
+test('relic and workshop gear avoid per-frame pyramid tessellation',()=>{
+ r.cam.zoom=1.65;r.cam.yaw=Math.PI/4;r.calm=true;
+ const pyramids=gear=>{const s=new MeshScene(r),pyramid=s.pyramid;let calls=0;s.pyramid=(...args)=>{calls++;return pyramid.apply(s,args);};characterModel(s,{id:gear||'plain',type:'warrior',hp:100,x:0,y:0,gear},data,0);return calls;};
+ for(const gear of ['compass','orrery','tidebell','awl','trowel'])assert.equal(pyramids(gear),pyramids(''),`${gear} should use box primitives without tessellating a pyramid`);
+});
+test('net lattice is deferred until close character detail',()=>{
+ r.cam.yaw=Math.PI/4;r.calm=true;
+ const count=(gear,zoom)=>{r.cam.zoom=zoom;return mesh({id:'net-detail',type:'diver',hp:100,x:0,y:0,gear}).length;};
+ const gameDetail=count('net',1.65)-count('',1.65),closeDetail=count('net',2)-count('',2);
+ assert.ok(closeDetail>gameDetail,'the gameplay-scale net keeps its frame but defers lattice strings');
+});
+test('bows keep a visible string when detail trim is off',()=>{
+ r.cam.zoom=1.65;r.cam.yaw=Math.PI/4;r.calm=true;
+ for(const gear of ['bow','longbow'])assert.ok(mesh({id:gear,type:'archer',hp:100,x:0,y:0,gear}).some(face=>face.color==='#ddcfac'),`${gear} string stays visible at gameplay zoom`);
+});
+test('profession outfits remain distinct at gameplay zoom',()=>{
+ r.cam.zoom=1.65;r.cam.yaw=Math.PI/4;r.calm=true;
+ const types=Object.keys(data.troops),styles=types.map(appearance);
+ assert.equal(new Set(styles).size,types.length,'each profession keeps a readable outfit signature without fine trim');
+ const color=hex=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)),[a,b]=[color(dominantColor('archer')),color(dominantColor('longbowman'))];
+ assert.ok(Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2])>=40,'the two hooded archer callings need distinct coat colors at gameplay zoom');
+});
+test('professions sharing an outfit shape keep clear coat-color contrast',()=>{
+ r.cam.zoom=1.65;r.cam.yaw=Math.PI/4;r.calm=true;
+ const appearances=Object.keys(data.troops).map(type=>({type,shape:outfitShape(type),color:dominantColor(type)})),groups=new Map();
+ for(const outfit of appearances){const group=groups.get(outfit.shape)||[];group.push(outfit);groups.set(outfit.shape,group);}
+ const rgb=hex=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));
+ for(const group of groups.values())for(let i=0;i<group.length;i++)for(let j=i+1;j<group.length;j++){
+  const a=rgb(group[i].color),b=rgb(group[j].color),distance=Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2]);
+  assert.ok(distance>=40,`${group[i].type}/${group[j].type} need distinct coat colors at gameplay zoom (got ${distance.toFixed(1)})`);
+ }
+});
+test('professions with the same headwear get a visible garment cue',()=>{
+ r.cam.zoom=1.65;r.cam.yaw=Math.PI/4;r.calm=true;
+ for(const [a,b]of[['archer','forager'],['builder','haggler'],['warrior','warden'],['lumberjack','sawyer'],['sawyer','weaponsmith']])assert.notEqual(outfitShape(a),outfitShape(b),`${a} and ${b} need distinguishable game-scale clothing shapes`);
+ const color=hex=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)),[a,b]=[color(dominantColor('weaponsmith')),color(dominantColor('smelter'))];
+ assert.ok(Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2])>=40,'smelter and weaponsmith aprons need distinct coat colors');
+});
+test('sawyer goggles do not duplicate lens faces at close detail',()=>{
+ r.cam.zoom=2;r.cam.yaw=Math.PI/4;r.calm=true;
+ const lenses=mesh({id:'sawyer',type:'sawyer',hp:100,x:0,y:0,gear:''}).filter(face=>face.color==='#c7d6d6');
+ const geometry=face=>JSON.stringify(face.points.flatMap(p=>[Math.round(p.x*100)/100,Math.round(p.y*100)/100]));
+ assert.ok(lenses.length>0,'both goggle lenses remain visible');
+ assert.equal(new Set(lenses.map(geometry)).size,lenses.length,'each visible lens face is emitted once');
 });
 test('enemy role and faction silhouettes preserve enemy selection and emergency markers',()=>{
  r.cam.zoom=2;

@@ -3,7 +3,7 @@
 // paint() and drove it from the sky clock. Phase 3 swept the key light
 // (sun/moon arcs) and let weather touch the meshes. Phase 4 adds per-face
 // ground-contact occlusion and the phase vignette; Phase 7 deliberately
-// reshapes wall ends and adds live defense states. The guarantees now are:
+// reshapes defenses and Phase 8 held equipment at gameplay scale. The guarantees now are:
 //  - raw digests pin geometry and albedo, independent of light,
 //  - the frozen-light test proves the shading formula still reproduces the
 //    legacy formula byte-for-byte at flat AO (the Phase 1 digests' exact
@@ -19,6 +19,7 @@ import {readFile} from 'node:fs/promises';
 import {Renderer} from '../src/renderer.js';
 import {Game} from '../src/game.js';
 import {MeshScene,buildingModel,shade} from '../src/scene3d.js';
+import {characterModel} from '../src/character-art.js';
 import {DAY_LENGTH,skyLightAt} from '../src/systems/daynight.js';
 const data = Object.fromEntries(await Promise.all(['world','troops','items','abilities','buildings','missions','quests'].map(async n => [n, JSON.parse(await readFile(new URL(`../data/${n}.json`, import.meta.url)))])));
 const context = new Proxy({}, {get: (t, k) => t[k] || (() => k === 'measureText' ? {width: 40} : k.includes('Gradient') ? {addColorStop() {}} : undefined), set: (t, k, v) => (t[k] = v, true)});
@@ -33,6 +34,15 @@ function mesh(r, type, level, yaw) {
   const s = new MeshScene(r);
   const b = {id: type, type, x: 5, y: 5, level, hp: 100, remaining: 0};
   buildingModel(s, b, data.buildings[type], {buildings: [b]});
+  return s;
+}
+function equipmentLineup(){
+  const r=renderer(),gear=[...new Set([...Object.values(data.troops).map(t=>t.defaultGear),'axe','warhammer','scythe','cart','berry-basket','orrery','toolkit'])].filter(id=>id&&id!=='apron');
+  r.calm=true;r.cam.x=2+(gear.length-1)*.8/2;r.cam.y=8;r.cam.zoom=1.65;r.cam.yaw=PI/4;
+  const s=new MeshScene(r);
+  gear.forEach((id,i)=>characterModel(s,{id:`equipment-${i}-${id}`,type:data.items[id]?.roles?.[0]||'warrior',x:2+i*.8,y:8,hp:100,gear:id},data,0));
+  r.cam.y=16;
+  Object.keys(data.troops).forEach((type,i)=>characterModel(s,{id:`outfit-${i}-${type}`,type,x:2+i*.8,y:16,hp:100,gear:''},data,0));
   return s;
 }
 // The frozen Phase 1 formula — any drift here fails the test by construction.
@@ -65,6 +75,8 @@ const CASES = [
   ['mill-2', 'mill', 2, 236, '92705efbc770ca5f', 'f6ad68c40637b2a9', 'c87208a185b44010', 'c9d4e518d0aea9d6'],
 ];
 const ORBIT = {faces: 712, day: '6a40214f03dfcc44', night: '3c46d0a7b2bee5e1', dawn: '2cfa301ab21eed78'};
+// Canonical tool and outfit lineups at the mobile/gameplay zoom.
+const EQUIPMENT_BASELINE={faces:2140,raw:'6d895422c001cd58',frozen:'2bb841c750f02352',day:'1863c86501f8e381',night:'65977c5503864b24',dawn:'c7b2b93292a27954'};
 
 test('baseline: canonical meshes keep their raw geometry and albedo', () => {
   const r = renderer();
@@ -73,6 +85,19 @@ test('baseline: canonical meshes keep their raw geometry and albedo', () => {
     assert.equal(core.length, faces, `${name} face count moved`);
     assert.equal(digest(core, 'color'), raw, `${name} geometry or albedo moved`);
   }
+});
+
+test('baseline: gameplay-scale equipment keeps its geometry and lit look deliberate',()=>{
+  const s=equipmentLineup();
+  assert.equal(s.faces.length,EQUIPMENT_BASELINE.faces,'equipment lineup face count moved');
+  assert.equal(digest(s.faces,'color'),EQUIPMENT_BASELINE.raw,'equipment geometry or albedo moved');
+  const expected=s.faces.map(f=>entry(legacyShade(f.color,f.normal),f)).sort().join('|');
+  const painted=s.faces.map(f=>entry(shade(f.color,f.normal,LEGACY_LIGHT,0,0,1),f)).sort().join('|');
+  assert.equal(painted,expected,'equipment shade formula drifted');
+  assert.equal(createHash('sha256').update(painted).digest('hex').slice(0,16),EQUIPMENT_BASELINE.frozen,'equipment frozen digest moved');
+  s.light=dayLight;s.paint();assert.equal(digest(s.faces,'painted'),EQUIPMENT_BASELINE.day,'equipment day look moved');
+  s.light=nightLight;s.paint();assert.equal(digest(s.faces,'painted'),EQUIPMENT_BASELINE.night,'equipment night look moved');
+  s.light=dawnLight;s.paint();assert.equal(digest(s.faces,'painted'),EQUIPMENT_BASELINE.dawn,'equipment dawn look moved');
 });
 
 test('baseline: the shading formula stays legacy-exact (frozen light, flat AO)', () => {
