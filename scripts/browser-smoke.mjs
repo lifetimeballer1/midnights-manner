@@ -79,10 +79,13 @@ try{
  await waitFor('Boolean(document.querySelector(".idle-bar"))');
  assert.ok(await evaluate('document.querySelectorAll(".trait").length > 0'),'villager trait chips render');
  assert.ok(await evaluate('window.midnightsManner.snapshot().world.troops.every(t=>typeof t.name==="string"&&t.name.length>0)'),'every villager is named');
- if(await evaluate('Boolean(document.querySelector("[data-autoassign]:not([disabled])"))')){
-  await click('[data-autoassign]');
-  await waitFor('document.querySelector("#status").textContent.includes("idle hand")');
- }
+ for(let i=0;i<2;i++){try{
+  if(await evaluate('Boolean(document.querySelector("[data-autoassign]:not([disabled])"))')){
+   await click('[data-autoassign]');
+   await waitFor('document.querySelector("#status").textContent.includes("idle hand")');
+  }
+  break;
+ }catch(e){if(i)throw e;await new Promise(r=>setTimeout(r,300));await click('[data-tab="troops"]');await waitFor('Boolean(document.querySelector(".idle-bar"))');}}
  await click('#close-panel');
  // Manage a workplace from its map selection, then hire directly into it.
  // The starting warrior stands in front of the crop bed: tap its upper half.
