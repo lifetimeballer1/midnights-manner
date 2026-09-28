@@ -28,7 +28,7 @@ function pine(s,x,y,height=1.7,cold=false){s.box(x-.045,y-.045,0,.09,.09,height*
 function tower(s,x,y,size,h,color=stone){s.box(x,y,.12,size,size,h,color);s.box(x-.08,y-.08,h+.1,size+.16,size+.16,.16,color);for(const [dx,dy]of[[0,0],[size-.16,0],[0,size-.16],[size-.16,size-.16]])s.box(x+dx-.025,y+dy-.025,h+.26,.21,.21,.23,color);s.box(x+size*.38,y+size+.006,h*.48,size*.2,.012,.27,'#324a41');s.box(x+size+.006,y+size*.38,h*.48,.012,size*.2,.27,'#324a41');}
 function windows(s,x,y,w,d,h){for(const f of [.18,.72]){const z=h*.54,ww=Math.min(.18,w*.15);s.box(x+w*f,y+d+.008,z,ww,.024,.19,'#ffe6ab');s.box(x+w*f,y-.025,z,ww,.024,.19,'#ffe6ab');s.box(x-.025,y+d*f,z,.024,ww,.19,'#ffe6ab');s.box(x+w+.008,y+d*f,z,.024,ww,.19,'#ffe6ab');}s.box(x+w*.4,y+d+.01,.1,w*.22,.026,.48,'#5b4735');}
 function hut(s,x,y,w,d,h,roofColor,level){s.box(x,y,.1,w,d,h,level===1?timber:stone);s.roof(x-.09,y-.09,h+.1,w+.18,d+.18,.35+level*.08,roofColor);windows(s,x,y,w,d,h);if(level>=2)s.box(x+w*.75,y+d*.2,h,.18,.18,.75,stone);if(level>=3){s.box(x+.1,y+.1,0,.16,.16,h+.1,gold);s.box(x+w-.26,y+d-.26,0,.16,.16,h+.1,gold);}}
-export function buildingModel(s,b,spec,world){
+function buildingShape(s,b,spec,world){
  const x=b.x,y=b.y,n=spec.size,l=b.level,t=b.type;s.owner={kind:'building',id:b.id};s.alpha=b.hp<=0?.35:b.remaining>0?.6:1;
  s.box(x+.1,y+.1,0,n-.2,n-.2,.12,l>1?stone:'#9b8864');
  // Gatehouse: twin posts and a high lintel with the middle left open —
@@ -61,12 +61,54 @@ export function buildingModel(s,b,spec,world){
  if(['watchfire','oathstone','moon-dial','cairnfield'].includes(t)){const spots=t==='cairnfield'?[[.5,.5],[1.3,.6],[.6,1.4],[1.35,1.35]]:[[n/2,n/2]];for(const [a,c]of spots){s.box(x+a-.18,y+c-.18,.13,.36,.36,.22,stone);if(t==='watchfire')s.pyramid(x+a,y+c,.36,.26,.55,'#f2b35c',5);else if(t==='moon-dial')s.pyramid(x+a,y+c,.35,.17,.55,gold);else s.box(x+a-.09,y+c-.06,.35,.18,.12,.6,t==='oathstone'?'#90b5b5':stone);}return;}
  if(t==='dawn-gate'){tower(s,x+.18,y+.35,.62,1.7,stone);tower(s,x+n-.8,y+.35,.62,1.7,stone);s.box(x+.8,y+.43,1.35,n-1.6,.46,.45,gold);s.roof(x+.05,y+.2,2,n-.1,.95,.32,'#638b92');return;}
  if(t==='market'){for(const [a,c,color]of[[.22,.24,'#b76053'],[1.7,.25,'#73956a'],[.6,1.75,'#ccac60']]){s.box(x+a,y+c,.14,1,.5,.35,timber);for(const dx of [0,.94])s.box(x+a+dx,y+c,.14,.06,.06,.95,timber);s.roof(x+a-.06,y+c-.12,1.02,1.12,.75,.12,color);}return;}
+ // The new production chain buildings need to read differently at map scale.
+ // Keep the machinery stationary so the meshes can share the camera cache.
+ if(t==='sawmill'){
+  const h=.85+l*.12;
+  for(const a of [.25,n-.35])for(const c of [.25,n-.35])s.box(x+a,y+c,.12,.11,.11,h,timber);
+  s.roof(x+.12,y+.12,h+.12,n-.24,.72,.26,'#5f8074'); // open work bay
+  s.box(x+.38,y+.8,.14,n-.76,.48,.27,'#6b5945'); // sawing bench
+  s.box(x+.44,y+.92,.42,n-.88,.1,.045,'#d3b27e');
+  s.box(x+.8,y+.86,.49,.07,.39,.29,stone); // upright blade
+  for(let i=0;i<3;i++)s.box(x+.25,y+.3+i*.18,.13,.69,.13,.13,i===1?'#cba46d':timber);
+  if(l>=2){s.box(x+n-.48,y+.42,.14,.18,.18,1.2,timber);s.box(x+n-.48,y+.42,1.2,.54,.12,.1,timber);s.box(x+n-.04,y+.42,.63,.04,.04,.58,'#6a6f65');}
+  return;
+ }
+ if(t==='mill'){
+  hut(s,x+.3,y+.3,n-.6,n-.6,.7+l*.13,'#aa7959',l);
+  // A raised wheel, grain hopper, and flour sacks identify the gristmill.
+  const z=.5,cx=x+n-.21,cy=y+n*.5;
+  for(const dz of [-.36,.32])s.box(cx-.055,cy-.34,z+dz,.11,.68,.07,timber);
+  for(const dy of [-.36,.32])s.box(cx-.055,cy+dy,z-.36,.11,.07,.75,timber);
+  s.box(cx-.08,cy-.045,z-.39,.16,.09,.82,'#d9ba79');
+  s.box(cx-.08,cy-.38,z-.045,.16,.76,.09,'#d9ba79');
+  s.pyramid(x+.58,y+.54,1.15,.27,.38,'#d5b477');
+  for(let i=0;i<2;i++)s.box(x+.19+i*.36,y+n-.42,.14,.3,.27,.24,'#decaa0');
+  return;
+ }
  const colors={hall:'#658d99',barracks:'#b96d5a',cottage:'#9ba061',longhouse:'#977851',chapel:'#8e8dae','sunken-chapel':'#679fa5',forge:'#976b54',smeltery:'#846f67',armory:'#667b91',workshop:'#789380',tannery:'#bd9a69',schoolroom:'#ba9369',scriptorium:'#798ca7',butchery:'#a75e54',fletcher:'#7c9868','shieldwall-yard':'#668a91',mason_yard:'#949b90'};
  hut(s,x+.22,y+.22,n-.44,n-.44,.42+l*.16,colors[t]||'#829a78',l);
  if(['forge','smeltery'].includes(t)){s.box(x+n-.55,y+.28,.1,.28,.28,1.5,stone);s.box(x+n-.57,y+.26,1.6,.32,.32,.12,'#4d514b');s.box(x+.3,y+n-.2,.2,.4,.024,.26,'#eea55d');}
  if(t.includes('chapel')){tower(s,x+.25,y+.25,.4,1.35,stone);s.pyramid(x+.45,y+.45,1.65,.33,.6,colors[t]);}
  if(t==='hall'&&l>=2)tower(s,x+n-.7,y+.25,.48,1.35,stone);
  if(['mason_yard','shieldwall-yard'].includes(t)){for(let i=0;i<3;i++)s.box(x+.25+i*.42,y+n-.15,.13,.28,.16,.3,stone);}
+}
+export function buildingModel(s,b,spec,world){
+ buildingShape(s,b,spec,world);
+ if(b.id==null)return; // placement previews already have a clear ghost treatment
+ const x=b.x,y=b.y,n=spec.size;
+ if(b.hp<=0){
+  s.alpha=.95;
+  for(const [dx,dy,w] of [[.17,.2,.28],[n-.51,.23,.34],[.28,n-.49,.3],[n-.5,n-.53,.32]])
+   s.box(x+dx,y+dy,.12,w,w,.12,'#56534a');
+  s.box(x+n*.42,y+n*.43,.12,n*.18,n*.13,.08,'#3f4742');
+ }else if(b.remaining>0){
+  s.alpha=.9;
+  const h=.8+n*.12;
+  for(const dx of [.13,n-.21])for(const dy of [.13,n-.21])s.box(x+dx,y+dy,.12,.08,.08,h,timber);
+  for(const dy of [.13,n-.21])s.box(x+.13,y+dy,h*.57,n-.26,.07,.07,'#d0af79');
+  s.box(x+.18,y+.21,.13,Math.min(.54,n-.36),.24,.17,'#c5a16e');
+ }
 }
 function person(s,u,data,time,enemy=false){if(u.hp<=0)return;s.owner={kind:enemy?'enemy':'unit',id:u.id};s.alpha=1;const spec=data.troops[u.type]||{},role=spec.role,base=enemy?(data.world.enemyFactions?.find(f=>f.id===u.faction)?.color||'#a65c54'):role==='combat'?'#557a86':role==='collector'?'#719b68':'#ae9568';const bob=s.r.calm?0:Math.sin(time/230+phaseSeed(u.id))*.018,x=u.x,y=u.y;
  for(const dx of [-.115,.04])s.box(x+dx,y-.08,.02,.085,.16,.24,'#514939');s.box(x-.15,y-.11,.25,.3,.22,.29,base);s.box(x-.1,y-.09,.57+bob,.2,.18,.19,'#e1ba88');s.box(x-.12,y-.11,.75+bob,.24,.22,.08,role==='combat'?'#a6bac4':enemy?'#6f5344':'#977c51');for(const dx of [-.22,.15])s.box(x+dx,y-.08,.29,.07,.13,.22,'#d5ae7d');s.box(x-.1,y+.095,.65+bob,.035,.012,.025,'#33443a');s.box(x+.045,y+.095,.65+bob,.035,.012,.025,'#33443a');
