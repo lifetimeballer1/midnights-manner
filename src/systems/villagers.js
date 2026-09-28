@@ -154,11 +154,12 @@ function postValid(world, data, unit, building, counts) {
   return crewCount(world, building.id, counts) < cap;
 }
 // Smart auto-assignment. Only idle hands move; manualPost villagers (placed
-// by the player) are never touched — the override always wins.
+// by the player) keep their post. An old rest lock without a workplace
+// does not prevent a jobless worker from finding work.
 export function autoAssign(world, data, {onlyIdle = true} = {}) {
   let placed = 0;
   const pool = (world.troops || []).filter(u => {
-    if (!u || u.hp <= 0 || u.manualPost || u.expedition) return false;
+    if (!u || u.hp <= 0 || (u.manualPost && u.workplace) || u.expedition) return false;
     if (onlyIdle && !isIdle(u)) return false;
     if (!onlyIdle && u.workplace) return false;
     return !!data?.troops?.[u.type]?.job;
@@ -202,7 +203,7 @@ export function autoFillTick(world, data, dt) {
 // no hands are idle — a tap that changes nothing must still tell the truth.
 export function idleWithoutPosts(world, data) {
   return (world.troops || []).filter(u => {
-    if (!u || u.hp <= 0 || u.manualPost || u.expedition) return false;
+    if (!u || u.hp <= 0 || (u.manualPost && u.workplace) || u.expedition) return false;
     if (!isIdle(u)) return false;
     if (!data?.troops?.[u.type]?.job) return false;
     return !(world.buildings || []).some(b => postValid(world, data, u, b));

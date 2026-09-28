@@ -123,12 +123,10 @@ test('phase7: smart auto-assignment matches traits; manual locks never move', ()
   const placed = autoAssign(g.world, data);
   assert.equal(placed, 2);
   assert.equal(smith.workplace, forge.id, 'craftsman finds the forge');
-  // Manual override: the player pins the smith to rest; re-running moves nobody.
-  g.assign(smith.id, null);
-  smith.manualPost = true;
-  smith.workplace = null;
+  // Manual assignments remain in place when other jobs are open.
+  g.assign(smith.id, forge.id);
   const moved = autoAssign(g.world, data);
-  assert.equal(smith.workplace, null, 'manual lock is never moved');
+  assert.equal(smith.workplace, forge.id, 'manual assignment is never moved');
   assert.equal(moved, 0, 'posted hands and locked hands both stay put');
 });
 
@@ -193,7 +191,7 @@ test('phase7: open posts fill themselves — idle hands take matching work unask
   assert.equal(till.workplace, farm.id, 'idle hand takes the matching post');
 });
 
-test('phase7: self-filling posts never move a manual lock', () => {
+test('phase7: jobless workers with old rest locks resume looking for work', () => {
   const g = setup();
   g.world.buildings = g.world.buildings.filter(b => b.type === 'barracks');
   const farm = makeBuilding('farm', 2, 6, data);
@@ -204,8 +202,9 @@ test('phase7: self-filling posts never move a manual lock', () => {
   rest.manualPost = true;
   g.world.troops = [];
   g.world.troops.push(rest);
-  assert.equal(autoFillTick(g.world, data, 30), 0, 'locked hands stay resting');
-  assert.equal(rest.workplace, null);
+  assert.equal(autoFillTick(g.world, data, 5), 1, 'old rest lock cannot strand a jobless worker');
+  assert.equal(rest.workplace, farm.id);
+  assert.equal(rest.manualPost, false);
 });
 
 test('phase7: emergency respects temperament — cowards flee early and fast, braves hold', () => {
