@@ -1,29 +1,25 @@
-# Midnights Manner — Story & Campaign
+# Midnights Manner \u2014 Story & Campaign
 
-Main quest arc mapped onto the live data: **build → recruit → defend → expand → endure → name**.
-Covers the village-path chain (`data/quests.json`, 22 steps) plus the campaign missions
-(`data/missions.json`, 15 chapters).
+Main quest arc: **build \u2192 recruit \u2192 defend \u2192 expand \u2192 endure \u2192 name**.
+22 village-path quests + 15 campaign missions. Voice stays in JSON.
 
 ## Premise
 
-The sun thinned and never came back, and the valleys live by moonlight now.
-You hold a walled manner around one lamplit Manor Hall, and its bell is yours.
-Raise farms and timber alongside hungry neighbors, train a small garrison,
-and walk the western road through expeditions before the Long Night ends.
-Every victory comes home. Nobody promises dawn — only that the Manner holds.
+The sun thinned and never came back. You hold a walled manner around one lamplit Manor Hall.
+Nobody promises dawn \u2014 only that the Manner holds.
 
 ## Arc Shape
 
-| Act | Shape | Content in data |
-|-----|-------|-----------------|
-| I — Hearth | BUILD | Quests `second-field` → `every-hand` |
-| II — Neighbors | RECRUIT | Quests `new-blood` → `full-crew` |
-| III — Road | DEFEND | Missions `first-harvest` → `long-night` |
-| IV — Hollow | EXPAND | Missions `ember-road` → `last-stand` |
-| V — Depth | ENDURE | Quests `chart-the-dark` → `tam-s-school` |
-| VI — Pale | NAME | Missions `coin-and-cinder` → `dawn` |
+| Act | Shape | Content |
+|-----|-------|--------|
+| I \u2014 Hearth | BUILD | Quests `second-field` \u2192 `every-hand` |
+| II \u2014 Neighbors | RECRUIT | Quests `new-blood` \u2192 `full-crew` |
+| III \u2014 Road | DEFEND | Missions `first-harvest` \u2192 `long-night` |
+| IV \u2014 Hollow | EXPAND | Missions `ember-road` \u2192 `last-stand` |
+| V \u2014 Depth | ENDURE | Quests `chart-the-dark` \u2192 `tam-s-school` |
+| VI \u2014 Pale | NAME | Missions `coin-and-cinder` \u2192 `dawn` |
 
-## Tone (non-negotiable)
+## Tone
 
 - Quiet frontier hope, not epic salvation.
 - Nobody is evil; everybody is hungry, tired, or owed.
@@ -31,25 +27,19 @@ Every victory comes home. Nobody promises dawn — only that the Manner holds.
 - Keep one light. Mend the rest.
 - Dawn Gate is a *name* the village earns, not a restored sun.
 
-## Living voices
+## Living data files
 
-Keepers and quest givers share one register: short, concrete, neighborly.
-Notice-board rumors (`data/rumors.json`) may carry optional `source` ids.
+| File | Story job |
+|------|----------|
+| `data/rumors.json` | Notice board; optional `source` |
+| `data/keepers.json` | Workplace dialogue |
+| `data/legends.json` | Hearth tales (keep `pale-court`) |
+| `data/traders.json` | Road economy voice |
+| `data/calendar.json` | Daily / seasonal weather of work |
+| `data/quests.json` | Village-path spine |
+| `data/missions.json` | Campaign + ceremony (see `CEREMONY_SPINE.md`) |
 
-| Voice | Role |
-|-------|------|
-| Maro / Mara | Walls, stone |
-| Old Bell | Flocks, three-clack warning |
-| Issa | Chart Log, beds before bodies |
-| Tomm | Water older than walls |
-| Sarella | Honest steel |
-| Fen | Failed hearths, dry wells |
-| Mooncleric | Ransom, steadiness |
-| Sorrel | Pale Host, oaths |
-| Rue | Turncloak maps |
-| Tam | School |
-
-## Open questions (leave open)
+## Open questions
 
 - Which Thinning account is true?
 - What the Pale Host owes, and to whom?
