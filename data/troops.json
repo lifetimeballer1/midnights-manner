@@ -440,7 +440,8 @@
         "food": 15
       },
       "durationSec": 90,
-      "risk": 0.05
+      "risk": 0.05,
+      "finds": 1.5
     },
     "job": {
       "workplace": "scout_post",

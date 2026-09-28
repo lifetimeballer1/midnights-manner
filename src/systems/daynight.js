@@ -36,6 +36,8 @@ const DEFAULTS = {
   fogEnemySpeed: -0.1, // fog slows raiders 10% — they cannot see either
   nightGather: -0.05, // uneasy hands gather a touch slower at night
   rainGather: 0.05, // soft earth gathers a touch faster in rain
+  nightExpeditionRisk: 0.05, // ranging after dark adds +5% mishap risk
+  fogExpeditionRisk: 0.03, // fog on the trail adds +3% mishap risk
   lines: {
     dawn: '🌅 Dawn breaks over the palisade. The night lets go.',
     day: '☀️ The sun climbs. Hammers ring across the village.',
