@@ -2,10 +2,10 @@ import {startResearch,tickResearch,researchReason} from './systems/research.js';
 import {tickEmergency} from './systems/emergency.js';
 import {factionFor} from './systems/tactics.js';
 import {ensureDirector,directorConfig,directorParty,scheduleRecovery} from './systems/raid-director.js';
-import {resourceLabel,resourceInfo} from './resources.js';
+import {resourceLabel,resourceInfo,collectFromReserve,storageRoom} from './resources.js';
 import {wallRowQuote,wallLine,isWall} from './systems/walls.js';
 import {nextStep,blocked} from './systems/pathfinding.js';
-import {createWorld,makeBuilding,makeUnit,canPlace,inBounds,pay,afford,stats,buildingCost,center,assignmentValid,promotionOptions,housing} from './model.js';
+import {createWorld,makeBuilding,makeUnit,canPlace,inBounds,pay,afford,stats,buildingCost,center,assignmentValid,promotionOptions,housing,buildingLimit,buildingCount} from './model.js';
 import {buildTiles} from './systems/biomes.js';
 import {claimCheck,setClaimed,claimRect,claimRegion,claimPreclaimed,regionFor} from './systems/expansion.js';
 import {tickVillage,gainXp} from './systems/village.js';
@@ -80,6 +80,16 @@ export class Game {
    const missing=reqs.filter(r=>!this.world.buildings.some(b=>b.type===r.type&&b.hp>0&&(b.level||1)>=(r.level||1)));
    if(missing.length){const names=missing.map(r=>`tier-${r.level||1} ${this.data.buildings[r.type]?.name||r.type}`).join(' and ');return this.notify(`The ${spec.name} needs ${names} first. Raise the old work before the new water.`);}
   }
+  // Settlement planning caps only NEW construction. Existing saves that
+  // already exceed a cap keep every building; research simply determines
+  // when another slot opens.
+  const limit=buildingLimit(this.state,this.data,type),built=buildingCount(this.world,type);
+  if(Number.isFinite(limit)&&built>=limit){
+   const completed=new Set(this.state.research?.completed||[]);
+   const next=(spec?.limit?.unlocks||[]).find(step=>(step.count||0)>built&&(!step.research||!completed.has(step.research)));
+   const tech=next?.research&&this.data.world.technologies?.find(n=>n.id===next.research);
+   return this.notify(`${spec.name} limit reached (${built}/${limit}). ${tech?`Research ${tech.name} to open another slot.`:'Existing buildings are grandfathered, but no new slot is open yet.'}`);
+  }
   // Wonders stand alone (data `maxPerVillage: 1`): one Moon Dial, one Dawn
   // Gate per village — the sky gets one vote, dawn gets one door.
   if(spec&&spec.maxPerVillage&&this.world.buildings.some(b=>b.type===type&&b.hp>0))return this.notify(`The village holds only one ${spec.name}. It stands already.`);
@@ -120,6 +130,12 @@ export class Game {
   // wonders gate the same generic way. No building-specific conditionals.
   const gate=this.data.buildings[b.type].tierGates?.[b.level+1];
   if(gate&&(this.state.vlevel||1)<gate)return this.notify(`A tier-${b.level+1} ${this.data.buildings[b.type].name} needs village level ${gate}. Earn XP — quests, scholars, surveys.`);
+  const tierToken=this.data.buildings[b.type].tierRequires?.[b.level+1];
+  const tierEarned=!tierToken||(this.state.research?.completed||[]).includes(tierToken)||(this.state.unlocks||[]).includes(tierToken);
+  if(!tierEarned){
+   const tech=this.data.world.technologies?.find(n=>n.id===tierToken||(n.unlocks||[]).includes(tierToken));
+   return this.notify(`Tier ${b.level+1} ${this.data.buildings[b.type].name} needs ${tech?.name||'more settlement research'} first.`);
+  }
   const cost=b.type==='hall'?{wood:200*b.level,gold:150*b.level}:buildingCost(b.type,b.level+1,this.world,this.data);
   if(!pay(this.world.resources,cost))return this.notify('Not enough resources for this upgrade.');
   b.level++;b.hp=this.data.buildings[b.type].tiers[b.level-1].hp;
@@ -369,10 +385,10 @@ export class Game {
   if(w.lastPhase!==phase.id){w.lastPhase=phase.id;const line=cfg.lines[phase.id];if(line)this.notify(line);}
   if(w.lastWeather!==weather.id){w.lastWeather=weather.id;const line=cfg.lines[weather.id];if(line)this.notify(line);}
  }
- harvest(id){const b=this.world.buildings.find(b=>b.id===id),spec=b&&this.data.buildings[b.type];if(this.paused||!b||!spec.production||b.hp<=0||b.remaining>0)return false;const amount=Math.floor(b.harvestBonus||0);if(amount<1)return false;b.harvestBonus-=amount;this.world.resources[spec.production]=(this.world.resources[spec.production]||0)+amount;this.world.gathered[spec.production]=(this.world.gathered[spec.production]||0)+amount;const at=center(b,this.data);this.world.effects.push({x:at.x,y:at.y,tx:at.x,ty:at.y,kind:'float',text:resourceLabel(spec.production,amount),color:resourceInfo(spec.production).color,life:.9});sfx.collect();this.notify(`Collected ${amount} ${spec.production}.`);return amount;}
- // One tap gathers every finished producer with a whole unit stored on-site.
- // Same guards as harvest; a single summary notice instead of one per site.
- collectAll(){if(this.paused)return {};const totals={};let sites=0;for(const b of this.world.buildings){const spec=b&&this.data.buildings[b.type];if(!b||!spec?.production||b.hp<=0||b.remaining>0)continue;const amount=Math.floor(b.harvestBonus||0);if(amount<1)continue;b.harvestBonus-=amount;this.world.resources[spec.production]=(this.world.resources[spec.production]||0)+amount;this.world.gathered[spec.production]=(this.world.gathered[spec.production]||0)+amount;totals[spec.production]=(totals[spec.production]||0)+amount;sites++;const at=center(b,this.data);this.world.effects.push({x:at.x,y:at.y,tx:at.x,ty:at.y,kind:'float',text:resourceLabel(spec.production,amount),color:resourceInfo(spec.production).color,life:.9});}if(!sites){this.notify('Nothing ready to collect — production buildings store output on-site as they work.');return totals;}sfx.collect();this.persist();this.notify(`Collected ${Object.entries(totals).map(([k,v])=>`${v} ${k}`).join(', ')} from ${sites} building${sites>1?'s':''}.`);return totals;}
+ harvest(id){const b=this.world.buildings.find(b=>b.id===id),spec=b&&this.data.buildings[b.type];if(this.paused||!b||!spec?.production||b.hp<=0||b.remaining>0)return false;const available=Math.floor(b.harvestBonus||0);if(available<1)return false;const amount=collectFromReserve(this.world,this.data,b,spec);if(amount<1){this.notify(`${resourceInfo(spec.production).label} storage is full. Build or upgrade storage, or spend some first.`);return false;}const at=center(b,this.data);this.world.effects.push({x:at.x,y:at.y,tx:at.x,ty:at.y,kind:'float',text:resourceLabel(spec.production,amount),color:resourceInfo(spec.production).color,life:.9});sfx.collect();const left=Math.floor(b.harvestBonus||0);this.notify(left>0?`Collected ${amount} ${spec.production}; ${left} remains on-site because storage is full.`:`Collected ${amount} ${spec.production}.`);return amount;}
+ // One tap gathers every finished producer, but only as much as settlement
+ // storage can accept. Anything that does not fit stays safely on-site.
+ collectAll(){if(this.paused)return {};const totals={};let sites=0,blocked=0;for(const b of this.world.buildings){const spec=b&&this.data.buildings[b.type];if(!b||!spec?.production||b.hp<=0||b.remaining>0)continue;const available=Math.floor(b.harvestBonus||0);if(available<1)continue;const amount=collectFromReserve(this.world,this.data,b,spec);if(amount<1){if(storageRoom(this.world,this.data,spec.production)<1)blocked++;continue;}totals[spec.production]=(totals[spec.production]||0)+amount;sites++;const at=center(b,this.data);this.world.effects.push({x:at.x,y:at.y,tx:at.x,ty:at.y,kind:'float',text:resourceLabel(spec.production,amount),color:resourceInfo(spec.production).color,life:.9});}if(!sites){this.notify(blocked?'Storage is full — collected nothing. Upgrade a store or spend resources first.':'Nothing ready to collect — production buildings store output on-site as they work.');return totals;}sfx.collect();this.persist();this.notify(`Collected ${Object.entries(totals).map(([k,v])=>`${v} ${k}`).join(', ')} from ${sites} building${sites>1?'s':''}${blocked?`; ${blocked} source${blocked>1?'s':''} still holding output because storage is full`:''}.`);return totals;}
  persist(){const ok=save(this.state);if(!ok)this.notify('Browser storage is unavailable. Progress cannot be saved here.');return ok;}
  importState(state){this.state=state;
  // Imported blobs predate tile grids the same way old saves do — build

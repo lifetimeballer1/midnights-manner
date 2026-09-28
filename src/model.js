@@ -77,6 +77,25 @@ export function makeBuilding(type,x,y,data,level=1) {
   if (spec.reserve) { b.reserve = spec.reserve; b.maxReserve = spec.reserve; }
   return b;
 }
+// Data-driven build caps. Old saves are grandfathered automatically because
+// this only gates NEW construction; it never removes buildings already placed.
+export function buildingLimit(state,data,type) {
+  const cfg=data?.buildings?.[type]?.limit;
+  if(!cfg)return Infinity;
+  let limit=Number.isFinite(+cfg.base)?Math.max(0,Math.floor(+cfg.base)):Infinity;
+  const completed=new Set(state?.research?.completed||[]);
+  for(const step of cfg.unlocks||[]){
+    const earned=step?.research?completed.has(step.research):step?.id&&(state?.unlocks||[]).includes(step.id);
+    if(!earned)continue;
+    const count=Number.isFinite(+step.count)?Math.max(0,Math.floor(+step.count)):limit;
+    limit=Math.max(limit,count);
+  }
+  if(Number.isFinite(+cfg.max))limit=Math.min(limit,Math.max(0,Math.floor(+cfg.max)));
+  return limit;
+}
+export function buildingCount(world,type) {
+  return (world?.buildings||[]).filter(b=>b?.type===type).length;
+}
 export function createWorld(data,layout=data.world) {
   const full = {w:data.world.width,h:data.world.height};
   // Campaign maps stay homestead-scale (data/expansion.json homestead,

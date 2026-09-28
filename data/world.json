@@ -161,7 +161,11 @@
     "oathkeeper-armor",
     "dawn-gate",
     "regalia",
-    "dawnbringer"
+    "dawnbringer",
+    "granary",
+    "lumber_storage",
+    "treasury",
+    "warehouse"
   ],
   "homeRaids": {
     "firstAt": 300,
@@ -172,21 +176,21 @@
     "perWave": 1,
     "maxCount": 8,
     "warningLines": [
-      "Horns on the night wind \u2014 riders under a pale moon. To the walls! They come in {count} heartbeats of {seconds}.",
+      "Horns on the night wind — riders under a pale moon. To the walls! They come in {count} heartbeats of {seconds}.",
       "Dust on the border roads and a horn through the pines. {count} raiders, {seconds} breaths out. Light the lamps.",
-      "The watchfire gutters \u2014 hoofbeats past the treeline. {count} coming, {seconds} to bar the doors."
+      "The watchfire gutters — hoofbeats past the treeline. {count} coming, {seconds} to bar the doors."
     ],
     "attackLines": [
-      "Wave {wave} \u2014 {count} raiders! Hold the manor!",
-      "They are over the fence! Wave {wave}, {count} strong \u2014 stand together!"
+      "Wave {wave} — {count} raiders! Hold the manor!",
+      "They are over the fence! Wave {wave}, {count} strong — stand together!"
     ],
     "victoryLines": [
-      "The bell rings long \u2014 the Manner stands. {kills} fell, their pouches ours (+{loot} gold). Mend what broke.",
+      "The bell rings long — the Manner stands. {kills} fell, their pouches ours (+{loot} gold). Mend what broke.",
       "Quiet again. {kills} raiders down, +{loot} gold in salvage. Oil the hinges and reset the traps."
     ],
     "defeatLines": [
       "The hall is ash and the bell is silent. Take the salvage wood and raise the beams again at dawn.",
-      "They broke the manor and melted into the trees. Salvage what you can \u2014 the village rises again."
+      "They broke the manor and melted into the trees. Salvage what you can — the village rises again."
     ],
     "director": {
       "minQuiet": 240,
@@ -303,11 +307,14 @@
       "id": "masonry",
       "branch": "Construction",
       "name": "Stone construction",
-      "text": "Replace exposed timber with stone defenses.",
+      "text": "Raise stronger stonework and formal storehouses. Research also opens the third Farm, Timber Yard, and Mine slot plus core tiers 4–5.",
       "unlocks": [
         "stonewall",
         "gate",
-        "rampart"
+        "rampart",
+        "granary",
+        "lumber_storage",
+        "treasury"
       ],
       "requires": [],
       "points": 10,
@@ -321,10 +328,11 @@
       "id": "engineering",
       "branch": "Construction",
       "name": "Master engineering",
-      "text": "Equip your builders for large projects.",
+      "text": "Turn masonry into an engineered settlement. Unlock the Warehouse, fourth producer slots, and the final core tier.",
       "unlocks": [
         "toolkit",
-        "fine-tinkerkit"
+        "fine-tinkerkit",
+        "warehouse"
       ],
       "requires": [
         "masonry"

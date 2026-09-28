@@ -3,8 +3,9 @@ import {builderBonuses,center,unlockedAbilities,stats,auras,gatherBonus} from '.
 import {hasTrait, jobLevelMult} from './villagers.js';
 import {move} from './pathfinding.js';
 import {sfx} from './audio.js';
-// Open resource maps: new keys (frostwood onward) ride without a schema
-// change, and pre-frostwood saves (no frostwood key yet) haul without NaN-ing.
+// Open resource maps: kept for non-production reward paths. Collector
+// villagers no longer call this; their work is deposited into producer
+// reserves and reaches settlement storage only through manual collection.
 export function addResource(world,resource,amount) {if(!resource)return;world.resources[resource]=(world.resources[resource]||0)+amount;world.gathered[resource]=(world.gathered[resource]||0)+amount;}
 // Clash-style reserves: production piles up on the building (capped by data
 // `harvest.capacity` + `harvest.perTier`, see resources.js) and only lands
@@ -134,10 +135,20 @@ export function tickEconomy(world,data,dt) {
   if(!Number.isFinite(capacity)||capacity<=0)capacity=1;
   if(!Number.isFinite(u.carry)||u.carry<0)u.carry=0;
   if(u.carry>=capacity)u.phase='return';
-  const target=u.phase==='return'?hall:source;
+  // Collectors now work the source and add their haul to that producer's
+  // capped on-site buffer. They never bypass storage by pouring directly
+  // into the shared resource pool.
+  const target=source;
   const speed = stats(u,data).speed;
   if(move(world,data,u,center(target,data),speed,dt,1.6,false,true)) {
-   if(u.phase==='return'){addResource(world,spec.gatherResource,u.carry);const cp=center(hall,data);floatText(world,cp.x,cp.y,resourceLabel(spec.gatherResource,u.carry),'#ffe9a8');sparkle(world,cp.x,cp.y);u.carry=0;u.phase='gather';}
+   if(u.phase==='return'){
+    const srcSpec=data.buildings[source.type],cap=reserveCapacity(srcSpec,source.level);
+    const held=Number.isFinite(source.harvestBonus)?Math.max(0,source.harvestBonus):0;
+    const room=Math.max(0,cap-held),deposited=Math.min(room,u.carry);
+    if(deposited>0)source.harvestBonus=held+deposited;
+    u.carry=Math.max(0,u.carry-deposited);
+    if(u.carry<.001){u.carry=0;u.phase='gather';}
+   }
    else {
     const bonus=unlockedAbilities(u,data).filter(a=>a.effect==='gather').reduce((n,a)=>n+a.value,1);
     const midC = midgameRate(world.elapsed, 0.85);

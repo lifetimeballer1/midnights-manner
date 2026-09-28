@@ -102,14 +102,14 @@ test('fishermen need a pond; with one, catches land as food', () => {
   w.troops.push(fisher);
   const before = w.resources.food;
   for (let i = 0; i < 200; i++) tickEconomy(w, data, .05); // farms only
-  const farmOnly = w.resources.food;
-  assert.ok(farmOnly >= before);
+  assert.equal(w.resources.food, before, 'uncollected farms do not bank food');
   const pond = makeBuilding('pond', 2, 2, data); pond.remaining = 0;
   w.buildings.push(pond);
   fisher.workplace = pond.id;
   fisher.x = 3; fisher.y = 3;
   for (let i = 0; i < 1200; i++) tickEconomy(w, data, .05);
-  assert.ok(w.resources.food > farmOnly + 20, 'pond catches should beat passive farm income');
+  assert.ok((pond.harvestBonus||0) > 20, 'pond catches accumulate on the workplace for collection');
+  assert.equal(w.resources.food, before, 'fishermen cannot bypass settlement storage');
 });
 
 test('quest walkthrough pays XP and rewards in order', () => {

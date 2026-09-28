@@ -199,11 +199,12 @@ test('ph3: welcoming hands raise cottage beds, capped at +3', () => {
   assert.equal(housing(g.world, d).beds, beds0, 'unassigned hands warm no beds');
 });
 
-test('ph3: cottage tier 3 houses 16; the Longhouse waits for level 5', () => {
+test('ph3: cottage tier 3 houses 16; the Longhouse waits for level 5 and grows through three tiers', () => {
   assert.deepEqual(data.buildings.cottage.housing, [6, 10, 16]);
   assert.equal(data.buildings.cottage.tiers.length, 3);
   assert.equal(data.buildings.cottage.tiers[2].hp, 640);
-  assert.deepEqual(data.buildings.longhouse.housing, [14]);
+  assert.deepEqual(data.buildings.longhouse.housing, [14, 24, 38]);
+  assert.equal(data.buildings.longhouse.tiers.length, 3);
   assert.equal(data.buildings.longhouse.minLevel, 5);
   const d = structuredClone(data);
   const g = new Game(d);
