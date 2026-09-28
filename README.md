@@ -37,6 +37,9 @@ There are no npm dependencies to install. Serve over HTTP; opening `index.html` 
 
 ## Mobile game interface
 
+The moonlit kingdom interface (`src/kingdom.css`) unifies the HUD, camera controls, menus, welcome screen and settings with navy enamel, brass trim and light parchment cards. Original inline SVG action icons stay sharp at phone sizes. The bottom dock highlights the open menu, search and filters remain available, and reduced-motion preferences are respected. The drawer includes persistent navigation between Build, People, Adventure, Stores and Friends; settings use visible toggle states. Build cards appear before the village statistics, and research cards distinguish ready, active and completed discoveries. This presentation layer changes no gameplay or save data.
+
+
 ### Resource clarity and mobile polish
 
 Collection bubbles show the exact resource with an original icon and a full label, such as **+40 Wood** or **+7 Food**. Automatic income and delivery feedback also name their resource. Bubbles keep fixed-size touch targets and spread apart in crowded villages. Tap a resource total in the HUD to open **Resources**, see stored amounts and ready bonuses, and collect from individual sources.
