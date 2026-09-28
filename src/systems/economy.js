@@ -89,10 +89,10 @@ export function tickEconomy(world,data,dt) {
   // their normal gather/deliver loop. Explicit player orders retain priority.
   if(spec.role!=='collector'){
    const workplace=world.buildings.find(b=>b.id===u.workplace&&b.hp>0&&b.remaining<=0);
-   if(workplace&&spec.role!=='combat'&&!u.order)move(world,data,u,center(workplace,data),stats(u,data).speed,dt,data.buildings[workplace.type].size/2+.6);
+   if(workplace&&spec.role!=='combat'&&!u.order)move(world,data,u,center(workplace,data),stats(u,data).speed,dt,data.buildings[workplace.type].size/2+.6,false,true);
    continue;
   }
-  if(u.order&&u.order.kind==='move'&&Number.isFinite(u.order.x)){if(move(world,data,u,u.order,stats(u,data).speed,dt,.4))u.order=null;continue;}
+  if(u.order&&u.order.kind==='move'&&Number.isFinite(u.order.x)){if(move(world,data,u,u.order,stats(u,data).speed,dt,.4,false,true))u.order=null;continue;}
   if(u.order&&u.order.kind==='hold')continue;
   if(u.expedition)continue;
   if(!spec.gatherResource)continue;
@@ -110,7 +110,7 @@ export function tickEconomy(world,data,dt) {
   if(u.carry>=capacity)u.phase='return';
   const target=u.phase==='return'?hall:source;
   const speed = stats(u,data).speed;
-  if(move(world,data,u,center(target,data),speed,dt,1.6)) {
+  if(move(world,data,u,center(target,data),speed,dt,1.6,false,true)) {
    if(u.phase==='return'){addResource(world,spec.gatherResource,u.carry);const cp=center(hall,data);floatText(world,cp.x,cp.y,resourceLabel(spec.gatherResource,u.carry),'#ffe9a8');sparkle(world,cp.x,cp.y);u.carry=0;u.phase='gather';}
    else {
     const bonus=unlockedAbilities(u,data).filter(a=>a.effect==='gather').reduce((n,a)=>n+a.value,1);

@@ -95,17 +95,17 @@ export function tickCombat(world,data,dt) {
   if(unit.emergency)continue;
   const order=unit.order;
   if(order&&order.kind==='move'&&Number.isFinite(order.x)&&Number.isFinite(order.y)){
-   if(move(world,data,unit,order,s.speed,dt,.4))unit.order=null;
+   if(move(world,data,unit,order,s.speed,dt,.4,false,true))unit.order=null;
    continue;
   }
   if(order&&order.kind==='hold'){const e2=world.enemies.filter(e=>e.hp>0).sort((a,b)=>distance(unit,a)-distance(unit,b))[0];if(e2&&distance(unit,e2)<=s.range&&unit.attackTimer<=0){const dealt=s.damage*(1+aura.damage);e2.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,e2,data.items[unit.gear].animation);dmgNum(world,e2,dealt);}continue;}
   if(order&&order.kind==='attack'){const tgt=world.enemies.find(e=>e.id===order.targetId&&e.hp>0);if(!tgt){unit.order=null;continue;}
-   if(move(world,data,unit,tgt,s.speed,dt,s.range)&&unit.attackTimer<=0){const dealt=s.damage*(1+aura.damage);tgt.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,tgt,data.items[unit.gear].animation);dmgNum(world,tgt,dealt);}continue;}
+   if(move(world,data,unit,tgt,s.speed,dt,s.range,false,true)&&unit.attackTimer<=0){const dealt=s.damage*(1+aura.damage);tgt.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,tgt,data.items[unit.gear].animation);dmgNum(world,tgt,dealt);}continue;}
   if(!world.enemies.length){unit.hp=Math.min(stats(unit,data).hp,unit.hp+dt*2);continue;}
   if(data.troops[unit.type].role!=='combat')continue;
   const enemy=defenseTarget(world,data,unit);if(!enemy)continue;
   if(s.range>2&&distance(unit,enemy)<1.7)retreat(world,data,unit,enemy,s.speed,dt);
-  if(move(world,data,unit,enemy,s.speed,dt,s.range)&&unit.attackTimer<=0){
+  if(move(world,data,unit,enemy,s.speed,dt,s.range,false,true)&&unit.attackTimer<=0){
    const dealt=s.damage*(1+aura.damage);
    enemy.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,enemy,data.items[unit.gear].animation);dmgNum(world,enemy,dealt);
    for(const a of unlockedAbilities(unit,data)) if(a.effect==='splash')for(const other of world.enemies)if(other!==enemy&&distance(other,enemy)<a.radius)other.hp-=s.damage*a.factor;
@@ -122,7 +122,9 @@ export function tickCombat(world,data,dt) {
    const mult=1+siegeBonus(world,data),dealt=(tier.damage||0)*mult;
    enemy.hp-=dealt;
    if(tier.burn)enemy.burn={dps:tier.burn*mult,timer:tier.burnDuration||3};
-   b.cooldown=b.type==='trap'?8:1.2;effect(world,c,enemy,b.type==='trap'?'slam':'arrow');dmgNum(world,enemy,dealt);
+   // Slow heavy engines (the ballista's data `cooldown`) reload on
+   // their own rhythm; everything else keeps the classic cadence.
+   b.cooldown=tier.cooldown??(b.type==='trap'?8:1.2);effect(world,c,enemy,b.type==='trap'?'slam':'arrow');dmgNum(world,enemy,dealt);
   }
  }
  for(const enemy of world.enemies) {
