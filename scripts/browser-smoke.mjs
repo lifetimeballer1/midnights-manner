@@ -82,6 +82,8 @@ try{
  for(let i=0;i<3;i++){
   await click('[data-tab="troops"]');await waitFor('Boolean(document.querySelector(".idle-bar"))');
   if(!(await evaluate('Boolean(document.querySelector("[data-autoassign]:not([disabled])"))')))break;
+  await screenshot('troops-before-autoassign');
+  console.log('AUTOASSIGN',await evaluate('(()=>{const els=[...document.querySelectorAll("[data-autoassign]")];return JSON.stringify({count:els.length,info:els.map(e=>({disabled:e.disabled,rects:e.getClientRects().length,btn:e.outerHTML.slice(0,140),hidden:(e.closest("[hidden]")?.id||e.closest("[hidden]")?.tagName)||null,btnDisplay:getComputedStyle(e).display,parDisplay:e.parentElement?getComputedStyle(e.parentElement).display:null,idleBars:document.querySelectorAll(".idle-bar").length}))});})()'));
   await click('[data-autoassign]');
   try{await waitFor('document.querySelector("#status").textContent.includes("idle hand")||document.querySelector("[data-autoassign][disabled]")',25);break;}
   catch(e){if(i===2)throw e;}
