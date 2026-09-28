@@ -92,7 +92,7 @@ test('story item 2: trade-names combine a given name with a trade', () => {
   assert.equal(makeTradeName({given: [], trade: []}), null);
 });
 
-test('story item 2: every 10th arrival earns a trade-name; flavor needs no save keys', () => {
+test('story item 2: every arrival is somebody now; flavor needs no save keys', () => {
   const d = structuredClone(data);
   const state = freshState(d);
   state.world.buildings.push(makeBuilding('cottage', 2, 2, d), makeBuilding('cottage', 4, 4, d));
@@ -104,19 +104,23 @@ test('story item 2: every 10th arrival earns a trade-name; flavor needs no save 
   tickVillage(state, d, 0.2, m => messages.push(m));
   assert.equal(state.world.troops.length, 10);
   const arrival = state.world.troops[9];
-  assert.ok(typeof arrival.name === 'string' && arrival.name.includes(' '), 'named arrival');
+  // Phase 7: every arrival is named from the pools (a quarter carry a
+  // trade epithet), not just every tenth down the road.
+  assert.ok(typeof arrival.name === 'string' && arrival.name.length > 0, 'named arrival');
   const [given, ...rest] = arrival.name.split(' ');
   assert.ok(d.names.given.includes(given), 'given name from the pool');
-  assert.ok(d.names.trade.includes(rest.join(' ')), 'trade name from the pool');
+  if (rest.length) assert.ok(d.names.trade.includes(rest.join(' ')), 'epithet from the pool');
+  assert.ok(Array.isArray(arrival.traits) && arrival.traits.length > 0, 'arrival tempered');
   assert.ok(messages.some(m => m.includes(arrival.name)), 'village announces the name');
   // Flavor-only: no persisted state of its own. (The living-world layer
   // later added calendar/trade keys under save version 3, the raid
   // clock + unlock re-deal under save version 4, the armor wardrobe
   // under save version 5, prestige stars + the cairn roll under save
   // version 6, the phantom-null cleanup under save version 7, and the
-  // tap-reserve clamp under save version 8, and the Phase-6 defense
-  // cooldown normalization under save version 9.)
-  assert.equal(VERSION, 9);
+  // tap-reserve clamp under save version 8, the Phase-6 defense
+  // cooldown normalization under save version 9, and the Phase-7
+  // villager identity (names, traits, job ledgers) under save version 10.)
+  assert.equal(VERSION, 10);
   for (const key of ['records', 'boardSeen', 'tradeDay', 'calendarDay', 'tradeNames'])
     assert.ok(!(key in state), `no save key ${key}`);
 });

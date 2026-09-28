@@ -112,6 +112,8 @@ test('phase7: smart auto-assignment matches traits; manual locks never move', ()
   smith.traits = ['craftsman']; smith.jobXp = 0; smith.jobLevel = 1; smith.x = 2.5; smith.y = 6.5;
   const till = makeUnit('farmer', data, 1);
   till.traits = ['hard_worker']; till.jobXp = 0; till.jobLevel = 1; till.x = 6.5; till.y = 6.5;
+  // Clear the starting muster: only our two hands are in the village.
+  g.world.troops = [];
   g.world.troops.push(smith, till);
   const plain = makeUnit('weaponsmith', data, 9);
   plain.traits = ['hard_worker'];
@@ -139,6 +141,8 @@ test('phase7: idle-worker detection lists posted gaps, never fighters or busy ha
   f.traits = ['brave']; f.jobXp = 0; f.jobLevel = 1;
   const b = makeUnit('farmer', data, 2);
   b.traits = ['brave']; b.jobXp = 0; b.jobLevel = 1;
+  // Clear the starting muster: only our three hands are in the village.
+  g.world.troops = [];
   g.world.troops.push(a, f, b);
   g.assign(b.id, farm.id);
   const idle = idleWorkers(g.world, data).map(u => u.id);
@@ -233,7 +237,10 @@ test('phase7: strong carriers deliver visibly fuller baskets', () => {
   hauler.x = farm.x + 0.5; hauler.y = farm.y + 0.5;
   hauler.carry = 0; hauler.phase = 'gather';
   g.world.troops.push(hauler);
-  // Work a full half-minute at the rows: the old 10-carry line is passed.
-  for (let i = 0; i < 120; i++) tickEconomy(g.world, data, 0.25);
+  // Work until the basket is full and the hauler turns for home: a strong
+  // back fills past the old 10-carry line (12.5) before turning.
+  let guard = 0;
+  while (hauler.phase !== 'return' && guard++ < 2000) tickEconomy(g.world, data, 0.25);
+  assert.equal(hauler.phase, 'return', 'basket filled');
   assert.ok(hauler.carry > 10, `strong basket fills past the old 10-carry line (carry ${hauler.carry})`);
 });

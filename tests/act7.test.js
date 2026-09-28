@@ -346,6 +346,9 @@ test('ph13: a shared workplace stacks — healer and chorister mend as one', () 
   w.buildings.push(ch);
   const h = makeUnit('healer', d, 0); h.level = 1; h.gear = null;
   const c = makeUnit('chorister', d, 1); c.level = 1; c.gear = null;
+  // Phase 7: posting rolls no surprises here — neutral temperaments pin
+  // the stacking math (Hard Worker would quicken the shares).
+  h.traits = ['brave']; c.traits = ['brave'];
   w.troops.push(h, c);
   g.assign(h.id, ch.id);
   g.assign(c.id, ch.id);
@@ -413,6 +416,7 @@ test('ph13: hymnal and robe dress the choir', () => {
   const c = makeUnit('chorister', d, 0);
   c.level = 1; c.gear = 'hymnal'; c.owned = ['hymnal'];
   c.armor = 'choir-robe'; c.armorOwned = ['choir-robe'];
+  c.traits = ['brave']; // Phase 7: neutral temperament pins the wardrobe math.
   w.troops.push(c);
   g.assign(c.id, ch.id);
   // 1.5 base share + 0.8 hymnal aura + 10 robe mending, one posted voice.
