@@ -3,12 +3,12 @@
 import {spawn} from 'node:child_process';
 import {mkdtemp,rm,writeFile,mkdir,readFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
-import {join,extname,resolve} from 'node:path';
+import {join,extname,resolve,relative,isAbsolute} from 'node:path';
 import {createServer} from 'node:http';
 import assert from 'node:assert/strict';
 const root=resolve('dist'),profile=await mkdtemp(join(tmpdir(),'midnight-browser-'));
 let updateFixture=false;
-const server=createServer(async(req,res)=>{try{let path=decodeURIComponent(new URL(req.url,'http://localhost').pathname).replace(/^\/midnights-manner\//,'');if(!path||path==='/')path='index.html';const file=resolve(root,path);if(!file.startsWith(root+'/'))throw Error('Invalid path');res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.json':'application/json','.css':'text/css','.png':'image/png','.svg':'image/svg+xml'})[extname(file)]||'application/octet-stream');let contents=await readFile(file);if(updateFixture&&path==='sw.js')contents=Buffer.from(contents.toString().replace(/const CACHE=PREFIX\+"[^"]+";/,'const CACHE=PREFIX+"browser-update-fixture";'));if(updateFixture&&path==='index.html')contents=Buffer.from(contents.toString().replace(/name="game-build" content="[^"]+"/,'name="game-build" content="browser-update-fixture"'));res.end(contents);}catch{res.writeHead(404);res.end('Not found');}});
+const server=createServer(async(req,res)=>{try{let path=decodeURIComponent(new URL(req.url,'http://localhost').pathname).replace(/^\/midnights-manner\//,'');if(!path||path==='/')path='index.html';const file=resolve(root,path);const rel=relative(root,file);if(rel.startsWith('..')||isAbsolute(rel))throw Error('Invalid path');res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.json':'application/json','.css':'text/css','.png':'image/png','.svg':'image/svg+xml'})[extname(file)]||'application/octet-stream');let contents=await readFile(file);if(updateFixture&&path==='sw.js')contents=Buffer.from(contents.toString().replace(/const CACHE=PREFIX\+"[^"]+";/,'const CACHE=PREFIX+"browser-update-fixture";'));if(updateFixture&&path==='index.html')contents=Buffer.from(contents.toString().replace(/name="game-build" content="[^"]+"/,'name="game-build" content="browser-update-fixture"'));res.end(contents);}catch{res.writeHead(404);res.end('Not found');}});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const port=server.address().port;
 const chrome=spawn(process.env.CHROME_BIN||'google-chrome',['--headless=new','--no-sandbox','--disable-gpu','--remote-debugging-port=0',`--user-data-dir=${profile}`,'about:blank'],{stdio:['ignore','ignore','pipe']});

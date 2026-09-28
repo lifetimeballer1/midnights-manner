@@ -1,3 +1,12 @@
+## Presentation pass — Phase 1: Baseline harness (2026-09-28)
+
+- Local Windows verification is real: `npm test` 440/440 (rebase-merged with the Phase 12 endgame suite), `npm run build` green, `npm run test:browser` green on Chromium Edge. Fixed `scripts/browser-smoke.mjs`'s static-server path guard (`resolve('dist')` plus a hardcoded `/` never matches Windows backslash paths, so every file 404'd off-CI). No game behavior change.
+- Deterministic look harness: `npm run capture` (`scripts/look-capture.mjs`) pins camera, calm motion and a clear-sky clock, then writes `artifacts/look-desktop-{dawn,day,dusk,night}.png` and `artifacts/look-phone-night.png`; run after `npm run build`.
+- Test-only drivers added to `window.midnightsManner`: `setElapsed(seconds)` and `setCamera({yaw,pitch,zoom,x,y})` — transient view/clock state only, never saves, rules or placement.
+- `frameReport()` now reports painted and cached face counts; the `?perf` badge shows them.
+- `tests/lighting-baseline.test.js` (3 checks) characterizes fixed-light mesh shading (digests for 8 canonical meshes plus a four-yaw hall) and pins the invariant that the sky clock never rebuilds the static mesh cache. Phase 2 updates the digests deliberately in one reviewed commit, with a note.
+- `npm test` total 412 → 440 (3 characterization checks here, 25 from the Phase 12 endgame merge); README verification refreshed. No save fields, no save-version change.
+
 ## Unreleased — Notice board (Phase 9)
 
 - Patch notes live inside the game: a notice board fed by data/updates.json opens a "What's new" modal the first time a village sees a new version.
