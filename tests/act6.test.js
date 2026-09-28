@@ -156,8 +156,9 @@ test('ph6: woodwards walk the cold rows end to end', () => {
   g.assign(warden.id, grove.id);
   assert.equal(gatherBonus(warden, g.world, d), 1.25, 'posted wardens split 25% faster');
   for (let i = 0; i < 2000; i++) tickEconomy(g.world, d, 0.05);
-  assert.ok(g.world.gathered.frostwood > 0, 'frostwood hauled');
-  assert.ok(g.world.resources.frostwood > 0, 'frostwood banked');
+  assert.ok(grove.harvestBonus > 0, 'frostwood haul waits on the grove');
+  assert.equal(g.world.resources.frostwood, 0, 'workers do not bypass collection storage');
+  assert.equal(g.world.gathered.frostwood, 0, 'gathered ledger advances only when the player collects');
   assert.ok(grove.reserve < grove.maxReserve, 'the living node visibly drains');
 });
 
@@ -176,7 +177,7 @@ test('ph6: the Winter Coat rides the armor axis into gathers and blows', () => {
     w.troops.push(u);
     if (coated) { u.armorOwned = ['winter-coat']; u.armor = 'winter-coat'; }
     for (let i = 0; i < 1200; i++) tickEconomy(w, d, 0.05);
-    return w.gathered.frostwood;
+    return grove.harvestBonus||0;
   };
   assert.ok(run(true) > run(false), 'the coat warms the haul');
   const u = makeUnit('woodward', d, 0);
@@ -547,8 +548,8 @@ test('ph8: divers walk the dark water end to end', () => {
   g.assign(dv.id, hole.id);
   assert.equal(gatherBonus(dv, g.world, d), 1.25, 'posted divers haul 25% faster');
   for (let i = 0; i < 2000; i++) tickEconomy(g.world, d, 0.05);
-  assert.ok(g.world.gathered.food > 0, 'dark-water food hauled');
-  assert.ok(g.world.resources.food > 0, 'dark-water food banked');
+  assert.ok(hole.harvestBonus > 0, 'dark-water food waits on the Deephole');
+  assert.equal(g.world.gathered.food, 0, 'uncollected catches do not enter the gathered ledger');
   assert.ok(hole.reserve < hole.maxReserve, 'the living node visibly drains');
 });
 
@@ -591,12 +592,12 @@ test('ph9: the Emberglass waits on a tier-2 mine (same generic chain gate)', () 
   assert.equal(cut.maxReserve, 500);
 });
 
-test('ph9: Mine Tier 3 already stands — the quest only demands the climb', () => {
+test('ph9: Mine Tier 3 remains the quest milestone inside the six-tier mine', () => {
   const tiers = data.buildings.mine.tiers;
-  assert.equal(tiers.length, 3, 'the old mine always had the third tier');
+  assert.equal(tiers.length, 6, 'the mine now has a full six-tier progression');
   assert.equal(tiers[2].sprite, 'mine-3.png');
-  assert.equal(tiers[2].rateMultiplier, 3);
-  assert.equal(new Set(tiers.map(t => t.sprite)).size, 3, 'tiers stay visually distinct');
+  assert.equal(tiers[2].rateMultiplier, 3, 'the original quest milestone keeps its old output');
+  assert.equal(new Set(tiers.map(t => t.sprite)).size, 6, 'all six tiers stay visually distinct');
 });
 
 test('ph9: the Sapper shares the G1 collector track — zero new abilities', () => {
@@ -701,8 +702,8 @@ test('ph9: sappers cut the glowing seams end to end', () => {
   g.assign(sp.id, shaft.id);
   assert.equal(gatherBonus(sp, g.world, d), 1.25, 'posted sappers cut 25% faster');
   for (let i = 0; i < 2000; i++) tickEconomy(g.world, d, 0.05);
-  assert.ok(g.world.gathered.gold > 0, 'glowing gold cut');
-  assert.ok(g.world.resources.gold > 0, 'glowing gold banked');
+  assert.ok(shaft.harvestBonus > 0, 'glowing gold waits at the shaft');
+  assert.equal(g.world.gathered.gold, 0, 'uncollected gold does not enter the gathered ledger');
   assert.ok(shaft.reserve < shaft.maxReserve, 'the living node visibly drains');
 });
 
