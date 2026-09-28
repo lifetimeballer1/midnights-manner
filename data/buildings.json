@@ -29,21 +29,21 @@
         "range": 0.75
       },
       {
-        "sprite": "hall-3.png",
+        "sprite": "hall-4.png",
         "hp": 3400,
         "rateMultiplier": 4,
         "damage": 0,
         "range": 0.75
       },
       {
-        "sprite": "hall-3.png",
+        "sprite": "hall-5.png",
         "hp": 4250,
         "rateMultiplier": 5,
         "damage": 0,
         "range": 0.75
       },
       {
-        "sprite": "hall-3.png",
+        "sprite": "hall-6.png",
         "hp": 5100,
         "rateMultiplier": 6,
         "damage": 0,
@@ -71,8 +71,8 @@
       ]
     },
     "tierRequires": {
-      "4": "core-tier-4",
-      "6": "core-tier-6"
+      "4": "masonry",
+      "6": "engineering"
     }
   },
   "farm": {
@@ -109,21 +109,21 @@
         "range": 0.75
       },
       {
-        "sprite": "farm-3.png",
+        "sprite": "farm-4.png",
         "hp": 640,
         "rateMultiplier": 4,
         "damage": 0,
         "range": 0.75
       },
       {
-        "sprite": "farm-3.png",
+        "sprite": "farm-5.png",
         "hp": 800,
         "rateMultiplier": 5,
         "damage": 0,
         "range": 0.75
       },
       {
-        "sprite": "farm-3.png",
+        "sprite": "farm-6.png",
         "hp": 960,
         "rateMultiplier": 6,
         "damage": 0,
@@ -136,19 +136,19 @@
       "perTier": 500
     },
     "tierRequires": {
-      "4": "core-tier-4",
-      "6": "core-tier-6"
+      "4": "masonry",
+      "6": "engineering"
     },
     "limit": {
       "base": 2,
       "max": 4,
       "unlocks": [
         {
-          "id": "farm-slot-3",
+          "research": "masonry",
           "count": 3
         },
         {
-          "id": "farm-slot-4",
+          "research": "engineering",
           "count": 4
         }
       ]
@@ -189,21 +189,21 @@
         "range": 0.75
       },
       {
-        "sprite": "lumber-3.png",
+        "sprite": "lumber-4.png",
         "hp": 760,
         "rateMultiplier": 4,
         "damage": 0,
         "range": 0.75
       },
       {
-        "sprite": "lumber-3.png",
+        "sprite": "lumber-5.png",
         "hp": 950,
         "rateMultiplier": 5,
         "damage": 0,
         "range": 0.75
       },
       {
-        "sprite": "lumber-3.png",
+        "sprite": "lumber-6.png",
         "hp": 1140,
         "rateMultiplier": 6,
         "damage": 0,
@@ -216,19 +216,19 @@
       "perTier": 500
     },
     "tierRequires": {
-      "4": "core-tier-4",
-      "6": "core-tier-6"
+      "4": "masonry",
+      "6": "engineering"
     },
     "limit": {
       "base": 2,
       "max": 4,
       "unlocks": [
         {
-          "id": "lumber-slot-3",
+          "research": "masonry",
           "count": 3
         },
         {
-          "id": "lumber-slot-4",
+          "research": "engineering",
           "count": 4
         }
       ]
@@ -298,21 +298,21 @@
         "range": 0.75
       },
       {
-        "sprite": "mine-3.png",
+        "sprite": "mine-4.png",
         "hp": 920,
         "rateMultiplier": 4,
         "damage": 0,
         "range": 0.75
       },
       {
-        "sprite": "mine-3.png",
+        "sprite": "mine-5.png",
         "hp": 1150,
         "rateMultiplier": 5,
         "damage": 0,
         "range": 0.75
       },
       {
-        "sprite": "mine-3.png",
+        "sprite": "mine-6.png",
         "hp": 1380,
         "rateMultiplier": 6,
         "damage": 0,
@@ -325,19 +325,19 @@
       "perTier": 500
     },
     "tierRequires": {
-      "4": "core-tier-4",
-      "6": "core-tier-6"
+      "4": "masonry",
+      "6": "engineering"
     },
     "limit": {
       "base": 2,
       "max": 4,
       "unlocks": [
         {
-          "id": "mine-slot-3",
+          "research": "masonry",
           "count": 3
         },
         {
-          "id": "mine-slot-4",
+          "research": "engineering",
           "count": 4
         }
       ]
@@ -723,14 +723,14 @@
         "range": 0.75
       },
       {
-        "sprite": "longhouse-1.png",
+        "sprite": "longhouse-2.png",
         "hp": 1500,
         "rateMultiplier": 1.6,
         "damage": 0,
         "range": 0.75
       },
       {
-        "sprite": "longhouse-1.png",
+        "sprite": "longhouse-3.png",
         "hp": 2300,
         "rateMultiplier": 2.4,
         "damage": 0,
@@ -738,8 +738,8 @@
       }
     ],
     "tierRequires": {
-      "2": "longhouse-tier-2",
-      "3": "longhouse-tier-3"
+      "2": "masonry",
+      "3": "engineering"
     }
   },
   "pond": {
@@ -1763,47 +1763,47 @@
     },
     "maxPerVillage": 1,
     "tierRequires": {
-      "4": "core-tier-4",
-      "6": "core-tier-6"
+      "4": "masonry",
+      "6": "engineering"
     },
     "tiers": [
       {
-        "sprite": "mill-1.png",
+        "sprite": "granary-1.png",
         "hp": 220,
         "rateMultiplier": 1,
         "damage": 0,
         "range": 0.75
       },
       {
-        "sprite": "mill-1.png",
+        "sprite": "granary-2.png",
         "hp": 330,
         "rateMultiplier": 2,
         "damage": 0,
         "range": 0.75
       },
       {
-        "sprite": "mill-2.png",
+        "sprite": "granary-3.png",
         "hp": 470,
         "rateMultiplier": 3,
         "damage": 0,
         "range": 0.75
       },
       {
-        "sprite": "mill-2.png",
+        "sprite": "granary-4.png",
         "hp": 640,
         "rateMultiplier": 4,
         "damage": 0,
         "range": 0.75
       },
       {
-        "sprite": "mill-2.png",
+        "sprite": "granary-5.png",
         "hp": 840,
         "rateMultiplier": 5,
         "damage": 0,
         "range": 0.75
       },
       {
-        "sprite": "mill-2.png",
+        "sprite": "granary-6.png",
         "hp": 1080,
         "rateMultiplier": 6,
         "damage": 0,
@@ -1836,47 +1836,47 @@
     },
     "maxPerVillage": 1,
     "tierRequires": {
-      "4": "core-tier-4",
-      "6": "core-tier-6"
+      "4": "masonry",
+      "6": "engineering"
     },
     "tiers": [
       {
-        "sprite": "sawmill-1.png",
+        "sprite": "lumber-storage-1.png",
         "hp": 230,
         "rateMultiplier": 1,
         "damage": 0,
         "range": 0.75
       },
       {
-        "sprite": "sawmill-1.png",
+        "sprite": "lumber-storage-2.png",
         "hp": 350,
         "rateMultiplier": 2,
         "damage": 0,
         "range": 0.75
       },
       {
-        "sprite": "sawmill-2.png",
+        "sprite": "lumber-storage-3.png",
         "hp": 500,
         "rateMultiplier": 3,
         "damage": 0,
         "range": 0.75
       },
       {
-        "sprite": "sawmill-2.png",
+        "sprite": "lumber-storage-4.png",
         "hp": 680,
         "rateMultiplier": 4,
         "damage": 0,
         "range": 0.75
       },
       {
-        "sprite": "sawmill-2.png",
+        "sprite": "lumber-storage-5.png",
         "hp": 890,
         "rateMultiplier": 5,
         "damage": 0,
         "range": 0.75
       },
       {
-        "sprite": "sawmill-2.png",
+        "sprite": "lumber-storage-6.png",
         "hp": 1140,
         "rateMultiplier": 6,
         "damage": 0,
@@ -1909,47 +1909,47 @@
     },
     "maxPerVillage": 1,
     "tierRequires": {
-      "4": "core-tier-4",
-      "6": "core-tier-6"
+      "4": "masonry",
+      "6": "engineering"
     },
     "tiers": [
       {
-        "sprite": "hall-1.png",
+        "sprite": "treasury-1.png",
         "hp": 280,
         "rateMultiplier": 1,
         "damage": 0,
         "range": 0.75
       },
       {
-        "sprite": "hall-1.png",
+        "sprite": "treasury-2.png",
         "hp": 420,
         "rateMultiplier": 2,
         "damage": 0,
         "range": 0.75
       },
       {
-        "sprite": "hall-2.png",
+        "sprite": "treasury-3.png",
         "hp": 600,
         "rateMultiplier": 3,
         "damage": 0,
         "range": 0.75
       },
       {
-        "sprite": "hall-2.png",
+        "sprite": "treasury-4.png",
         "hp": 810,
         "rateMultiplier": 4,
         "damage": 0,
         "range": 0.75
       },
       {
-        "sprite": "hall-2.png",
+        "sprite": "treasury-5.png",
         "hp": 1050,
         "rateMultiplier": 5,
         "damage": 0,
         "range": 0.75
       },
       {
-        "sprite": "hall-3.png",
+        "sprite": "treasury-6.png",
         "hp": 1330,
         "rateMultiplier": 6,
         "damage": 0,
@@ -1986,47 +1986,47 @@
     },
     "maxPerVillage": 1,
     "tierRequires": {
-      "4": "core-tier-4",
-      "6": "core-tier-6"
+      "4": "masonry",
+      "6": "engineering"
     },
     "tiers": [
       {
-        "sprite": "market-1.png",
+        "sprite": "warehouse-1.png",
         "hp": 260,
         "rateMultiplier": 1,
         "damage": 0,
         "range": 0.75
       },
       {
-        "sprite": "market-1.png",
+        "sprite": "warehouse-2.png",
         "hp": 390,
         "rateMultiplier": 2,
         "damage": 0,
         "range": 0.75
       },
       {
-        "sprite": "market-2.png",
+        "sprite": "warehouse-3.png",
         "hp": 560,
         "rateMultiplier": 3,
         "damage": 0,
         "range": 0.75
       },
       {
-        "sprite": "market-2.png",
+        "sprite": "warehouse-4.png",
         "hp": 760,
         "rateMultiplier": 4,
         "damage": 0,
         "range": 0.75
       },
       {
-        "sprite": "market-2.png",
+        "sprite": "warehouse-5.png",
         "hp": 990,
         "rateMultiplier": 5,
         "damage": 0,
         "range": 0.75
       },
       {
-        "sprite": "market-2.png",
+        "sprite": "warehouse-6.png",
         "hp": 1260,
         "rateMultiplier": 6,
         "damage": 0,
