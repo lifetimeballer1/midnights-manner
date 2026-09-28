@@ -4,19 +4,23 @@ import {distance,center,stats,unlockedAbilities,auras,gearArmor,proximityArmor,r
 import {move,blocked} from './pathfinding.js';
 import {enemyDamageMult,enemySpeedMult} from './daynight.js';
 import {isWall} from './walls.js';
+import {bossTick,bossAuraMult,isSiegeRole,eliteLootMult,renownDamageMult,renownLootMult,paragonDamageMult,markElites} from './endgame.js';
 import {sfx} from './audio.js';
 export function raidSides(wave,count) {
  const sides=['west','north','east','south'];
  return Array.from({length:Math.min(4,count)},(_,i)=>sides[(Math.max(0,wave-1)+i)%4]);
 }
-export function spawnRaid(world,count=4,scaling=null,data=null,faction=null) {
+export function spawnRaid(world,count=4,scaling=null,data=null,faction=null,opts=null) {
  world.wave++;world.raidTimer=0;world.raidAge=0;world.raidKills=world.raidKills??0;world.raidLoot=world.raidLoot??0;
  // Wave-scaled missions (the Pale Host onward): a mission may steepen the
  // climb through data `scaling: {hp, damage}` per wave. Home raids omit
  // it and ride the classic 65+12N curve untouched.
  const hpPer=scaling&&Number.isFinite(scaling.hp)?scaling.hp:12;
  const dmgPer=scaling&&Number.isFinite(scaling.damage)?scaling.damage:2;
- const hp=65+world.wave*hpPer,dmg=9+world.wave*dmgPer;
+ // Endgame ladder (Phase 12): multiplicative threat over the classic
+ // curve, passed as opts.scaling. No opts, no change — mid-game untouched.
+ const eg=opts?.scaling||null;
+ const hp=(65+world.wave*hpPer)*(eg?.hp||1),dmg=(9+world.wave*dmgPer)*(eg?.damage||1);
  // Use the settled perimeter, clamped to the configured navigation grid.
  const width=Math.min(world.bounds?.w||data?.world.width||20,data?.world.width||Infinity);
  const height=Math.min(world.bounds?.h||data?.world.height||17,data?.world.height||Infinity);
@@ -34,6 +38,8 @@ export function spawnRaid(world,count=4,scaling=null,data=null,faction=null) {
  // Flawless tracking (Rue's terms): a fresh raid opens the ledger with
  // zero building losses; multi-wave assaults keep one ledger per raid.
  if(!world.inRaid){world.inRaid=true;world.raidLosses=0;}
+ // Late-war veterans walk among the raiders — data chance, never bosses.
+ if(opts?.eliteChance>0&&data){try{markElites(world,data,opts.eliteChance,opts.random);}catch{}}
 }
 function push(world,effect){if(world.effects.length<140)world.effects.push(effect);}
 // Perf: linear nearest scan — replaces filter+sort+[0]. Strict < keeps the
@@ -142,13 +148,26 @@ export function tickCombat(world,data,dt) {
  for(const b of world.buildings) {
   if(b.hp<=0||b.remaining>0)continue;
   b.cooldown=Math.max(0,b.cooldown-dt);const tier=data.buildings[b.type].tiers[b.level-1];if(!tier.damage)continue;
-  const c=center(b,data),enemy=world.enemies.find(e=>e.hp>0&&distance(c,e)<tier.range);
+  const c=center(b,data);
+  // Late-war doctrine (Phase 12): bastions and siegebane tiers answer
+   // engines first — data `prefer: ["boss", "siege"]` aims them,
+   // data `siegebane` sharpens them. Everything else holds the classic
+   // nearest-raider discipline.
+   const prefer=tier.prefer||[];
+   const inRange=e=>e.hp>0&&distance(c,e)<tier.range;
+   let enemy=null;
+   if(prefer.length)enemy=world.enemies.find(e=>inRange(e)&&((prefer.includes('boss')&&e.role==='boss')||(prefer.includes('siege')&&isSiegeRole(data,e.role))));
+   if(!enemy)enemy=world.enemies.find(inRange);
   if(enemy&&b.cooldown===0){
    // Siege-craft: tongs-sharpened crews teach every defense — trap, tower
    // and watchfire all ride the same bonus. Phase 7: living Marksmen spot
    // for the towers (+2% each, max +20%). Fire traps add a burn stack:
    // damage-over-time from data `burn`/`burnDuration`, first of its kind.
-   const mult=1+siege+towerBonus,dealt=(tier.damage||0)*mult;
+   // Phase 12: renown sharpens every defense, paragon hones the engine,
+   // siegebane bites engines and crowns.
+   const mult=(1+siege+towerBonus)*renownDamageMult(world,data)*paragonDamageMult(b,data);
+   let dealt=(tier.damage||0)*mult;
+   if(tier.siegebane&&(enemy.role==='boss'||isSiegeRole(data,enemy.role)))dealt*=(1+tier.siegebane);
    enemy.hp-=dealt;
    if(tier.burn)enemy.burn={dps:tier.burn*mult,timer:tier.burnDuration||3};
    // Slow heavy engines (the ballista's data `cooldown`) reload on
@@ -163,6 +182,16 @@ export function tickCombat(world,data,dt) {
  const wallCenter=b=>{let c=wallCenters.get(b);if(!c){c=center(b,data);wallCenters.set(b,c);}return c;};
  for(const enemy of world.enemies) {
   if(enemy.hp<=0)continue;enemy.attackTimer=(enemy.attackTimer??0)-dt;
+  // Crowns of the late war (Phase 12): slam, muster, enrage and dread
+   // all tick here. Heralds ride float-text so the field reads the moment.
+   if(enemy.role==='boss'&&data){
+    try{
+     for(const ev of bossTick(world,data,enemy,dt)){
+      if(ev.kind==='enrage')push(world,{x:enemy.x,y:enemy.y,tx:enemy.x,ty:enemy.y-1.2,kind:'float',text:`${enemy.bossName||'The boss'} ENRAGED!`,color:'#ff6b5e',life:1.2});
+      else if(ev.kind==='summon')push(world,{x:enemy.x,y:enemy.y,tx:enemy.x,ty:enemy.y-1.2,kind:'float',text:`${enemy.bossName||'The boss'} musters ${ev.count}!`,color:'#ffb35e',life:1});
+     }
+    }catch{}
+   }
   // Burn ticks before blades: lit raiders smolder each second.
   if(enemy.burn&&enemy.burn.timer>0){enemy.hp-=enemy.burn.dps*dt;enemy.burn.timer-=dt;}
   if(enemy.hp<=0)continue;
@@ -224,7 +253,11 @@ export function tickCombat(world,data,dt) {
     if(targetUnit.oath)reduction+=0.25;try{reduction+=gearArmor(target,data);}catch{}
     try{reduction+=proximityArmor(target,world,data);}catch{}
     if(targetUnit.hp>0)for(const ally of world.troops){if(ally.id===target.id||ally.hp<=0)continue;try{for(const a of unlockedAbilities(ally,data))if(a.effect==='guard'&&distance(ally,target)<=a.radius)reduction+=a.value;}catch{}}}
-   const raw=enemy.damage*skyDmg*(1-Math.min(.8,reduction))*(!targetUnit&&isWall(target)?role.wallDamage||1:1);
+   // Dread courts (Phase 12): raiders fighting beside their living crown
+   // hit harder — the aura reads off every boss still standing.
+   let dread=1;
+   try{if(enemy.role!=='boss')dread=bossAuraMult(world,data,enemy);}catch{}
+   const raw=enemy.damage*dread*skyDmg*(1-Math.min(.8,reduction))*(!targetUnit&&isWall(target)?role.wallDamage||1:1);
    if(targetUnit&&raw>=target.hp&&!target.unbrokenUsed){try{if(unlockedAbilities(target,data).some(a=>a.effect==='unbroken')){target.hp=1;target.unbrokenUsed=true;enemy.attackTimer=1.3;push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y-1,kind:'float',text:'UNBROKEN!',color:'#ffe9a8',life:.9});effect(world,enemy,targetPoint,'slash');sfx.hit();continue;}}catch{}}
    target.hp=Math.max(0,target.hp-raw);enemy.attackTimer=1.3;effect(world,enemy,targetPoint,role.range>2?'arrow':'slash');push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y,kind:'hit',life:.18});sfx.hit();
    // Rue's ledger: a building that falls while raiders walk counts against
@@ -233,7 +266,16 @@ export function tickCombat(world,data,dt) {
   }
  }
  for(const e of world.enemies)if(e.hp<=0)push(world,{x:e.x,y:e.y,tx:e.x,ty:e.y,kind:'poof',life:.4});
- const dead=world.enemies.filter(e=>e.hp<=0).length;world.raidKills=(world.raidKills??0)+dead;const loot=dead*5;world.raidLoot=(world.raidLoot??0)+loot;world.resources.gold+=loot;
+ // Salvage (Phase 12): elites pay elite bounty, renown sweetens every
+ // purse. Boss crowns pay through the same ledger, tenfold.
+ const fallen=world.enemies.filter(e=>e.hp<=0);
+ const dead=fallen.length;world.raidKills=(world.raidKills??0)+dead;
+ let loot=0;
+ try{
+  const rMult=renownLootMult(world,data),eMult=eliteLootMult(data);
+  for(const f of fallen){loot+=Math.round(5*(f.role==='boss'?10:f.elite?eMult:1)*rMult);if(f.role==='boss')world.bossSlain=f.bossId;}
+ }catch{loot=dead*5;}
+ world.raidLoot=(world.raidLoot??0)+loot;world.resources.gold+=loot;
  world.enemies=world.enemies.filter(e=>e.hp>0);world.raidAge=(world.raidAge??0)+dt;
  if(world.enemies.length&&world.raidAge>240){
   // Failsafe: a raid dragging past 4 minutes is soft-locked — raiders flee.

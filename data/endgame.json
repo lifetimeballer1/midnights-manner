@@ -1,0 +1,112 @@
+{
+  "minLevel": 8,
+  "heraldBonusSeconds": 20,
+  "threatLadder": [
+    {
+      "id": "ember-watch",
+      "name": "Ember Watch",
+      "minLevel": 8,
+      "text": "War-engines on the horizon. The late war begins.",
+      "hpMult": 1.15,
+      "dmgMult": 1.1,
+      "partyBonus": 1,
+      "eliteChance": 0.08,
+      "siegeChance": 0.1
+    },
+    {
+      "id": "storm-siege",
+      "name": "Storm Siege",
+      "minLevel": 10,
+      "text": "The siege comes in earnest — rams at the gates, fire from afar.",
+      "hpMult": 1.3,
+      "dmgMult": 1.2,
+      "partyBonus": 2,
+      "eliteChance": 0.15,
+      "siegeChance": 0.2
+    },
+    {
+      "id": "eclipse",
+      "name": "Eclipse",
+      "minLevel": 11,
+      "text": "The sky goes dark at noon. Everything they have, all at once.",
+      "hpMult": 1.5,
+      "dmgMult": 1.35,
+      "partyBonus": 3,
+      "eliteChance": 0.25,
+      "siegeChance": 0.3
+    }
+  ],
+  "elites": {
+    "hpMult": 2.2,
+    "dmgMult": 1.4,
+    "lootMult": 3,
+    "prefixes": ["Elder", "Iron", "Scarred", "Night-eyed"]
+  },
+  "bossRule": {
+    "minLevel": 9,
+    "minWave": 10,
+    "every": 5,
+    "warningBonus": 20
+  },
+  "bosses": [
+    {
+      "id": "cinder-maul",
+      "name": "Gorm the Cinder-Maul",
+      "title": "Siege-lord of the Cinder Clan",
+      "minLevel": 9,
+      "minWave": 10,
+      "hpBase": 1200,
+      "hpPerWave": 90,
+      "dmgBase": 45,
+      "dmgPerWave": 3,
+      "speed": 0.55,
+      "range": 1.3,
+      "wallDamage": 4,
+      "mechanics": {
+        "slam": { "damage": 40, "radius": 1.6, "everySec": 8 },
+        "summon": { "role": "raider", "count": 2, "everySec": 25, "cap": 6 },
+        "enrage": { "hpFrac": 0.3, "dmgMult": 1.5 }
+      },
+      "herald": "🔥 The ground shakes — GORM THE CINDER-MAUL marches with wave {wave}! Rams and ruin follow him. {seconds} breaths to bar every gate!",
+      "attack": "Gorm the Cinder-Maul has come! Hold the walls — kill the siege-lord!",
+      "victory": "The Cinder-Maul lies broken before the gates! The manner stands — +{loot} gold in war salvage.",
+      "lore": "The Cinder Clan forged one engine they could not control, so they crowned it instead."
+    },
+    {
+      "id": "pale-queen",
+      "name": "The Pale Queen",
+      "title": "Voice of the Pale Court",
+      "minLevel": 10,
+      "minWave": 15,
+      "hpBase": 1800,
+      "hpPerWave": 120,
+      "dmgBase": 55,
+      "dmgPerWave": 4,
+      "speed": 0.7,
+      "range": 3.2,
+      "wallDamage": 2,
+      "mechanics": {
+        "aura": { "radius": 4, "dmgMult": 1.3 },
+        "summon": { "role": "archer", "count": 2, "everySec": 20, "cap": 8 },
+        "enrage": { "hpFrac": 0.3, "dmgMult": 1.5, "speedMult": 1.3 }
+      },
+      "herald": "🌙 A white banner on the treeline — THE PALE QUEEN herself rides with wave {wave}! Her court never misses. {seconds} breaths — to arms!",
+      "attack": "The Pale Queen takes the field! Cut through her court — bring her down!",
+      "victory": "The Pale Queen has withdrawn into the mist! Her court's gold is yours — +{loot} gold.",
+      "lore": "The Pale Host was never an army. It was a court — and every court has a queen."
+    }
+  ],
+  "paragon": {
+    "hpPerLevel": 0.12,
+    "damagePerLevel": 0.1,
+    "costGrowth": 2.5,
+    "eligible": ["wall", "stonewall", "rampart", "gate", "tower", "archer_tower", "ballista", "bastion", "trap", "fire-trap", "watchfire"]
+  },
+  "renown": {
+    "minLevel": 9,
+    "baseCost": { "gold": 400, "food": 300, "plate": 5 },
+    "costGrowth": 1.6,
+    "damagePerLevel": 0.03,
+    "lootPerLevel": 0.05
+  }
+}

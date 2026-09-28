@@ -18,6 +18,7 @@ import {startMission,tickMission,finishMission} from './systems/campaign.js';
 import {load,save} from './storage.js';
 import {dayKey,seasonFor,modifierFor,calendarEffects,performTrade,marketOpen,describeDeal} from './systems/calendar.js';
 import {phaseAt,weatherAt,clockConfig} from './systems/daynight.js';
+import {bossFor,spawnBoss,endgameSpawnOpts,renownCost,renownAvailable,paragonEligible,paragonCost,buildingMaxHp} from './systems/endgame.js';
 import {sfx} from './systems/audio.js';
 // Scheduled home raids: all timing and ceremony lines come from
 // data.world.homeRaids so balance and voice stay in JSON, not logic.
@@ -123,6 +124,8 @@ export class Game {
   const cost=b.type==='hall'?{wood:200*b.level,gold:150*b.level}:buildingCost(b.type,b.level+1,this.world,this.data);
   if(!pay(this.world.resources,cost))return this.notify('Not enough resources for this upgrade.');
   b.level++;b.hp=this.data.buildings[b.type].tiers[b.level-1].hp;
+  // Fresh timber, fresh work: a higher tier rebuilds the reinforcement.
+  b.paragon=0;
   // Building-completion unlocks (data `tierUnlocks: {tier: [ids]}`): the
   // tier itself teaches something new — the Bellcote waits on a tier-3
   // chapel the way troops wait on chapters. Earned, never bought.
@@ -134,13 +137,41 @@ export class Game {
   // Early snappy builds (4-6s new construction, fast first upgrades) untouched.
   b.remaining=6*b.level*((this.world.elapsed||0)>300?1.5:1);const cp=center(b,this.data);this.world.effects.push({x:cp.x,y:cp.y,tx:cp.x,ty:cp.y,kind:'fanfare',life:.8});sfx.upgrade();this.notify('Upgrade started. Your builders are on it.');
  }
- repair(id){const b=this.world.buildings.find(b=>b.id===id);if(!b)return;const max=this.data.buildings[b.type].tiers[b.level-1].hp;if(b.hp>=max)return;
+ repair(id){const b=this.world.buildings.find(b=>b.id===id);if(!b)return;const max=buildingMaxHp(b,this.data);if(b.hp>=max)return;
   if(!pay(this.world.resources,{wood:Math.ceil((max-b.hp)/15)}))return this.notify('Gather more wood to repair.');b.hp=max;const cp=center(b,this.data);this.world.effects.push({x:cp.x,y:cp.y,tx:cp.x,ty:cp.y,kind:'heal',life:.3});sfx.repair();this.notify('Building repaired.');}
- repairAll(){const damaged=this.world.buildings.filter(b=>{const max=this.data.buildings[b.type].tiers[b.level-1].hp;return b.hp<max;});if(!damaged.length)return this.notify('Nothing needs repair.');
-  const cost={wood:damaged.reduce((n,b)=>n+Math.ceil((this.data.buildings[b.type].tiers[b.level-1].hp-b.hp)/15),0)};
+ repairAll(){const damaged=this.world.buildings.filter(b=>{const max=buildingMaxHp(b,this.data);return b.hp<max;});if(!damaged.length)return this.notify('Nothing needs repair.');
+  const cost={wood:damaged.reduce((n,b)=>n+Math.ceil((buildingMaxHp(b,this.data)-b.hp)/15),0)};
   if(!pay(this.world.resources,cost))return this.notify(`Repairs need ${cost.wood} wood. Gather more first.`);
-  for(const b of damaged){b.hp=this.data.buildings[b.type].tiers[b.level-1].hp;const cp=center(b,this.data);this.world.effects.push({x:cp.x,y:cp.y,tx:cp.x,ty:cp.y,kind:'heal',life:.3});}
+  for(const b of damaged){b.hp=buildingMaxHp(b,this.data);const cp=center(b,this.data);this.world.effects.push({x:cp.x,y:cp.y,tx:cp.x,ty:cp.y,kind:'heal',life:.3});}
   sfx.repair();this.notify(`All buildings repaired for ${cost.wood} wood.`);}
+ // Manner Renown (Phase 12): the endless sink for maxed villages. Each
+ // level sharpens every defense and sweetens salvage, forever — the
+ // price climbs, the glory compounds. Bought at a standing Manor Hall.
+ raiseRenown(){
+  if(!renownAvailable(this.state,this.data))return this.notify('Renown needs village level 9 and a standing Manor Hall. Grow first — legends later.');
+  const level=Math.max(0,this.world.renown||0),cost=renownCost(this.data,level);
+  if(!pay(this.world.resources,cost))return this.notify(`Renown level ${level+1} needs ${Object.entries(cost).map(([k,v])=>`${v} ${k}`).join(' + ')}. The manner must overflow first.`);
+  this.world.renown=level+1;
+  sfx.win();
+  this.notify(`📜 Manner Renown ${level+1}! Every defense strikes harder (+${Math.round((level+1)*(this.data.endgame?.renown?.damagePerLevel||0.03)*100)}% damage) and salvage runs richer (+${Math.round((level+1)*(this.data.endgame?.renown?.lootPerLevel||0.05)*100)}% loot). The frontier will remember this.`);
+  this.persist();return true;
+ }
+ // Paragon reinforcement (Phase 12): max-tier fortifications improve
+ // without end. Each level thickens the walls now and hones what shoots.
+ reinforce(id){
+  const b=this.world.buildings.find(b=>b.id===id);if(!b)return;
+  if(b.hp<=0||b.remaining>0)return this.notify('Only finished, standing defenses can be reinforced.');
+  if(!paragonEligible(b.type,this.data))return this.notify('Only fortifications take reinforcement — walls, gates, towers, traps, watchfires.');
+  if(b.level<this.data.buildings[b.type].tiers.length)return this.notify('Raise it to its highest tier first — reinforcement crowns finished work.');
+  const level=Math.max(0,b.paragon||0),cost=paragonCost(b.type,level,this.world,this.data);
+  if(!pay(this.world.resources,cost))return this.notify(`Reinforcement ${level+1} needs ${Object.entries(cost).map(([k,v])=>`${v} ${k}`).join(' + ')}.`);
+  const before=buildingMaxHp(b,this.data);
+  b.paragon=level+1;
+  b.hp=Math.min(buildingMaxHp(b,this.data),b.hp+(buildingMaxHp(b,this.data)-before));
+  sfx.upgrade();
+  this.notify(`🛡 ${this.data.buildings[b.type].name} reinforced to paragon ${b.paragon}! +${Math.round((this.data.endgame?.paragon?.hpPerLevel||0.12)*100)}% walls, +${Math.round((this.data.endgame?.paragon?.damagePerLevel||0.1)*100)}% shot — without end.`);
+  this.persist();return true;
+ }
  relocate(id,x,y){const b=this.world.buildings.find(b=>b.id===id);if(!b||this.world.enemies.length||this.world.raidPending)return this.notify('Buildings cannot move during a raid.');if(!inBounds(this.world,this.data,b.type,x,y))return this.notify('That land is still wild. Earn village XP to open new rows.');if(!canPlace(this.world,this.data,b.type,x,y,b.id))return this.notify('Too close — roomy buildings need a one-tile gap.');b.x=x;b.y=y;this.notify('Building moved.');return true;}
  // Frontier claims (Phase 2b, Skylines-style): buy one whole unclaimed
  // region beside claimed land. Cost comes from data/expansion.json regions —
@@ -314,7 +345,7 @@ export class Game {
  }
  clearOrder(id){const u=this.world.troops.find(t=>t.id===id);if(!u)return false;u.order=null;this.notify(`${this.data.troops[u.type].name} resuming duties.`);return true;}
  raid(count){if(this.state.mission)return this.notify('Campaign raids follow the mission timeline.');if(this.world.enemies.length||this.world.raidPending)return this.notify('A raid is already underway.');if(!this.world.buildings.some(b=>b.type==='hall'&&b.hp>0))return this.notify('Repair the manor before another raid.');
-  const party=count??(this.world.wave===0?3:4+this.world.wave);this.world.raidPending={timer:3,count:party};this.world.raidKills=0;this.world.raidLoot=0;this.world.raidResult=null;sfx.horn();this.notify(`Scouts report ${party} raiders from ${raidSides(this.world.wave+1,party).join(" / ")} — 3 seconds to positions!`);}
+  const party=count??(this.world.wave===0?3:4+this.world.wave);this.world.raidPending={timer:3,count:party};this.world.raidKills=0;this.world.raidLoot=0;this.world.raidResult=null;sfx.horn();this.notify(`Scouts report ${party} raiders from ${raidSides(this.world.wave+1,party).join(" / ")} — 3 seconds to positions!`);return true;}
  mission(id){const m=this.data.missions.find(m=>m.id===id);if(startMission(this.state,this.data,id))this.notify(`${m?.ceremony?.warning||'Expedition begun.'} Your home village is safely paused.`);else this.notify('Finish the current raid or unlock the previous chapter first.');}
  returnHome(){const m=this.data.missions.find(m=>m.id===this.state.mission?.id);const result=finishMission(this.state,this.data);if(result?.first)this.notify(`${m?.ceremony?.victory||'Victory!'} Rewards and unlocks delivered to your village.`);else if(result?.won)this.notify('Returned home. First-clear rewards can only be claimed once.');else this.notify(`${m?.ceremony?.defeat||'Expedition lost.'} Your home is safe.`);this.persist();}
  research(id){if(this.paused)return false;const reason=researchReason(this.state,this.data,id);if(reason){this.notify(reason);return false;}const ok=startResearch(this.state,this.data,id);if(ok){this.notify('Research begun. Your scholars are at work.');this.persist();}return ok;}
@@ -400,26 +431,61 @@ export class Game {
     const count=directorParty(this.state,this.data);
     cfg.warning=directorConfig(this.data).warning;
     const scout=Math.min(15,this.world.scoutBonus||0);this.world.scoutBonus=0;
-    this.world.raidPending={timer:cfg.warning+scout,count,scheduled:true};this.world.raidKills=0;this.world.raidLoot=0;this.world.raidResult=null;sfx.horn();
-    this.notify(fillLine(pickLine(cfg.warningLines,this.world.wave),{count,seconds:Math.ceil(cfg.warning+scout),wave:this.world.wave+1})+(scout>0?` Ranger word bought us +${scout}s.`:''));
+    // Crowns of the late war (Phase 12): boss waves are telegraphed — a
+    // longer warning and a named herald on the notice line, never a
+    // surprise. The pin for the Chronicle goes up at muster, not at victory.
+    let boss=null;
+    try{boss=bossFor(this.data,this.state.vlevel||1,this.world.wave+1);}catch{}
+    const warning=cfg.warning+scout+(boss?(this.data.endgame?.bossRule?.warningBonus||20):0);
+    this.world.raidPending={timer:warning,count,scheduled:true,boss:boss?.id||null};this.world.raidKills=0;this.world.raidLoot=0;this.world.raidResult=null;sfx.horn();
+    if(boss){
+     this.world.lastBoss={id:boss.id,name:boss.name,title:boss.title,wave:this.world.wave+1,won:null,elapsed:this.world.elapsed};
+     this.notify(fillLine(boss.herald,{count,seconds:Math.ceil(warning),wave:this.world.wave+1}));
+    }
+    else this.notify(fillLine(pickLine(cfg.warningLines,this.world.wave),{count,seconds:Math.ceil(warning),wave:this.world.wave+1})+(scout>0?` Ranger word bought us +${scout}s.`:''));
    }
   }
   if(this.world.raidPending&&!this.state.mission){this.world.raidPending.timer-=dt;
-   if(this.world.raidPending.timer<=0){const {count,scheduled}=this.world.raidPending;this.world.raidPending=null;spawnRaid(this.world,count,null,this.data,factionFor(this.data,this.world.wave+1));
-    this.notify(scheduled?fillLine(pickLine(cfg.attackLines,this.world.wave),{count,wave:this.world.wave}):`Wave ${this.world.wave} — ${count} raiders! Defend the manor!`);}}
+   if(this.world.raidPending.timer<=0){const {count,scheduled,boss:bossId}=this.world.raidPending;this.world.raidPending=null;
+    let egOpts=null;
+    try{egOpts=endgameSpawnOpts(this.state,this.data);}catch{}
+    const faction=factionFor(this.data,this.world.wave+1,this.state.vlevel||1);
+    spawnRaid(this.world,count,null,this.data,faction,egOpts);
+    let boss=null;
+    if(bossId){try{
+     boss=(this.data.endgame?.bosses||[]).find(b=>b.id===bossId)||null;
+     if(boss)spawnBoss(this.world,this.data,boss,this.world.wave);
+    }catch{}}
+    if(boss)this.notify(fillLine(boss.attack,{count,wave:this.world.wave}));
+    else this.notify(scheduled?fillLine(pickLine(cfg.attackLines,this.world.wave),{count,wave:this.world.wave}):`Wave ${this.world.wave} — ${count} raiders! Defend the manor!`);}}
   const raided=!this.state.mission&&(this.world.enemies.length>0||this.world.raidPending);
   // Phase 7 identity backfill: old saves and mission rosters gain names,
   // traits and job ledgers lazily — additive defaults, never a wipe.
   for(const w of [this.world,this.state.home]){if(!w)continue;for(const u of w.troops||[])ensureIdentity(u,this.data,w.troops);}
   this.world.elapsed+=dt;this.tickClock();tickResearch(this.state,this.data,dt,m=>this.notify(m));tickEmergency(this.world,this.data,dt);tickVillagerJobs(this.world,this.data,dt);const filled=autoFillTick(this.world,this.data,dt);if(filled&&(this.world.elapsed-(this.world.lastAutoFillNote||0)>60)){this.world.lastAutoFillNote=this.world.elapsed;this.notify(`${filled} idle hand${filled>1?'s':''} took ${filled>1?'open posts':'an open post'} on their own — traits matched, locks respected.`);}tickEconomy(this.world,this.data,dt);tickRefine(this.world,this.data,dt);for(const c of tickCraft(this.world,this.data,dt)){const name=this.data.items[c.item]?.name||c.item;this.notify(`${name} finished — fit it from the People panel.`);}tickExpeditions(this.world,this.data,dt,Math.random,{state:this.state,notify:m=>this.notify(m)});tickCombat(this.world,this.data,dt);tickVillage(this.state,this.data,dt,m=>this.notify(m));const before=this.state.mission?.status;tickMission(this.state,this.data);
   if(raided&&!this.world.enemies.length&&!this.world.raidPending&&this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)){const kills=this.world.raidKills??0,loot=this.world.raidLoot??0;
-   const damaged=this.world.buildings.filter(b=>b.hp<this.data.buildings[b.type].tiers[b.level-1].hp);
-   const repairWood=damaged.reduce((n,b)=>n+Math.ceil((this.data.buildings[b.type].tiers[b.level-1].hp-b.hp)/15),0);
+   const damaged=this.world.buildings.filter(b=>b.hp<buildingMaxHp(b,this.data));
+   const repairWood=damaged.reduce((n,b)=>n+Math.ceil((buildingMaxHp(b,this.data)-b.hp)/15),0);
    this.world.raidResult={won:true,kills,loot,damaged:damaged.length,repairWood};sfx.win();
    scheduleRecovery(this.state,this.data,true);
-   this.notify(`${fillLine(pickLine(cfg.victoryLines,this.world.wave),{kills,loot,wave:this.world.wave})}${damaged.length?` ${damaged.length} buildings need repair (${repairWood} wood).`:' All buildings stand strong.'}`);this.persist();}
+   // Crown settled (Phase 12): a slain boss gets its victory herald and a
+   // won pin for the Chronicle; a fled crown is marked withdrawn, never won.
+   // The crown line leads the single victory notice — one herald, never two.
+   let crownLine='';
+   if(this.world.lastBoss&&this.world.lastBoss.won==null&&this.world.lastBoss.wave===this.world.wave){
+    const spec=(this.data.endgame?.bosses||[]).find(b=>b.id===this.world.lastBoss.id);
+    if(this.world.bossSlain===this.world.lastBoss.id&&!this.world.raidFled){
+     this.world.lastBoss.won=true;
+     crownLine=fillLine(spec?.victory||`${this.world.lastBoss.name} has fallen! +{loot} gold.`,{kills,loot,wave:this.world.wave})+' ';
+    }else if(this.world.raidFled){
+     this.world.lastBoss.won=false;
+     crownLine=`${this.world.lastBoss.name} withdrew into the dark — the crown endures. It will return. `;
+    }
+   }
+   this.world.bossSlain=null;this.world.raidFled=false;
+   this.notify(`${crownLine}${fillLine(pickLine(cfg.victoryLines,this.world.wave),{kills,loot,wave:this.world.wave})}${damaged.length?` ${damaged.length} buildings need repair (${repairWood} wood).`:' All buildings stand strong.'}`);this.persist();}
   if(before!==this.state.mission?.status){const m=this.data.missions.find(m=>m.id===this.state.mission.id);this.notify(this.state.mission.status==='won'?`${m?.ceremony?.victory||'Mission complete!'} Return home to claim your rewards.`:`${m?.ceremony?.defeat||'Expedition lost.'} Return home and try a different layout.`);this.persist();}
-  if(!this.state.mission&&!this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)&&this.world.enemies.length){const kills=this.world.raidKills??0,loot=this.world.raidLoot??0;this.world.enemies=[];this.world.inRaid=false;this.world.raidLosses=0;this.world.resources.wood=Math.max(80,this.world.resources.wood);this.world.raidResult={won:false,kills,loot,damaged:this.world.buildings.filter(b=>b.hp<=0).length,repairWood:0};sfx.lose();scheduleRecovery(this.state,this.data,false);this.notify(fillLine(pickLine(cfg.defeatLines,this.world.wave),{kills,loot,wave:this.world.wave}));}
+  if(!this.state.mission&&!this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)&&this.world.enemies.length){const kills=this.world.raidKills??0,loot=this.world.raidLoot??0;this.world.enemies=[];this.world.inRaid=false;this.world.raidLosses=0;this.world.resources.wood=Math.max(80,this.world.resources.wood);this.world.raidResult={won:false,kills,loot,damaged:this.world.buildings.filter(b=>b.hp<=0).length,repairWood:0};sfx.lose();scheduleRecovery(this.state,this.data,false);if(this.world.lastBoss&&this.world.lastBoss.won==null)this.world.lastBoss.won=false;this.notify(fillLine(pickLine(cfg.defeatLines,this.world.wave),{kills,loot,wave:this.world.wave}));}
   this.saveTimer+=dt;if(this.saveTimer>5){this.saveTimer=0;this.persist();}
  }
 }
