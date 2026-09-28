@@ -161,7 +161,11 @@
     "oathkeeper-armor",
     "dawn-gate",
     "regalia",
-    "dawnbringer"
+    "dawnbringer",
+    "granary",
+    "lumber_storage",
+    "treasury",
+    "warehouse"
   ],
   "homeRaids": {
     "firstAt": 300,
@@ -172,21 +176,21 @@
     "perWave": 1,
     "maxCount": 8,
     "warningLines": [
-      "Horns on the night wind \u2014 riders under a pale moon. To the walls! They come in {count} heartbeats of {seconds}.",
+      "Horns on the night wind — riders under a pale moon. To the walls! They come in {count} heartbeats of {seconds}.",
       "Dust on the border roads and a horn through the pines. {count} raiders, {seconds} breaths out. Light the lamps.",
-      "The watchfire gutters \u2014 hoofbeats past the treeline. {count} coming, {seconds} to bar the doors."
+      "The watchfire gutters — hoofbeats past the treeline. {count} coming, {seconds} to bar the doors."
     ],
     "attackLines": [
-      "Wave {wave} \u2014 {count} raiders! Hold the manor!",
-      "They are over the fence! Wave {wave}, {count} strong \u2014 stand together!"
+      "Wave {wave} — {count} raiders! Hold the manor!",
+      "They are over the fence! Wave {wave}, {count} strong — stand together!"
     ],
     "victoryLines": [
-      "The bell rings long \u2014 the Manner stands. {kills} fell, their pouches ours (+{loot} gold). Mend what broke.",
+      "The bell rings long — the Manner stands. {kills} fell, their pouches ours (+{loot} gold). Mend what broke.",
       "Quiet again. {kills} raiders down, +{loot} gold in salvage. Oil the hinges and reset the traps."
     ],
     "defeatLines": [
       "The hall is ash and the bell is silent. Take the salvage wood and raise the beams again at dawn.",
-      "They broke the manor and melted into the trees. Salvage what you can \u2014 the village rises again."
+      "They broke the manor and melted into the trees. Salvage what you can — the village rises again."
     ],
     "director": {
       "minQuiet": 240,
@@ -318,6 +322,31 @@
       "seconds": 60
     },
     {
+      "id": "settlement-logistics",
+      "branch": "Construction",
+      "name": "Settlement logistics",
+      "text": "Formalize storehouses and planned work districts. Dedicated stores raise resource caps while new plots open for farms, timber yards, and mines.",
+      "unlocks": [
+        "granary",
+        "lumber_storage",
+        "treasury",
+        "farm-slot-3",
+        "lumber-slot-3",
+        "mine-slot-3",
+        "core-tier-4",
+        "longhouse-tier-2"
+      ],
+      "requires": [
+        "masonry"
+      ],
+      "points": 25,
+      "cost": {
+        "wood": 180,
+        "gold": 120
+      },
+      "seconds": 90
+    },
+    {
       "id": "engineering",
       "branch": "Construction",
       "name": "Master engineering",
@@ -335,6 +364,30 @@
         "gold": 180
       },
       "seconds": 120
+    },
+    {
+      "id": "settlement-planning",
+      "branch": "Construction",
+      "name": "Settlement planning",
+      "text": "Lay out a fortified town around deeper stores and mature industries. Unlock the final core tiers and the fourth producer slot.",
+      "unlocks": [
+        "warehouse",
+        "farm-slot-4",
+        "lumber-slot-4",
+        "mine-slot-4",
+        "core-tier-6",
+        "longhouse-tier-3"
+      ],
+      "requires": [
+        "settlement-logistics",
+        "engineering"
+      ],
+      "points": 50,
+      "cost": {
+        "wood": 300,
+        "gold": 220
+      },
+      "seconds": 150
     },
     {
       "id": "fieldcraft",
@@ -484,5 +537,17 @@
       },
       "seconds": 120
     }
-  ]
+  ],
+  "unlockLabels": {
+    "farm-slot-3": "Wheat Farm limit → 3",
+    "farm-slot-4": "Wheat Farm limit → 4",
+    "lumber-slot-3": "Timber Yard limit → 3",
+    "lumber-slot-4": "Timber Yard limit → 4",
+    "mine-slot-3": "Moonstone Mine limit → 3",
+    "mine-slot-4": "Moonstone Mine limit → 4",
+    "core-tier-4": "Core buildings tiers 4–5",
+    "core-tier-6": "Core buildings tier 6",
+    "longhouse-tier-2": "Longhouse tier 2",
+    "longhouse-tier-3": "Longhouse tier 3"
+  }
 }
