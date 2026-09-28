@@ -114,8 +114,9 @@ test('story item 2: every 10th arrival earns a trade-name; flavor needs no save 
   // clock + unlock re-deal under save version 4, the armor wardrobe
   // under save version 5, prestige stars + the cairn roll under save
   // version 6, the phantom-null cleanup under save version 7, and the
-  // tap-reserve clamp under save version 8.)
-  assert.equal(VERSION, 8);
+  // tap-reserve clamp under save version 8, and the Phase-6 defense
+  // cooldown normalization under save version 9.)
+  assert.equal(VERSION, 9);
   for (const key of ['records', 'boardSeen', 'tradeDay', 'calendarDay', 'tradeNames'])
     assert.ok(!(key in state), `no save key ${key}`);
 });

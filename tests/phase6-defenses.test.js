@@ -27,7 +27,7 @@ test('phase6: four new defenses exist with distinct tier sprites and roles',()=>
  assert.ok(data.buildings.gate.tiers[0].hp>data.buildings.wall.tiers[0].hp,'gate holds better than palisade');
  assert.ok(data.buildings.archer_tower.tiers[0].range>data.buildings.watchfire.tiers[0].range,'archer tower is the range king');
  assert.ok(data.buildings.archer_tower.tiers[0].damage<data.buildings.tower.tiers[0].damage,'range paid for in damage');
- assert.ok(data.buildings.ballista.tiers[0].damage>data.buildings.tower.tiers[2].damage,'ballista hits hardest per shot');
+ assert.ok(data.buildings.ballista.tiers[1].damage>data.buildings.tower.tiers[3].damage,'ballista hits hardest per shot');
  assert.equal(data.buildings.ballista.tiers[0].cooldown,2.6,'heavy engine reloads slowly');
 });
 
@@ -57,7 +57,8 @@ test('phase6: gates and ramparts join wall rows, gaps and corners still stop',()
 
 test('phase6: friendlies walk through gates, raiders stay walled out',()=>{
  const w=world();
- w.buildings.push(makeBuilding('gate',5,5,data));
+ // Full-height palisade with a single gatehouse: the only hinge.
+ for(let y=0;y<data.world.height;y++)w.buildings.push(makeBuilding(y===5?'gate':'wall',5,y,data));
  assert.equal(blocked(w,data,5,5),true,'enemies face a wall');
  assert.equal(blocked(w,data,5,5,true),false,'friends walk through');
  const from={x:4.5,y:5.5},to={x:6.5,y:5.5};
@@ -83,7 +84,7 @@ test('phase6: raiders chew a blocking gate and prefer gates over farther halls',
  const far=makeBuilding('gate',8,5,data);far.remaining=0;
  const near=makeBuilding('farm',4,5,data);near.remaining=0;
  open.buildings.push(far,near);
- assert.equal(enemyBuildingTarget(open,data,{x:5.5,y:5.5,hp:50}).type,'gate','breach-seekers pick the gate over nearer roofs');
+ assert.equal(enemyBuildingTarget(open,data,{x:6.5,y:5.5,hp:50}).type,'gate','breach-seekers pick the gate over nearer roofs');
 });
 
 test('phase6: defenders answer an attacked gatehouse before a closer scout',()=>{
@@ -103,6 +104,7 @@ test('phase6: builders mend gates and ramparts with wood, never ruins',()=>{
  assert.equal(gate.hp,hp+6,'gate repaired');
  assert.ok(Math.abs(w.resources.wood-(wood-.4))<1e-8,'wood paid');
  const ramp=makeBuilding('rampart',6,5,data);ramp.hp-=40;w.buildings=[ramp];
+ u.x=5.5;u.y=5.5;
  const rhp=ramp.hp;tickEmergency(w,data,1);
  assert.equal(ramp.hp,rhp+6,'rampart repaired');
 });
