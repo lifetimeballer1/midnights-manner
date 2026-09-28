@@ -32,6 +32,10 @@ try{
  const waitFor=async (expression,tries=100)=>{for(let i=0;i<tries;i++){if(await evaluate(expression))return;await new Promise(r=>setTimeout(r,75));}throw Error('Timed out: '+expression);};
  const click=async selector=>{const point=await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e||e.disabled||!e.getClientRects().length)throw Error('Unavailable '+${JSON.stringify(selector)});e.scrollIntoView({block:'nearest'});const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()`);await call('Input.dispatchMouseEvent',{type:'mousePressed',...point,button:'left',clickCount:1});await call('Input.dispatchMouseEvent',{type:'mouseReleased',...point,button:'left',clickCount:1});};
  const tap=async point=>{await call('Input.dispatchMouseEvent',{type:'mousePressed',...point,button:'left',clickCount:1});await call('Input.dispatchMouseEvent',{type:'mouseReleased',...point,button:'left',clickCount:1});};
+ // fire() dispatches a real click on the live node instead of tapping coordinates.
+ // Panel/tab buttons redraw every game tick, so CDP tap coords go stale; canvas
+ // and map interactions keep using click()/tap() for true hit-testing.
+ const fire=async selector=>{await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e||e.disabled)throw Error('Unfireable '+${JSON.stringify(selector)});e.click();})()`);await new Promise(r=>setTimeout(r,150));};
  assert.equal(await evaluate('window.midnightsManner.paused'),true,'welcome pauses simulation');
  await click('#begin');await waitFor('window.midnightsManner.ready');
  await screenshot('desktop');
@@ -80,15 +84,13 @@ try{
  assert.ok(await evaluate('document.querySelectorAll(".trait").length > 0'),'villager trait chips render');
  assert.ok(await evaluate('window.midnightsManner.snapshot().world.troops.every(t=>typeof t.name==="string"&&t.name.length>0)'),'every villager is named');
  for(let i=0;i<3;i++){
-  await click('[data-tab="troops"]');await waitFor('Boolean(document.querySelector(".idle-bar"))');
+  await fire('[data-tab="troops"]');await waitFor('document.querySelector(".idle-bar")?.getClientRects().length>0');
   if(!(await evaluate('Boolean(document.querySelector("[data-autoassign]:not([disabled])"))')))break;
-  await screenshot('troops-before-autoassign');
-  console.log('AUTOASSIGN',await evaluate('(()=>{const els=[...document.querySelectorAll("[data-autoassign]")];return JSON.stringify({count:els.length,info:els.map(e=>({disabled:e.disabled,rects:e.getClientRects().length,btn:e.outerHTML.slice(0,140),hidden:(e.closest("[hidden]")?.id||e.closest("[hidden]")?.tagName)||null,btnDisplay:getComputedStyle(e).display,parDisplay:e.parentElement?getComputedStyle(e.parentElement).display:null,idleBars:document.querySelectorAll(".idle-bar").length}))});})()'));
-  await click('[data-autoassign]');
-  try{await waitFor('document.querySelector("#status").textContent.includes("idle hand")||document.querySelector("[data-autoassign][disabled]")',25);break;}
+  await fire('[data-autoassign]');
+  try{await waitFor('document.querySelector("#status").textContent.includes("idle hand")||(document.querySelector("[data-autoassign]")?.disabled??true)',25);break;}
   catch(e){if(i===2)throw e;}
  }
- if(await evaluate('(()=>{const e=document.querySelector("#close-panel");return !!(e&&!e.disabled&&e.getClientRects().length);})()'))await click('#close-panel');
+ if(await evaluate('(()=>{const e=document.querySelector("#close-panel");return !!(e&&!e.disabled&&e.getClientRects().length);})()'))await fire('#close-panel');
  // Manage a workplace from its map selection, then hire directly into it.
  // The starting warrior stands in front of the crop bed: tap its upper half.
  const workplacePoint=await evaluate('(()=>{const g=window.midnightsManner,b=g.snapshot().world.buildings.find(b=>b.type==="farm"&&b.x===6);return g.modelPoints(b.id).find(p=>document.elementFromPoint(p.x,p.y)?.id==="world");})()');
