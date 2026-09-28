@@ -207,8 +207,8 @@ export class Game {
   const u=this.world.troops.find(t=>t.id===unitId);if(!u)return this.notify('That villager is gone.');
   ensureIdentity(u,this.data,this.world.troops);
   // Phase 7 manual override: a hand-placed villager is never moved by
-  // auto-assignment again. Releasing them back to rest clears the lock.
-  if(!buildingId){u.workplace=null;u.order=null;u.manualPost=false;this.notify(`${u.name||this.data.troops[u.type].name} is available for work.`);return true;}
+  // auto-assignment again. Releasing them to look for work clears the lock.
+  if(!buildingId){u.workplace=null;u.order=null;u.manualPost=false;this.notify(`${u.name||this.data.troops[u.type].name} is jobless and looking for an open job.`);return true;}
   const b=this.world.buildings.find(b=>b.id===buildingId);
   if(!b||!assignmentValid(this.world,this.data,u,b))return this.notify('That worker does not belong there — match each profession to its own workplace.');
   u.workplace=buildingId;u.order=null;u.manualPost=true;
@@ -240,10 +240,10 @@ export class Game {
  autoAssignIdle(){
   const placed=autoAssignJobs(this.world,this.data,{onlyIdle:true});
   const stuck=idleWithoutPosts(this.world,this.data);
-  if(placed&&!stuck.length)this.notify(`${placed} idle hand${placed>1?'s':''} found ${placed>1?'their posts':'a post'} — traits matched, locks respected.`);
-  else if(placed)this.notify(`${placed} posted — traits matched, locks respected. ${stuck.length} still idle: no open post for their trade yet.`);
-  else if(stuck.length){const needs=[...new Set(stuck.map(u=>this.data.buildings[this.data.troops[u.type]?.job?.workplace]?.name||this.data.troops[u.type]?.job?.workplace).filter(Boolean))];this.notify(`${stuck.length} idle hand${stuck.length>1?'s':''}, but no finished post fits ${stuck.length>1?'their trades':'their trade'}${needs.length?` — a finished ${needs.join(' or ')} would put them to work`:''}.`);}
-  else this.notify('No idle hands need posts. Every worker is placed or resting by your order.');
+  if(placed&&!stuck.length)this.notify(`${placed} jobless worker${placed>1?'s':''} found ${placed>1?'their posts':'a post'} — traits matched, locks respected.`);
+  else if(placed)this.notify(`${placed} posted — traits matched, locks respected. ${stuck.length} still looking for an open job matching their profession.`);
+  else if(stuck.length){const needs=[...new Set(stuck.map(u=>this.data.buildings[this.data.troops[u.type]?.job?.workplace]?.name||this.data.troops[u.type]?.job?.workplace).filter(Boolean))];this.notify(`${stuck.length} jobless worker${stuck.length>1?'s':''}, but no finished post fits ${stuck.length>1?'their trades':'their trade'}${needs.length?` — a finished ${needs.join(' or ')} would put them to work`:''}.`);}
+  else this.notify('No jobless workers are waiting. Workers are assigned or busy with orders.');
   return placed;
  }
  level(id){const u=this.world.troops.find(t=>t.id===id);if(!u||u.level>=this.data.troops[u.type].maxLevel)return;const curve=u.level>=5?1.5:1;
@@ -482,7 +482,7 @@ export class Game {
   // Phase 7 identity backfill: old saves and mission rosters gain names,
   // traits and job ledgers lazily — additive defaults, never a wipe.
   for(const w of [this.world,this.state.home]){if(!w)continue;for(const u of w.troops||[])ensureIdentity(u,this.data,w.troops);}
-  this.world.elapsed+=dt;this.tickClock();tickResearch(this.state,this.data,dt,m=>this.notify(m));tickEmergency(this.world,this.data,dt);tickVillagerJobs(this.world,this.data,dt);const filled=autoFillTick(this.world,this.data,dt);if(filled&&(this.world.elapsed-(this.world.lastAutoFillNote||0)>60)){this.world.lastAutoFillNote=this.world.elapsed;this.notify(`${filled} idle hand${filled>1?'s':''} took ${filled>1?'open posts':'an open post'} on their own — traits matched, locks respected.`);}tickEconomy(this.world,this.data,dt);tickRefine(this.world,this.data,dt);for(const c of tickCraft(this.world,this.data,dt)){const name=this.data.items[c.item]?.name||c.item;this.notify(`${name} finished — fit it from the People panel.`);}tickExpeditions(this.world,this.data,dt,Math.random,{state:this.state,notify:m=>this.notify(m)});tickCombat(this.world,this.data,dt);tickVillage(this.state,this.data,dt,m=>this.notify(m));const before=this.state.mission?.status;tickMission(this.state,this.data);
+  this.world.elapsed+=dt;this.tickClock();tickResearch(this.state,this.data,dt,m=>this.notify(m));tickEmergency(this.world,this.data,dt);tickVillagerJobs(this.world,this.data,dt);const filled=autoFillTick(this.world,this.data,dt);if(filled&&(this.world.elapsed-(this.world.lastAutoFillNote||0)>60)){this.world.lastAutoFillNote=this.world.elapsed;this.notify(`${filled} jobless worker${filled>1?'s':''} took ${filled>1?'open posts':'an open post'} on their own — traits matched, locks respected.`);}tickEconomy(this.world,this.data,dt);tickRefine(this.world,this.data,dt);for(const c of tickCraft(this.world,this.data,dt)){const name=this.data.items[c.item]?.name||c.item;this.notify(`${name} finished — fit it from the People panel.`);}tickExpeditions(this.world,this.data,dt,Math.random,{state:this.state,notify:m=>this.notify(m)});tickCombat(this.world,this.data,dt);tickVillage(this.state,this.data,dt,m=>this.notify(m));const before=this.state.mission?.status;tickMission(this.state,this.data);
   if(raided&&!this.world.enemies.length&&!this.world.raidPending&&this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)){const kills=this.world.raidKills??0,loot=this.world.raidLoot??0;
    const damaged=this.world.buildings.filter(b=>b.hp<buildingMaxHp(b,this.data));
    const repairWood=damaged.reduce((n,b)=>n+Math.ceil((buildingMaxHp(b,this.data)-b.hp)/15),0);
