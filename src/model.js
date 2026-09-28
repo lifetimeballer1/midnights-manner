@@ -82,8 +82,10 @@ export function buildingLimit(state,data,type) {
   const cfg=data?.buildings?.[type]?.limit;
   if(!cfg)return Infinity;
   let limit=Number.isFinite(+cfg.base)?Math.max(0,Math.floor(+cfg.base)):Infinity;
+  const completed=new Set(state?.research?.completed||[]);
   for(const step of cfg.unlocks||[]){
-    if(!step?.id||!(state?.unlocks||[]).includes(step.id))continue;
+    const earned=step?.research?completed.has(step.research):step?.id&&(state?.unlocks||[]).includes(step.id);
+    if(!earned)continue;
     const count=Number.isFinite(+step.count)?Math.max(0,Math.floor(+step.count)):limit;
     limit=Math.max(limit,count);
   }
