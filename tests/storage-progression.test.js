@@ -69,6 +69,7 @@ test('core producer limits grow from two to four through research unlock tokens'
 
 test('research gates high core tiers and the Longhouse now upgrades twice',()=>{
  const g=new Game(structuredClone(data));
+ g.state.research={points:0,completed:[],active:null};
  const farm=g.world.buildings.find(b=>b.type==='farm');
  farm.level=3;farm.hp=g.data.buildings.farm.tiers[2].hp;farm.remaining=0;
  g.world.resources={...g.world.resources,wood:10000,food:10000,gold:10000};
