@@ -4,6 +4,7 @@
 import {levelForXp, EXPANSION, auras, housing, center, stats, unlockedAbilities} from '../model.js';
 import {sfx} from './audio.js';
 import {ensureIdentity} from './villagers.js';
+import {edibleFood, BREAD_FOOD_VALUE} from './crafting.js';
 import {claimRect} from './expansion.js';
 
 export const CHILD_SECONDS = 75;      // surplus + free bed grows a villager this fast
@@ -95,8 +96,7 @@ function tickPopulation(state, data, dt, notify) {
   if (state.mission) return; // expeditions don't grow families
   const {beds, free} = housing(w, data);
   const mouths = w.troops.filter(t => t.hp >= 0).length;
-  const upkeep = mouths * UPKEEP_EACH;
-  // Passive food income as the surplus signal (collectors only hurry it along).
+  const upkeep = mouths * UPKEEP_EACH;  // Passive food income as the surplus signal (collectors only hurry it along).
   let income = 0;
   for (const b of w.buildings) {
     if (b.hp <= 0 || b.remaining > 0) continue;
@@ -105,7 +105,17 @@ function tickPopulation(state, data, dt, notify) {
   }
   income += auras(w, data).food;
   w.foodIncome = income; w.foodUpkeep = upkeep;
-  const starving = w.resources.food <= 0.5;
+  // Phase 8 bread reserve: when the pantry runs bare, the village breaks
+  // bread first — one loaf eats as BREAD_FOOD_VALUE food. Stored loaves
+  // only ever convert downward into meals, never the reverse.
+  if ((w.resources.food || 0) <= 0.5 && (w.resources.bread || 0) >= 1) {
+    w.resources.bread -= 1;
+    w.resources.food = (w.resources.food || 0) + BREAD_FOOD_VALUE;
+    const hall0 = w.buildings.find(b => b.type === 'hall' && b.hp > 0);
+    const at0 = hall0 ? center(hall0, data) : {x: 10, y: 8};
+    push(w, {x: at0.x, y: at0.y, tx: at0.x, ty: at0.y - 1.1, kind: 'float', text: `Bread shared +${BREAD_FOOD_VALUE} food`, color: '#ffe9a8', life: .9});
+  }
+  const starving = edibleFood(w) <= 0.5;
   if (starving) {
     // Hunger stalls growth the same gentle way crowding does — progress
     // decays instead of snapping to zero, so a short famine never wipes
@@ -123,7 +133,7 @@ function tickPopulation(state, data, dt, notify) {
     w.childTimer = Math.max(0, w.childTimer - dt * 0.5);
     return;
   }
-  if (w.resources.food < 20) return; // keep a pantry before growing
+  if (edibleFood(w) < 20) return; // keep a pantry before growing
   w.childTimer += dt;
   if (w.childTimer >= CHILD_SECONDS) {
     w.childTimer = 0;
@@ -248,7 +258,7 @@ export function growthStatus(state, data) {
   const w = state.world;
   const pct = Math.max(0, Math.min(100, Math.floor(((w.childTimer || 0) / CHILD_SECONDS) * 100)));
   if (state.mission) return {pct: 0, note: 'expeditions raise no families'};
-  if ((w.resources.food || 0) <= 0.5) return {pct, note: 'hungry — grow food'};
+  if (edibleFood(w) <= 0.5) return {pct, note: 'hungry — grow food'};
   const {beds, free} = housing(w, data);
   if (beds === 0 || free <= 0) return {pct, note: 'no free beds'};
   let income = 0;
@@ -260,6 +270,6 @@ export function growthStatus(state, data) {
   income += auras(w, data).food;
   const mouths = w.troops.filter(t => t.hp >= 0).length;
   if (income <= mouths * UPKEEP_EACH) return {pct, note: 'food barely covers mouths'};
-  if ((w.resources.food || 0) < 20) return {pct, note: 'keeping a pantry first'};
+  if (edibleFood(w) < 20) return {pct, note: 'keeping a pantry first'};
   return {pct, note: pct >= 100 ? 'a new villager any moment' : 'growing'};
 }

@@ -1,7 +1,7 @@
 import {ensureIdentity} from './systems/villagers.js';
 const KEY='midnights-manner-v2';
 const OLD_KEY='midnights-manner-v1';
-export const VERSION = 10;
+export const VERSION = 11;
 // In-memory fallback when localStorage is missing (private mode, SSR, tests)
 // or full (quota). Saves still work for the session; persist() warns.
 const memFallback = new Map();
@@ -234,7 +234,30 @@ function migrateV9toV10(value, data) {
   value.version = 10;
   return value;
 }
-const MIGRATIONS = {1: migrateV1toV2, 2: migrateV2toV3, 3: migrateV3toV4, 4: migrateV4toV5, 5: migrateV5toV6, 6: migrateV6toV7, 7: migrateV7toV8, 8: migrateV8toV9, 9: migrateV9toV10};
+// v10 -> v11: Phase 8 production chains and crafting (lumber/flour/bread
+// stores, village craft stock, per-building craft orders). Every new key
+// backfills a quiet default; gear, resources, buildings, troops and
+// progress are never touched or removed. Never wipes.
+function migrateV10toV11(value, data) {
+  if (!value || typeof value !== 'object') return null;
+  for (const key of ['world', 'home']) {
+    const w = value[key];
+    if (!w || typeof w !== 'object') continue;
+    for (const bucket of [w.resources, w.gathered]) {
+      if (!bucket || typeof bucket !== 'object') continue;
+      for (const k of ['lumber', 'flour', 'bread']) {
+        if (!Number.isFinite(bucket[k]) || bucket[k] < 0) bucket[k] = Math.max(0, Number.isFinite(bucket[k]) ? bucket[k] : 0);
+      }
+    }
+    if (!w.stock || typeof w.stock !== 'object' || Array.isArray(w.stock)) w.stock = {};
+    for (const b of w.buildings || []) {
+      if (b && typeof b === 'object' && b.craft !== undefined && (b.craft === null || typeof b.craft !== 'object')) b.craft = null;
+    }
+  }
+  value.version = 11;
+  return value;
+}
+const MIGRATIONS = {1: migrateV1toV2, 2: migrateV2toV3, 3: migrateV3toV4, 4: migrateV4toV5, 5: migrateV5toV6, 6: migrateV6toV7, 7: migrateV7toV8, 8: migrateV8toV9, 9: migrateV9toV10, 10: migrateV10toV11};
 export function migrate(value, data) {
   return migrateToLatest(value, data);
 }

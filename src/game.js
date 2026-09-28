@@ -11,6 +11,7 @@ import {claimCheck,setClaimed,claimRect,claimRegion,claimPreclaimed,regionFor} f
 import {tickVillage,gainXp} from './systems/village.js';
 import {ensureIdentity, tickVillagerJobs, autoAssign as autoAssignJobs, idleWithoutPosts, scorePost} from './systems/villagers.js';
 import {tickEconomy} from './systems/economy.js';
+import {tickRefine, tickCraft, startCraftOrder} from './systems/crafting.js';
 import {tickExpeditions,startExpedition} from './systems/expeditions.js';
 import {tickCombat,spawnRaid,activateAbility,raidSides} from './systems/combat.js';
 import {startMission,tickMission,finishMission} from './systems/campaign.js';
@@ -256,6 +257,14 @@ export class Game {
   u.owned.push(nextId);u.gear=nextId;
   this.notify(`${next.name} fitted — +15% main stat, starlit and true. The Act VI economy finally sings.`);return true;
  }
+ // Phase 8 smithy orders: queue a crafted tier piece at its forge —
+ // posted smiths do the work, Craftsmen waste nothing (see crafting.js).
+ startCraft(buildingId, itemId){
+  const res = startCraftOrder(this.world, this.data, buildingId, itemId);
+  if (res.error) { this.notify(res.error); return false; }
+  this.notify(`${this.data.items[itemId]?.name || itemId} on the anvil — about ${Math.max(1, Math.ceil(res.duration))}s with the crew posted.`);
+  return true;
+ }
  serviceArmor(){
   const yard=this.world.buildings.find(b=>this.data.buildings[b.type]?.serviceArmor&&b.hp>0&&b.remaining<=0);
   if(!yard)return this.notify('Raise a Shieldwall Yard first — worn plate needs a yard that knows it.');
@@ -271,11 +280,24 @@ export class Game {
   if(item.requiresName&&u.name!==item.requiresName)return this.notify(`Only ${item.requiresName} may wear that — the mantle knows its name.`);
   // Armor-slot pieces (Padded Coat onward, item.slot==='armor') ride a
   // second gear axis with their own owned list; everything else is main-hand.
+  // Phase 8 craft-only steel (Ashen Blade onward): forged pieces never
+  // sell off the shelf — one comes out of the village stock, queued at
+  // the smithy that knows it. Re-fitting owned kit stays free.
+  const shopName = item.craft?.building ? (this.data.buildings[item.craft.building]?.name || 'the forge') : 'the forge';
+  const takeStock = list => {
+    if (list.includes(itemId)) return true;
+    if (item.craftOnly) {
+      if ((this.world.stock?.[itemId] || 0) <= 0) return false;
+      this.world.stock[itemId]--;
+    } else if (!pay(this.world.resources, item.cost)) return false;
+    list.push(itemId);
+    return true;
+  };
   if(item.slot==='armor'){
    u.armorOwned=u.armorOwned||[];
-   if(!u.armorOwned.includes(itemId)){if(!pay(this.world.resources,item.cost))return this.notify('Not enough resources for this armor.');u.armorOwned.push(itemId);}u.armor=itemId;this.notify(`${item.name} fitted as armor.`);return;
+   if(!u.armorOwned.includes(itemId)){if(!takeStock(u.armorOwned))return this.notify(item.craftOnly?`${item.name} must be forged at ${shopName} first — queue it there.`:'Not enough resources for this armor.');}u.armor=itemId;this.notify(`${item.name} fitted as armor.`);return;
   }
-  if(!u.owned.includes(itemId)){if(!pay(this.world.resources,item.cost))return this.notify('Not enough resources for this equipment.');u.owned.push(itemId);}u.gear=itemId;this.notify(`${item.name} equipped.`);}
+  if(!u.owned.includes(itemId)){if(!takeStock(u.owned))return this.notify(item.craftOnly?`${item.name} must be forged at ${shopName} first — queue it there.`:'Not enough resources for this equipment.');}u.gear=itemId;this.notify(`${item.name} equipped.`);}
  ability(id,ability){const u=this.world.troops.find(t=>t.id===id);if(u){const def=this.data.abilities[ability];const ok=activateAbility(this.world,this.data,u,ability);this.notify(ok?(def?.effect==='heal'?'Rallying light restores nearby allies.':`${def?.name||'Ability'} unleashed.`):'Ability is not ready.');}}
  commandMove(id,x,y){const u=this.world.troops.find(t=>t.id===id);if(!u||u.hp<=0||!Number.isInteger(x)||!Number.isInteger(y)||x<0||y<0||x>=this.data.world.width||y>=this.data.world.height)return false;if(blocked(this.world,this.data,x,y,true)||!nextStep(this.world,this.data,u,{x:x+.5,y:y+.5},.65,false,true)){this.notify('No clear path. Choose open ground.');return false;}u.order={kind:'move',x:x+.5,y:y+.5};this.notify(`${this.data.troops[u.type].name} moving.`);return true;}
  commandAttack(id,enemyId){const u=this.world.troops.find(t=>t.id===id);if(!u||!enemyId)return false;if(this.data.troops[u.type].role!=='combat')return void this.notify('Only fighters take attack orders.'),false;u.order={kind:'attack',targetId:enemyId};this.notify(`${this.data.troops[u.type].name} attacking!`);return true;}
@@ -374,7 +396,7 @@ export class Game {
   // Phase 7 identity backfill: old saves and mission rosters gain names,
   // traits and job ledgers lazily — additive defaults, never a wipe.
   for(const w of [this.world,this.state.home]){if(!w)continue;for(const u of w.troops||[])ensureIdentity(u,this.data,w.troops);}
-  this.world.elapsed+=dt;tickResearch(this.state,this.data,dt,m=>this.notify(m));tickEmergency(this.world,this.data,dt);tickVillagerJobs(this.world,this.data,dt);tickEconomy(this.world,this.data,dt);tickExpeditions(this.world,this.data,dt);tickCombat(this.world,this.data,dt);tickVillage(this.state,this.data,dt,m=>this.notify(m));const before=this.state.mission?.status;tickMission(this.state,this.data);
+  this.world.elapsed+=dt;tickResearch(this.state,this.data,dt,m=>this.notify(m));tickEmergency(this.world,this.data,dt);tickVillagerJobs(this.world,this.data,dt);tickEconomy(this.world,this.data,dt);tickRefine(this.world,this.data,dt);for(const c of tickCraft(this.world,this.data,dt)){const name=this.data.items[c.item]?.name||c.item;this.notify(`${name} finished — fit it from the People panel.`);}tickExpeditions(this.world,this.data,dt);tickCombat(this.world,this.data,dt);tickVillage(this.state,this.data,dt,m=>this.notify(m));const before=this.state.mission?.status;tickMission(this.state,this.data);
   if(raided&&!this.world.enemies.length&&!this.world.raidPending&&this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)){const kills=this.world.raidKills??0,loot=this.world.raidLoot??0;
    const damaged=this.world.buildings.filter(b=>b.hp<this.data.buildings[b.type].tiers[b.level-1].hp);
    const repairWood=damaged.reduce((n,b)=>n+Math.ceil((this.data.buildings[b.type].tiers[b.level-1].hp-b.hp)/15),0);
