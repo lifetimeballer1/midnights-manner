@@ -186,6 +186,17 @@ export function autoAssign(world, data, {onlyIdle = true} = {}) {
   }
   return placed;
 }
+// Open posts fill themselves: every few seconds of village time, idle
+// hands with a trade take the post that fits them best — no tap needed.
+// Same pool rules as the button, so manual locks are never moved.
+export const AUTOFILL_EVERY = 5;
+export function autoFillTick(world, data, dt) {
+  if (!Number.isFinite(dt) || dt <= 0) return 0;
+  world.autoFillTimer = (world.autoFillTimer || 0) + dt;
+  if (world.autoFillTimer < AUTOFILL_EVERY) return 0;
+  world.autoFillTimer = 0;
+  return autoAssign(world, data, {onlyIdle: true});
+}
 // Idle hands with a trade but nowhere to practice it: no finished building
 // fits their job. The auto-assign button names these instead of claiming
 // no hands are idle — a tap that changes nothing must still tell the truth.

@@ -92,22 +92,28 @@ try{
  assert.ok(await evaluate('document.querySelectorAll(".trait").length > 0'),'villager trait chips render');
  assert.ok(await evaluate('window.midnightsManner.snapshot().world.troops.every(t=>typeof t.name==="string"&&t.name.length>0)'),'every villager is named');
  // Auto-assign's posting logic is unit-tested (phase7-villagers.test.js). Here
- // we only prove the UI offers it: with idle hands and no finished posts yet
- // in this scene, the button is present and enabled; firing it must simply
- // not break the panel (placed=0 is a legal answer this early).
- assert.ok(await evaluate('Boolean(document.querySelector("[data-autoassign]:not([disabled])"))'),'auto-assign offered while hands idle');
- await fire('[data-autoassign]');
- await waitFor('Boolean(document.querySelector(".idle-bar"))||document.querySelector("#status").textContent.length>0');
+ // we only prove the UI offers it. Self-filling posts mean open work may
+ // already be taken by the time we look — so either the button is enabled
+ // (hands still idle) or no idle hands remain (they self-filled). Firing is
+ // only legal while hands are still idle.
+ assert.ok(await evaluate('Boolean(document.querySelector("[data-autoassign]"))'),'auto-assign control exists');
+ const autoState=await evaluate('(()=>{const btn=document.querySelector("[data-autoassign]");const bar=document.querySelector(".idle-bar");const m=bar?bar.textContent.match(/\d+ idle/):null;return {enabled:!!(btn&&!btn.disabled),idle:m?parseInt(m[0]):0};})()');
+ assert.ok(autoState.enabled||autoState.idle===0,'idle hands are offered posting or already self-filled');
+ if(autoState.enabled){await fire('[data-autoassign]');await waitFor('Boolean(document.querySelector(".idle-bar"))||document.querySelector("#status").textContent.length>0');}
  if(await evaluate('(()=>{const e=document.querySelector("#close-panel");return !!(e&&!e.disabled&&e.getClientRects().length);})()'))await fire('#close-panel');
  // Manage a workplace from its map selection, then hire directly into it.
  // The starting warrior stands in front of the crop bed: tap its upper half.
- const workplacePoint=await evaluate('(()=>{const g=window.midnightsManner,b=g.snapshot().world.buildings.find(b=>b.type==="farm"&&b.x===6);return g.modelPoints(b.id).find(p=>document.elementFromPoint(p.x,p.y)?.id==="world");})()');
- assert.ok(workplacePoint,'farm has an exposed model face');await tap(workplacePoint);
+ const farmFaces=await evaluate('(()=>{const g=window.midnightsManner,b=g.snapshot().world.buildings.find(b=>b.type==="farm"&&b.x===6);return g.modelPoints(b.id).filter(p=>document.elementFromPoint(p.x,p.y)?.id==="world");})()');
+ assert.ok(farmFaces.length,'farm has an exposed model face');
+ let farmOpen=false;
+ for(const p of farmFaces.slice(0,12)){await tap(p);await new Promise(r=>setTimeout(r,250));if(await evaluate('Boolean(document.querySelector("[data-action=assign]"))')){farmOpen=true;break;}}
+ assert.ok(farmOpen,'farm inspector opens despite crew on the tile');
  await screenshot('workplace-selection');
  console.log('Workplace selection:',await evaluate('document.querySelector("#inspector").textContent'));
  // Opening a menu is idempotent. Reacquire the live inspector after its harvest row changes layout.
- for(let attempt=0;attempt<3;attempt++){await click('[data-action="assign"]');await new Promise(r=>setTimeout(r,250));if(await evaluate('Boolean(document.querySelector("[data-staff]"))'))break;}
- await waitFor('Boolean(document.querySelector("[data-staff]"))');
+ await click('[data-action="assign"]');
+ await waitFor('Boolean(document.querySelector("[data-staff]"))||Boolean(document.querySelector("[data-release]"))');
+ if(await evaluate('Boolean(document.querySelector("[data-release]"))')){await click('[data-release]');await waitFor('Boolean(document.querySelector("[data-staff]"))');}
  await click('[data-staff]');
  assert.ok(await evaluate('window.midnightsManner.snapshot().world.troops.find(t=>t.type==="farmer").workplace'),'worker assigned from workplace');
  await click('[data-release]');

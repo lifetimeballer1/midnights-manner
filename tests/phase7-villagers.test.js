@@ -7,7 +7,7 @@ import {tickEconomy} from '../src/systems/economy.js';
 import {tickEmergency} from '../src/systems/emergency.js';
 import {tickCombat} from '../src/systems/combat.js';
 import {exportSave, importSaveBlob, VERSION} from '../src/storage.js';
-import {TRAITS, ensureIdentity, hasTrait, jobLevelForXp, jobLevelMult, tickVillagerJobs, idleWorkers, scorePost, autoAssign, towerCrewBonus, fleeRadius, fleeSpeedMult, raidDamageMult, CRAFT_SHOPS} from '../src/systems/villagers.js';
+import {TRAITS, ensureIdentity, hasTrait, jobLevelForXp, jobLevelMult, tickVillagerJobs, idleWorkers, idleWithoutPosts, autoFillTick, scorePost, autoAssign, towerCrewBonus, fleeRadius, fleeSpeedMult, raidDamageMult, CRAFT_SHOPS} from '../src/systems/villagers.js';
 
 const data = Object.fromEntries(await Promise.all(['world', 'troops', 'items', 'abilities', 'buildings', 'missions', 'quests', 'names'].map(async n => [n, JSON.parse(await readFile(new URL(`../data/${n}.json`, import.meta.url)))])));
 
@@ -156,6 +156,56 @@ test('phase7: idle-worker detection lists posted gaps, never fighters or busy ha
   assert.equal(g.autoAssignIdle(), 1, 'one tap posts the idle hand');
   assert.equal(a.workplace, farm.id);
   assert.deepEqual(idleWorkers(g.world, data), [], 'no idle hands left');
+});
+
+test('phase7: auto-assign names the missing post instead of claiming no hands idle', () => {
+  const g = setup();
+  // Barracks only: nowhere for a farmer to work.
+  g.world.buildings = g.world.buildings.filter(b => b.type === 'barracks');
+  const till = makeUnit('farmer', data, 0);
+  till.traits = ['hard_worker']; till.jobXp = 0; till.jobLevel = 1;
+  g.world.troops = [];
+  g.world.troops.push(till);
+  assert.deepEqual(idleWithoutPosts(g.world, data).map(u => u.id), [till.id], 'farmer idle with no post');
+  assert.equal(g.autoAssignIdle(), 0, 'nothing placed');
+  assert.match(g.message, /no finished post/i, 'button says what is missing');
+  const farm = makeBuilding('farm', 2, 6, data);
+  farm.remaining = 0;
+  g.world.buildings.push(farm);
+  assert.deepEqual(idleWithoutPosts(g.world, data), [], 'open post clears the stuck list');
+  assert.equal(g.autoAssignIdle(), 1, 'tap posts once a post exists');
+  assert.equal(till.workplace, farm.id);
+});
+
+test('phase7: open posts fill themselves — idle hands take matching work unasked', () => {
+  const g = setup();
+  g.world.buildings = g.world.buildings.filter(b => b.type === 'barracks');
+  const farm = makeBuilding('farm', 2, 6, data);
+  farm.remaining = 0;
+  g.world.buildings.push(farm);
+  const till = makeUnit('farmer', data, 0);
+  till.traits = ['hard_worker']; till.jobXp = 0; till.jobLevel = 1;
+  g.world.troops = [];
+  g.world.troops.push(till);
+  assert.equal(autoFillTick(g.world, data, 1), 0, 'small ticks only wind the timer');
+  assert.equal(till.workplace, null, 'nobody moves before the interval');
+  assert.equal(autoFillTick(g.world, data, 5), 1, 'open post fills on the interval');
+  assert.equal(till.workplace, farm.id, 'idle hand takes the matching post');
+});
+
+test('phase7: self-filling posts never move a manual lock', () => {
+  const g = setup();
+  g.world.buildings = g.world.buildings.filter(b => b.type === 'barracks');
+  const farm = makeBuilding('farm', 2, 6, data);
+  farm.remaining = 0;
+  g.world.buildings.push(farm);
+  const rest = makeUnit('farmer', data, 0);
+  rest.traits = ['hard_worker']; rest.jobXp = 0; rest.jobLevel = 1;
+  rest.manualPost = true;
+  g.world.troops = [];
+  g.world.troops.push(rest);
+  assert.equal(autoFillTick(g.world, data, 30), 0, 'locked hands stay resting');
+  assert.equal(rest.workplace, null);
 });
 
 test('phase7: emergency respects temperament — cowards flee early and fast, braves hold', () => {
