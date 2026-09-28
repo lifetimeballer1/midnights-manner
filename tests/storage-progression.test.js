@@ -59,9 +59,9 @@ test('core producer limits grow from two to four through research unlock tokens'
  const before={...g.world.resources};
  assert.equal(g.build('farm',3,2),undefined,'new construction is refused at the cap before placement');
  assert.deepEqual(g.world.resources,before,'cap refusal spends nothing');
- g.state.unlocks.push('farm-slot-3');
+ g.state.research.completed.push('masonry');
  assert.equal(buildingLimit(g.state,g.data,'farm'),3);
- g.state.unlocks.push('farm-slot-4');
+ g.state.research.completed.push('engineering');
  assert.equal(buildingLimit(g.state,g.data,'farm'),4);
 });
 
@@ -72,7 +72,7 @@ test('research gates high core tiers and the Longhouse now upgrades twice',()=>{
  g.world.resources={...g.world.resources,wood:10000,food:10000,gold:10000};
  g.upgrade(farm.id);
  assert.equal(farm.level,3,'tier 4 waits for logistics research');
- g.state.unlocks.push('core-tier-4');
+ g.state.research.completed.push('masonry');
  g.upgrade(farm.id);
  assert.equal(farm.level,4);
  assert.equal(g.data.buildings.farm.tiers.length,6);
@@ -83,10 +83,17 @@ test('research gates high core tiers and the Longhouse now upgrades twice',()=>{
 });
 
 test('technology tree owns storage buildings, extra slots and tier milestones',()=>{
- const logistics=data.world.technologies.find(t=>t.id==='settlement-logistics');
- const planning=data.world.technologies.find(t=>t.id==='settlement-planning');
- assert.ok(logistics&&planning);
- for(const id of ['granary','lumber_storage','treasury'])assert.ok(logistics.unlocks.includes(id));
- for(const id of ['farm-slot-3','lumber-slot-3','mine-slot-3','core-tier-4','longhouse-tier-2'])assert.ok(logistics.unlocks.includes(id));
- for(const id of ['warehouse','farm-slot-4','lumber-slot-4','mine-slot-4','core-tier-6','longhouse-tier-3'])assert.ok(planning.unlocks.includes(id));
+ const masonry=data.world.technologies.find(t=>t.id==='masonry');
+ const engineering=data.world.technologies.find(t=>t.id==='engineering');
+ assert.ok(masonry&&engineering);
+ for(const id of ['granary','lumber_storage','treasury'])assert.ok(masonry.unlocks.includes(id));
+ assert.ok(engineering.unlocks.includes('warehouse'));
+ for(const id of ['farm','lumber','mine']){
+  assert.equal(data.buildings[id].limit.unlocks[0].research,'masonry');
+  assert.equal(data.buildings[id].limit.unlocks[1].research,'engineering');
+  assert.equal(data.buildings[id].tierRequires[4],'masonry');
+  assert.equal(data.buildings[id].tierRequires[6],'engineering');
+ }
+ assert.equal(data.buildings.longhouse.tierRequires[2],'masonry');
+ assert.equal(data.buildings.longhouse.tierRequires[3],'engineering');
 });
