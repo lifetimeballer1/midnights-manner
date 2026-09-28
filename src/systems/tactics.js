@@ -7,13 +7,23 @@ export function factionFor(data,wave) {
 }
 export function enemyRole(data,enemy){return data.world.enemyRoles?.[enemy.role]||{};}
 // Respond to breaches and nearby attacks rather than chasing a distant scout.
-export function defenseTarget(world,data,unit) {
+// Perf: optional ctx {postOf, urgCache} memoizes the per-enemy urgency
+// (targetIds are static during the troops loop) and skips buildings.find.
+export function defenseTarget(world,data,unit,ctx) {
  let best=null,score=Infinity;
  for(const e of world.enemies){if(e.hp<=0)continue;
-  const target=world.buildings.find(b=>b.id===e.targetId&&b.hp>0);
-  // Soldiers answer an attacked gatehouse almost like a breached hall:
-  // gates are the hinge every raid turns on.
-  const urgency=target?(target.type==='hall'?4:target.type==='gate'?3:2):0;
+  let urgency;
+  if(ctx?.urgCache && ctx.urgCache.has(e.id)) urgency=ctx.urgCache.get(e.id);
+  else {
+   const target=ctx?.postOf
+    ? (e.targetId!=null?ctx.postOf.get(e.targetId):null)
+    : world.buildings.find(b=>b.id===e.targetId&&b.hp>0);
+   const live=target&&target.hp>0?target:null;
+   // Soldiers answer an attacked gatehouse almost like a breached hall:
+   // gates are the hinge every raid turns on.
+   urgency=live?(live.type==='hall'?4:live.type==='gate'?3:2):0;
+   if(ctx?.urgCache)ctx.urgCache.set(e.id,urgency);
+  }
   const value=distance(unit,e)-urgency-(e.role==='breaker'?1:0);
   if(value<score){best=e;score=value;}
  }
@@ -27,10 +37,15 @@ export function retreat(world,data,unit,enemy,speed,dt) {
 }
 export function enemyBuildingTarget(world,data,enemy) {
  const role=enemyRole(data,enemy);
- return world.buildings.filter(b=>b.hp>0&&b.type!=='trap').sort((a,b)=>{
-  // Breach-seekers: every raider would rather break a gate than walk
-  // around it, and wall-breakers still favor standing wall lines.
-  const score=b=>distance(enemy,center(b,data))-(role.wallDamage>1&&isWall(b)?3:0)-(b.type==='gate'?2:0);
-  return score(a)-score(b);
- })[0];
+ // Perf: single min-scan with centers hoisted — was filter+sort with
+ // center() recomputed per comparison. Strict < keeps the first minimal,
+ // exactly what the stable sort's [0] returned.
+ let best=null,bestScore=Infinity;
+ for(const b of world.buildings){
+  if(b.hp<=0||b.type==='trap')continue;
+  const c=center(b,data);
+  const s=distance(enemy,c)-(role.wallDamage>1&&isWall(b)?3:0)-(b.type==='gate'?2:0);
+  if(s<bestScore){bestScore=s;best=b;}
+ }
+ return best;
 }

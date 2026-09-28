@@ -35,6 +35,13 @@ export function spawnRaid(world,count=4,scaling=null,data=null,faction=null) {
  if(!world.inRaid){world.inRaid=true;world.raidLosses=0;}
 }
 function push(world,effect){if(world.effects.length<140)world.effects.push(effect);}
+// Perf: linear nearest scan — replaces filter+sort+[0]. Strict < keeps the
+// first minimal, exactly what the stable sort's [0] returned.
+function nearestFoe(enemies,unit) {
+ let best=null,bestD=Infinity;
+ for(const e of enemies){if(e.hp<=0)continue;const d=distance(unit,e);if(d<bestD){bestD=d;best=e;}}
+ return best;
+}
 function dmgNum(world,to,amount){push(world,{x:to.x,y:to.y,tx:to.x,ty:to.y-.9,kind:'dmg',text:String(Math.max(1,Math.round(amount))),life:.7});}
 function effect(world,from,to,kind){world.effects.push({x:from.x,y:from.y,tx:to.x,ty:to.y,kind,life:.3});}
 export function activateAbility(world,data,unit,id) {
@@ -52,7 +59,7 @@ export function activateAbility(world,data,unit,id) {
  // any future active splash rides this same branch.
  if(a.effect==='splash'&&a.active){
   const aura=auras(world,data),s2=stats(unit,data);
-  const foe=world.enemies.filter(e=>e.hp>0).sort((x,y)=>distance(unit,x)-distance(unit,y))[0];
+  const foe=nearestFoe(world.enemies,unit);
   if(!foe)return false;
   for(const e of world.enemies)if(e.hp>0&&distance(e,foe)<=(a.radius||1.5)){const dealt=s2.damage*(1+aura.damage)*(a.factor||0.5);e.hp-=dealt;effect(world,unit,e,data.items[unit.gear].animation);dmgNum(world,e,dealt);}
   unit.abilityTimer=a.cooldown;return true;
@@ -70,6 +77,13 @@ export function activateAbility(world,data,unit,id) {
 export function tickCombat(world,data,dt) {
  if(!Number.isFinite(dt)||dt<=0)return;
  const aura=auras(world,data);
+ // Perf: raid presence scanned once (was once per troop). Building index
+ // + urgency memo for defenseTarget (targetIds only change in the enemy
+ // loop below, after the troops loop — same values, no re-scans).
+ const raidActive=world.enemies.some(e=>e.hp>0);
+ const postOf=new Map();
+ for(const b of world.buildings)postOf.set(b.id,b);
+ const tgtCtx={postOf,urgCache:new Map()};
  for(const e of world.effects)e.life-=dt;
  world.effects=world.effects.filter(e=>e.life>0);
  for(const unit of world.troops) {
@@ -79,10 +93,15 @@ export function tickCombat(world,data,dt) {
   if(unit.buffs)for(const k of Object.keys(unit.buffs)){unit.buffs[k].timer-=dt;if(unit.buffs[k].timer<=0)delete unit.buffs[k];}
   if(unit.taunt){unit.taunt.timer-=dt;if(unit.taunt.timer<=0)delete unit.taunt;}
   if(unit.hp<=0||unit.expedition)continue;
+  // Perf: one stats + one abilities read per troop per tick (were up to
+  // 3 stats + 2 abilities). Inputs (level/gear/buffs) are untouched until
+  // the enemy loop, so every later use below reads identical values.
+  const s=stats(unit,data);
+  const abs=unlockedAbilities(unit,data);
   // Quiet hands: passive 'heal'-effect abilities without `active` mend
   // their bearer each second (the K1 track's Mend). Castable heals still
   // go through activateAbility; this never spends a cooldown.
-  for(const a of unlockedAbilities(unit,data)) if(a.effect==='heal'&&!a.active&&a.value>0)unit.hp=Math.min(stats(unit,data).hp,unit.hp+a.value*dt);
+  for(const a of abs) if(a.effect==='heal'&&!a.active&&a.value>0)unit.hp=Math.min(s.hp,unit.hp+a.value*dt);
   // Burn wards (Ashen Cloak onward): a burning villager's wardrobe resists
   // up to immunity. No live source sets troops alight yet — the math is
   // pinned in-test and waits on the enemy-burn doctrine, like trade auras
@@ -92,7 +111,6 @@ export function tickCombat(world,data,dt) {
    for(const gid of [unit.gear,unit.armor]){const gs=(gid&&data.items[gid]&&data.items[gid].stats)||{};if(Number.isFinite(gs.burnResist))resist=Math.max(resist,gs.burnResist);}
    unit.hp-=unit.burn.dps*(1-Math.min(1,resist))*dt;unit.burn.timer-=dt;
   }
-  const s=stats(unit,data);
   if(unit.emergency)continue;
   const order=unit.order;
   if(order&&order.kind==='move'&&Number.isFinite(order.x)&&Number.isFinite(order.y)){
@@ -100,20 +118,23 @@ export function tickCombat(world,data,dt) {
    continue;
   }
   // Phase 7 temperament: Brave holds (+10%) and Cowardly falters (−10%) while raiders walk. No raid, no modifier.
-  const grit=raidDamageMult(unit,world.enemies.some(e=>e.hp>0));
-  if(order&&order.kind==='hold'){const e2=world.enemies.filter(e=>e.hp>0).sort((a,b)=>distance(unit,a)-distance(unit,b))[0];if(e2&&distance(unit,e2)<=s.range&&unit.attackTimer<=0){const dealt=s.damage*(1+aura.damage)*grit;e2.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,e2,data.items[unit.gear].animation);dmgNum(world,e2,dealt);}continue;}
+  const grit=raidDamageMult(unit,raidActive);
+  if(order&&order.kind==='hold'){const e2=nearestFoe(world.enemies,unit);if(e2&&distance(unit,e2)<=s.range&&unit.attackTimer<=0){const dealt=s.damage*(1+aura.damage)*grit;e2.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,e2,data.items[unit.gear].animation);dmgNum(world,e2,dealt);}continue;}
   if(order&&order.kind==='attack'){const tgt=world.enemies.find(e=>e.id===order.targetId&&e.hp>0);if(!tgt){unit.order=null;continue;}
    if(move(world,data,unit,tgt,s.speed,dt,s.range,false,true)&&unit.attackTimer<=0){const dealt=s.damage*(1+aura.damage)*grit;tgt.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,tgt,data.items[unit.gear].animation);dmgNum(world,tgt,dealt);}continue;}
-  if(!world.enemies.length){unit.hp=Math.min(stats(unit,data).hp,unit.hp+dt*2);continue;}
+  if(!world.enemies.length){unit.hp=Math.min(s.hp,unit.hp+dt*2);continue;}
   if(data.troops[unit.type].role!=='combat')continue;
-  const enemy=defenseTarget(world,data,unit);if(!enemy)continue;
+  const enemy=defenseTarget(world,data,unit,tgtCtx);if(!enemy)continue;
   if(s.range>2&&distance(unit,enemy)<1.7)retreat(world,data,unit,enemy,s.speed,dt);
   if(move(world,data,unit,enemy,s.speed,dt,s.range,false,true)&&unit.attackTimer<=0){
    const dealt=s.damage*(1+aura.damage)*grit;
    enemy.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,enemy,data.items[unit.gear].animation);dmgNum(world,enemy,dealt);
-   for(const a of unlockedAbilities(unit,data)) if(a.effect==='splash')for(const other of world.enemies)if(other!==enemy&&distance(other,enemy)<a.radius)other.hp-=s.damage*a.factor;
+   for(const a of abs) if(a.effect==='splash')for(const other of world.enemies)if(other!==enemy&&distance(other,enemy)<a.radius)other.hp-=s.damage*a.factor;
   }
  }
+ // Perf: tower + siege bonuses are troop-derived and no troop changes in
+ // the buildings loop — compute once (were once per tower).
+ const towerBonus=towerCrewBonus(world),siege=siegeBonus(world,data);
  for(const b of world.buildings) {
   if(b.hp<=0||b.remaining>0)continue;
   b.cooldown=Math.max(0,b.cooldown-dt);const tier=data.buildings[b.type].tiers[b.level-1];if(!tier.damage)continue;
@@ -123,7 +144,7 @@ export function tickCombat(world,data,dt) {
    // and watchfire all ride the same bonus. Phase 7: living Marksmen spot
    // for the towers (+2% each, max +20%). Fire traps add a burn stack:
    // damage-over-time from data `burn`/`burnDuration`, first of its kind.
-   const mult=1+siegeBonus(world,data)+towerCrewBonus(world),dealt=(tier.damage||0)*mult;
+   const mult=1+siege+towerBonus,dealt=(tier.damage||0)*mult;
    enemy.hp-=dealt;
    if(tier.burn)enemy.burn={dps:tier.burn*mult,timer:tier.burnDuration||3};
    // Slow heavy engines (the ballista's data `cooldown`) reload on
@@ -131,22 +152,49 @@ export function tickCombat(world,data,dt) {
    b.cooldown=tier.cooldown??(b.type==='trap'?8:1.2);effect(world,c,enemy,b.type==='trap'?'slam':'arrow');dmgNum(world,enemy,dealt);
   }
  }
+ // Perf: wall membership never changes mid-tick (only hp does) — hoist the
+ // list + centers once; hp stays a live check in the scan below.
+ const walls=world.buildings.filter(isWall);
+ const wallCenters=new Map();
+ const wallCenter=b=>{let c=wallCenters.get(b);if(!c){c=center(b,data);wallCenters.set(b,c);}return c;};
  for(const enemy of world.enemies) {
   if(enemy.hp<=0)continue;enemy.attackTimer=(enemy.attackTimer??0)-dt;
   // Burn ticks before blades: lit raiders smolder each second.
   if(enemy.burn&&enemy.burn.timer>0){enemy.hp-=enemy.burn.dps*dt;enemy.burn.timer-=dt;}
   if(enemy.hp<=0)continue;
-  // Sworn challenges first: a living oathbound whose taunt covers this
-  // ground pulls the raider off its path. Otherwise the nearest hand.
-  const sworn=world.troops.filter(t=>t.hp>0&&!t.expedition&&t.taunt&&t.taunt.timer>0&&distance(enemy,t)<=t.taunt.radius).sort((a,b)=>distance(enemy,a)-distance(enemy,b))[0];
-  const targetUnit=sworn||world.troops.filter(t=>t.hp>0&&!t.expedition&&distance(enemy,t)<Math.max(1.4,enemyRole(data,enemy).range||0)).sort((a,b)=>distance(enemy,a)-distance(enemy,b))[0];
   const role=enemyRole(data,enemy);
+  const reach=Math.max(1.4,role.range||0);
+  // Perf: linear scans replace three filter+sort+[0] passes (sworn,
+  // target, barrier). Strict < keeps the first minimal — exactly what
+  // the stable sorts returned. hp stays live; the sworn short-circuit
+  // (skip the target scan when sworn) is preserved.
+  let sworn=null,swornD=Infinity;
+  for(const t of world.troops){
+   if(t.hp<=0||t.expedition)continue;
+   if(!(t.taunt&&t.taunt.timer>0))continue;
+   const d=distance(enemy,t);
+   if(d<=t.taunt.radius&&d<swornD){swornD=d;sworn=t;}
+  }
+  let targetUnit=sworn;
+  if(!targetUnit){
+   let bestD=Infinity;
+   for(const t of world.troops){
+    if(t.hp<=0||t.expedition)continue;
+    const d=distance(enemy,t);
+    if(d<reach&&d<bestD){bestD=d;targetUnit=t;}
+   }
+  }
   const target=targetUnit||enemyBuildingTarget(world,data,enemy);if(!target)continue;
   enemy.targetId=target.id;
   const targetPoint=targetUnit?target:center(target,data),range=targetUnit?(role.range||1.1):data.buildings[target.type].size/2+Math.max(.7,(role.range||1.1)-.4);
   const arrived=move(world,data,enemy,targetPoint,role.speed||.95,dt,range);
   if(!arrived){
-   const barrier=world.buildings.filter(b=>isWall(b)&&b.hp>0&&distance(enemy,center(b,data))<=1.2).sort((a,b)=>distance(enemy,center(a,data))-distance(enemy,center(b,data)))[0];
+   let barrier=null,barrierD=Infinity;
+   for(const b of walls){
+    if(b.hp<=0)continue;
+    const d=distance(enemy,wallCenter(b));
+    if(d<=1.2&&d<barrierD){barrierD=d;barrier=b;}
+   }
    if(barrier&&enemy.attackTimer<=0){
     barrier.hp=Math.max(0,barrier.hp-enemy.damage*(role.wallDamage||1));enemy.attackTimer=1.3;
     effect(world,enemy,center(barrier,data),'slash');
