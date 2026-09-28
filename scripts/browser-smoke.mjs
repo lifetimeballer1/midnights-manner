@@ -59,7 +59,6 @@ try{
  await fire('[data-action="close"]');
  // Touch wall rows on a phone: preview is free, confirm builds the line,
  // and the inspector upgrades the complete connected row with one action.
- await click('[data-action="close"]');
  await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:2,mobile:true});
  await new Promise(r=>setTimeout(r,200));await click('#recenter');
  await click('[data-tab="build"]');
