@@ -74,6 +74,15 @@ try{
  await click('[data-tab="troops"]');await click('[data-gear="cart"]');await click('[data-level]');
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[2].gear'),'cart','equipment applies');
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[0].level'),2,'training applies');
+ // Phase 7 villagers: every hire is named and tempered, and the idle bar posts them.
+ await click('[data-tab="troops"]');
+ await waitFor('Boolean(document.querySelector(".idle-bar"))');
+ assert.ok(await evaluate('document.querySelectorAll(".trait").length > 0'),'villager trait chips render');
+ assert.ok(await evaluate('window.midnightsManner.snapshot().world.troops.every(t=>typeof t.name==="string"&&t.name.length>0)'),'every villager is named');
+ if(await evaluate('Boolean(document.querySelector("[data-autoassign]:not([disabled])"))')){
+  await click('[data-autoassign]');
+  await waitFor('document.querySelector("#status").textContent.includes("idle hand")');
+ }
  await click('#close-panel');
  // Manage a workplace from its map selection, then hire directly into it.
  // The starting warrior stands in front of the crop bed: tap its upper half.

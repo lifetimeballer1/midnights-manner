@@ -303,6 +303,7 @@ test('ph7: posted smelters pour plate the smokehouse way', () => {
   house.remaining = 0;
   g.world.buildings.push(house);
   const hand = makeUnit('smelter', d, 0);
+  hand.traits = ['brave']; // Phase 7: neutral temperament pins the pour math.
   g.world.troops.push(hand);
   g.assign(hand.id, house.id);
   assert.equal(gatherBonus(hand, g.world, d), 1.25, 'posted crews read the generic workplace bonus');
@@ -322,6 +323,7 @@ test('ph7: posted smelters pour plate the smokehouse way', () => {
   shop.remaining = 0;
   gg.world.buildings.push(shop);
   const old = makeUnit('butcher', dd, 0);
+  old.traits = ['brave']; // Phase 7: the old crew smokes exactly 0.8/s.
   gg.world.troops.push(old);
   gg.assign(old.id, shop.id);
   for (let i = 0; i < 600; i++) tickVillage(gg.state, dd, 0.05, noop);
