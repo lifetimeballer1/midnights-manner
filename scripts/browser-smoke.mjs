@@ -103,13 +103,17 @@ try{
  if(await evaluate('(()=>{const e=document.querySelector("#close-panel");return !!(e&&!e.disabled&&e.getClientRects().length);})()'))await fire('#close-panel');
  // Manage a workplace from its map selection, then hire directly into it.
  // The starting warrior stands in front of the crop bed: tap its upper half.
- const workplacePoint=await evaluate('(()=>{const g=window.midnightsManner,b=g.snapshot().world.buildings.find(b=>b.type==="farm"&&b.x===6);return g.modelPoints(b.id).find(p=>document.elementFromPoint(p.x,p.y)?.id==="world");})()');
- assert.ok(workplacePoint,'farm has an exposed model face');await tap(workplacePoint);
+ const farmFaces=await evaluate('(()=>{const g=window.midnightsManner,b=g.snapshot().world.buildings.find(b=>b.type==="farm"&&b.x===6);return g.modelPoints(b.id).filter(p=>document.elementFromPoint(p.x,p.y)?.id==="world");})()');
+ assert.ok(farmFaces.length,'farm has an exposed model face');
+ let farmOpen=false;
+ for(const p of farmFaces.slice(0,12)){await tap(p);await new Promise(r=>setTimeout(r,250));if(await evaluate('Boolean(document.querySelector("[data-action="assign"]"))')){farmOpen=true;break;}}
+ assert.ok(farmOpen,'farm inspector opens despite crew on the tile');
  await screenshot('workplace-selection');
  console.log('Workplace selection:',await evaluate('document.querySelector("#inspector").textContent'));
  // Opening a menu is idempotent. Reacquire the live inspector after its harvest row changes layout.
- for(let attempt=0;attempt<3;attempt++){await click('[data-action="assign"]');await new Promise(r=>setTimeout(r,250));if(await evaluate('Boolean(document.querySelector("[data-staff]"))'))break;}
- await waitFor('Boolean(document.querySelector("[data-staff]"))');
+ await click('[data-action="assign"]');
+ await waitFor('Boolean(document.querySelector("[data-staff]"))||Boolean(document.querySelector("[data-release]"))');
+ if(await evaluate('Boolean(document.querySelector("[data-release]"))')){await click('[data-release]');await waitFor('Boolean(document.querySelector("[data-staff]"))');}
  await click('[data-staff]');
  assert.ok(await evaluate('window.midnightsManner.snapshot().world.troops.find(t=>t.type==="farmer").workplace'),'worker assigned from workplace');
  await click('[data-release]');
