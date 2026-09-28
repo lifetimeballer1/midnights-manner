@@ -48,6 +48,15 @@ try{
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.buildings.length'),count,'preview does not spend');
  console.log('Placement state',await evaluate(`({hint:document.querySelector('#placement-state').textContent,point:window.midnightsManner.project(2.5,2.5),target:(()=>{const p=window.midnightsManner.project(2.5,2.5);return document.elementFromPoint(p.x,p.y)?.outerHTML.slice(0,300)})()})`));await screenshot('placement-check');
  await click('#confirm-place');assert.equal(await evaluate('window.midnightsManner.snapshot().world.buildings.length'),count+1,'confirm builds once');
+ // Phase 8 chains: the Sawmill card refines timber to lumber through posted crews.
+ const millsBefore=await evaluate('window.midnightsManner.snapshot().world.buildings.length');
+ for(let i=0;i<3;i++){await fire('[data-build="sawmill"]');if(await evaluate('document.querySelector("#placement-hint").textContent.startsWith("Sawmill")'))break;await new Promise(r=>setTimeout(r,250));await fire('[data-tab="build"]');}
+ await waitFor('document.querySelector("#placement-hint").textContent.startsWith("Sawmill")');
+ await tap(await evaluate('window.midnightsManner.project(2.5,5.5)'));
+ await click('#confirm-place');assert.equal(await evaluate('window.midnightsManner.snapshot().world.buildings.length'),millsBefore+1,'sawmill confirms once');
+ await waitFor('(()=>{const e=document.querySelector("#inspector");return e&&!e.hidden&&e.getClientRects().length>0&&e.textContent.includes("Refinery");})()');
+ assert.ok(await evaluate('document.querySelector("#inspector").textContent.includes("Sawmill")'),'sawmill inspector names the shop');
+ await fire('[data-action="close"]');
  // Touch wall rows on a phone: preview is free, confirm builds the line,
  // and the inspector upgrades the complete connected row with one action.
  await click('[data-action="close"]');
@@ -201,5 +210,5 @@ try{
  await waitFor('!!window.midnightsManner && !document.querySelector("#title").hidden');
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[0].id'),savedUnit,'ordinary in-app refresh preserves village');
  assert.deepEqual(errors,[],'no browser runtime errors');
- console.log(JSON.stringify({resourceCollection:true,menuSearch:true,mobileMenuPolish:true,inAppUpdate:true,saveAndRefresh:true,offlineUpdateCheck:true,placementConfirmation:true,touchWallRows:true,wallRowUpgrade:true,equipment:true,training:true,mission:true,raid:true,saveReload:true,portrait:true,landscape:true,touchPan:true,pinchZoom:true,consoleErrors:errors}));
+ console.log(JSON.stringify({resourceCollection:true,menuSearch:true,mobileMenuPolish:true,inAppUpdate:true,saveAndRefresh:true,offlineUpdateCheck:true,placementConfirmation:true,touchWallRows:true,sawmillRefinery:true,wallRowUpgrade:true,equipment:true,training:true,mission:true,raid:true,saveReload:true,portrait:true,landscape:true,touchPan:true,pinchZoom:true,consoleErrors:errors}));
 }finally{ws?.close();chrome.kill();server.close();await new Promise(r=>setTimeout(r,300));await rm(profile,{recursive:true,force:true,maxRetries:3,retryDelay:100});}
