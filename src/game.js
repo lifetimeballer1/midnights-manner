@@ -17,6 +17,7 @@ import {tickCombat,spawnRaid,activateAbility,raidSides} from './systems/combat.j
 import {startMission,tickMission,finishMission} from './systems/campaign.js';
 import {load,save} from './storage.js';
 import {dayKey,seasonFor,modifierFor,calendarEffects,performTrade,marketOpen,describeDeal} from './systems/calendar.js';
+import {phaseAt,weatherAt,clockConfig} from './systems/daynight.js';
 import {sfx} from './systems/audio.js';
 // Scheduled home raids: all timing and ceremony lines come from
 // data.world.homeRaids so balance and voice stay in JSON, not logic.
@@ -355,6 +356,19 @@ export class Game {
   this.persist();
   return true;
  }
+ // Living sky (Phase 10): the village clock. Phase and weather derive
+ // purely from world.elapsed, so the sky needs no save fields and no
+ // migration — old saves simply start reading the sky on their next tick.
+ // Transient world.night / world.weather feed combat, economy and the
+ // renderer; transitions ring once through the message line, never on load.
+ tickClock(){
+  const w=this.world,cfg=clockConfig(this.data);
+  const phase=phaseAt(w.elapsed,this.data),weather=weatherAt(w.elapsed,this.data);
+  w.night=phase.night;w.weather=weather.id;
+  if(w.lastPhase===undefined&&w.lastWeather===undefined){w.lastPhase=phase.id;w.lastWeather=weather.id;return;}
+  if(w.lastPhase!==phase.id){w.lastPhase=phase.id;const line=cfg.lines[phase.id];if(line)this.notify(line);}
+  if(w.lastWeather!==weather.id){w.lastWeather=weather.id;const line=cfg.lines[weather.id];if(line)this.notify(line);}
+ }
  harvest(id){const b=this.world.buildings.find(b=>b.id===id),spec=b&&this.data.buildings[b.type];if(this.paused||!b||!spec.production||b.hp<=0||b.remaining>0)return false;const amount=Math.floor(b.harvestBonus||0);if(amount<1)return false;b.harvestBonus-=amount;this.world.resources[spec.production]=(this.world.resources[spec.production]||0)+amount;this.world.gathered[spec.production]=(this.world.gathered[spec.production]||0)+amount;const at=center(b,this.data);this.world.effects.push({x:at.x,y:at.y,tx:at.x,ty:at.y,kind:'float',text:resourceLabel(spec.production,amount),color:resourceInfo(spec.production).color,life:.9});sfx.collect();this.notify(`Collected ${amount} ${spec.production}.`);return amount;}
  // One tap gathers every finished producer with a whole unit stored on-site.
  // Same guards as harvest; a single summary notice instead of one per site.
@@ -396,7 +410,7 @@ export class Game {
   // Phase 7 identity backfill: old saves and mission rosters gain names,
   // traits and job ledgers lazily — additive defaults, never a wipe.
   for(const w of [this.world,this.state.home]){if(!w)continue;for(const u of w.troops||[])ensureIdentity(u,this.data,w.troops);}
-  this.world.elapsed+=dt;tickResearch(this.state,this.data,dt,m=>this.notify(m));tickEmergency(this.world,this.data,dt);tickVillagerJobs(this.world,this.data,dt);const filled=autoFillTick(this.world,this.data,dt);if(filled&&(this.world.elapsed-(this.world.lastAutoFillNote||0)>60)){this.world.lastAutoFillNote=this.world.elapsed;this.notify(`${filled} idle hand${filled>1?'s':''} took ${filled>1?'open posts':'an open post'} on their own — traits matched, locks respected.`);}tickEconomy(this.world,this.data,dt);tickRefine(this.world,this.data,dt);for(const c of tickCraft(this.world,this.data,dt)){const name=this.data.items[c.item]?.name||c.item;this.notify(`${name} finished — fit it from the People panel.`);}tickExpeditions(this.world,this.data,dt);tickCombat(this.world,this.data,dt);tickVillage(this.state,this.data,dt,m=>this.notify(m));const before=this.state.mission?.status;tickMission(this.state,this.data);
+  this.world.elapsed+=dt;this.tickClock();tickResearch(this.state,this.data,dt,m=>this.notify(m));tickEmergency(this.world,this.data,dt);tickVillagerJobs(this.world,this.data,dt);const filled=autoFillTick(this.world,this.data,dt);if(filled&&(this.world.elapsed-(this.world.lastAutoFillNote||0)>60)){this.world.lastAutoFillNote=this.world.elapsed;this.notify(`${filled} idle hand${filled>1?'s':''} took ${filled>1?'open posts':'an open post'} on their own — traits matched, locks respected.`);}tickEconomy(this.world,this.data,dt);tickRefine(this.world,this.data,dt);for(const c of tickCraft(this.world,this.data,dt)){const name=this.data.items[c.item]?.name||c.item;this.notify(`${name} finished — fit it from the People panel.`);}tickExpeditions(this.world,this.data,dt);tickCombat(this.world,this.data,dt);tickVillage(this.state,this.data,dt,m=>this.notify(m));const before=this.state.mission?.status;tickMission(this.state,this.data);
   if(raided&&!this.world.enemies.length&&!this.world.raidPending&&this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)){const kills=this.world.raidKills??0,loot=this.world.raidLoot??0;
    const damaged=this.world.buildings.filter(b=>b.hp<this.data.buildings[b.type].tiers[b.level-1].hp);
    const repairWood=damaged.reduce((n,b)=>n+Math.ceil((this.data.buildings[b.type].tiers[b.level-1].hp-b.hp)/15),0);

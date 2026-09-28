@@ -6,6 +6,7 @@ import {center,canPlace,stats,housing,assignedWorkers} from './model.js';
 import {sfx} from './systems/audio.js';
 import {isWall} from './building-art.js';
 import {drawVillage3D,pointInPolygon} from './scene3d.js';
+import {phaseAt,weatherAt,lightingFor} from './systems/daynight.js';
 export class Renderer {
  constructor(canvas,data,images){this.canvas=canvas;this.ctx=canvas.getContext('2d');this.data=data;this.images=images;this.grid=false;this.hover=null;this.selection=null;this.placing=null;this.moving=null;this.tw=43;this.th=22;this.ox=510;this.oy=97;this.shake=0;this.cam={x:10,y:8,zoom:1,yaw:DEFAULT_YAW,pitch:DEFAULT_PITCH};this.orbitMode=false;this.cx=550;this.cy=370;this.width=1100;this.height=740;this.dpr=1;this.hitAreas=[];this.staticLayer=null;this.staticKey='';this.frameTimes=[];this._pendingStaticKey=null;this._noCache=false;this._lastFrame=null;try{this.calm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch{this.calm=false;}this.seen=new Map();this.flash=new Map();this.deadAt=new Map();this.tints=new Map();}
  base(x,y){return {x:this.ox+(x-y)*this.tw/2,y:this.oy+(x+y)*this.th/2};}
@@ -158,14 +159,36 @@ export class Renderer {
  // Vignette + moon glow: depth and night air over the whole map (static, motion-safe).
   {const vg=c.createRadialGradient(this.width/2,this.height/2,Math.min(this.width,this.height)*.3,this.width/2,this.height/2,Math.max(this.width,this.height)*.75);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(5,10,8,0.42)');c.fillStyle=vg;c.fillRect(0,0,this.width,this.height);
    const mg=c.createRadialGradient(180,80,10,180,80,320);mg.addColorStop(0,'rgba(242,201,110,0.10)');mg.addColorStop(1,'rgba(242,201,110,0)');c.fillStyle=mg;c.fillRect(0,0,this.width,this.height);}
- // Cheap day/night grade: slow 3-minute cycle, static per frame (motion-safe).
-  {const dayT=((world.elapsed||0)%180)/180;let tc=null,ta=0;
-   if(dayT<.15){tc='#f2c96e';ta=.07;}else if(dayT>=.55&&dayT<.7){tc='#c05a4e';ta=.08;}else if(dayT>=.7){tc='#1a2c4e';ta=.12;}
-   if(tc){c.globalAlpha=ta;c.fillStyle=tc;c.fillRect(0,0,this.width,this.height);c.globalAlpha=1;}}
+ // Living sky (Phase 10): clock-driven lighting from world.elapsed — dawn
+// daylight, dusk ember, deep night blue — plus the weather veil. All drawn
+// every frame AFTER the static-layer blit, so the cached terrain stays valid
+// and per-frame cost stays flat: two fullscreen fills, lamp glows, rain.
+  {const phase=phaseAt(world.elapsed,this.data),weather=weatherAt(world.elapsed,this.data);
+   const lamp=lightingFor(phase.id,this.data);
+   if(lamp.color&&lamp.alpha>0){c.globalAlpha=lamp.alpha;c.fillStyle=lamp.color;c.fillRect(0,0,this.width,this.height);c.globalAlpha=1;}
+   if(weather.color&&weather.alpha>0){c.globalAlpha=weather.alpha;c.fillStyle=weather.color;c.fillRect(0,0,this.width,this.height);c.globalAlpha=1;}
+   // Lamp glow: every finished standing building breathes warm light after
+   // dark. One batched fillStyle, one ellipse per roof — flat O(buildings).
+   if(lamp.glow>0){c.globalAlpha=.16*lamp.glow;c.fillStyle='#f2c96e';
+    for(const b of world.buildings){if(b.hp<=0||b.remaining>0)continue;
+     const spec=this.data.buildings[b.type];if(!spec)continue;
+     const gp=this.project(b.x+spec.size/2,b.y+spec.size/2),r=(spec.size===2?46:30)*this.cam.zoom;
+     c.beginPath();c.ellipse(gp.x,gp.y-10*this.cam.zoom,r,r*.42,0,0,Math.PI*2);c.fill();}
+    c.globalAlpha=1;}
+   // Rain streaks: 36 deterministic slashes, falling with the clock. Flat.
+   if(weather.streaks){c.strokeStyle='#9fc4d4';c.globalAlpha=.32;c.lineWidth=1;c.beginPath();
+    for(let i=0;i<36;i++){const rx=(i*97.31)%this.width,ry=((i*57.73)+time*.35)%(this.height+14)-7;
+     c.moveTo(rx,ry);c.lineTo(rx-4,ry+9);}
+    c.stroke();c.globalAlpha=1;}
+   this._skyPhase=phase.id;}
   if(didShake)c.restore();else this.shake=0;
   if(!this.calm)for(let i=0;i<8;i++){const p=this.project(4+i*1.8,4+(i*3)%9);c.globalAlpha=.25+Math.sin(time/1000+i)*.2;c.fillStyle='#fcf4c0';c.fillRect(p.x+Math.sin(time/1500+i)*8,p.y-25,2,2);}c.globalAlpha=1;
-  // Butterflies by day: three gold wanderers over the fields.
-  if(!this.calm)for(let i=0;i<3;i++){const bp=this.project(5+4*Math.sin(time/3100+i*2.1),6+3*Math.cos(time/2600+i*1.7));const flap=Math.abs(Math.sin(time/180+i))*2;c.fillStyle='#f2c96ecc';c.fillRect(bp.x-2-flap,bp.y,2,2);c.fillRect(bp.x+flap,bp.y,2,2);}
+  // Critters keep the clock: gold butterflies by day, warm fireflies
+  // after dark. Same loop count either way — per-frame cost never moves.
+  if(!this.calm){const night=this._skyPhase==='night'||this._skyPhase==='dusk';
+   for(let i=0;i<3;i++){const bp=this.project(5+4*Math.sin(time/(night?2300:3100)+i*2.1),6+3*Math.cos(time/(night?2900:2600)+i*1.7));
+    if(night){c.globalAlpha=.5+Math.sin(time/400+i*2)*.4;c.fillStyle='#ffd97a';c.fillRect(bp.x,bp.y,2,2);c.globalAlpha=1;}
+    else{const flap=Math.abs(Math.sin(time/180+i))*2;c.fillStyle='#f2c96ecc';c.fillRect(bp.x-2-flap,bp.y,2,2);c.fillRect(bp.x+flap,bp.y,2,2);}}}
   if(!this.placing)this.drawCollections(world);
  }
  drawCollections(world){

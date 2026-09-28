@@ -8,6 +8,7 @@ import {currentQuest,questProgress,growthStatus} from './systems/village.js';
 import {exportSave,importSaveBlob} from './storage.js';
 import {pickRumor,pickLegend,daySeed} from './systems/story.js';
 import {dayKey,seasonFor,modifierFor,dealsFor,marketOpen,tradeCap,describeDeal} from './systems/calendar.js';
+import {describeClock} from './systems/daynight.js';
 import {expeditionStatus} from './systems/expeditions.js';
 import {TRAITS, idleWorkers, scorePost} from './systems/villagers.js';
 import {itemRarity, RARITY_INFO, stockCount} from './systems/crafting.js';
@@ -281,7 +282,8 @@ export class UI {
   if(!marketOpen(g.state))return `<div class="notice-board" aria-live="polite"><span>GREY MARKET</span><p>Dust on the Grey Road — no wagons yet. Grow the village to level 2 and the traders will find you.</p></div>`;
   const now=new Date(),key=dayKey(now);
   const s=seasonFor(d.calendar,now),m=modifierFor(d.calendar,now);
-  const sky=s||m?`<div class="notice-board" aria-live="polite"><span>TONIGHT'S SKY</span><p>${s?`${s.season.name}, day ${s.dayOfCycle} of 28. ${s.season.text} `:''}${m?`${m.name} — ${m.text}`:''}</p></div>`:'';
+  const clock=describeClock(g.world,d);
+  const sky=`<div class="notice-board" aria-live="polite"><span>TONIGHT'S SKY</span><p>${s?`${s.season.name}, day ${s.dayOfCycle} of 28. ${s.season.text} `:''}${m?`${m.name} — ${m.text}`:''}<br>${clock.line}${clock.hint?` — ${clock.hint}.`:'.'}</p></div>`;
   const used=g.state.tradeDay===key&&(g.state.tradesUsed||{});
   const deals=dealsFor(d.traders,d.calendar,now,g.state.vlevel||1);
   if(!deals.length)return `${sky}<div class="notice-board" aria-live="polite"><span>GREY MARKET</span><p>No wagons on the road today. The bell will bring new faces tomorrow.</p></div>`;

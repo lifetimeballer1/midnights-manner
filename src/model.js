@@ -1,4 +1,5 @@
 import {hasTrait, jobLevelMult, CRAFT_SHOPS} from './systems/villagers.js';
+import {skyGatherBonus} from './systems/daynight.js';
 export const copy = value => structuredClone(value);
 export const distance = (a,b) => Math.hypot(a.x-b.x,a.y-b.y);
 import {buildTiles, seedFor} from './systems/biomes.js';
@@ -290,6 +291,12 @@ export function auras(world, data) {
       if (k in out && Number.isFinite(v)) out[k] += v * 0.5;
     }
   }
+  // Living sky (Phase 10): night unease slows gathering a touch, rain
+  // quickens it. Transient world.night / world.weather set by the game
+  // tick; worlds without them (old saves, direct ticks) read exactly the
+  // pre-Phase-10 values. The gather cap below still holds the ceiling.
+  const living = skyGatherBonus(world, data);
+  if (living) out.gather += living;
   // Dawn Gate (Act VIII): the everything engine — +0.05 every aura key,
   // village-wide, still held by the caps below. Data flag, one per village.
   if (world.buildings.some(b => b.hp > 0 && b.remaining <= 0 && data.buildings[b.type]?.dawnAura)) {
