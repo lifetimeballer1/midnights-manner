@@ -165,6 +165,11 @@ try{
  assert.ok(await evaluate('window.midnightsManner.snapshot().world.enemies.every(e=>e.faction)'), 'home raiders have faction identity');
  await screenshot('survival-emergency');
  await click('#pause');assert.equal(await evaluate('window.midnightsManner.paused'),true);await click('#opt-save');await click('#resume');
+ await click('#pause');await fire('#opt-news');await waitFor('!document.querySelector("#news-overlay").hidden');
+ assert.ok(await evaluate('document.querySelectorAll(".news-entry").length>=3'),'notice board lists patch notes');
+ await screenshot('whats-new');await fire('#news-close');await waitFor('document.querySelector("#news-overlay").hidden');
+ assert.equal(await evaluate('window.midnightsManner.snapshot().seenUpdatesVersion'),'0.3.0','dismissing the board marks the version seen');
+ await click('#resume');
  await call('Page.reload');await waitFor('Boolean(window.midnightsManner)');await click('#begin');
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[0].level'),2,'level restored');
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[2].gear'),'cart','gear restored');
@@ -209,5 +214,5 @@ try{
  await waitFor('!!window.midnightsManner && !document.querySelector("#title").hidden');
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[0].id'),savedUnit,'ordinary in-app refresh preserves village');
  assert.deepEqual(errors,[],'no browser runtime errors');
- console.log(JSON.stringify({resourceCollection:true,menuSearch:true,mobileMenuPolish:true,inAppUpdate:true,saveAndRefresh:true,offlineUpdateCheck:true,placementConfirmation:true,touchWallRows:true,sawmillRefinery:true,wallRowUpgrade:true,equipment:true,training:true,mission:true,raid:true,saveReload:true,portrait:true,landscape:true,touchPan:true,pinchZoom:true,consoleErrors:errors}));
+ console.log(JSON.stringify({resourceCollection:true,menuSearch:true,mobileMenuPolish:true,inAppUpdate:true,saveAndRefresh:true,noticeBoard:true,offlineUpdateCheck:true,placementConfirmation:true,touchWallRows:true,sawmillRefinery:true,wallRowUpgrade:true,equipment:true,training:true,mission:true,raid:true,saveReload:true,portrait:true,landscape:true,touchPan:true,pinchZoom:true,consoleErrors:errors}));
 }finally{ws?.close();chrome.kill();server.close();await new Promise(r=>setTimeout(r,300));await rm(profile,{recursive:true,force:true,maxRetries:3,retryDelay:100});}
