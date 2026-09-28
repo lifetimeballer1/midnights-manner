@@ -106,7 +106,7 @@ try{
  const farmFaces=await evaluate('(()=>{const g=window.midnightsManner,b=g.snapshot().world.buildings.find(b=>b.type==="farm"&&b.x===6);return g.modelPoints(b.id).filter(p=>document.elementFromPoint(p.x,p.y)?.id==="world");})()');
  assert.ok(farmFaces.length,'farm has an exposed model face');
  let farmOpen=false;
- for(const p of farmFaces.slice(0,12)){await tap(p);await new Promise(r=>setTimeout(r,250));if(await evaluate('Boolean(document.querySelector("[data-action="assign"]"))')){farmOpen=true;break;}}
+ for(const p of farmFaces.slice(0,12)){await tap(p);await new Promise(r=>setTimeout(r,250));if(await evaluate('Boolean(document.querySelector("[data-action=assign]"))')){farmOpen=true;break;}}
  assert.ok(farmOpen,'farm inspector opens despite crew on the tile');
  await screenshot('workplace-selection');
  console.log('Workplace selection:',await evaluate('document.querySelector("#inspector").textContent'));
