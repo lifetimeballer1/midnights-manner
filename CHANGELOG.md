@@ -1,3 +1,11 @@
+## Presentation pass — Phase 5: Housing silhouettes (2026-09-28)
+
+- Cottages read by shape, tier over tier: tier 2 grows a lit loft window in the front gable with a rail beneath it; tier 3 adds a porch (deck, posts, awning) over the door and raises the kitchen stack clear of the ridge line (the old stack barely cleared it at tier 3). Tier 1 stays the plain timber hut.
+- The longhouse is now a meadhall, not a big cottage: long-axis ridge beam, twin capped stacks at both ridge ends, a banner over the door and a veranda rail with awning across the front gable. `hut()` gained an optional `chimney` flag so the hall's roof stays stack-free (the two ridge stacks are the hall's own).
+- Review: `node scripts/housing-preview.mjs` renders all four homes from the actual orbit meshes at real day/night sky light (optional @napi-rs/canvas, installed `--no-save`; sheets at `artifacts/housing-{day,night}.png`). Reviewed: tier growth reads at a glance and the hall dominates the row.
+- Harness fix found while reviewing: Windows Chromium leaves crashpad/utility children behind `kill()`; those inherit stdio and could hang a piping shell after node exited. Both `look-capture.mjs` and `browser-smoke.mjs` now kill the whole browser process tree (`taskkill /T` on Windows), so runs always return promptly.
+- Tests: new `tests/building-silhouette.test.js` (2 checks — tier counts strictly grow; the hall out-silhouettes the top cottage and flies marker materials). cottage-3 baseline digests updated deliberately (207 → 249 faces). `npm test` 450 → 471 after the multiplayer merge (452 from this phase alone); README verification refreshed. No save fields, no save-version change.
+
 ## Presentation pass — Phase 4: AO, shadows and the frame (2026-09-28)
 
 - Per-face ground-contact AO: faces shade darker the closer they sit to the dirt (`0.8 + 0.2 × clamp(height / 0.7)`), baked at construction so it never touches the paint cache; tall faces split 3×3 and grade from foot to crown. Roofs and anything above 0.7 tiles stay at full light.

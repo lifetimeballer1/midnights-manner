@@ -3,13 +3,17 @@
 // Pins camera, calm motion and a clear-sky clock per phase so runs compare
 // frame-for-frame. Writes artifacts/look-*.png (gitignored) and prints a JSON
 // summary. Read-only: the game loop and saves are never altered.
-import {spawn} from 'node:child_process';
+import {spawn,spawnSync} from 'node:child_process';
 import {mkdtemp,rm,writeFile,mkdir,readFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,extname,resolve,relative,isAbsolute} from 'node:path';
 import {createServer} from 'node:http';
 import {DAY_LENGTH,phaseAt,weatherAt} from '../src/systems/daynight.js';
 import {DEFAULT_YAW,DEFAULT_PITCH} from '../src/camera.js';
+// Windows browsers leave crashpad/utility children behind `kill()`; those
+// children inherit our stdio handles and can hang a piping shell long after
+// node exits. Kill the whole tree so the harness always returns promptly.
+function killBrowser(proc){try{if(process.platform==='win32')spawnSync('taskkill',['/pid',String(proc.pid),'/T','/F'],{stdio:'ignore'});else proc.kill();}catch{}}
 const root=resolve('dist'),world=JSON.parse(await readFile(new URL('../data/world.json',import.meta.url))),profile=await mkdtemp(join(tmpdir(),'midnight-look-'));
 const server=createServer(async(req,res)=>{try{let path=decodeURIComponent(new URL(req.url,'http://localhost').pathname).replace(/^\/midnights-manner\//,'');if(!path||path==='/')path='index.html';const file=resolve(root,path),rel=relative(root,file);if(rel.startsWith('..')||isAbsolute(rel))throw Error('Invalid path');res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.json':'application/json','.css':'text/css','.png':'image/png','.svg':'image/svg+xml'})[extname(file)]||'application/octet-stream');res.end(await readFile(file));}catch{res.writeHead(404);res.end('Not found');}});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
@@ -67,6 +71,6 @@ try{
  if(errors.length)throw Error('Page errors during capture: '+errors.join(' | '));
 }finally{
  try{ws?.close();}catch{}
- chrome.kill();server.close();
+ killBrowser(chrome);server.close();
  await rm(profile,{recursive:true,force:true}).catch(()=>{});
 }

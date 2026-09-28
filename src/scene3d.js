@@ -65,7 +65,7 @@ function windows(s,x,y,w,d,h){
  s.emissive=0;s.box(x+w*.4,y+d+.01,.1,w*.22,.026,.48,'#5b4735');
  s.depthBias=bias;
 }
-function hut(s,x,y,w,d,h,roofColor,level){
+function hut(s,x,y,w,d,h,roofColor,level,chimney=true){
  const rise=.35+level*.08,frame=level>=3?gold:'#73563d';
  // Recess the walls beneath the eaves and omit their hidden top plane.
  s.box(x,y,.1,w,d,h-.1,level===1?timber:stone,false);
@@ -87,7 +87,46 @@ function hut(s,x,y,w,d,h,roofColor,level){
   }
   s.depthBias=bias;
  }
- if(level>=2){s.box(x+w*.75,y+d*.2,h,.18,.18,.75,stone);s.box(x+w*.75-.025,y+d*.2-.025,h+.75,.23,.23,.065,'#786d5b');}
+ if(chimney&&level>=2){s.box(x+w*.75,y+d*.2,h,.18,.18,.75,stone);s.box(x+w*.75-.025,y+d*.2-.025,h+.75,.23,.23,.065,'#786d5b');}
+}
+
+// Phase 5 — homes read by silhouette, not just paint. Cottages grow a loft
+// gable with a rail (tier 2), then a porch over the door and a raised kitchen
+// stack (tier 3); the longhouse is a meadhall — ridge beam, twin chimneys,
+// banner and a veranda — so it out-silhouettes the cottage row at a glance.
+function homeDetails(s,b,n,l){
+ const x=b.x+.22,y=b.y+.22,w=n-.44,h=.42+l*.16;
+ if(l>=2){
+  // Loft window in the front gable, with a little rail under it.
+  s.emissive=1;s.box(x+w*.44,y+w-.028,h+.2,.13,.05,.13,'#ffe6ab');s.emissive=0;
+  for(const dx of [.34,.62])s.box(x+w*dx,y+w+.03,.1,.045,.045,h*.72,timber);
+  s.box(x+w*.34,y+w+.03,.5,.3,.04,.045,timber);
+ }
+ if(l>=3){
+  // Porch over the door: deck, posts, a low awning.
+  s.box(x+w*.28,y+w+.03,.1,w*.46,.22,.05,timber);
+  s.box(x+w*.3,y+w+.2,.1,.055,.055,.42,timber);
+  s.box(x+w*.69,y+w+.2,.1,.055,.055,.42,timber);
+  s.roof(x+w*.24,y+w-.04,.52,w*.54,.34,.16,'#8a6a48');
+  // Raise the kitchen stack clear of the ridge line.
+  const cx=x+w*.75,cy=y+w*.2;
+  s.box(cx+.01,cy+.01,h+.8,.16,.16,.34,stone);
+  s.box(cx-.02,cy-.02,h+1.14,.22,.22,.06,'#786d5b');
+ }
+}
+
+function longhouseShape(s,b,n){
+ const x=b.x,y=b.y,h=.62,rise=.51,stone='#b4beb2';
+ hut(s,x+.58,y+.32,n-1.15,n-.64,h,'#977851',2,false);
+ // Ridge beam down the long axis ties the big roof together.
+ const rx=x+.58+(n-1.15)/2;
+ s.box(rx-.038,y+.34,h+.1+rise,.076,n-.68,.06,'#6b543a');
+ // Twin stacks at both ends of the ridge: one would read cottage, two read hall.
+ for(const cy of [y+.72,y+n-.82]){s.box(rx-.08,cy,h+.1,.16,.16,rise+.42,stone);s.box(rx-.11,cy-.03,h+.1+rise+.42,.22,.22,.06,'#786d5b');}
+ // Banner over the door, then the veranda rail across the front gable.
+ s.box(x+n*.5,y+n-.14,.1,.055,.055,.85,timber);s.box(x+n*.5+.05,y+n-.14,.62,.2,.025,.32,'#5e8c9b');
+ for(let i=0;i<4;i++)s.box(x+.62+i*(n-1.2)/3,y+n-.16,.1,.05,.05,.4,timber);
+ s.roof(x+.55,y+n-.66,.48,n-1.15,.6,.17,'#7d6142');
 }
 
 function workplaceDetails(s,b,n){
@@ -187,9 +226,11 @@ function buildingShape(s,b,spec,world){
   for(let i=0;i<2;i++)s.box(x+.19+i*.36,y+n-.42,.14,.3,.27,.24,'#decaa0');
   return;
  }
+ if(t==='longhouse'){longhouseShape(s,b,n);return;}
  const colors={hall:'#658d99',barracks:'#b96d5a',cottage:'#9ba061',longhouse:'#977851',chapel:'#8e8dae','sunken-chapel':'#679fa5',forge:'#976b54',smeltery:'#846f67',armory:'#667b91',workshop:'#789380',tannery:'#bd9a69',schoolroom:'#ba9369',scriptorium:'#798ca7',butchery:'#a75e54',fletcher:'#7c9868','shieldwall-yard':'#668a91',mason_yard:'#949b90'};
  hut(s,x+.22,y+.22,n-.44,n-.44,.42+l*.16,colors[t]||'#829a78',l);
  workplaceDetails(s,b,n);
+ if(spec.housing)homeDetails(s,b,n,l);
  if(['forge','smeltery'].includes(t)){s.box(x+n-.55,y+.28,.1,.28,.28,1.5,stone);s.box(x+n-.57,y+.26,1.6,.32,.32,.12,'#4d514b');s.emissive=1;s.box(x+.3,y+n-.2,.2,.4,.024,.26,'#eea55d');s.emissive=0;}
  if(t.includes('chapel')){tower(s,x+.25,y+.25,.4,1.35,stone);s.pyramid(x+.45,y+.45,1.65,.33,.6,colors[t]);}
  if(t==='hall'&&l>=2)tower(s,x+n-.7,y+.25,.48,1.35,stone);

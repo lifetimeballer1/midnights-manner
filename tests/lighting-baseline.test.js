@@ -54,7 +54,7 @@ const CASES = [
   ['hall-1', 'hall', 1, 195, 'f2e96c729f43a75b', 'e379961ae19263e6', '2d4da4d383db7f28', '7414fe3c8fefc021'],
   ['hall-2', 'hall', 2, 255, 'b3c8e3eb68ee98d7', '6ede7136f8c2dd9e', '60ed48118a1b2ca4', '2f3f9790b7e86fd6'],
   ['hall-3', 'hall', 3, 263, '2aa94608b1269dee', 'adb160dbfe070e56', 'd20b428d3edad62d', '4c51e84b8b1835ba'],
-  ['cottage-3', 'cottage', 3, 207, '4238134ae11499b0', '79bcf24e30d5ae24', '5f48ff6cb33e10ba', 'e554e7ce06090c42'],
+  ['cottage-3', 'cottage', 3, 249, '20b192e637b329e1', '4946506e17b8730c', 'f0e9c18a9ec07de4', '4d25d86431210d5e'],
   ['wall-3', 'wall', 3, 36, '7fcf762d1357358b', 'eab79823456bed6a', '60aa62a1fab1708a', '0f1fbaeeba8a235a'],
   ['tower-3', 'tower', 3, 54, '58af5e84fee769b5', 'f8ed97103fac8643', '09f21bbcdf549fd9', '594d61a0d4a75d77'],
   ['sawmill-2', 'sawmill', 2, 132, 'ba8c21aace31c17a', 'e998dd16132d397e', '83030c9914c6f69c', '53b04042598c7487'],
