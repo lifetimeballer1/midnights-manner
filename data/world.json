@@ -307,11 +307,14 @@
       "id": "masonry",
       "branch": "Construction",
       "name": "Stone construction",
-      "text": "Replace exposed timber with stone defenses.",
+      "text": "Raise stronger stonework and formal storehouses. Research also opens the third Farm, Timber Yard, and Mine slot plus core tiers 4–5.",
       "unlocks": [
         "stonewall",
         "gate",
-        "rampart"
+        "rampart",
+        "granary",
+        "lumber_storage",
+        "treasury"
       ],
       "requires": [],
       "points": 10,
@@ -322,38 +325,14 @@
       "seconds": 60
     },
     {
-      "id": "settlement-logistics",
-      "branch": "Construction",
-      "name": "Settlement logistics",
-      "text": "Formalize storehouses and planned work districts. Dedicated stores raise resource caps while new plots open for farms, timber yards, and mines.",
-      "unlocks": [
-        "granary",
-        "lumber_storage",
-        "treasury",
-        "farm-slot-3",
-        "lumber-slot-3",
-        "mine-slot-3",
-        "core-tier-4",
-        "longhouse-tier-2"
-      ],
-      "requires": [
-        "masonry"
-      ],
-      "points": 25,
-      "cost": {
-        "wood": 180,
-        "gold": 120
-      },
-      "seconds": 90
-    },
-    {
       "id": "engineering",
       "branch": "Construction",
       "name": "Master engineering",
-      "text": "Equip your builders for large projects.",
+      "text": "Turn masonry into an engineered settlement. Unlock the Warehouse, fourth producer slots, and the final core tier.",
       "unlocks": [
         "toolkit",
-        "fine-tinkerkit"
+        "fine-tinkerkit",
+        "warehouse"
       ],
       "requires": [
         "masonry"
@@ -364,30 +343,6 @@
         "gold": 180
       },
       "seconds": 120
-    },
-    {
-      "id": "settlement-planning",
-      "branch": "Construction",
-      "name": "Settlement planning",
-      "text": "Lay out a fortified town around deeper stores and mature industries. Unlock the final core tiers and the fourth producer slot.",
-      "unlocks": [
-        "warehouse",
-        "farm-slot-4",
-        "lumber-slot-4",
-        "mine-slot-4",
-        "core-tier-6",
-        "longhouse-tier-3"
-      ],
-      "requires": [
-        "settlement-logistics",
-        "engineering"
-      ],
-      "points": 50,
-      "cost": {
-        "wood": 300,
-        "gold": 220
-      },
-      "seconds": 150
     },
     {
       "id": "fieldcraft",
@@ -537,17 +492,5 @@
       },
       "seconds": 120
     }
-  ],
-  "unlockLabels": {
-    "farm-slot-3": "Wheat Farm limit → 3",
-    "farm-slot-4": "Wheat Farm limit → 4",
-    "lumber-slot-3": "Timber Yard limit → 3",
-    "lumber-slot-4": "Timber Yard limit → 4",
-    "mine-slot-3": "Moonstone Mine limit → 3",
-    "mine-slot-4": "Moonstone Mine limit → 4",
-    "core-tier-4": "Core buildings tiers 4–5",
-    "core-tier-6": "Core buildings tier 6",
-    "longhouse-tier-2": "Longhouse tier 2",
-    "longhouse-tier-3": "Longhouse tier 3"
-  }
+  ]
 }
