@@ -1,1 +1,13 @@
-SEE_LOCAL
+[
+  {
+    "id": "second-field",
+    "name": "A Second Field",
+    "text": "One farm feeds a few. Two farms feed a future. Raise a second Wheat Farm.",
+    "giver": "Maro the mason",
+    "flavor": "Maro chalked the hall sill himself. Says a second field means the village means it.",
+    "act": "I",
+    "task": {"kind": "build", "type": "farm", "count": 2},
+    "xp": 60,
+    "rewards": {"wood": 40}
+  }
+]
