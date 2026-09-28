@@ -1,45 +1,57 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {createWorld,makeBuilding,makeUnit} from '../src/model.js';
+import {createWorld, makeUnit, makeBuilding} from '../src/model.js';
 import {tickVillage} from '../src/systems/village.js';
-import {daySeed,pickRumor,pickLegend,makeTradeName} from '../src/systems/story.js';
+import {VERSION} from '../src/storage.js';
+import {daySeed, pickRumor, pickLegend, makeTradeName} from '../src/systems/story.js';
 
 const data = Object.fromEntries(await Promise.all(
-  ['world','troops','items','abilities','buildings','missions','quests','rumors','names','legends'].map(async n =>
-    [n, JSON.parse(await readFile(new URL(`../data/${n}.json`, import.meta.url)))]
-  )
-));
-
+  ['world', 'troops', 'items', 'abilities', 'buildings', 'missions', 'quests', 'rumors', 'names', 'legends']
+    .map(async n => [n, JSON.parse(await readFile(new URL(`../data/${n}.json`, import.meta.url)))])));
 const noop = () => {};
 function freshState(d) {
-  return {
-    world: createWorld(d),
-    home: null,
-    mission: null,
-    completed: [],
-    unlocks: ['tower'],
-    xp: 0,
-    vlevel: 1,
-    questsCompleted: [],
-    tradeDay: null,
-    tradesUsed: {},
-    calendarDay: null,
-    gatheredAtBell: null,
-  };
+  return {world: createWorld(d), home: null, mission: null, completed: [], unlocks: ['tower'], xp: 0, vlevel: 1, questsCompleted: []};
 }
 
 test('story item 1: every quest carries giver, flavor and act', () => {
+  assert.equal(data.quests.length, 22, "twenty-two steps: sixteen shipped plus the three Act VII trials plus the three Act VIII legend trials");;
   for (const q of data.quests) {
-    assert.ok(q.giver, q.id);
-    assert.ok(q.flavor, q.id);
-    assert.ok(q.act, q.id);
+    assert.ok(typeof q.giver === 'string' && q.giver.length > 0, `${q.id} giver`);
+    assert.ok(typeof q.flavor === 'string' && q.flavor.length > 0, `${q.id} flavor`);
+    assert.ok(['I', 'II', 'V', 'VI', 'VII', 'VIII'].includes(q.act), `${q.id} act`);
   }
+  assert.deepEqual(data.quests.slice(0, 5).map(q => q.act), ['I', 'I', 'I', 'I', 'I']);
+  assert.deepEqual(data.quests.slice(5, 8).map(q => q.act), ['II', 'II', 'II']);
+  assert.equal(data.quests[8].id, 'chart-the-dark');
+  assert.equal(data.quests[8].act, 'V');
+  assert.equal(data.quests[9].id, 'tomm-s-flocks');
+  assert.equal(data.quests[9].act, 'V');
+  assert.equal(data.quests[10].id, 'open-doors');
+  assert.equal(data.quests[10].act, 'V');
+  assert.equal(data.quests[11].id, 'sarella-s-standard');
+  assert.equal(data.quests[11].act, 'V');
+  assert.equal(data.quests[12].id, 'west-of-the-chalk');
+  assert.equal(data.quests[12].act, 'VI');
+  assert.equal(data.quests[13].id, 'first-pour');
+  assert.equal(data.quests[13].act, 'VI');
+  assert.equal(data.quests[14].id, 'down-dark-water');
+  assert.equal(data.quests[14].act, 'VI');
+  assert.equal(data.quests[15].id, 'glass-under-stone');
+  assert.equal(data.quests[15].act, 'VI');
+  assert.equal(data.quests[19].id, 'the-bell-remembers');
+  assert.equal(data.quests[19].act, 'VIII');
+  assert.equal(data.quests[20].id, 'what-the-water-kept');
+  assert.equal(data.quests[20].act, 'VIII');
+  assert.equal(data.quests[21].id, 'dawn-of-the-manner');
+  assert.equal(data.quests[21].act, 'VIII');
 });
 
 test('story item 1: every mission carries act, beat and ceremony lines', () => {
   for (const m of data.missions) {
-    assert.ok(m.ceremony && m.ceremony.warning && m.ceremony.victory && m.ceremony.defeat, m.id);
+    assert.ok(m.act, `${m.id} act`);
+    assert.ok(m.beat, `${m.id} beat`);
+    assert.ok(m.ceremony && m.ceremony.warning && m.ceremony.victory && m.ceremony.defeat, `${m.id} ceremony`);
   }
 });
 
@@ -74,4 +86,29 @@ test('story item 2: board and title picks are deterministic per day', () => {
 
 test('story item 2: trade-names combine a given name with a trade', () => {
   assert.equal(makeTradeName(data.names, () => 0), `${data.names.given[0]} ${data.names.trade[0]}`);
+  assert.equal(makeTradeName(undefined), null);
+  assert.equal(makeTradeName({given: [], trade: []}), null);
+});
+
+test('story item 2: every arrival is somebody now; flavor needs no save keys', () => {
+  const d = structuredClone(data);
+  const state = freshState(d);
+  state.world.buildings.push(makeBuilding('cottage', 2, 2, d), makeBuilding('cottage', 4, 4, d));
+  state.world.buildings.push(makeBuilding('farm', 2, 6, d));
+  state.world.troops = Array.from({length: 9}, (_, i) => makeUnit('farmer', d, i));
+  state.world.resources.food = 100;
+  state.world.childTimer = 74.9;
+  const messages = [];
+  tickVillage(state, d, 0.2, m => messages.push(m));
+  assert.equal(state.world.troops.length, 10);
+  const arrival = state.world.troops[9];
+  assert.ok(typeof arrival.name === 'string' && arrival.name.length > 0, 'named arrival');
+  const [given, ...rest] = arrival.name.split(' ');
+  assert.ok(d.names.given.includes(given), 'given name from the pool');
+  if (rest.length) assert.ok(d.names.trade.includes(rest.join(' ')), 'epithet from the pool');
+  assert.ok(Array.isArray(arrival.traits) && arrival.traits.length > 0, 'arrival tempered');
+  assert.ok(messages.some(m => m.includes(arrival.name)), 'village announces the name');
+  assert.equal(VERSION, 11);
+  for (const key of ['records', 'boardSeen', 'tradeDay', 'calendarDay', 'tradeNames'])
+    assert.ok(!(key in state), `no save key ${key}`);
 });
