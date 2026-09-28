@@ -65,6 +65,61 @@ export function reserveReady(building,spec){
  const lvl = Number.isFinite(+building?.level) ? +building.level : 1;
  return reserveCollectible(building,spec) && Math.floor(building.harvestBonus||0)>=reserveNotifyAt(spec, lvl);
 }
+
+// Settlement storage is calculated from finished, living storage buildings.
+// Capacity is never used to clamp an existing save: if an old village already
+// holds more than its current cap, it keeps every unit and simply cannot bank
+// more until it spends resources or expands storage.
+export function storageCapacity(world,data,resource){
+ let cap=0,hasStorage=false;
+ for(const b of world?.buildings||[]){
+  if(!b||b.hp<=0||b.remaining>0)continue;
+  const store=data?.buildings?.[b.type]?.storage;
+  if(!store)continue;
+  const accepts=Array.isArray(store.resources)?store.resources:[];
+  if(!accepts.includes('*')&&!accepts.includes(resource))continue;
+  const lvl=Number.isFinite(+b.level)?Math.max(1,Math.floor(+b.level)):1;
+  let amount=0;
+  if(Array.isArray(store.capacities)&&store.capacities.length){
+   const pick=store.capacities[Math.min(lvl,store.capacities.length)-1];
+   amount=Number.isFinite(+pick)?Math.max(0,Math.floor(+pick)):0;
+  }else{
+   const base=Number.isFinite(+store.capacity)?Math.max(0,Math.floor(+store.capacity)):0;
+   const stepRaw=store.perTier??store.capacityPerTier??0;
+   const step=Number.isFinite(+stepRaw)?Math.max(0,Math.floor(+stepRaw)):0;
+   amount=base+step*(lvl-1);
+  }
+  cap+=amount;hasStorage=true;
+ }
+ // Content/mod resources with no storage declaration stay backwards-compatible
+ // instead of becoming impossible to bank.
+ return hasStorage?Math.max(0,Math.floor(cap)):Infinity;
+}
+export function storageRoom(world,data,resource){
+ const cap=storageCapacity(world,data,resource);
+ if(!Number.isFinite(cap))return Infinity;
+ const held=Math.max(0,Number(world?.resources?.[resource])||0);
+ return Math.max(0,cap-held);
+}
+export function addStoredResource(world,data,resource,amount,{track=true}={}){
+ if(!world||!resource||!Number.isFinite(+amount)||+amount<=0)return 0;
+ const room=storageRoom(world,data,resource);
+ const added=Number.isFinite(room)?Math.min(+amount,room):+amount;
+ if(added<=0)return 0;
+ world.resources??={};world.gathered??={};
+ world.resources[resource]=(Number(world.resources[resource])||0)+added;
+ if(track)world.gathered[resource]=(Number(world.gathered[resource])||0)+added;
+ return added;
+}
+export function collectFromReserve(world,data,building,spec=data?.buildings?.[building?.type]){
+ if(!reserveCollectible(building,spec))return 0;
+ const available=Math.floor(building.harvestBonus||0);
+ const room=storageRoom(world,data,spec.production);
+ const amount=Number.isFinite(room)?Math.min(available,Math.floor(room)):available;
+ if(amount<1)return 0;
+ building.harvestBonus=Math.max(0,(building.harvestBonus||0)-amount);
+ return addStoredResource(world,data,spec.production,amount);
+}
 export function collectionTotals(world,data){
  const totals={};
  for(const b of world.buildings){const key=data.buildings[b.type]?.production;if(!key||b.hp<=0||b.remaining>0)continue;const amount=Math.floor(b.harvestBonus||0);if(amount>0)totals[key]=(totals[key]||0)+amount;}
