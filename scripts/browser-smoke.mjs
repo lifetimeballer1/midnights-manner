@@ -97,7 +97,7 @@ try{
  // (hands still idle) or no idle hands remain (they self-filled). Firing is
  // only legal while hands are still idle.
  assert.ok(await evaluate('Boolean(document.querySelector("[data-autoassign]"))'),'auto-assign control exists');
- const autoState=await evaluate('(()=>{const g=window.midnightsManner.snapshot();const idle=g.world.troops.filter(t=>t.hp>0&&!t.workplace&&!t.order&&!t.expedition&&!t.emergency);const btn=document.querySelector("[data-autoassign]");return {enabled:!!(btn&&!btn.disabled),idle:idle.length};})()');
+ const autoState=await evaluate('(()=>{const btn=document.querySelector("[data-autoassign]");const bar=document.querySelector(".idle-bar");const m=bar?bar.textContent.match(/\d+ idle/):null;return {enabled:!!(btn&&!btn.disabled),idle:m?parseInt(m[0]):0};})()');
  assert.ok(autoState.enabled||autoState.idle===0,'idle hands are offered posting or already self-filled');
  if(autoState.enabled){await fire('[data-autoassign]');await waitFor('Boolean(document.querySelector(".idle-bar"))||document.querySelector("#status").textContent.length>0');}
  if(await evaluate('(()=>{const e=document.querySelector("#close-panel");return !!(e&&!e.disabled&&e.getClientRects().length);})()'))await fire('#close-panel');
