@@ -35,31 +35,38 @@ function drain(building, amount) {
   if (!building.maxReserve) return;
   building.reserve = Math.max(0, building.reserve - amount);
 }
-function sourceFor(world, data, spec, unit) {
-  const alive = world.buildings.filter(b => b.hp > 0 && b.remaining <= 0 && data.buildings[b.type].production === spec.gatherResource);
+function sourceFor(world, data, spec, unit, aliveByProd, postOf) {
+  // Perf: aliveByProd/postOf are snapshots built once per tick AFTER the
+  // construction countdowns above (the only hp/remaining writes this tick),
+  // so they read exactly what the live scans would find.
+  const alive = aliveByProd
+    ? (aliveByProd.get(spec.gatherResource) || [])
+    : world.buildings.filter(b => b.hp > 0 && b.remaining <= 0 && data.buildings[b.type].production === spec.gatherResource);
   if (!alive.length) return null;
   // Specialists work their own water/field first (fishermen need ponds, not wheat).
   if (spec.gatherFrom) {
     const home = alive.filter(b => b.type === spec.gatherFrom);
     if (home.length) {
       if (unit.workplace) {
-        const assigned = home.find(b => b.id === unit.workplace);
-        if (assigned) return assigned;
+        // Perf: O(1) membership check — fields unchanged since the snapshot.
+        const assigned = postOf ? postOf.get(unit.workplace) : home.find(b => b.id === unit.workplace);
+        if (assigned && assigned.hp > 0 && assigned.remaining <= 0 && assigned.type === spec.gatherFrom && data.buildings[assigned.type].production === spec.gatherResource) return assigned;
       }
       return home[0];
     }
     return null;
   }
   if (unit.workplace) {
-    const assigned = alive.find(b => b.id === unit.workplace);
-    if (assigned) return assigned;
+    const assigned = postOf ? postOf.get(unit.workplace) : alive.find(b => b.id === unit.workplace);
+    if (assigned && assigned.hp > 0 && assigned.remaining <= 0 && data.buildings[assigned.type].production === spec.gatherResource) return assigned;
   }
   return alive[0];
 }
 export function tickEconomy(world,data,dt) {
  if(!Number.isFinite(dt)||dt<=0)return;
- const bonus=builderBonuses(world,data);
+ // Perf: one aura per tick shared with builderBonuses (was two full passes).
  const aura=auras(world,data);
+ const bonus=builderBonuses(world,data,aura);
  for(const b of world.buildings) {
   if(b.hp<=0)continue;
   if(b.remaining>0&&(world.raidPending||world.enemies.some(e=>e.hp>0)))continue;
@@ -79,6 +86,18 @@ export function tickEconomy(world,data,dt) {
    b.harvestBonus = Math.min(cap, held + made);}
  }
  // Capacity-full is visual only; sound is player-initiated only.
+ // Perf: indexes built once after the construction loop above (the only
+ // hp/remaining writes this tick) — O(1) lookups below, same results.
+ const postOf=new Map();
+ for(const b of world.buildings)postOf.set(b.id,b);
+ const aliveByProd=new Map();
+ for(const b of world.buildings){
+  if(b.hp<=0||b.remaining>0)continue;
+  const prod=data.buildings[b.type].production;
+  if(!prod)continue;
+  let arr=aliveByProd.get(prod);if(!arr)aliveByProd.set(prod,arr=[]);
+  arr.push(b);
+ }
  const hall=world.buildings.find(b=>b.type==='hall'&&b.hp>0);if(!hall)return;
  for(const u of world.troops) {
   if(u.hp<=0||u.emergency)continue;
@@ -89,15 +108,15 @@ export function tickEconomy(world,data,dt) {
   // Posted specialists physically travel to their workshop; collectors keep
   // their normal gather/deliver loop. Explicit player orders retain priority.
   if(spec.role!=='collector'){
-   const workplace=world.buildings.find(b=>b.id===u.workplace&&b.hp>0&&b.remaining<=0);
-   if(workplace&&spec.role!=='combat'&&!u.order)move(world,data,u,center(workplace,data),stats(u,data).speed,dt,data.buildings[workplace.type].size/2+.6,false,true);
+   const workplace=u.workplace?postOf.get(u.workplace):null;
+   if(workplace&&workplace.hp>0&&workplace.remaining<=0&&spec.role!=='combat'&&!u.order)move(world,data,u,center(workplace,data),stats(u,data).speed,dt,data.buildings[workplace.type].size/2+.6,false,true);
    continue;
   }
   if(u.order&&u.order.kind==='move'&&Number.isFinite(u.order.x)){if(move(world,data,u,u.order,stats(u,data).speed,dt,.4,false,true))u.order=null;continue;}
   if(u.order&&u.order.kind==='hold')continue;
   if(u.expedition)continue;
   if(!spec.gatherResource)continue;
-  const source=sourceFor(world,data,spec,u);if(!source)continue;
+  const source=sourceFor(world,data,spec,u,aliveByProd,postOf);if(!source)continue;
   const gear=data.items[u.gear];if(!gear)continue;
   const item=gear.stats||{};
   // Armor-slot pieces (Winter Coat onward) can carry gather/carry stats:
@@ -119,7 +138,7 @@ export function tickEconomy(world,data,dt) {
     const bonus=unlockedAbilities(u,data).filter(a=>a.effect==='gather').reduce((n,a)=>n+a.value,1);
     const midC = midgameRate(world.elapsed, 0.85);
     // Phase 7: job skill (+8%/level) and Hard Workers (+12%) quicken the hands. Level-1 crews read exactly the old rate.
-    const rate = 3*gatherMult*bonus*(1+(aura.gather||0))*gatherBonus(u,world,data)*midC*jobLevelMult(u)*(hasTrait(u,'hard_worker')?1.12:1);
+    const rate = 3*gatherMult*bonus*(1+(aura.gather||0))*gatherBonus(u,world,data,postOf)*midC*jobLevelMult(u)*(hasTrait(u,'hard_worker')?1.12:1);
     const room = Math.max(0,capacity-u.carry);
     let fill=Math.min(room,rate*dt*reserveMult(source));
     if(!Number.isFinite(fill)||fill<0)fill=0;

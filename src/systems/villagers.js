@@ -94,10 +94,13 @@ export function traitOutputMult(unit, buildingType) {
 // Returns the list of villagers who leveled up (for notify/floaters).
 export function tickVillagerJobs(world, data, dt) {
   if (!Number.isFinite(dt) || dt <= 0) return [];
+  // Perf: one id map per tick instead of a buildings.find per posted troop.
+  const postOf = new Map();
+  for (const b of world.buildings || []) postOf.set(b.id, b);
   const leveled = [];
   for (const u of world.troops || []) {
     if (!u || u.hp <= 0 || !u.workplace) continue;
-    const b = (world.buildings || []).find(b => b.id === u.workplace);
+    const b = postOf.get(u.workplace);
     if (!b || b.hp <= 0 || b.remaining > 0) continue;
     const rate = JOB_XP_RATE * (hasTrait(u, 'quick_learner') ? 1.5 : 1);
     const before = u.jobLevel || 1;
@@ -123,12 +126,13 @@ export function idleWorkers(world, data) {
     return !!spec.job;
   });
 }
-function crewCount(world, buildingId) {
+function crewCount(world, buildingId, counts) {
+  if (counts) return counts.get(buildingId) || 0;
   return (world.troops || []).filter(t => t.workplace === buildingId && t.hp > 0).length;
 }
 // Smart posting score: trait affinity first, then emptiest shop.
 // Deterministic — same village, same answer, every tick.
-export function scorePost(unit, building, data, world) {
+export function scorePost(unit, building, data, world, counts) {
   const spec = data.buildings[building.type];
   let score = 1;
   if (hasTrait(unit, 'craftsman') && CRAFT_SHOPS.includes(building.type)) score += 1;
@@ -137,17 +141,17 @@ export function scorePost(unit, building, data, world) {
   if (hasTrait(unit, 'quick_learner') && ['scriptorium', 'schoolroom'].includes(building.type)) score += 0.5;
   if (hasTrait(unit, 'night_owl') && building.type === 'scout_post') score += 0.5;
   const cap = (spec?.size || 1) + 1;
-  score += (1 - Math.min(1, crewCount(world, building.id) / cap)) * 0.25;
+  score += (1 - Math.min(1, crewCount(world, building.id, counts) / cap)) * 0.25;
   return score;
 }
-function postValid(world, data, unit, building) {
+function postValid(world, data, unit, building, counts) {
   if (!unit || unit.hp <= 0 || !building || building.hp <= 0 || building.remaining > 0) return false;
   const job = data.troops[unit.type]?.job;
   if (!job) return false;
   if (building.type !== job.workplace && !(data.buildings[building.type]?.hosts || []).includes(unit.type)) return false;
   if (unit.workplace === building.id) return true;
   const cap = (data.buildings[building.type]?.size || 1) + 1;
-  return crewCount(world, building.id) < cap;
+  return crewCount(world, building.id, counts) < cap;
 }
 // Smart auto-assignment. Only idle hands move; manualPost villagers (placed
 // by the player) are never touched — the override always wins.
@@ -159,16 +163,23 @@ export function autoAssign(world, data, {onlyIdle = true} = {}) {
     if (!onlyIdle && u.workplace) return false;
     return !!data?.troops?.[u.type]?.job;
   });
+  // Perf: crew counts computed once and kept live as placements land,
+  // replacing a full troops filter per score/validity check.
+  const counts = new Map();
+  for (const t of world.troops || []) {
+    if (t && t.workplace && t.hp > 0) counts.set(t.workplace, (counts.get(t.workplace) || 0) + 1);
+  }
   for (const u of pool) {
-    const options = (world.buildings || []).filter(b => postValid(world, data, u, b));
+    const options = (world.buildings || []).filter(b => postValid(world, data, u, b, counts));
     if (!options.length) continue;
     options.sort((a, b2) => {
-      const s = scorePost(u, b2, data, world) - scorePost(u, a, data, world);
+      const s = scorePost(u, b2, data, world, counts) - scorePost(u, a, data, world, counts);
       if (s !== 0) return s;
       const ca = {x: a.x + 0.5, y: a.y + 0.5}, cb = {x: b2.x + 0.5, y: b2.y + 0.5};
       return Math.hypot(u.x - ca.x, u.y - ca.y) - Math.hypot(u.x - cb.x, u.y - cb.y);
     });
     u.workplace = options[0].id;
+    counts.set(options[0].id, (counts.get(options[0].id) || 0) + 1);
     u.order = null;
     u.manualPost = false;
     placed++;

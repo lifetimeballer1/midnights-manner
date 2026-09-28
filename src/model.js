@@ -154,13 +154,39 @@ export function auras(world, data) {
     m += ag.aura ?? 0;
     return m;
   };
+  // Perf: single-pass indexes built once per call. postOf replaces a
+  // buildings.find per troop; crewOf replaces an assignedWorkers filter
+  // per workplace. Same membership, same order — just no re-scans.
+  // (Posted units under emergency orders still pour: the workplace loop
+  // below never excluded them; only the produce loop skips them.)
+  const postOf = new Map();
+  for (const b of world.buildings) postOf.set(b.id, b);
+  const crewOf = new Map();
+  for (const u of world.troops) {
+    if (!u.workplace || u.hp <= 0) continue;
+    const pb = postOf.get(u.workplace);
+    if (!pb || pb.hp <= 0 || pb.remaining > 0) continue;
+    let arr = crewOf.get(u.workplace);
+    if (!arr) crewOf.set(u.workplace, arr = []);
+    arr.push(u);
+  }
+  // Perf: share() is pure per (unit, post) within a call but was
+  // recomputed per aura key. Memoize; units without ids skip the cache.
+  const shareMemo = new Map();
+  const shareCached = (u, b) => {
+    if (u.id == null || b.id == null) return share(u, b);
+    const k = u.id + '|' + b.id;
+    let m = shareMemo.get(k);
+    if (m === undefined) { m = share(u, b); shareMemo.set(k, m); }
+    return m;
+  };
   for (const b of world.buildings) {
     if (b.hp <= 0 || b.remaining > 0) continue;
     const spec = data.buildings[b.type];
     if (!spec.workplace) continue;
     // Hosted hands (Schoolroom apprentices onward) count as crew where
     // they stand, not only where their line was raised — same `hosts`.
-    const crew = assignedWorkers(world, b.id).filter(u => data.troops[u.type].job?.workplace === b.type || (spec.hosts || []).includes(u.type));
+    const crew = (crewOf.get(b.id) || []).filter(u => data.troops[u.type].job?.workplace === b.type || (spec.hosts || []).includes(u.type));
     if (!crew.length) continue;
     const n = crew.length, tier = spec.tiers[b.level - 1].rateMultiplier;
     // Keeper gear read-through: a posted keeper's equipped tool sharpens
@@ -168,32 +194,32 @@ export function auras(world, data) {
     // share, stats.xpAura adds flat XP/s, and stats.<key>Aura adds flat
     // aura per bearer (damage/armor/gather/heal/carry). Empty stats (the
     // old keeper tomes) contribute exactly the pre-gear values.
-    if (spec.damageAura) out.damage += spec.damageAura * tier * crew.reduce((s, u) => s + share(u, b), 0);
-    if (spec.armorAura) out.armor += spec.armorAura * tier * crew.reduce((s, u) => s + share(u, b), 0);
-    if (spec.gatherAura) out.gather += spec.gatherAura * tier * crew.reduce((s, u) => s + share(u, b), 0);
+    if (spec.damageAura) out.damage += spec.damageAura * tier * crew.reduce((s, u) => s + shareCached(u, b), 0);
+    if (spec.armorAura) out.armor += spec.armorAura * tier * crew.reduce((s, u) => s + shareCached(u, b), 0);
+    if (spec.gatherAura) out.gather += spec.gatherAura * tier * crew.reduce((s, u) => s + shareCached(u, b), 0);
     // Wild-market pattern, generalized: a workplace can carry a trade aura
     // the same way a forge carries a damage aura — posted keepers sharpen
     // their own share, tier multiplies, the cap below holds the ceiling.
-    if (spec.tradeAura) out.trade += spec.tradeAura * tier * crew.reduce((s, u) => s + share(u, b), 0);
+    if (spec.tradeAura) out.trade += spec.tradeAura * tier * crew.reduce((s, u) => s + shareCached(u, b), 0);
     // Dual-aura pour (Act VIII Sunken Chapel): a workplace can carry food
     // the same way a forge carries damage — posted keepers sharpen their
     // share, tier multiplies. Existing key, new reader, same caps below.
-    if (spec.foodAura) out.food += spec.foodAura * tier * crew.reduce((s, u) => s + share(u, b), 0);
+    if (spec.foodAura) out.food += spec.foodAura * tier * crew.reduce((s, u) => s + shareCached(u, b), 0);
     if (spec.carryBonus) out.carry += spec.carryBonus * n;
     if (spec.buildAura) { out.build += spec.buildAura * n; out.discount += 0.05 * n; }
     // Flat-heal wardrobe (Choir Robe onward): a posted keeper's armor
     // piece can carry plain mending alongside the aura share — same crew,
     // same tick, no new keys.
-    if (spec.healRate) out.heal += spec.healRate * tier * crew.reduce((s, u) => s + share(u, b), 0)
+    if (spec.healRate) out.heal += spec.healRate * tier * crew.reduce((s, u) => s + shareCached(u, b), 0)
       + crew.reduce((s, u) => s + (((u.armor && data.items[u.armor] && data.items[u.armor].stats) || {}).heal ?? 0), 0);
     // Primer ink (Tam's school onward): a posted keeper's tool can carry a
     // flat XP pour under the plain `xp` stat key — same channel as xpAura.
     // Armor-ink XP (Act VIII Envoy's Gift onward): a posted keeper's armor
     // piece can pour village XP beside the main-hand tool — same tick.
     const armorXp = u => { const ag = (u.armor && data.items[u.armor] && data.items[u.armor].stats) || {}; return (ag.xpAura ?? 0) + (ag.xp ?? 0); };
-    if (spec.xpRate) out.xp += spec.xpRate * tier * crew.reduce((s, u) => s + share(u, b) * (gearOf(u).xpMult ?? 1), 0)
+    if (spec.xpRate) out.xp += spec.xpRate * tier * crew.reduce((s, u) => s + shareCached(u, b) * (gearOf(u).xpMult ?? 1), 0)
       + crew.reduce((s, u) => s + (gearOf(u).xpAura ?? 0) + (gearOf(u).xp ?? 0) + armorXp(u), 0);
-    if (spec.surveyRate) out.survey += spec.surveyRate * tier * crew.reduce((s, u) => s + share(u, b) * (gearOf(u).survey ?? 1), 0);
+    if (spec.surveyRate) out.survey += spec.surveyRate * tier * crew.reduce((s, u) => s + shareCached(u, b) * (gearOf(u).survey ?? 1), 0);
     for (const [statKey, auraKey] of [['damageAura', 'damage'], ['armorAura', 'armor'], ['gatherAura', 'gather'], ['healAura', 'heal'], ['carryAura', 'carry'], ['tradeAura', 'trade'], ['foodAura', 'food']]) {
       const add = crew.reduce((s, u) => s + (gearOf(u)[statKey] ?? 0), 0);
       if (add) out[auraKey] += add;
@@ -217,9 +243,11 @@ export function auras(world, data) {
     }
   }
   // Assigned butchers smoke food directly; assigned collectors work their source 25% faster each.
+  // Perf: world-order iteration preserved (identical float accumulation),
+  // but the per-troop buildings.find is a postOf map lookup.
   for (const u of world.troops) {
     if (!u.workplace || u.hp <= 0 || u.emergency) continue;
-    const b = world.buildings.find(b => b.id === u.workplace);
+    const b = postOf.get(u.workplace);
     if (!b || b.hp <= 0 || b.remaining > 0) continue;
     const job = data.troops[u.type].job;
     // Hosted hands pour where they stand: a tide-line keeper at hosted
@@ -233,13 +261,13 @@ export function auras(world, data) {
     // Old crews carry no aura abilities, so their output is unchanged.
     if (job.effect === 'produce') {
       const key = job.resource || 'food';
-      if (key in out) out[key] += (job.rate || 0.8) * spec_tier(b, data) * share(u, b);
+      if (key in out) out[key] += (job.rate || 0.8) * spec_tier(b, data) * shareCached(u, b);
     }
     // Tide offices (Act VIII): tide-line keepers pour food wherever the water
     // lets them stand — their own chapel or hosted water. Same
     // share law as every pour, data rate, no new keys.
     if (job.effect === 'tide' && (job.workplace === b.type || (data.buildings[b.type]?.hosts || []).includes(u.type))) {
-      out.food += (job.rate || 0.5) * share(u, b);
+      out.food += (job.rate || 0.5) * shareCached(u, b);
     }
   }
   // Living-world sky: the day's season + modifier blessings ride here as a
@@ -279,15 +307,18 @@ export function auras(world, data) {
 }
 function spec_tier(b, data) { return data.buildings[b.type].tiers[b.level - 1].rateMultiplier; }
 // Assigned collectors gather 25% faster at their matched source.
-export function gatherBonus(unit, world, data) {
+// Perf: optional postOf map avoids a buildings.find per collector.
+export function gatherBonus(unit, world, data, postOf) {
   const job = data.troops[unit.type].job;
   if (!job || !unit.workplace) return 1;
-  const b = world.buildings.find(b => b.id === unit.workplace);
+  const b = postOf ? postOf.get(unit.workplace) : world.buildings.find(b => b.id === unit.workplace);
   if (!b || b.hp <= 0 || b.remaining > 0 || job.workplace !== b.type) return 1;
   return 1.25;
 }
-export function builderBonuses(world,data) {
-  const aura = auras(world, data);
+// Perf: optional preAura skips a second full auras() pass — tickEconomy
+// computes one aura per tick and shares it here. Same object, same numbers.
+export function builderBonuses(world,data,preAura) {
+  const aura = preAura || auras(world, data);
   const crew=world.troops.filter(t=>data.troops[t.type].role==='builder'&&t.hp>0);
   // Wardrobe read-through, generalized: every builder's main gear and armor
   // piece both speak — 'discount' rides beside the old

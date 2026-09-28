@@ -14,13 +14,26 @@ export function nextStep(world,data,actor,target,range=.9,avoidThreats=false,pas
  let sx=Math.floor(actor.x),sy=Math.floor(actor.y);
  sx=Math.max(0,Math.min(width-1,sx));sy=Math.max(0,Math.min(height-1,sy));
  if(Math.hypot(sx+.5-target.x,sy+.5-target.y)<=range)return {x:sx+.5,y:sy+.5};
+ // Perf: hoist the blocked() predicate into a cell set once per call.
+ // Same buildings, same predicate — a BFS over the grid then costs O(cells)
+ // set lookups instead of O(cells x buildings) .some() scans.
+ const shut=new Set();
+ for(const b of world.buildings){
+  if(b.hp<=0||b.type==='trap'||(passGates&&b.type==='gate'))continue;
+  const size=data.buildings[b.type].size;
+  const x0=Math.ceil(b.x),y0=Math.ceil(b.y);
+  for(let yy=y0;yy<b.y+size;yy++)for(let xx=x0;xx<b.x+size;xx++)shut.add(yy*width+xx);
+ }
+ // Perf: filter the living once instead of re-scanning world.enemies per cell.
+ const foes=avoidThreats?world.enemies.filter(e=>e.hp>0):null;
  const key=(x,y)=>y*width+x, queue=[[sx,sy]], seen=new Set([key(sx,sy)]),previous=new Map();let found;
  for(let i=0;i<queue.length;i++) {
   const [x,y]=queue[i];
   if(Math.hypot(x+.5-target.x,y+.5-target.y)<=range){found=[x,y];break;}
   for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]) {
    const nx=x+dx,ny=y+dy,k=key(nx,ny);
-   if(nx<0||ny<0||nx>=width||ny>=height||seen.has(k)||blocked(world,data,nx,ny,passGates)||(avoidThreats&&world.enemies.some(e=>e.hp>0&&Math.hypot(nx+.5-e.x,ny+.5-e.y)<2.5))) continue;
+   if(nx<0||ny<0||nx>=width||ny>=height||seen.has(k)||shut.has(k)) continue;
+   if(foes){let hot=false;for(const e of foes){if(Math.hypot(nx+.5-e.x,ny+.5-e.y)<2.5){hot=true;break;}}if(hot) continue;}
    seen.add(k);previous.set(k,[x,y]);queue.push([nx,ny]);
   }
  }
