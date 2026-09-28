@@ -85,9 +85,10 @@ export class Game {
   // when another slot opens.
   const limit=buildingLimit(this.state,this.data,type),built=buildingCount(this.world,type);
   if(Number.isFinite(limit)&&built>=limit){
-   const next=(spec?.limit?.unlocks||[]).find(step=>(step.count||0)>limit&&!(this.state.unlocks||[]).includes(step.id));
-   const tech=next&&this.data.world.technologies?.find(n=>(n.unlocks||[]).includes(next.id));
-   return this.notify(`${spec.name} limit reached (${built}/${limit}). ${tech?`Research ${tech.name} to open another slot.`:'Upgrade the settlement before placing another.'}`);
+   const completed=new Set(this.state.research?.completed||[]);
+   const next=(spec?.limit?.unlocks||[]).find(step=>(step.count||0)>built&&(!step.research||!completed.has(step.research)));
+   const tech=next?.research&&this.data.world.technologies?.find(n=>n.id===next.research);
+   return this.notify(`${spec.name} limit reached (${built}/${limit}). ${tech?`Research ${tech.name} to open another slot.`:'Existing buildings are grandfathered, but no new slot is open yet.'}`);
   }
   // Wonders stand alone (data `maxPerVillage: 1`): one Moon Dial, one Dawn
   // Gate per village — the sky gets one vote, dawn gets one door.
@@ -130,8 +131,9 @@ export class Game {
   const gate=this.data.buildings[b.type].tierGates?.[b.level+1];
   if(gate&&(this.state.vlevel||1)<gate)return this.notify(`A tier-${b.level+1} ${this.data.buildings[b.type].name} needs village level ${gate}. Earn XP — quests, scholars, surveys.`);
   const tierToken=this.data.buildings[b.type].tierRequires?.[b.level+1];
-  if(tierToken&&!(this.state.unlocks||[]).includes(tierToken)){
-   const tech=this.data.world.technologies?.find(n=>(n.unlocks||[]).includes(tierToken));
+  const tierEarned=!tierToken||(this.state.research?.completed||[]).includes(tierToken)||(this.state.unlocks||[]).includes(tierToken);
+  if(!tierEarned){
+   const tech=this.data.world.technologies?.find(n=>n.id===tierToken||(n.unlocks||[]).includes(tierToken));
    return this.notify(`Tier ${b.level+1} ${this.data.buildings[b.type].name} needs ${tech?.name||'more settlement research'} first.`);
   }
   const cost=b.type==='hall'?{wood:200*b.level,gold:150*b.level}:buildingCost(b.type,b.level+1,this.world,this.data);
