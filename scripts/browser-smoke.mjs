@@ -79,14 +79,14 @@ try{
  await waitFor('Boolean(document.querySelector(".idle-bar"))');
  assert.ok(await evaluate('document.querySelectorAll(".trait").length > 0'),'villager trait chips render');
  assert.ok(await evaluate('window.midnightsManner.snapshot().world.troops.every(t=>typeof t.name==="string"&&t.name.length>0)'),'every villager is named');
- for(let i=0;i<2;i++){try{
-  if(await evaluate('Boolean(document.querySelector("[data-autoassign]:not([disabled])"))')){
-   await click('[data-autoassign]');
-   await waitFor('document.querySelector("#status").textContent.includes("idle hand")');
-  }
-  break;
- }catch(e){if(i)throw e;await new Promise(r=>setTimeout(r,300));await click('[data-tab="troops"]');await waitFor('Boolean(document.querySelector(".idle-bar"))');}}
- await click('#close-panel');
+ for(let i=0;i<3;i++){
+  await click('[data-tab="troops"]');await waitFor('Boolean(document.querySelector(".idle-bar"))');
+  if(!(await evaluate('Boolean(document.querySelector("[data-autoassign]:not([disabled])"))')))break;
+  await click('[data-autoassign]');
+  try{await waitFor('document.querySelector("#status").textContent.includes("idle hand")||document.querySelector("[data-autoassign][disabled]")',25);break;}
+  catch(e){if(i===2)throw e;}
+ }
+ if(await evaluate('(()=>{const e=document.querySelector("#close-panel");return !!(e&&!e.disabled&&e.getClientRects().length);})()'))await click('#close-panel');
  // Manage a workplace from its map selection, then hire directly into it.
  // The starting warrior stands in front of the crop bed: tap its upper half.
  const workplacePoint=await evaluate('(()=>{const g=window.midnightsManner,b=g.snapshot().world.buildings.find(b=>b.type==="farm"&&b.x===6);return g.modelPoints(b.id).find(p=>document.elementFromPoint(p.x,p.y)?.id==="world");})()');
