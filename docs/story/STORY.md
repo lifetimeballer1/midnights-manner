@@ -1,101 +1,100 @@
 # Midnights Manner — Story & Campaign
 
-Main quest arc mapped onto the existing campaign shape: **build → recruit →
-defend → expand**. Covers the 8-step village-path chain (`data/quests.json`)
-plus the 6 campaign missions (`data/missions.json`). Quest-giver voice and
-reward cadence defined so future missions can be added without touching game
-logic.
+Main quest arc mapped onto the live data: **build → recruit → defend → expand → endure → name**.
+Covers the village-path chain (`data/quests.json`, 22 steps) plus the campaign missions
+(`data/missions.json`, 15 chapters). Quest-giver voice and reward cadence stay in JSON so
+future missions can be added without touching game logic.
 
 ## Premise (5 lines)
 
 The sun thinned and never came back, and the valleys live by moonlight now.
 You hold a walled manner around one lamplit Manor Hall, and its bell is yours.
 Raise farms and timber alongside hungry neighbors, train a small garrison,
-and hold the western road through six expeditions before the Long Night ends.
+and walk the western road through expeditions before the Long Night ends.
 Every victory comes home: moonstone for the coffers, timber for the walls,
-and one new craft the village keeps forever.
+and one craft the village keeps. Nobody promises dawn — only that the Manner holds.
 
 ## Arc Shape
 
-| Act | Shape word | Content | Missions |
-|-----|-----------|---------|----------|
-| I — Hearth | BUILD | Learn the loop: farms, pond, cottage, workplaces | Village-path quests 1–5 (`second-field` → `every-hand`) |
-| II — Neighbors | RECRUIT | Population growth, village levels, map rows open | Village-path quests 6–8 (`new-blood` → `full-crew`) |
-| III — Road | DEFEND | Timed collection under raids, troop caps | Campaign 01–03 (`first-harvest` → `long-night`) |
-| IV — Hollow | EXPAND | Dual objectives, new lands, three-wave finale | Campaign 04–06 (`ember-road` → `last-stand`) |
+| Act | Shape word | Content | Content in data |
+|-----|-----------|---------|-----------------|
+| I — Hearth | BUILD | Farms, pond, cottage, workplaces | Quests: `second-field` → `every-hand` |
+| II — Neighbors | RECRUIT | Population, levels, map rows | Quests: `new-blood` → `full-crew` |
+| III — Road | DEFEND | Timed collection under raids | Missions: `first-harvest` → `long-night` |
+| IV — Hollow | EXPAND | Dual objectives, branch finale | Missions: `ember-road` → `last-stand` |
+| V — Depth | ENDURE | Frostwood, plate, deep water, school | Quests: `chart-the-dark` → `tam-s-school` |
+| VI — Pale | NAME | Pale Host, banners, Longest Night, Dawn | Missions: `coin-and-cinder` → `dawn` |
 
-The village path teaches; the campaign tests. Home village is never at risk
-from expeditions — rewards land only on explicit return, replays pay no
-first-clear twice, abandoning changes nothing at home.
+The village path teaches; the campaign tests. Home is never at risk from expeditions —
+rewards land only on explicit return, replays pay no first-clear twice, abandoning changes nothing at home.
 
-## Chapter Beats
+## Tone (non-negotiable)
 
-### Village path (home, 8 steps — existing)
+- Quiet frontier hope, not epic salvation.
+- Nobody is evil; everybody is hungry, tired, or owed.
+- Light steadies; it does not smite.
+- Keep one light. Mend the rest.
+- No returning sun as a plot win-condition. Dawn Gate is a *name* the village earns, not a restored star.
 
-1. **A Second Field** (`second-field`, build 2nd farm, 60 XP, +40 wood) —
-   *"One farm feeds a few. Two farms feed a future."* Beat: the first
-   decision that is strategy, not tutorial.
-2. **Still Water** (`still-water`, build pond, 60 XP, +30 food) — beat:
-   the map gains its mirror; glimmerfish rumor planted.
-3. **First Cast** (`first-cast`, recruit fisherman, 60 XP, +30 gold) — beat:
-   first specialist; People panel moment.
-4. **A Roof for the Night** (`roof-for-night`, build cottage, 80 XP,
-   +40 food) — beat: shelter before strangers; beds-before-bodies rule taught.
-5. **A Place for Every Hand** (`every-hand`, assign 2, 80 XP, +30 gold) —
-   beat: workplaces and auras click; idle hands → full bellies.
-6. **New Blood** (`new-blood`, population 8, 100 XP, +60 gold) — beat: the
-   village grows *on its own*; surplus + beds payoff.
-7. **Clearing the East Field** (`east-field`, reach level 3, 120 XP,
-   +80 wood) — beat: the treeline retreats; new rows = visible progress.
-8. **A Full Crew** (`full-crew`, population 12, 150 XP, +100 gold/+60 food) —
-   beat: twelve souls under one moon; frontier truly yours.
+## Living voices
 
-### Campaign (expeditions, 6 chapters — existing)
+Keepers (see `KEEPERS.md` / `data/keepers.json`) and quest givers share one register:
+short, concrete, neighborly. Notice-board rumors (`data/rumors.json`) should sound like
+them — attributed when possible, never sermonizing.
 
-- **01 · The First Harvest** (`first-harvest`, 180s, 5 troops, 100 food,
-  no raids) — *"A village begins with a full granary."* Beat: pure build
-  sprint; reward +140 wood/+90 gold; unlocks the **tower**. The village
-  learns it can *finish* something.
-- **02 · Hold the Timber Line** (`timber-line`, 210s, 6 troops, 150 wood,
-  raids at 35s/85s) — *"Raiders have found the road."* Beat: first blood;
-  gather under pressure; reward +180 gold/+150 food; unlocks the **trap**.
-- **03 · The Long Night** (`long-night`, 240s, 5 troops, 180 gold, raids at
-  25s/90s) — *"Secure moonstone before dawn."* Beat: small garrison, two
-  raids, moonstone hunger; reward +300 gold/+250 wood/+200 food; unlocks
-  the **warhammer**. End of Act III: the village endures.
-- **04 · The Ember Road** (`ember-road`, 200s, 6 troops, 200 wood, one late
-  raid at 120s) — *"A forge-fire needs feeding."* Beat: tight clock, a long quiet stretch, then one late raid where the
-  watchfire earns its keep; reward +200 wood/+150 gold;
-  unlocks the **grove**.
-- **05 · Moonwell Plenty** (`moonwell`, 260s, 7 troops, 150 food + 200 gold,
-  raids at 60s/150s) — *"Two hungers at once."* Beat: split economy,
-  foragers earn their keep; reward +200 food/+250 gold; unlocks the
-  **watchfire**.
-- **06 · The Last Stand** (`last-stand`, 300s, 5 troops, 250 gold, three
-  waves at 40s/130s/220s) — *"Hold the manor… and prove the village
-  endures."* Beat: skeleton crew, three waves before dawn, finale. Reward
-  +400 gold/+300 wood/+250 food; unlocks nothing — the pay is bulk goods
-  and your name on the bell.
+| Voice | Role in the arc |
+|-------|-----------------|
+| Maro / Mara | Walls, stone, "the village means it" |
+| Old Bell | Flocks, bells, three-clack warning |
+| Issa (Second-Lantern) | Chart Log, seeds, beds before bodies |
+| Tomm Waterwise | Water older than walls |
+| Sarella | Honest steel, charcoal arithmetic |
+| Fen the Wayfinder | Failed hearths, dry wells, the road |
+| Wren | Still water, deep holes |
+| Pella | Second lantern, lit windows |
+| Mooncleric | Ransom, steadiness, no smiting |
+| Sorrel | Pale Host watch, oaths |
+| Rue | Turncloak terms, maps kept |
+| Master Tam | School, apprentices |
 
-## Quest Text Style
+## Chapter beats (campaign)
 
-- Voice: a Moonwarden field-note or a neighbor at the door. Plain speech,
-  one concrete image, one instruction. Two sentences max for `text`.
-- Present tense, second person or imperative: *"Raise…"*, *"Keep…"*,
-  *"Dig…"*. Never lore-dump in quest text — rumor goes in flavor fields.
-- Numbers live in objectives, not prose. Text says "before dawn";
-  `timeLimit` says 240.
-- Example template: `[Image of the work]. [The thing to do].`
-  *"Fish shine like fallen stars in the dark. Dig a Stillwater Pond."*
+### Act III — Road
+1. **The First Harvest** — Fill the granary before dusk; dust on the west road is only dust *this* time.
+2. **Timber Line** — Wood under troop cap; the road that feeds the walls.
+3. **Long Night** — Gold under pressure; the first true night watch.
 
-## XP / Reward Cadence
+### Act IV — Hollow
+4. **Ember Road** — Charcoal and beams; Sarella's world.
+5. **Moonwell** — Food and gold together; water and stone.
+6. **Last Stand** — Three waves, skeleton crew; carve the name on the bell.
 
-Village path totals 710 XP across 8 quests (60/60/60/80/80/100/120/150):
-early steps pay 60 to move fast, mid steps 80 as assignments begin, growth
-milestones 100–150. Material rewards alternate wood → food → gold so no step
-starves the next. Campaign rewards escalate per chapter length and raid
-count; each chapter unlocks exactly one thing (tower → trap → warhammer →
-grove → watchfire → nothing, the finale pays bulk instead). One-time
-first-clear rewards only — a replay pays nothing twice. Future missions:
-keep one unlock per chapter, keep timers 180–300s, keep troop caps 5–7, keep
-dual objectives for chapters 5+.
+Branch after Last Stand: **Ashen Ford** / **Hollow Dam** — same debt, different ground.
+
+### Act VI — Pale
+- **Coin and Cinder** — Frostwood and gold; the pale economy.
+- **The Pale Host** — Oath-line; Sorrel chalks names.
+- **Red Banner / Grey Banner** — Branch choice of color, not of morality.
+- **The Pale Court** → **The Longest Night** → **Dawn** — Hold until the chart says the Manner has earned its name.
+
+## Village path (selected spine)
+
+Early: second field, still water, first cast, roof, every hand, new blood, east field, full crew.
+Mid: chart the dark, Tomm's flocks, open doors, Sarella's standard.
+Deep: west of the chalk, first pour, down dark water, glass under stone.
+Late: Rue's terms, voices in the dark, Tam's school, the bell remembers, what the water kept, **Dawn of the Manner**.
+
+## Integration rules
+
+- Ceremony lines (`warning` / `victory` / `defeat`) stay short enough for mobile toasts.
+- Quest `flavor` may name keepers; `text` stays the task.
+- Rumors may carry optional `source` ids for future filters; the board can ignore unknown fields.
+- Soft reputation (`SOFT_REPUTATION.md`) may tint rumors later — do not require it for the board to work.
+
+## Open story questions (leave open)
+
+- Which Thinning account is true?
+- What the Pale Host owes, and to whom?
+- Whether the Dawn Gate is a door, a vow, or only a name chalked in gold?
+
+*Keep one light. Mend the rest.*
