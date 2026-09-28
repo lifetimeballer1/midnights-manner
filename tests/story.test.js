@@ -108,7 +108,7 @@ test('story item 2: every arrival is somebody now; flavor needs no save keys', (
   if (rest.length) assert.ok(d.names.trade.includes(rest.join(' ')), 'epithet from the pool');
   assert.ok(Array.isArray(arrival.traits) && arrival.traits.length > 0, 'arrival tempered');
   assert.ok(messages.some(m => m.includes(arrival.name)), 'village announces the name');
-  assert.equal(VERSION, 11);
+  assert.equal(VERSION, 12);
   for (const key of ['records', 'boardSeen', 'tradeDay', 'calendarDay', 'tradeNames'])
     assert.ok(!(key in state), `no save key ${key}`);
 });
