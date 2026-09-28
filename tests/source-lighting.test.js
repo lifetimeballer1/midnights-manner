@@ -11,12 +11,17 @@ const renderer=()=>new Renderer({getContext:()=>ctx},data,{});
 const building=(type,extra={})=>({id:1,type,x:8,y:8,level:1,hp:100,remaining:0,...extra});
 function mesh(type,extra={}){const r=renderer(),s=new MeshScene(r),b=building(type,extra);buildingModel(s,b,data.buildings[type],{buildings:[b]});return s;}
 test('only finished luminous structures emit light; previews and ruins stay dark',()=>{
- for(const type of ['cottage','hall','forge','smeltery','watchfire']){
+ for(const type of ['cottage','hall','forge','smeltery','watchfire','gate','farm','pasture','mine','tower','sawmill','market']){
   assert.ok(mesh(type).sources.length>0,type);
   assert.equal(mesh(type,{hp:0}).sources.length,0);
   assert.equal(mesh(type,{remaining:10}).sources.length,0);
  }
- for(const type of ['wall','farm','mine','tower'])assert.equal(mesh(type).sources.length,0,type);
+ for(const type of ['oathstone','moon-dial','cairnfield'])assert.equal(mesh(type).sources.length,0,type);
+});
+test('wall torches are spaced instead of turning every segment into a light source',()=>{
+ assert.ok(mesh('wall',{x:8,y:8}).sources.length>0);
+ assert.equal(mesh('wall',{x:9,y:8}).sources.length,0);
+ assert.equal(mesh('wall',{x:8,y:8,hp:0}).sources.length,0);
 });
 test('window emitters move with the panes and point out of all four facades',()=>{
  const s=mesh('cottage'),moved=mesh('cottage',{x:11,y:6});
