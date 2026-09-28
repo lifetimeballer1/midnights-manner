@@ -104,6 +104,8 @@ test('phase7: craftsmen count extra at smithing posts; hard workers everywhere',
 
 test('phase7: smart auto-assignment matches traits; manual locks never move', () => {
   const g = setup();
+  // Strip the starting village: only our forge and farm stand open.
+  g.world.buildings = g.world.buildings.filter(b => b.type === 'barracks');
   const forge = makeBuilding('forge', 2, 6, data);
   const farm = makeBuilding('farm', 6, 6, data);
   forge.remaining = 0; farm.remaining = 0;
@@ -132,6 +134,8 @@ test('phase7: smart auto-assignment matches traits; manual locks never move', ()
 
 test('phase7: idle-worker detection lists posted gaps, never fighters or busy hands', () => {
   const g = setup();
+  // Strip the starting village to barracks + one farm: the only open post.
+  g.world.buildings = g.world.buildings.filter(b => b.type === 'barracks');
   const farm = makeBuilding('farm', 2, 6, data);
   farm.remaining = 0;
   g.world.buildings.push(farm);
