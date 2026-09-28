@@ -7,16 +7,22 @@ import {placementCells} from './systems/walls.js';
 import {DAY_LENGTH,skyLightAt} from './systems/daynight.js';
 export function pointInPolygon(x,y,points){let inside=false;for(let i=0,j=points.length-1;i<points.length;j=i++){const a=points[i],b=points[j];if((a.y>y)!==(b.y>y)&&x<(b.x-a.x)*(y-a.y)/(b.y-a.y)+a.x)inside=!inside;}return inside;}
 const FALLBACK_LIGHT=skyLightAt(DAY_LENGTH*.3,null); // high noon, for bare MeshScene uses
-// Phase 2/3 — paint-time shading. Day defaults reproduce the legacy baked
+// Phase 4 — ground-contact occlusion: faces near the dirt lose a slice of
+// their light (foundations, wall feet, crop beds), roofs stay clean. This is
+// a construction-time constant per face, not a clock value, so it never
+// touches the paint cache.
+const AO_MIN=.8,AO_HEIGHT=.7;
+// Phase 2/3/4 — paint-time shading. Day defaults reproduce the legacy baked
 // formula byte-for-byte (SKIES in systems/daynight.js is the tuning home);
 // emissive faces (windows, flames) carry a warm boost of their own albedo so
 // the village still reads at midnight. Weather lands here too: `dim` flattens
 // the whole lit value and `fog` mixes far faces (depth01 = 0 near, 1 far)
-// toward the weather veil. Normals stay in world space.
-export function shade(hex,n,light,emissive=0,depth01=0){
+// toward the weather veil. `ao` is the face's ground-contact occlusion.
+// Normals stay in world space.
+export function shade(hex,n,light,emissive=0,depth01=0,ao=1){
  const value=parseInt(hex.slice(1),16);
  const key=Math.max(0,(n[0]*light.keyDir[0]+n[1]*light.keyDir[1]+n[2]*light.keyDir[2])/light.keyNorm)*light.keyI;
- const up=Math.max(0,n[2])*light.sky,glow=emissive*light.emissive,dim=light.dim??1,fog=(light.fog??0)*depth01;
+ const up=Math.max(0,n[2])*light.sky,glow=emissive*light.emissive,dim=(light.dim??1)*ao,fog=(light.fog??0)*depth01;
  const lit=[light.ambRGB[0]*light.ambI+light.keyRGB[0]*key+up+glow,light.ambRGB[1]*light.ambI+light.keyRGB[1]*key+up+glow,light.ambRGB[2]*light.ambI+light.keyRGB[2]*key+up+glow];
  return '#'+[value>>16,(value>>8)&255,value&255].map((v,i)=>{let c=Math.min(255,Math.round(v*lit[i]*dim));if(fog>0)c=Math.round(c+(light.fogRGB[i]*255-c)*fog);return c.toString(16).padStart(2,'0');}).join('');
 }
@@ -30,7 +36,8 @@ export class MeshScene {
   const a=vertices[0],b=vertices[1],c=vertices[2],u=b.map((v,i)=>v-a[i]),v=c.map((v,i)=>v-a[i]);let n=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];const len=Math.hypot(...n);if(len<1e-8)return;n=n.map(x=>x/len);
   const B=this.basis;if(n[0]*B.s*B.v+n[1]*B.c*B.v+n[2]*B.p<=.00001)return;
   const points=vertices.map(p=>this.r.project(...p));if(points.every(p=>p.x<-60)||points.every(p=>p.x>this.r.width+60)||points.every(p=>p.y<-80)||points.every(p=>p.y>this.r.height+60))return;
-  this.faces.push({points,color,normal:n,emissive:this.emissive,depth:vertices.reduce((sum,p)=>sum+this.r.depth(...p),0)/vertices.length+this.depthBias,owner:this.owner,alpha:this.alpha});
+  const zAvg=vertices.reduce((sum,p)=>sum+p[2],0)/vertices.length;
+  this.faces.push({points,color,normal:n,emissive:this.emissive,ao:Math.min(1,AO_MIN+(1-AO_MIN)*Math.max(0,zAvg/AO_HEIGHT)),depth:vertices.reduce((sum,p)=>sum+this.r.depth(...p),0)/vertices.length+this.depthBias,owner:this.owner,alpha:this.alpha});
  }
  box(x,y,z,w,d,h,color,cap=true){const p=[[x,y,z],[x+w,y,z],[x+w,y+d,z],[x,y+d,z],[x,y,z+h],[x+w,y,z+h],[x+w,y+d,z+h],[x,y+d,z+h]];for(const f of [[0,3,2,1],[0,1,5,4],[1,2,6,5],[2,3,7,6],[3,0,4,7],...(cap?[[4,5,6,7]]:[])])this.face(f.map(i=>p[i]),color);}
  roof(x,y,z,w,d,h,color){const p=[[x,y,z],[x+w,y,z],[x+w,y+d,z],[x,y+d,z],[x+w/2,y,z+h],[x+w/2,y+d,z+h]];for(const f of [[0,4,5,3],[4,1,2,5],[0,1,4],[3,5,2]])this.face(f.map(i=>p[i]),color);}
@@ -41,7 +48,7 @@ export class MeshScene {
   if(light.fog>0){dMin=Infinity;let dMax=-Infinity;for(const f of this.faces){if(f.depth<dMin)dMin=f.depth;if(f.depth>dMax)dMax=f.depth;}dSpan=(dMax-dMin)||1;}
   for(const f of this.faces){
   // Shade once per face per light bucket; every other frame reuses the paint.
-  if(f.paintedKey!==key){f.painted=shade(f.color,f.normal,light,f.emissive,light.fog>0?(f.depth-dMin)/dSpan:0);f.paintedKey=key;}
+  if(f.paintedKey!==key){f.painted=shade(f.color,f.normal,light,f.emissive,light.fog>0?(f.depth-dMin)/dSpan:0,f.ao);f.paintedKey=key;}
   c.globalAlpha=f.alpha;c.fillStyle=f.painted;c.beginPath();f.points.forEach((p,i)=>i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y));c.closePath();c.fill();c.strokeStyle=f.painted;c.lineWidth=.45;c.stroke();}c.globalAlpha=1;this.r.sceneFaces=this.faces;}
 }
 const stone='#b4beb2',timber='#b38a59',gold='#e5bd66';
@@ -205,10 +212,10 @@ export function buildingModel(s,b,spec,world){
   s.box(x+.18,y+.21,.13,Math.min(.54,n-.36),.24,.17,'#c5a16e');
  }
 }
-export function drawVillage3D(r,world,time){const s=new MeshScene(r),W=r.data.world.width,H=r.data.world.height;
- // Phase 2 — one resolved sky per frame: mesh shading follows the clock, and
- // the static geometry cache below stays light-agnostic (clock is not a key).
- s.light=skyLightAt(world.elapsed,r.data,{calm:r.calm});
+export function drawVillage3D(r,world,time,light){const s=new MeshScene(r),W=r.data.world.width,H=r.data.world.height;
+ // Phase 2/3/4 — one resolved sky per frame: mesh shading follows the clock,
+ // and the static geometry cache below stays light-agnostic (clock is not a key).
+ s.light=light||skyLightAt(world.elapsed,r.data,{calm:r.calm});
  // Large settlements keep outfit/weapon silhouettes but omit tiny face/trim meshes.
  s.characterDetail=world.troops.length+world.enemies.length<=64;
  // Project static meshes only when the camera, footprint, or building state changes.

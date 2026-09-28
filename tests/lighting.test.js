@@ -21,6 +21,7 @@ test('lighting: day constants hold, and mid-day lands on the legacy direction', 
   assert.equal(day.ambI, 0.72);
   assert.equal(day.sky, 0.12);
   assert.equal(day.emissive, 0);
+  assert.equal(day.vignette, 0.34, 'day keeps the lightest frame');
   // The sun sweeps, so .3 is already a touch west of the legacy direction;
   // the arc's midpoint is where the frozen shading constants live.
   const noon = skyLightAt(DAY_LENGTH * 0.29, null);
@@ -33,6 +34,7 @@ test('lighting: day constants hold, and mid-day lands on the legacy direction', 
     assert.ok(l.keyNorm > 0 && Number.isFinite(l.keyNorm), 'norm stays positive');
     assert.ok(l.keyI >= 0 && l.keyI <= 1.5 && l.ambI >= 0 && l.ambI <= 1.5, 'intensities stay clamped');
     assert.ok(l.sky >= 0 && l.sky <= 0.5 && l.emissive >= 0 && l.emissive <= 2, 'fill and glow stay bounded');
+    assert.ok(l.vignette >= 0 && l.vignette <= 0.7, 'the frame stays a breath, never a tunnel');
     assert.ok(l.keyRGB.every(c => c >= 0 && c <= 1) && l.ambRGB.every(c => c >= 0 && c <= 1), 'colors are unit fractions');
     assert.equal(typeof l.key, 'string');
     assert.ok(l.overlay, 'overlay rides along');
@@ -100,7 +102,7 @@ test('lighting: data overrides merge, clamp, and fall back on bad values', () =>
   const data = {world: {daynight: {lighting: {night: {
     key: {intensity: 9, color: '#b9c9ff', dir: ['a', 0, 0]},
     ambient: {intensity: 0.5, color: 'not-a-color'},
-    sky: 99, emissive: 99,
+    sky: 99, emissive: 99, vignette: 99,
   }}}}};
   const l = skyLightAt(NIGHT, data);
   assert.equal(l.keyI, 1.5, 'runaway intensity clamps');
@@ -110,6 +112,8 @@ test('lighting: data overrides merge, clamp, and fall back on bad values', () =>
   assert.deepEqual(l.ambRGB, [0x4a / 255, 0x5f / 255, 0x8e / 255], 'bad color falls back to the base');
   assert.equal(l.sky, 0.5, 'sky clamps at its ceiling');
   assert.equal(l.emissive, 2, 'glow clamps at its ceiling');
+  assert.equal(l.vignette, 0.7, 'vignette clamps at its ceiling');
+  assert.ok(skyLightAt(NIGHT, null).vignette > skyLightAt(DAY_LENGTH * 1.3, null).vignette, 'night frames deeper than day');
   assert.deepEqual(skyLightAt(NIGHT, {world}).overlay, lightingFor('night', {world}), 'overlay is the same object contract');
   assert.equal(clockConfig({world: {daynight: {lightBlend: 0.1}}}).lightBlend, 0.1, 'blend window is data-tunable');
 });

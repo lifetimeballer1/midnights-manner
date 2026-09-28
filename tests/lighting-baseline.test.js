@@ -1,10 +1,12 @@
 // Presentation pass — deliberate baseline updates per phase.
 // Phase 1 froze construction-time baked colors. Phase 2 moved shading into
-// paint() and drove it from the sky clock. Phase 3 sweeps the key light
-// (sun/moon arcs) and lets weather touch the meshes. The guarantees now are:
+// paint() and drove it from the sky clock. Phase 3 swept the key light
+// (sun/moon arcs) and let weather touch the meshes. Phase 4 adds per-face
+// ground-contact occlusion and the phase vignette. The guarantees now are:
 //  - raw digests pin geometry and albedo, independent of light,
-//  - the frozen-light test proves paint-time shading still reproduces the
-//    legacy formula byte-for-byte (the Phase 1 digests' exact guarantee),
+//  - the frozen-light test proves the shading formula still reproduces the
+//    legacy formula byte-for-byte at flat AO (the Phase 1 digests' exact
+//    guarantee, now a pure-function contract),
 //  - day/night/dawn digests pin the current look so later phases diff it
 //    deliberately, in one reviewed commit.
 // Face digests are canonical (per-face entries sorted) on purpose: paint()
@@ -15,7 +17,7 @@ import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import {Renderer} from '../src/renderer.js';
 import {Game} from '../src/game.js';
-import {MeshScene,buildingModel} from '../src/scene3d.js';
+import {MeshScene,buildingModel,shade} from '../src/scene3d.js';
 import {DAY_LENGTH,skyLightAt} from '../src/systems/daynight.js';
 const data = Object.fromEntries(await Promise.all(['world','troops','items','abilities','buildings','missions','quests'].map(async n => [n, JSON.parse(await readFile(new URL(`../data/${n}.json`, import.meta.url)))])));
 const context = new Proxy({}, {get: (t, k) => t[k] || (() => k === 'measureText' ? {width: 40} : k.includes('Gradient') ? {addColorStop() {}} : undefined), set: (t, k, v) => (t[k] = v, true)});
@@ -46,19 +48,19 @@ const PI = Math.PI;
 // Day 1 (seed 7) is a clear sky; these times are whole phase points of it.
 const canon = fraction => skyLightAt(DAY_LENGTH * (1 + fraction), null);
 const dayLight = canon(0.3), nightLight = canon(0.8), dawnLight = canon(0.01);
-// Frozen from main after the Phase 3 implementation (Windows V8; coordinates
+// Frozen from main after the Phase 4 implementation (Windows V8; coordinates
 // rounded to 2dp so cross-platform float noise can never flake the pins).
 const CASES = [
-  ['hall-1', 'hall', 1, 195, 'f2e96c729f43a75b', 'e379961ae19263e6', '413c40bf1a7e577d', '98076b6f6caf95e0'],
-  ['hall-2', 'hall', 2, 255, 'b3c8e3eb68ee98d7', '6ede7136f8c2dd9e', '6370985d4e91bfa3', '2438a3fe414d470b'],
-  ['hall-3', 'hall', 3, 263, '2aa94608b1269dee', 'adb160dbfe070e56', 'c99983d13300ed2e', '6216fd8b16916c24'],
-  ['cottage-3', 'cottage', 3, 207, '4238134ae11499b0', '79bcf24e30d5ae24', '83cde4f1c64aedb6', '6fcd1f220093befe'],
-  ['wall-3', 'wall', 3, 36, '7fcf762d1357358b', 'eab79823456bed6a', 'eab79823456bed6a', '87437f5a9d62e86d'],
-  ['tower-3', 'tower', 3, 54, '58af5e84fee769b5', 'f8ed97103fac8643', 'f8ed97103fac8643', 'a8f4676a630fac3d'],
-  ['sawmill-2', 'sawmill', 2, 132, 'ba8c21aace31c17a', 'e998dd16132d397e', 'cefe74adc687af84', '6a407cd843e194a3'],
-  ['mill-2', 'mill', 2, 236, '92705efbc770ca5f', 'f6ad68c40637b2a9', '896acc04d8f4c594', 'aacf976b276b60dd'],
+  ['hall-1', 'hall', 1, 195, 'f2e96c729f43a75b', 'e379961ae19263e6', '2d4da4d383db7f28', '7414fe3c8fefc021'],
+  ['hall-2', 'hall', 2, 255, 'b3c8e3eb68ee98d7', '6ede7136f8c2dd9e', '60ed48118a1b2ca4', '2f3f9790b7e86fd6'],
+  ['hall-3', 'hall', 3, 263, '2aa94608b1269dee', 'adb160dbfe070e56', 'd20b428d3edad62d', '4c51e84b8b1835ba'],
+  ['cottage-3', 'cottage', 3, 207, '4238134ae11499b0', '79bcf24e30d5ae24', '5f48ff6cb33e10ba', 'e554e7ce06090c42'],
+  ['wall-3', 'wall', 3, 36, '7fcf762d1357358b', 'eab79823456bed6a', '60aa62a1fab1708a', '0f1fbaeeba8a235a'],
+  ['tower-3', 'tower', 3, 54, '58af5e84fee769b5', 'f8ed97103fac8643', '09f21bbcdf549fd9', '594d61a0d4a75d77'],
+  ['sawmill-2', 'sawmill', 2, 132, 'ba8c21aace31c17a', 'e998dd16132d397e', '83030c9914c6f69c', '53b04042598c7487'],
+  ['mill-2', 'mill', 2, 236, '92705efbc770ca5f', 'f6ad68c40637b2a9', 'c87208a185b44010', 'c9d4e518d0aea9d6'],
 ];
-const ORBIT = {faces: 712, day: 'dca3d3715011238e', night: 'eb934b27903eda04', dawn: '1e3d416ae5b4a12d'};
+const ORBIT = {faces: 712, day: '6a40214f03dfcc44', night: '3c46d0a7b2bee5e1', dawn: '2cfa301ab21eed78'};
 
 test('baseline: canonical meshes keep their raw geometry and albedo', () => {
   const r = renderer();
@@ -69,14 +71,14 @@ test('baseline: canonical meshes keep their raw geometry and albedo', () => {
   }
 });
 
-test('baseline: the frozen legacy light still bakes the Phase 1 shading', () => {
+test('baseline: the shading formula stays legacy-exact (frozen light, flat AO)', () => {
   const r = renderer();
-  for (const [name, type, level, , , legacy] of CASES) {
+  for (const [name, type, level, , , frozen] of CASES) {
     const s = mesh(r, type, level, PI / 4);
     const expected = s.faces.map(f => entry(legacyShade(f.color, f.normal), f)).sort().join('|');
-    s.light = LEGACY_LIGHT; s.paint();
-    assert.equal(s.faces.map(f => entry(f.painted, f)).sort().join('|'), expected, `${name} shading formula drifted`);
-    assert.equal(digest(s.faces, 'painted'), legacy, `${name} legacy digest moved`);
+    const painted = s.faces.map(f => entry(shade(f.color, f.normal, LEGACY_LIGHT, 0, 0, 1), f)).sort().join('|');
+    assert.equal(painted, expected, `${name} shading formula drifted`);
+    assert.equal(createHash('sha256').update(painted).digest('hex').slice(0, 16), frozen, `${name} frozen digest moved`);
   }
 });
 
@@ -106,7 +108,7 @@ test('baseline: shading stays directional, dims at night, keeps lit windows', ()
   const box = light => { const s = new MeshScene(r); s.box(0, 0, 0, 1, 1, 1, '#808080'); s.light = light; s.paint(); return s.faces.map(f => f.painted); };
   const day = box(dayLight), night = box(nightLight);
   assert.ok(Math.max(...day.map(lum)) > Math.min(...day.map(lum)), 'the sun still lights one side brighter');
-  assert.ok(Math.min(...day.map(lum)) >= 85 && Math.max(...day.map(lum)) <= 136, 'day ambient floor and key ceiling hold');
+  assert.ok(Math.min(...day.map(lum)) >= 72 && Math.max(...day.map(lum)) <= 136, 'day ambient floor and key ceiling hold (AO shades the foot)');
   assert.ok(Math.max(...night.map(lum)) < Math.min(...day.map(lum)), 'midnight is darker than any daylight face');
   // Windows are emissive: at midnight they keep more of their albedo than the
   // same geometry without the flag, and the boost vanishes at noon.
@@ -114,6 +116,15 @@ test('baseline: shading stays directional, dims at night, keeps lit windows', ()
   const plainFace = light => { const s = new MeshScene(r); s.box(0, 0, 0, 1, 1, 1, '#ffe6ab'); s.light = light; s.paint(); return s.faces[0].painted; };
   assert.ok(lum(windowFace(nightLight)) > lum(plainFace(nightLight)), 'lit windows outshine walls at midnight');
   assert.equal(windowFace(dayLight), plainFace(dayLight), 'no noon glow above the daylight shading');
+});
+
+test('baseline: ground-hugging faces carry a soft occlusion, roofs do not', () => {
+  const r = renderer();
+  const lum = hex => parseInt(hex.slice(1), 16) >> 16;
+  const paint = z => { const s = new MeshScene(r); s.box(0, 0, z, 1, 1, 1, '#808080'); s.light = dayLight; s.paint(); return s.faces.map(f => lum(f.painted)); };
+  const low = paint(0), high = paint(1.5);
+  assert.equal(Math.max(...low), Math.max(...high), 'roofs stay at full light');
+  assert.ok(Math.min(...low) < Math.min(...high), `wall feet darken against the dirt (${Math.min(...low)} vs ${Math.min(...high)})`);
 });
 
 test('baseline: the sky clock never rebuilds the static mesh cache', () => {

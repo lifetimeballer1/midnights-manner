@@ -1,3 +1,11 @@
+## Presentation pass — Phase 4: AO, shadows and the frame (2026-09-28)
+
+- Per-face ground-contact AO: faces shade darker the closer they sit to the dirt (`0.8 + 0.2 × clamp(height / 0.7)`), baked at construction so it never touches the paint cache; tall faces split 3×3 and grade from foot to crown. Roofs and anything above 0.7 tiles stay at full light.
+- Contact shadows: every building footprint throws a flat ink polygon and every standing unit a small ellipse, offset away from the key light — so shadows swing with the Phase 3 sun/moon arcs and fade after dark. One polygon per body, no blur, never in the terrain cache.
+- The vignette is phase-driven now (day 0.34 → night 0.52, data-tunable per phase, clamped ≤ 0.7) and the moon glow follows the key arc's east–west sweep instead of a fixed corner.
+- The renderer resolves the sky once per frame and feeds shadows, vignette, overlay, glows and mesh shading from that single object (`drawVillage3D` takes it as an argument).
+- Frozen-light formula equality still passes with a flat-AO contract; day/night/dawn painted digests updated deliberately for AO. New checks: vignette ladder/clamp, ground-vs-roof AO. `npm test` 449 → 450; captures reviewed (day shadows, deeper night frame). No save fields, no save-version change.
+
 ## Presentation pass — Phase 3: Dynamic lights, moon and weather (2026-09-28)
 
 - The key light sweeps: `key.arc` samples sun/moon direction across each phase (east to west by day, back again over the night; dawn/dusk carry low sunrise/sunset light). The day arc's midpoint is the Phase 2 legacy direction; an explicit `key.dir` in data beats the base arc, and `calm` pins the arc at its midpoint.

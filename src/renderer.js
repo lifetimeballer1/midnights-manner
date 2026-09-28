@@ -33,6 +33,9 @@ export class Renderer {
   const c=this.ctx;c.setTransform(this.dpr,0,0,this.dpr,0,0);c.clearRect(0,0,this.width,this.height);this.recordFrame(time);c.fillStyle='#29472f';c.fillRect(0,0,this.width,this.height);c.imageSmoothingEnabled=false;this.hitAreas=[];this.trackTransitions(world,time);const didShake=!this.calm&&this.shake>.2;
   if(didShake){c.save();c.translate((Math.random()-.5)*this.shake,(Math.random()-.5)*this.shake);this.shake*=.88;}
   const W=this.data.world.width,H=this.data.world.height;
+  // One resolved sky per frame feeds shadows, the vignette, the overlay,
+  // the glows and the mesh shading — never the same clock read twice.
+  const sky=skyLightAt(world.elapsed,this.data,{calm:this.calm}),weather=weatherAt(world.elapsed,this.data);
   if(!this.blitCachedStatic(world)){
   // Claimed lookup for wilderness fog (Phase 2): unclaimed tiles render dimmed.
   const claimedByKey=Array.isArray(world.tiles)?new Map(world.tiles.map(t=>[(t.x+','+t.y),t])):null;
@@ -81,12 +84,21 @@ export class Renderer {
   this.captureStatic(world);}
   // Stream shimmer stays dynamic: one short loop, never baked while animating.
   for(let i=-2;i<W+1;i++){const p=this.project(i+.5,H+1.5);const sx=this.calm?0:Math.sin(time/500+i)*3;c.fillStyle='#7fc4d4';c.fillRect(p.x-6+sx,p.y+2,8,1);}
+  // Phase 4 — contact shadows: every footprint and body throws a short ink
+  // smudge away from the key light. The offset swings with the sun/moon arc
+  // and the alpha follows the key intensity: one polygon per body, no blur,
+  // no texture — a live depth cue for free.
+  {const lx=sky.keyDir[0],ly=sky.keyDir[1],ln=Math.hypot(lx,ly)||1,len=.42*Math.min(1,sky.keyI/.26),ox=-lx/ln*len,oy=-ly/ln*len,alpha=Math.max(.06,Math.min(.22,sky.keyI*.75));
+   c.fillStyle=`rgba(18,24,16,${alpha})`;
+   for(const b of world.buildings){const spec=this.data.buildings[b.type];if(!spec)continue;const n=spec.size;
+    c.beginPath();[[b.x,b.y],[b.x+n,b.y],[b.x+n,b.y+n],[b.x,b.y+n]].forEach(([x,y],i)=>{const p=this.project(x+ox,y+oy,.01);i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y);});c.closePath();c.fill();}
+   for(const u of [...world.troops,...world.enemies]){if(u.hp<=0)continue;const p=this.project(u.x+ox,u.y+oy,.01),rz=13*this.cam.zoom;c.beginPath();c.ellipse(p.x,p.y,rz,rz*.42,0,0,Math.PI*2);c.fill();}}
   if(this.placing&&this.hover){const cells=placementCells(this),valid=cells.every(p=>canPlace(world,this.data,this.placing,p.x,p.y,this.moving));const size=this.data.buildings[this.placing].size;for(const p of cells)for(let y=0;y<size;y++)for(let x=0;x<size;x++)this.diamond(p.x+x,p.y+y,valid?'#69a06bcc':'#c05a4ecc',valid?'#fff6d8':'#ffe3dc');}
   else if(this.hover&&this.grid)this.diamond(this.hover.x,this.hover.y,'#f2ecb988','#fff3c0');
   const ring=(x,y,radius)=>{c.beginPath();for(let i=0;i<=64;i++){const a=i*Math.PI/32,p=this.project(x+Math.cos(a)*radius,y+Math.sin(a)*radius,.02);if(i)c.lineTo(p.x,p.y);else c.moveTo(p.x,p.y);}c.stroke();};
   const selected=world.buildings.find(b=>b.id===this.selection);const defense=selected?this.data.buildings[selected.type]:this.placing?this.data.buildings[this.placing]:null;
   const tier=defense?.tiers[(selected?.level||1)-1];if(tier?.damage&&(selected||this.hover)){const pos=selected?center(selected,this.data):{x:this.hover.x+defense.size/2,y:this.hover.y+defense.size/2};c.save();c.strokeStyle='#f2e2a8';c.lineWidth=1.5;c.setLineDash([6,4]);ring(pos.x,pos.y,tier.range);c.restore();}
-  drawVillage3D(this,world,time);
+  drawVillage3D(this,world,time,sky);
   const drawables=[...world.buildings.map(b=>({kind:'building',value:b,depth:this.depth(b.x+this.data.buildings[b.type].size/2,b.y+this.data.buildings[b.type].size/2)})),...world.troops.map(t=>({kind:'unit',value:t,depth:this.depth(t.x,t.y)})),...world.enemies.map(e=>({kind:'enemy',value:e,depth:this.depth(e.x,e.y)}))].sort((a,b)=>a.depth-b.depth);
   for(const {kind,value:b} of drawables){
    if(kind==='building'){
@@ -156,15 +168,16 @@ export class Renderer {
    const radius=Math.max(this.width,this.height)*.7,g=c.createRadialGradient(this.width/2,this.height/2,Math.min(this.width,this.height)*.35,this.width/2,this.height/2,radius);
    g.addColorStop(0,'rgba(145,54,42,0)');g.addColorStop(1,`rgba(145,54,42,${this.calm?.2:.2+Math.sin(time/500)*.035})`);c.fillStyle=g;c.fillRect(0,0,this.width,this.height);
   }
- // Vignette + moon glow: depth and night air over the whole map (static, motion-safe).
-  {const vg=c.createRadialGradient(this.width/2,this.height/2,Math.min(this.width,this.height)*.3,this.width/2,this.height/2,Math.max(this.width,this.height)*.75);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(5,10,8,0.42)');c.fillStyle=vg;c.fillRect(0,0,this.width,this.height);
-   const mg=c.createRadialGradient(180,80,10,180,80,320);mg.addColorStop(0,'rgba(242,201,110,0.10)');mg.addColorStop(1,'rgba(242,201,110,0)');c.fillStyle=mg;c.fillRect(0,0,this.width,this.height);}
+ // Vignette + moon glow: depth and night air over the whole map (static,
+ // motion-safe). Phase 4 — the vignette deepens with the dark (per-phase
+ // `vignette`, data-tunable) and the moon glow follows the key arc's sweep.
+  {const vg=c.createRadialGradient(this.width/2,this.height/2,Math.min(this.width,this.height)*.3,this.width/2,this.height/2,Math.max(this.width,this.height)*.75);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,`rgba(5,10,8,${sky.vignette})`);c.fillStyle=vg;c.fillRect(0,0,this.width,this.height);
+   if(sky.overlay.glow>0){const mx=this.width*(.5+.42*Math.max(-1,Math.min(1,sky.keyDir[0]))),mg=c.createRadialGradient(mx,80,10,mx,80,320);mg.addColorStop(0,`rgba(242,201,110,${.10*sky.overlay.glow})`);mg.addColorStop(1,'rgba(242,201,110,0)');c.fillStyle=mg;c.fillRect(0,0,this.width,this.height);}}
  // Living sky (Phase 10): clock-driven lighting from world.elapsed — dawn
 // daylight, dusk ember, deep night blue — plus the weather veil. All drawn
 // every frame AFTER the static-layer blit, so the cached terrain stays valid
 // and per-frame cost stays flat: two fullscreen fills, lamp glows, rain.
-  {const sky=skyLightAt(world.elapsed,this.data,{calm:this.calm}),weather=weatherAt(world.elapsed,this.data);
-   const lamp=sky.overlay;
+  {const lamp=sky.overlay;
    if(lamp.color&&lamp.alpha>0){c.globalAlpha=lamp.alpha;c.fillStyle=lamp.color;c.fillRect(0,0,this.width,this.height);c.globalAlpha=1;}
    if(weather.color&&weather.alpha>0){c.globalAlpha=weather.alpha;c.fillStyle=weather.color;c.fillRect(0,0,this.width,this.height);c.globalAlpha=1;}
    // Lamp glow: every finished standing building breathes warm light after

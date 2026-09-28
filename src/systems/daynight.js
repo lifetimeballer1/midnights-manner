@@ -107,10 +107,10 @@ export function lightingFor(phaseId, data) {
 // direction, the moon crosses back over the night. Mid-day lands on the
 // Phase 2 constant, so the classic look is the day's center, not its edge.
 const SKIES = {
-  dawn: {key: {dir: [-0.2, -0.6, 0.8], arc: [[-0.55, -0.75, 0.3], [-0.25, -0.6, 0.85]], color: '#f2c96e', intensity: 0.24}, ambient: {color: '#a8b6cc', intensity: 0.6}, sky: 0.1, emissive: 0.25},
-  day: {key: {dir: [-0.4, -0.5, 1], norm: 1.187, arc: [[-0.9, -0.4, 0.95], [0.1, -0.6, 1.05]], color: '#ffffff', intensity: 0.26}, ambient: {color: '#ffffff', intensity: 0.72}, sky: 0.12, emissive: 0},
-  dusk: {key: {dir: [-0.6, -0.35, 0.75], arc: [[-0.6, -0.35, 0.75], [0.35, -0.55, 0.5]], color: '#e8a25e', intensity: 0.24}, ambient: {color: '#c9a68c', intensity: 0.58}, sky: 0.1, emissive: 0.22},
-  night: {key: {dir: [0.45, -0.3, 0.85], arc: [[0.75, -0.45, 0.55], [-0.6, -0.3, 0.75]], color: '#9fb4e8', intensity: 0.16}, ambient: {color: '#4a5f8e', intensity: 0.4}, sky: 0.07, emissive: 0.6},
+  dawn: {key: {dir: [-0.2, -0.6, 0.8], arc: [[-0.55, -0.75, 0.3], [-0.25, -0.6, 0.85]], color: '#f2c96e', intensity: 0.24}, ambient: {color: '#a8b6cc', intensity: 0.6}, sky: 0.1, emissive: 0.25, vignette: 0.4},
+  day: {key: {dir: [-0.4, -0.5, 1], norm: 1.187, arc: [[-0.9, -0.4, 0.95], [0.1, -0.6, 1.05]], color: '#ffffff', intensity: 0.26}, ambient: {color: '#ffffff', intensity: 0.72}, sky: 0.12, emissive: 0, vignette: 0.34},
+  dusk: {key: {dir: [-0.6, -0.35, 0.75], arc: [[-0.6, -0.35, 0.75], [0.35, -0.55, 0.5]], color: '#e8a25e', intensity: 0.24}, ambient: {color: '#c9a68c', intensity: 0.58}, sky: 0.1, emissive: 0.22, vignette: 0.44},
+  night: {key: {dir: [0.45, -0.3, 0.85], arc: [[0.75, -0.45, 0.55], [-0.6, -0.3, 0.75]], color: '#9fb4e8', intensity: 0.16}, ambient: {color: '#4a5f8e', intensity: 0.4}, sky: 0.07, emissive: 0.6, vignette: 0.52},
 };
 const LIGHT_BUCKETS = 192; // painted-color cache steps per day (~1.6s at 300s days)
 const PHASE_ORDER = PHASES.map(p => p.id);
@@ -159,6 +159,7 @@ function skyFor(phaseId, data, p = 0.5) {
     ambI: bounded(ambient.intensity, base.ambient.intensity, 0, 1.5),
     sky: bounded(ok.sky, base.sky, 0, 0.5),
     emissive: bounded(ok.emissive, base.emissive, 0, 2),
+    vignette: bounded(ok.vignette, base.vignette, 0, 0.7),
   };
 }
 
@@ -175,6 +176,7 @@ function mixSky(a, b, u) {
     ambI: mix(a.ambI, b.ambI),
     sky: mix(a.sky, b.sky),
     emissive: mix(a.emissive, b.emissive),
+    vignette: mix(a.vignette, b.vignette),
   };
 }
 
