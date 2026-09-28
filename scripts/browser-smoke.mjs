@@ -131,7 +131,7 @@ try{
  for(let i=0;i<16;i++)await click('#turn-right');
  const turned=await evaluate('window.midnightsManner.camera().yaw');assert.ok(Math.abs(turned-orbitAfter.yaw)<1e-6,'full 360 degree turn returns to heading');
  await click('#camera-reset');await click('#camera-close');
- await click('[data-resource="wood"]');assert.ok(await evaluate('document.querySelector("#panel").textContent.includes("Wood")'),'resource stores open');await screenshot('polished-resources');await click('#close-panel');
+ await click('[data-resource="wood"]');assert.ok(await evaluate('document.querySelector("#panel").textContent.includes("Wood")'),'resource stores open');assert.ok(await evaluate('Boolean(document.querySelector("[data-collect-all]"))'),'collect-all offered in resource stores');await screenshot('polished-resources');await click('#close-panel');
  await click('[data-tab="build"]');await screenshot('polished-build');await click('#panel-search');await call('Input.insertText',{text:'Wheat'});
  assert.equal(await evaluate('document.querySelectorAll("[data-build]").length'),1,'building search narrows cards');await click('#close-panel');
  await click('[data-tab="troops"]');await screenshot('polished-people');await click('#close-panel');
