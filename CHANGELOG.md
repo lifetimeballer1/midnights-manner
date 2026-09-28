@@ -1,3 +1,12 @@
+# UI — Moonlit kingdom
+
+- Unified navy-and-gold HUD, menus, camera controls, inspector, settings and welcome screen.
+- Original scalable dock icons, clearer card hierarchy and selected-menu states.
+- Compact phone dock, responsive layouts and keyboard focus styling.
+- Added in-menu navigation, settings toggles, research states, empty search feedback and responsive Friends forms.
+- Prioritized building cards above village statistics on small screens.
+- No gameplay, economy, progression or save changes.
+
 ## Presentation pass — Phase 6: The haul on the hill (2026-09-28)
 
 - Producers show their on-site haul on the building itself: a stockpile of the matching resource (timber for wood/lumber/frostwood, grain sacks for food, ore for gold, plate bars for plate) grows in four steps as the tap reserve fills toward `harvest.capacity`, and a gold pennant flies once the haul crosses `reserveNotifyAt`. The 2D bubble and badge remain the tap affordance; the mesh is the at-a-glance state.
