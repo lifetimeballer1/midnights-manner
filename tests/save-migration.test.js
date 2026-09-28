@@ -22,7 +22,7 @@ test('vintage v1 bookmark save migrates to current version with content intact',
   assert.equal(state.version, VERSION);
   assert.equal(state.world.buildings.length, 3);
   assert.equal(state.world.troops.length, 2);
-  assert.deepEqual(state.world.resources, { food: 180, gold: 210, wood: 320 });
+  assert.deepEqual(state.world.resources, { food: 180, gold: 210, wood: 320, lumber: 0, flour: 0, bread: 0 });
   assert.equal(state.xp, 120);
   assert.equal(state.vlevel, 2);
 });

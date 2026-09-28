@@ -30,7 +30,10 @@
     "food": 180,
     "gold": 210,
     "frostwood": 0,
-    "plate": 0
+    "plate": 0,
+    "lumber": 0,
+    "flour": 0,
+    "bread": 0
   },
   "buildings": [
     {

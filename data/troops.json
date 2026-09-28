@@ -1356,5 +1356,87 @@
       "20": "veteran",
       "25": "phalanx"
     }
+  },
+  "miller": {
+    "name": "Miller",
+    "role": "keeper",
+    "sprite": "miller.png",
+    "color": "#d9c084",
+    "maxLevel": 25,
+    "base": {
+      "hp": 100,
+      "damage": 8,
+      "speed": 1.35,
+      "range": 0.85
+    },
+    "growth": {
+      "hp": 0.09,
+      "damage": 0.08,
+      "speed": 0.006
+    },
+    "levelCost": {
+      "gold": 18,
+      "food": 12
+    },
+    "recruitCost": {
+      "food": 35,
+      "gold": 20
+    },
+    "defaultGear": "sickle",
+    "gatherResource": null,
+    "carry": 10,
+    "job": {
+      "workplace": "mill",
+      "effect": "refine",
+      "text": "Mills wheat into flour and bakes bread at the Gristmill; posted millers keep the ovens warm."
+    },
+    "abilities": {
+      "5": "brisk",
+      "10": "sturdy",
+      "15": "discount",
+      "20": "foreman",
+      "25": "master-builder"
+    }
+  },
+  "sawyer": {
+    "name": "Sawyer",
+    "role": "keeper",
+    "sprite": "sawyer.png",
+    "color": "#b08a5e",
+    "maxLevel": 25,
+    "base": {
+      "hp": 110,
+      "damage": 10,
+      "speed": 1.3,
+      "range": 0.85
+    },
+    "growth": {
+      "hp": 0.09,
+      "damage": 0.085,
+      "speed": 0.006
+    },
+    "levelCost": {
+      "gold": 18,
+      "food": 12
+    },
+    "recruitCost": {
+      "food": 35,
+      "gold": 20
+    },
+    "defaultGear": "fellingaxe",
+    "gatherResource": null,
+    "carry": 10,
+    "job": {
+      "workplace": "sawmill",
+      "effect": "refine",
+      "text": "Saws timber into lumber at the Sawmill; posted sawyers keep the planks coming."
+    },
+    "abilities": {
+      "5": "ward",
+      "10": "steady-hands",
+      "15": "second-wind",
+      "20": "haste",
+      "25": "armor"
+    }
   }
 }

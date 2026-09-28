@@ -118,9 +118,11 @@ test('story item 2: every arrival is somebody now; flavor needs no save keys', (
   // under save version 5, prestige stars + the cairn roll under save
   // version 6, the phantom-null cleanup under save version 7, and the
   // tap-reserve clamp under save version 8, the Phase-6 defense
-  // cooldown normalization under save version 9, and the Phase-7
-  // villager identity (names, traits, job ledgers) under save version 10.)
-  assert.equal(VERSION, 10);
+  // cooldown normalization under save version 9, the Phase-7
+  // villager identity (names, traits, job ledgers) under save version 10,
+  // and the Phase-8 chain stores (lumber/flour/bread) plus the village
+  // craft stock under save version 11.)
+  assert.equal(VERSION, 11);
   for (const key of ['records', 'boardSeen', 'tradeDay', 'calendarDay', 'tradeNames'])
     assert.ok(!(key in state), `no save key ${key}`);
 });
