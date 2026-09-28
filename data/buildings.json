@@ -1468,5 +1468,92 @@
         "range": 0.75
       }
     ]
+  },
+  "sawmill": {
+    "name": "Sawmill",
+    "size": 2,
+    "cost": {
+      "wood": 60,
+      "gold": 20
+    },
+    "buildSeconds": 5,
+    "production": null,
+    "rate": 0,
+    "workplace": "sawyer",
+    "refine": [
+      {
+        "in": {
+          "wood": 2
+        },
+        "out": {
+          "lumber": 2
+        },
+        "perSec": 0.5
+      }
+    ],
+    "tiers": [
+      {
+        "sprite": "sawmill-1.png",
+        "hp": 200,
+        "rateMultiplier": 1,
+        "damage": 0,
+        "range": 0.75
+      },
+      {
+        "sprite": "sawmill-2.png",
+        "hp": 400,
+        "rateMultiplier": 2,
+        "damage": 0,
+        "range": 0.75
+      }
+    ]
+  },
+  "mill": {
+    "name": "Gristmill",
+    "size": 2,
+    "cost": {
+      "wood": 70,
+      "food": 20
+    },
+    "buildSeconds": 5,
+    "production": null,
+    "rate": 0,
+    "workplace": "miller",
+    "refine": [
+      {
+        "in": {
+          "food": 3
+        },
+        "out": {
+          "flour": 3
+        },
+        "perSec": 0.5
+      },
+      {
+        "in": {
+          "flour": 2
+        },
+        "out": {
+          "bread": 1
+        },
+        "perSec": 0.3
+      }
+    ],
+    "tiers": [
+      {
+        "sprite": "mill-1.png",
+        "hp": 200,
+        "rateMultiplier": 1,
+        "damage": 0,
+        "range": 0.75
+      },
+      {
+        "sprite": "mill-2.png",
+        "hp": 400,
+        "rateMultiplier": 2,
+        "damage": 0,
+        "range": 0.75
+      }
+    ]
   }
 }

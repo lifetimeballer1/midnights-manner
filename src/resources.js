@@ -4,7 +4,10 @@ export const RESOURCES={
  food:{label:'Food',sprite:'resource-food.svg',color:'#a9d889',paper:'#eff8df',description:'Feeds your village and recruits new people.'},
  gold:{label:'Gold',sprite:'resource-gold.svg',color:'#f3cf66',paper:'#fff6cc',description:'Pays for training, equipment and advanced buildings.'},
  frostwood:{label:'Frostwood',sprite:'resource-frostwood.svg',color:'#9bd6e6',paper:'#e4f6fa',description:'Rare timber for frontier crafts and upgrades.'},
- plate:{label:'Plate',sprite:'resource-plate.svg',color:'#b7c7dc',paper:'#edf0fa',description:'Forged metal for advanced armor and equipment.'}
+ plate:{label:'Plate',sprite:'resource-plate.svg',color:'#b7c7dc',paper:'#edf0fa',description:'Forged metal for advanced armor and equipment.'},
+ lumber:{label:'Lumber',sprite:'resource-wood.svg',color:'#d8a05e',paper:'#fff0d7',description:'Sawn planks from the Sawmill — master craftwork and fine blades are hungry for it.'},
+ flour:{label:'Flour',sprite:'resource-food.svg',color:'#f0e0b0',paper:'#fbf6e6',description:'Milled grain from the Gristmill — bake it into bread.'},
+ bread:{label:'Bread',sprite:'resource-food.svg',color:'#e8b34e',paper:'#fff2cf',description:'Hearty loaves. Each loaf feeds as 3 food when the pantry runs bare.'}
 };
 export const resourceInfo=key=>RESOURCES[key]||{label:String(key||'Resource'),sprite:'resource-gold.svg',color:'#f3cf66',paper:'#fff6cc',description:'Gathered by your village.'};
 export const resourceLabel=(key,amount)=>`+${Math.floor(amount)} ${resourceInfo(key).label}`;
