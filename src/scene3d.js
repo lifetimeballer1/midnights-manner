@@ -1,12 +1,13 @@
 // Original low-poly village geometry, projected by the shared orbit camera.
 // The game simulation stays in ground tiles; meshes add height only for display.
-import {cameraBasis,phaseSeed} from './camera.js';
+import {cameraBasis} from './camera.js';
+import {characterModel} from './character-art.js';
 import {isWall,wallNeighbors} from './building-art.js';
 import {placementCells} from './systems/walls.js';
 export function pointInPolygon(x,y,points){let inside=false;for(let i=0,j=points.length-1;i<points.length;j=i++){const a=points[i],b=points[j];if((a.y>y)!==(b.y>y)&&x<(b.x-a.x)*(y-a.y)/(b.y-a.y)+a.x)inside=!inside;}return inside;}
 function shade(hex,n){const value=parseInt(hex.slice(1),16),light=.72+.26*Math.max(0,(-n[0]*.4-n[1]*.5+n[2]) /1.187)+.12*Math.max(0,n[2]);return '#'+[value>>16,(value>>8)&255,value&255].map(v=>Math.min(255,Math.round(v*light)).toString(16).padStart(2,'0')).join('');}
 export class MeshScene {
- constructor(r){this.r=r;this.faces=[];this.owner=null;this.alpha=1;this.basis=cameraBasis(r);}
+ constructor(r){this.r=r;this.faces=[];this.owner=null;this.alpha=1;this.depthBias=0;this.basis=cameraBasis(r);}
  face(vertices,color,split=true){
   // Split broad roof/wall planes so chimneys and neighboring meshes occlude
   // correctly even at low camera angles (painter ordering uses face centers).
@@ -15,9 +16,9 @@ export class MeshScene {
   const a=vertices[0],b=vertices[1],c=vertices[2],u=b.map((v,i)=>v-a[i]),v=c.map((v,i)=>v-a[i]);let n=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];const len=Math.hypot(...n);if(len<1e-8)return;n=n.map(x=>x/len);
   const B=this.basis;if(n[0]*B.s*B.v+n[1]*B.c*B.v+n[2]*B.p<=.00001)return;
   const points=vertices.map(p=>this.r.project(...p));if(points.every(p=>p.x<-60)||points.every(p=>p.x>this.r.width+60)||points.every(p=>p.y<-80)||points.every(p=>p.y>this.r.height+60))return;
-  this.faces.push({points,color:shade(color,n),depth:vertices.reduce((sum,p)=>sum+this.r.depth(...p),0)/vertices.length,owner:this.owner,alpha:this.alpha});
+  this.faces.push({points,color:shade(color,n),depth:vertices.reduce((sum,p)=>sum+this.r.depth(...p),0)/vertices.length+this.depthBias,owner:this.owner,alpha:this.alpha});
  }
- box(x,y,z,w,d,h,color){const p=[[x,y,z],[x+w,y,z],[x+w,y+d,z],[x,y+d,z],[x,y,z+h],[x+w,y,z+h],[x+w,y+d,z+h],[x,y+d,z+h]];for(const f of [[0,3,2,1],[0,1,5,4],[1,2,6,5],[2,3,7,6],[3,0,4,7],[4,5,6,7]])this.face(f.map(i=>p[i]),color);}
+ box(x,y,z,w,d,h,color,cap=true){const p=[[x,y,z],[x+w,y,z],[x+w,y+d,z],[x,y+d,z],[x,y,z+h],[x+w,y,z+h],[x+w,y+d,z+h],[x,y+d,z+h]];for(const f of [[0,3,2,1],[0,1,5,4],[1,2,6,5],[2,3,7,6],[3,0,4,7],...(cap?[[4,5,6,7]]:[])])this.face(f.map(i=>p[i]),color);}
  roof(x,y,z,w,d,h,color){const p=[[x,y,z],[x+w,y,z],[x+w,y+d,z],[x,y+d,z],[x+w/2,y,z+h],[x+w/2,y+d,z+h]];for(const f of [[0,4,5,3],[4,1,2,5],[0,1,4],[3,5,2]])this.face(f.map(i=>p[i]),color);}
  pyramid(x,y,z,radius,h,color,sides=4){const ring=Array.from({length:sides},(_,i)=>[x+Math.cos(i*Math.PI*2/sides)*radius,y+Math.sin(i*Math.PI*2/sides)*radius,z]);for(let i=0;i<sides;i++)this.face([ring[i],ring[(i+1)%sides],[x,y,z+h]],color);}
  paint(){const c=this.r.ctx;this.faces.sort((a,b)=>a.depth-b.depth);for(const f of this.faces){c.globalAlpha=f.alpha;c.fillStyle=f.color;c.beginPath();f.points.forEach((p,i)=>i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y));c.closePath();c.fill();c.strokeStyle=f.color;c.lineWidth=.45;c.stroke();}c.globalAlpha=1;this.r.sceneFaces=this.faces;}
@@ -26,8 +27,77 @@ const stone='#b4beb2',timber='#b38a59',gold='#e5bd66';
 function fence(s,x,y,w,d,color=timber){for(let i=0;i<=w;i+=.45){s.box(x+i,y,.05,.09,.09,.45,color);s.box(x+i,y+d-.09,.05,.09,.09,.45,color);}for(let j=.4;j<d;j+=.45){s.box(x,y+j,.05,.09,.09,.45,color);s.box(x+w-.09,y+j,.05,.09,.09,.45,color);}s.box(x,y,.23,w,.055,.07,color);s.box(x,y+d-.06,.23,w,.055,.07,color);s.box(x,y,.23,.055,d,.07,color);s.box(x+w-.06,y,.23,.055,d,.07,color);}
 function pine(s,x,y,height=1.7,cold=false){s.box(x-.045,y-.045,0,.09,.09,height*.65,'#73543c');for(let i=0;i<3;i++)s.pyramid(x,y,height*(.23+i*.21),height*(.31-i*.055),height*.53,cold?['#598c83','#80b8ae','#b6ded0'][i]:['#315d43','#477953','#699358'][i],6);}
 function tower(s,x,y,size,h,color=stone){s.box(x,y,.12,size,size,h,color);s.box(x-.08,y-.08,h+.1,size+.16,size+.16,.16,color);for(const [dx,dy]of[[0,0],[size-.16,0],[0,size-.16],[size-.16,size-.16]])s.box(x+dx-.025,y+dy-.025,h+.26,.21,.21,.23,color);s.box(x+size*.38,y+size+.006,h*.48,size*.2,.012,.27,'#324a41');s.box(x+size+.006,y+size*.38,h*.48,.012,size*.2,.27,'#324a41');}
-function windows(s,x,y,w,d,h){for(const f of [.18,.72]){const z=h*.54,ww=Math.min(.18,w*.15);s.box(x+w*f,y+d+.008,z,ww,.024,.19,'#ffe6ab');s.box(x+w*f,y-.025,z,ww,.024,.19,'#ffe6ab');s.box(x-.025,y+d*f,z,.024,ww,.19,'#ffe6ab');s.box(x+w+.008,y+d*f,z,.024,ww,.19,'#ffe6ab');}s.box(x+w*.4,y+d+.01,.1,w*.22,.026,.48,'#5b4735');}
-function hut(s,x,y,w,d,h,roofColor,level){s.box(x,y,.1,w,d,h,level===1?timber:stone);s.roof(x-.09,y-.09,h+.1,w+.18,d+.18,.35+level*.08,roofColor);windows(s,x,y,w,d,h);if(level>=2)s.box(x+w*.75,y+d*.2,h,.18,.18,.75,stone);if(level>=3){s.box(x+.1,y+.1,0,.16,.16,h+.1,gold);s.box(x+w-.26,y+d-.26,0,.16,.16,h+.1,gold);}}
+function windows(s,x,y,w,d,h){
+ // Shallow facade pieces sit on broad wall faces. A small ordering offset
+ // avoids their being cut up by the wall's face-center painter sort.
+ const bias=s.depthBias;s.depthBias+=.12;
+ for(const f of [.18,.72]){const z=h*.54,ww=Math.min(.18,w*.15);s.box(x+w*f,y+d+.008,z,ww,.024,.19,'#ffe6ab');s.box(x+w*f,y-.025,z,ww,.024,.19,'#ffe6ab');s.box(x-.025,y+d*f,z,.024,ww,.19,'#ffe6ab');s.box(x+w+.008,y+d*f,z,.024,ww,.19,'#ffe6ab');}s.box(x+w*.4,y+d+.01,.1,w*.22,.026,.48,'#5b4735');
+ s.depthBias=bias;
+}
+function hut(s,x,y,w,d,h,roofColor,level){
+ const rise=.35+level*.08,frame=level>=3?gold:'#73563d';
+ // Recess the walls beneath the eaves and omit their hidden top plane.
+ s.box(x,y,.1,w,d,h-.1,level===1?timber:stone,false);
+ s.roof(x-.09,y-.09,h+.1,w+.18,d+.18,rise,roofColor);
+ windows(s,x,y,w,d,h);
+ // Ridge caps and exposed corner posts give timber cottages a framed silhouette.
+ s.box(x+w/2-.035,y-.11,h+.1+rise,.07,d+.22,.055,frame);
+ for(const dx of [0,w-.055])for(const dy of [0,d-.055])s.box(x+dx-.012,y+dy-.012,.1,.075,.075,h,frame);
+ s.box(x+w*.36,y+d+.025,.1,w*.3,.13,.065,level>1?stone:timber);
+ if(s.r.cam.zoom>=1.3){
+  s.box(x+w*.37,y+d+.027,.58,w*.28,.035,.055,frame);
+  s.box(x+w*.57,y+d+.042,.3,.025,.018,.04,gold);
+  // The window bars remain on the facade, so they rotate with the building.
+  const bias=s.depthBias;s.depthBias+=.125;
+  for(const f of [.18,.72]){
+   const ww=Math.min(.18,w*.15);
+   for(const dy of [-.032,d+.034])s.box(x+w*f+ww*.45,y+dy,h*.54,.018,.016,.19,frame);
+   for(const dx of [-.032,w+.034])s.box(x+dx,y+d*f+ww*.45,h*.54,.016,.018,.19,frame);
+  }
+  s.depthBias=bias;
+ }
+ if(level>=2){s.box(x+w*.75,y+d*.2,h,.18,.18,.75,stone);s.box(x+w*.75-.025,y+d*.2-.025,h+.75,.23,.23,.065,'#786d5b');}
+}
+
+function workplaceDetails(s,b,n){
+ const {x,y,type:t,level:l}=b,z=.14,front=y+n-.16;
+ if(['hall','barracks','longhouse'].includes(t)){
+  const flag=t==='barracks'?'#ad6155':'#5e8c9b';
+  for(const dx of [.32,n-.48]){
+   s.box(x+dx,front,.2,.055,.055,.8,timber);
+   s.box(x+dx+.05,front,.63,.2,.025,.32,flag);
+   if(l>1)s.box(x+dx+.09,front+.027,.7,.1,.02,.05,gold);
+  }
+ }
+ if(['forge','smeltery','workshop'].includes(t)){
+  // Squat anvil, flared top and iron billet: readable even at village zoom.
+  s.box(x+.18,front-.04,z,.28,.18,.13,'#655844');
+  s.box(x+.26,front-.035,z+.13,.1,.15,.1,'#647375');
+  s.box(x+.17,front-.07,z+.23,.32,.22,.09,'#a3b7b6');
+ }
+ if(['armory','fletcher','shieldwall-yard'].includes(t)){
+  s.box(x+.15,front,.12,.06,.06,.65,timber);
+  s.box(x+n-.22,front,.12,.06,.06,.65,timber);
+  s.box(x+.15,front,.59,n-.31,.05,.07,timber);
+  for(const dx of [.29,n-.39]){
+   if(t==='fletcher'){s.box(x+dx,front,.2,.04,.04,.55,timber);s.box(x+dx-.045,front-.015,.72,.13,.07,.07,stone);}
+   else{s.box(x+dx-.05,front+.055,.25,.17,.04,.25,'#718e9b');if(s.r.cam.zoom>=1.3)s.box(x+dx+.015,front+.096,.25,.035,.015,.25,gold);}
+  }
+ }
+ if(t==='tannery'){
+  for(const dx of [.12,n-.18])s.box(x+dx,front,.13,.05,.06,.65,timber);
+  s.box(x+.12,front,.74,n-.25,.06,.045,timber);
+  s.box(x+.23,front+.03,.33,n-.47,.025,.36,'#c79b6d');
+ }
+ if(['scriptorium','schoolroom'].includes(t)){
+  s.box(x+.18,front-.04,.14,n-.36,.17,.2,timber);
+  for(const [dx,color]of[[.22,'#7a7396'],[.34,'#ba895c'],[.46,'#7a927b']])s.box(x+dx,front-.025,.34,.075,.13,.19,color);
+ }
+ if(t==='cottage'&&l>=2){
+  s.box(x+.28,front,.15,.35,.14,.13,timber);
+  for(const dx of [.33,.46,.58])s.pyramid(x+dx,front+.07,.28,.07,.12,'#90a369');
+ }
+}
 function buildingShape(s,b,spec,world){
  const x=b.x,y=b.y,n=spec.size,l=b.level,t=b.type;s.owner={kind:'building',id:b.id};s.alpha=b.hp<=0?.35:b.remaining>0?.6:1;
  s.box(x+.1,y+.1,0,n-.2,n-.2,.12,l>1?stone:'#9b8864');
@@ -88,6 +158,7 @@ function buildingShape(s,b,spec,world){
  }
  const colors={hall:'#658d99',barracks:'#b96d5a',cottage:'#9ba061',longhouse:'#977851',chapel:'#8e8dae','sunken-chapel':'#679fa5',forge:'#976b54',smeltery:'#846f67',armory:'#667b91',workshop:'#789380',tannery:'#bd9a69',schoolroom:'#ba9369',scriptorium:'#798ca7',butchery:'#a75e54',fletcher:'#7c9868','shieldwall-yard':'#668a91',mason_yard:'#949b90'};
  hut(s,x+.22,y+.22,n-.44,n-.44,.42+l*.16,colors[t]||'#829a78',l);
+ workplaceDetails(s,b,n);
  if(['forge','smeltery'].includes(t)){s.box(x+n-.55,y+.28,.1,.28,.28,1.5,stone);s.box(x+n-.57,y+.26,1.6,.32,.32,.12,'#4d514b');s.box(x+.3,y+n-.2,.2,.4,.024,.26,'#eea55d');}
  if(t.includes('chapel')){tower(s,x+.25,y+.25,.4,1.35,stone);s.pyramid(x+.45,y+.45,1.65,.33,.6,colors[t]);}
  if(t==='hall'&&l>=2)tower(s,x+n-.7,y+.25,.48,1.35,stone);
@@ -110,18 +181,9 @@ export function buildingModel(s,b,spec,world){
   s.box(x+.18,y+.21,.13,Math.min(.54,n-.36),.24,.17,'#c5a16e');
  }
 }
-function person(s,u,data,time,enemy=false){if(u.hp<=0)return;s.owner={kind:enemy?'enemy':'unit',id:u.id};s.alpha=1;const spec=data.troops[u.type]||{},role=spec.role,base=enemy?(data.world.enemyFactions?.find(f=>f.id===u.faction)?.color||'#a65c54'):role==='combat'?'#557a86':role==='collector'?'#719b68':'#ae9568';const bob=s.r.calm?0:Math.sin(time/230+phaseSeed(u.id))*.018,x=u.x,y=u.y;
- for(const dx of [-.115,.04])s.box(x+dx,y-.08,.02,.085,.16,.24,'#514939');s.box(x-.15,y-.11,.25,.3,.22,.29,base);s.box(x-.1,y-.09,.57+bob,.2,.18,.19,'#e1ba88');s.box(x-.12,y-.11,.75+bob,.24,.22,.08,role==='combat'?'#a6bac4':enemy?'#6f5344':'#977c51');for(const dx of [-.22,.15])s.box(x+dx,y-.08,.29,.07,.13,.22,'#d5ae7d');s.box(x-.1,y+.095,.65+bob,.035,.012,.025,'#33443a');s.box(x+.045,y+.095,.65+bob,.035,.012,.025,'#33443a');
- const item=data.items[u.gear],anim=u.animation>0?Math.sin(u.animation*14)*.15:0;
- s.box(x+.22,y-.035,.22,.04,.04,.55+anim,timber);
- if(item){if(item.animation==='arrow'||/bow/.test(u.gear))s.box(x+.25,y-.09,.4,.04,.3,.45,timber);else if(item.animation==='slash')s.box(x+.2,y-.04,.7+anim,.09,.06,.3,'#d0d9d4');else s.box(x+.16,y-.05,.72+anim,.23,.09,.12,role==='combat'?'#aebfc3':'#97aaa2');}
- if(enemy&&u.role==='archer')s.box(x+.25,y-.09,.4,.05,.35,.5,timber);
- if(enemy&&u.role==='breaker'){s.box(x+.13,y-.09,.78,.34,.18,.22,'#7b8990');s.box(x-.2,y-.15,.28,.4,.05,.28,'#656e73');}
- if(enemy&&u.role==='scout')s.pyramid(x,y,.81,.18,.24,base);
- if(u.emergency)s.box(x-.07,y-.06,1.05,.14,.12,.08,u.emergency.kind==='heal'?'#8ad2ad':u.emergency.kind==='repair'?'#bcd4e8':'#e2c578');
- if(u.armor)s.box(x-.16,y-.13,.28,.32,.04,.25,'#aab7bd');if(u.carry>0)s.box(x-.14,y-.23,.32,.28,.14,.26,'#c5a363');
-}
 export function drawVillage3D(r,world,time){const s=new MeshScene(r),W=r.data.world.width,H=r.data.world.height;
+ // Large settlements keep outfit/weapon silhouettes but omit tiny face/trim meshes.
+ s.characterDetail=world.troops.length+world.enemies.length<=64;
  // Project static meshes only when the camera, footprint, or building state changes.
  const key=JSON.stringify([r.width,r.height,r.cx,r.cy,r.cam,W,H,world.buildings.map(b=>[b.id,b.type,b.x,b.y,b.level,b.hp<=0,b.remaining>0])]);
  if(r._meshStatic?.key===key)s.faces=r._meshStatic.faces.slice();else{
@@ -131,7 +193,7 @@ export function drawVillage3D(r,world,time){const s=new MeshScene(r),W=r.data.wo
  r._meshStatic={key,faces:s.faces.slice()};
  }
 
- for(const u of world.troops)person(s,u,r.data,time);for(const e of world.enemies)person(s,e,r.data,time,true);
+ for(const u of world.troops)characterModel(s,u,r.data,time);for(const e of world.enemies)characterModel(s,e,r.data,time,true);
  if(r.placing&&r.hover){const source=world.buildings.find(b=>b.id===r.moving),ghosts=placementCells(r).map(p=>({type:r.placing,...p,level:source?.level||1,hp:1,remaining:1,id:null})),preview={buildings:[...world.buildings.filter(b=>b.id!==r.moving),...ghosts]};for(const b of ghosts)buildingModel(s,b,r.data.buildings[b.type],preview);}
  s.paint();
 }
