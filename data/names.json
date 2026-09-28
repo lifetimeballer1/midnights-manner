@@ -1,13 +1,1 @@
-{
-  "given": [
-    "Bram", "Wren", "Fen", "Issa", "Pella", "Maro", "Sella", "Tomm",
-    "Hob", "Kess", "Dren", "Berra", "Colm", "Essie", "Lark", "Rill",
-    "Tansy", "Wick", "Hollis", "Joren", "Mara", "Cotter", "Dill", "Sanna"
-  ],
-  "trade": [
-    "Ash", "Waterwise", "Second-Lantern", "Longaxe", "Salt",
-    "the mason", "the shepherd", "the smith", "the thatcher", "the tinker",
-    "the midwife", "the net-mender", "the beekeeper", "the drover", "the roofer",
-    "the charcoal-burner", "the lamp-trimmer", "the miller", "Bell", "Cutler"
-  ]
-}
+{"given": ["Berra", "Bor", "Branwen", "Bram", "Cedda", "Colm", "Cotter", "Dill", "Dren", "Dunna", "Edwith", "Ella", "Essie", "Fen", "Garrick", "Hob", "Hollis", "Idra", "Issa", "Joren", "Kess", "Kettil", "Lark", "Leof", "Mara", "Maro", "Mira", "Nessa", "Odell", "Osric", "Pella", "Rill", "Rosal", "Sanna", "Sella", "Sorin", "Tansy", "Tilda", "Tomm", "Ulma", "Wick", "Wren", "Ysolde"], "trade": ["Ash", "Waterwise", "Second-Lantern", "Longaxe", "Salt", "the mason", "the shepherd", "the smith", "the thatcher", "the tinker", "the midwife", "the net-mender", "the beekeeper", "the drover", "the roofer", "the charcoal-burner", "the lamp-trimmer", "the miller", "Bell", "Cutler", "the toll-keeper", "the fence-mender", "the night-watch", "the well-digger", "the cartwright", "the fuller", "Oakenshade", "the rat-catcher"]}

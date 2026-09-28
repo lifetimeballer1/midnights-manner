@@ -346,6 +346,9 @@ test('ph13: a shared workplace stacks — healer and chorister mend as one', () 
   w.buildings.push(ch);
   const h = makeUnit('healer', d, 0); h.level = 1; h.gear = null;
   const c = makeUnit('chorister', d, 1); c.level = 1; c.gear = null;
+  // Phase 7: posting rolls no surprises here — neutral temperaments pin
+  // the stacking math (Hard Worker would quicken the shares).
+  h.traits = ['brave']; c.traits = ['brave'];
   w.troops.push(h, c);
   g.assign(h.id, ch.id);
   g.assign(c.id, ch.id);
@@ -413,6 +416,7 @@ test('ph13: hymnal and robe dress the choir', () => {
   const c = makeUnit('chorister', d, 0);
   c.level = 1; c.gear = 'hymnal'; c.owned = ['hymnal'];
   c.armor = 'choir-robe'; c.armorOwned = ['choir-robe'];
+  c.traits = ['brave']; // Phase 7: neutral temperament pins the wardrobe math.
   w.troops.push(c);
   g.assign(c.id, ch.id);
   // 1.5 base share + 0.8 hymnal aura + 10 robe mending, one posted voice.
@@ -525,6 +529,8 @@ test('ph14: the master touch keens every aura the graduate lends', () => {
   w.buildings.push(ch);
   const h = makeUnit('healer', d, 0); h.level = 1;
   const p = makeUnit('healer', d, 1); p.level = 1; p.promoted = true;
+  // Phase 7: neutral temperaments pin the share math.
+  h.traits = ['brave']; p.traits = ['brave'];
   w.troops.push(h, p);
   g.assign(h.id, ch.id);
   g.assign(p.id, ch.id);
@@ -578,6 +584,9 @@ test('ph14: primer ink and the Master Ring ride existing channels', () => {
   a.level = 1; a.gear = 'primer'; a.owned = ['primer'];
   const s = makeUnit('weaponsmith', d, 1);
   s.level = 1; s.armor = 'masters-ring'; s.armorOwned = ['masters-ring'];
+  // Phase 7: neutral temperaments pin the share math (a Craftsman would
+  // outshine the ring at the forge, a Hard Worker would hurry the school).
+  a.traits = ['brave']; s.traits = ['brave'];
   w.troops.push(a, s);
   g.assign(a.id, school.id);
   g.assign(s.id, forge.id);

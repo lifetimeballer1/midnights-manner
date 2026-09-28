@@ -3,7 +3,7 @@
 // numbers below are gentle pacing constants, not content.
 import {levelForXp, EXPANSION, auras, housing, center, stats, unlockedAbilities} from '../model.js';
 import {sfx} from './audio.js';
-import {makeTradeName} from './story.js';
+import {ensureIdentity} from './villagers.js';
 import {claimRect} from './expansion.js';
 
 export const CHILD_SECONDS = 75;      // surplus + free bed grows a villager this fast
@@ -132,17 +132,15 @@ function tickPopulation(state, data, dt, notify) {
     const existing = w.troops.length;
     const s = data.troops[type];
     const child = {id:crypto.randomUUID(), type, level:1, hp:s.base.hp, gear:s.defaultGear, owned:[s.defaultGear], armor:null, armorOwned:[], x:8 + (existing % 5) * .65, y:10.8, attackTimer:0, abilityTimer:0, carry:0, phase:'gather', animation:0, workplace:null};
-    // Every 10th arrival comes down the road with a trade-name (data/names.json).
-    if ((existing + 1) % 10 === 0) {
-      const tradeName = makeTradeName(data.names);
-      if (tradeName) child.name = tradeName;
-    }
+    // Phase 7: every arrival is somebody — a generated name and rolled
+    // traits from data/names.json. Old every-10th trade-name flavor folds
+    // into the same generator (a quarter of names carry an epithet).
+    ensureIdentity(child, data, w.troops);
     w.troops.push(child);
     push(w, {x:child.x, y:child.y, tx:child.x, ty:child.y - 1.1, kind:'float', text:'+ new villager!', color:'#bfe3a8', life:1.2});
     push(w, {x:child.x, y:child.y, tx:child.x, ty:child.y, kind:'fanfare', life:.8});
     sfx.birth();
-    if (child.name) notify(`${child.name} has come down the road, tools in hand! Beds ${housing(w, data).used}/${housing(w, data).beds}.`);
-    else notify(`A child has grown into a ${s.name}! Beds ${housing(w, data).used}/${housing(w, data).beds}.`);
+    notify(`${child.name} has come down the road as a ${s.name}, tools in hand! Beds ${housing(w, data).used}/${housing(w, data).beds}.`);
   }
 }
 

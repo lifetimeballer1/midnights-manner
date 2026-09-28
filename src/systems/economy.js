@@ -1,5 +1,6 @@
 import {resourceLabel, reserveCapacity} from '../resources.js';
 import {builderBonuses,center,unlockedAbilities,stats,auras,gatherBonus} from '../model.js';
+import {hasTrait, jobLevelMult} from './villagers.js';
 import {move} from './pathfinding.js';
 import {sfx} from './audio.js';
 // Open resource maps: new keys (frostwood onward) ride without a schema
@@ -105,6 +106,8 @@ export function tickEconomy(world,data,dt) {
   const worn=(u.armor&&data.items[u.armor]&&data.items[u.armor].stats)||{};
   const gatherMult=(item.gather||1)*(worn.gather||1);
   let capacity=(item.carry||spec.carry||0)+(worn.carry||0)+(aura.carry||0);
+  // Phase 7: Strong backs haul a quarter more. Old saves without traits read exactly the old capacity.
+  if(hasTrait(u,'strong'))capacity*=1.25;
   if(!Number.isFinite(capacity)||capacity<=0)capacity=1;
   if(!Number.isFinite(u.carry)||u.carry<0)u.carry=0;
   if(u.carry>=capacity)u.phase='return';
@@ -115,7 +118,8 @@ export function tickEconomy(world,data,dt) {
    else {
     const bonus=unlockedAbilities(u,data).filter(a=>a.effect==='gather').reduce((n,a)=>n+a.value,1);
     const midC = midgameRate(world.elapsed, 0.85);
-    const rate = 3*gatherMult*bonus*(1+(aura.gather||0))*gatherBonus(u,world,data)*midC;
+    // Phase 7: job skill (+8%/level) and Hard Workers (+12%) quicken the hands. Level-1 crews read exactly the old rate.
+    const rate = 3*gatherMult*bonus*(1+(aura.gather||0))*gatherBonus(u,world,data)*midC*jobLevelMult(u)*(hasTrait(u,'hard_worker')?1.12:1);
     const room = Math.max(0,capacity-u.carry);
     let fill=Math.min(room,rate*dt*reserveMult(source));
     if(!Number.isFinite(fill)||fill<0)fill=0;

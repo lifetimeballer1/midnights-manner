@@ -1,3 +1,4 @@
+import {hasTrait, jobLevelMult, CRAFT_SHOPS} from './systems/villagers.js';
 export const copy = value => structuredClone(value);
 export const distance = (a,b) => Math.hypot(a.x-b.x,a.y-b.y);
 import {buildTiles, seedFor} from './systems/biomes.js';
@@ -44,6 +45,14 @@ export function stats(unit,data) {
   if(ward.damage) result.damage*=ward.damage;
   if(unit.buffs&&unit.buffs.damage) result.damage*=1+unit.buffs.damage.value;
   if(unit.buffs&&unit.buffs.range) result.range+=unit.buffs.range.value;
+  // Phase 7 identity: traits that ride the body, not the job. Missing
+  // traits (old saves) read as no bonus — never a wipe, never NaN.
+  // Brave/Cowardly damage temperament lives in combat (raid-aware).
+  if(hasTrait(unit,'strong')){result.damage*=1.1;result.hp*=1.1;}
+  if(hasTrait(unit,'night_owl'))result.speed*=1.1;
+  // Marksman: ranged fighters (long bows, drawn bows) hit 20% harder.
+  // Base range identifies the line so gear swaps never change identity.
+  if(hasTrait(unit,'marksman')&&(spec.base?.range||0)>2)result.damage*=1.2;
   return result;
 }
 export function makeUnit(type,data,index=0) {
@@ -128,10 +137,17 @@ export function auras(world, data) {
   // stands, starred veterans count double — the bell carries their voice.
   // Data flag, never a building id; old saves without stars read single.
   const bellUp = world.buildings.some(b => b.hp > 0 && b.remaining <= 0 && data.buildings[b.type]?.prestigeAura);
-  const share = u => {
+  const share = (u, b) => {
     let m = 1;
     try { for (const a of unlockedAbilities(u, data)) if (a.effect === 'aura') m += a.value; } catch {}
     if (u.promoted) m += 0.1;
+    // Phase 7 identity: job skill sharpens every share (+8% per level past
+    // the first); Hard Workers lend a little everywhere, Craftsmen extra
+    // at smithing/workshop posts. Level-1 crews without traits read exactly
+    // the pre-Phase-7 values — old saves are untouched until they train.
+    m *= jobLevelMult(u);
+    if (hasTrait(u, 'hard_worker')) m += 0.12;
+    if (b && hasTrait(u, 'craftsman') && CRAFT_SHOPS.includes(b.type)) m += 0.25;
     if (bellUp && (u.prestigeStars || 0) > 0) m *= 2;
     m += gearOf(u).aura ?? 0;
     const ag = (u.armor && data.items[u.armor] && data.items[u.armor].stats) || {};
@@ -152,32 +168,32 @@ export function auras(world, data) {
     // share, stats.xpAura adds flat XP/s, and stats.<key>Aura adds flat
     // aura per bearer (damage/armor/gather/heal/carry). Empty stats (the
     // old keeper tomes) contribute exactly the pre-gear values.
-    if (spec.damageAura) out.damage += spec.damageAura * tier * crew.reduce((s, u) => s + share(u), 0);
-    if (spec.armorAura) out.armor += spec.armorAura * tier * crew.reduce((s, u) => s + share(u), 0);
-    if (spec.gatherAura) out.gather += spec.gatherAura * tier * crew.reduce((s, u) => s + share(u), 0);
+    if (spec.damageAura) out.damage += spec.damageAura * tier * crew.reduce((s, u) => s + share(u, b), 0);
+    if (spec.armorAura) out.armor += spec.armorAura * tier * crew.reduce((s, u) => s + share(u, b), 0);
+    if (spec.gatherAura) out.gather += spec.gatherAura * tier * crew.reduce((s, u) => s + share(u, b), 0);
     // Wild-market pattern, generalized: a workplace can carry a trade aura
     // the same way a forge carries a damage aura — posted keepers sharpen
     // their own share, tier multiplies, the cap below holds the ceiling.
-    if (spec.tradeAura) out.trade += spec.tradeAura * tier * crew.reduce((s, u) => s + share(u), 0);
+    if (spec.tradeAura) out.trade += spec.tradeAura * tier * crew.reduce((s, u) => s + share(u, b), 0);
     // Dual-aura pour (Act VIII Sunken Chapel): a workplace can carry food
     // the same way a forge carries damage — posted keepers sharpen their
     // share, tier multiplies. Existing key, new reader, same caps below.
-    if (spec.foodAura) out.food += spec.foodAura * tier * crew.reduce((s, u) => s + share(u), 0);
+    if (spec.foodAura) out.food += spec.foodAura * tier * crew.reduce((s, u) => s + share(u, b), 0);
     if (spec.carryBonus) out.carry += spec.carryBonus * n;
     if (spec.buildAura) { out.build += spec.buildAura * n; out.discount += 0.05 * n; }
     // Flat-heal wardrobe (Choir Robe onward): a posted keeper's armor
     // piece can carry plain mending alongside the aura share — same crew,
     // same tick, no new keys.
-    if (spec.healRate) out.heal += spec.healRate * tier * crew.reduce((s, u) => s + share(u), 0)
+    if (spec.healRate) out.heal += spec.healRate * tier * crew.reduce((s, u) => s + share(u, b), 0)
       + crew.reduce((s, u) => s + (((u.armor && data.items[u.armor] && data.items[u.armor].stats) || {}).heal ?? 0), 0);
     // Primer ink (Tam's school onward): a posted keeper's tool can carry a
     // flat XP pour under the plain `xp` stat key — same channel as xpAura.
     // Armor-ink XP (Act VIII Envoy's Gift onward): a posted keeper's armor
     // piece can pour village XP beside the main-hand tool — same tick.
     const armorXp = u => { const ag = (u.armor && data.items[u.armor] && data.items[u.armor].stats) || {}; return (ag.xpAura ?? 0) + (ag.xp ?? 0); };
-    if (spec.xpRate) out.xp += spec.xpRate * tier * crew.reduce((s, u) => s + share(u) * (gearOf(u).xpMult ?? 1), 0)
+    if (spec.xpRate) out.xp += spec.xpRate * tier * crew.reduce((s, u) => s + share(u, b) * (gearOf(u).xpMult ?? 1), 0)
       + crew.reduce((s, u) => s + (gearOf(u).xpAura ?? 0) + (gearOf(u).xp ?? 0) + armorXp(u), 0);
-    if (spec.surveyRate) out.survey += spec.surveyRate * tier * crew.reduce((s, u) => s + share(u) * (gearOf(u).survey ?? 1), 0);
+    if (spec.surveyRate) out.survey += spec.surveyRate * tier * crew.reduce((s, u) => s + share(u, b) * (gearOf(u).survey ?? 1), 0);
     for (const [statKey, auraKey] of [['damageAura', 'damage'], ['armorAura', 'armor'], ['gatherAura', 'gather'], ['healAura', 'heal'], ['carryAura', 'carry'], ['tradeAura', 'trade'], ['foodAura', 'food']]) {
       const add = crew.reduce((s, u) => s + (gearOf(u)[statKey] ?? 0), 0);
       if (add) out[auraKey] += add;
@@ -217,13 +233,13 @@ export function auras(world, data) {
     // Old crews carry no aura abilities, so their output is unchanged.
     if (job.effect === 'produce') {
       const key = job.resource || 'food';
-      if (key in out) out[key] += (job.rate || 0.8) * spec_tier(b, data) * share(u);
+      if (key in out) out[key] += (job.rate || 0.8) * spec_tier(b, data) * share(u, b);
     }
     // Tide offices (Act VIII): tide-line keepers pour food wherever the water
     // lets them stand — their own chapel or hosted water. Same
     // share law as every pour, data rate, no new keys.
     if (job.effect === 'tide' && (job.workplace === b.type || (data.buildings[b.type]?.hosts || []).includes(u.type))) {
-      out.food += (job.rate || 0.5) * share(u);
+      out.food += (job.rate || 0.5) * share(u, b);
     }
   }
   // Living-world sky: the day's season + modifier blessings ride here as a

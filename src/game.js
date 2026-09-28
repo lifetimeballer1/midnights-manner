@@ -9,6 +9,7 @@ import {createWorld,makeBuilding,makeUnit,canPlace,inBounds,pay,afford,stats,bui
 import {buildTiles} from './systems/biomes.js';
 import {claimCheck,setClaimed,claimRect,claimRegion,claimPreclaimed,regionFor} from './systems/expansion.js';
 import {tickVillage,gainXp} from './systems/village.js';
+import {ensureIdentity, tickVillagerJobs, autoAssign as autoAssignJobs, scorePost} from './systems/villagers.js';
 import {tickEconomy} from './systems/economy.js';
 import {tickExpeditions,startExpedition} from './systems/expeditions.js';
 import {tickCombat,spawnRaid,activateAbility,raidSides} from './systems/combat.js';
@@ -167,10 +168,13 @@ export class Game {
  }
  assign(unitId,buildingId){
   const u=this.world.troops.find(t=>t.id===unitId);if(!u)return this.notify('That villager is gone.');
-  if(!buildingId){u.workplace=null;u.order=null;this.notify(`${this.data.troops[u.type].name} is available for work.`);return true;}
+  ensureIdentity(u,this.data,this.world.troops);
+  // Phase 7 manual override: a hand-placed villager is never moved by
+  // auto-assignment again. Releasing them back to rest clears the lock.
+  if(!buildingId){u.workplace=null;u.order=null;u.manualPost=false;this.notify(`${u.name||this.data.troops[u.type].name} is available for work.`);return true;}
   const b=this.world.buildings.find(b=>b.id===buildingId);
   if(!b||!assignmentValid(this.world,this.data,u,b))return this.notify('That worker does not belong there — match each profession to its own workplace.');
-  u.workplace=buildingId;u.order=null;
+  u.workplace=buildingId;u.order=null;u.manualPost=true;
   const job=this.data.troops[u.type].job;
   this.notify(`${this.data.troops[u.type].name} assigned to the ${this.data.buildings[b.type].name}. ${job?.text||''}`);
   return true;
@@ -182,12 +186,24 @@ export class Game {
   const mission=this.data.missions.find(m=>m.id===this.state.mission?.id),limit=mission?mission.troopLimit||16:Math.max(16,housing(this.world,this.data).beds);
   if(this.world.troops.length>=limit)return this.notify(`Your troop limit is ${limit}${mission?'':' — build homes to raise it'}.`);
   const unit=makeUnit(type,this.data,this.world.troops.length%5);
+  // Phase 7: every hire arrives named and tempered, and finds the post
+  // that suits them best (trait affinity, then nearest) — not just the
+  // nearest door. An explicit hire keeps the player's choice as a manual
+  // lock; an automatic hire stays free for later auto-assignment.
+  ensureIdentity(unit,this.data,this.world.troops);
   const preferred=workplaceId?this.world.buildings.find(b=>b.id===workplaceId):null;
   if(workplaceId&&(!preferred||!assignmentValid(this.world,this.data,unit,preferred)))return this.notify('This workplace is full, unfinished, or unavailable. No resources spent.');
-  const workplace=preferred||this.world.buildings.filter(b=>assignmentValid(this.world,this.data,unit,b)).sort((a,b)=>Math.hypot(a.x-unit.x,a.y-unit.y)-Math.hypot(b.x-unit.x,b.y-unit.y))[0];
+  const workplace=preferred||this.world.buildings.filter(b=>assignmentValid(this.world,this.data,unit,b)).sort((a,b)=>scorePost(unit,b,this.data,this.world)-scorePost(unit,a,this.data,this.world)||Math.hypot(a.x-unit.x,a.y-unit.y)-Math.hypot(b.x-unit.x,b.y-unit.y))[0];
   if(!pay(this.world.resources,this.data.troops[type].recruitCost))return this.notify('Not enough food or gold.');
-  if(workplace)unit.workplace=workplace.id;
+  if(workplace){unit.workplace=workplace.id;unit.manualPost=!!workplaceId;}
   this.world.troops.push(unit);sfx.upgrade();this.notify(`${this.data.troops[type].name} hired${workplace?` and assigned to ${this.data.buildings[workplace.type].name}`:'. No matching job is open yet'}.`);return unit;
+ }
+ // Phase 7: one tap posts every idle hand where its traits shine. Manual
+ // locks are never moved — the player always has the last word.
+ autoAssignIdle(){
+  const placed=autoAssignJobs(this.world,this.data,{onlyIdle:true});
+  this.notify(placed?`${placed} idle hand${placed>1?'s':''} found ${placed>1?'their posts':'a post'} — traits matched, locks respected.`:'No idle hands need posts. Every worker is placed or resting by your order.');
+  return placed;
  }
  level(id){const u=this.world.troops.find(t=>t.id===id);if(!u||u.level>=this.data.troops[u.type].maxLevel)return;const curve=u.level>=5?1.5:1;
   // Tam's tutoring (Act VII): hands posted at a teaching workplace train
@@ -348,7 +364,10 @@ export class Game {
    if(this.world.raidPending.timer<=0){const {count,scheduled}=this.world.raidPending;this.world.raidPending=null;spawnRaid(this.world,count,null,this.data,factionFor(this.data,this.world.wave+1));
     this.notify(scheduled?fillLine(pickLine(cfg.attackLines,this.world.wave),{count,wave:this.world.wave}):`Wave ${this.world.wave} — ${count} raiders! Defend the manor!`);}}
   const raided=!this.state.mission&&(this.world.enemies.length>0||this.world.raidPending);
-  this.world.elapsed+=dt;tickResearch(this.state,this.data,dt,m=>this.notify(m));tickEmergency(this.world,this.data,dt);tickEconomy(this.world,this.data,dt);tickExpeditions(this.world,this.data,dt);tickCombat(this.world,this.data,dt);tickVillage(this.state,this.data,dt,m=>this.notify(m));const before=this.state.mission?.status;tickMission(this.state,this.data);
+  // Phase 7 identity backfill: old saves and mission rosters gain names,
+  // traits and job ledgers lazily — additive defaults, never a wipe.
+  for(const w of [this.world,this.state.home]){if(!w)continue;for(const u of w.troops||[])ensureIdentity(u,this.data,w.troops);}
+  this.world.elapsed+=dt;tickResearch(this.state,this.data,dt,m=>this.notify(m));tickEmergency(this.world,this.data,dt);tickVillagerJobs(this.world,this.data,dt);tickEconomy(this.world,this.data,dt);tickExpeditions(this.world,this.data,dt);tickCombat(this.world,this.data,dt);tickVillage(this.state,this.data,dt,m=>this.notify(m));const before=this.state.mission?.status;tickMission(this.state,this.data);
   if(raided&&!this.world.enemies.length&&!this.world.raidPending&&this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)){const kills=this.world.raidKills??0,loot=this.world.raidLoot??0;
    const damaged=this.world.buildings.filter(b=>b.hp<this.data.buildings[b.type].tiers[b.level-1].hp);
    const repairWood=damaged.reduce((n,b)=>n+Math.ceil((this.data.buildings[b.type].tiers[b.level-1].hp-b.hp)/15),0);

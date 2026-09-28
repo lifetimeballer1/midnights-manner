@@ -303,6 +303,7 @@ test('ph7: posted smelters pour plate the smokehouse way', () => {
   house.remaining = 0;
   g.world.buildings.push(house);
   const hand = makeUnit('smelter', d, 0);
+  hand.traits = ['brave']; // Phase 7: neutral temperament pins the pour math.
   g.world.troops.push(hand);
   g.assign(hand.id, house.id);
   assert.equal(gatherBonus(hand, g.world, d), 1.25, 'posted crews read the generic workplace bonus');
@@ -322,6 +323,7 @@ test('ph7: posted smelters pour plate the smokehouse way', () => {
   shop.remaining = 0;
   gg.world.buildings.push(shop);
   const old = makeUnit('butcher', dd, 0);
+  old.traits = ['brave']; // Phase 7: the old crew smokes exactly 0.8/s.
   gg.world.troops.push(old);
   gg.assign(old.id, shop.id);
   for (let i = 0; i < 600; i++) tickVillage(gg.state, dd, 0.05, noop);
@@ -793,6 +795,7 @@ test('ph10: posted hagglers sharpen trade a tenth each; the cap holds at 0.3', (
   // house share alone, 0.1 at tier 1.
   const plain = makeUnit('haggler', d, 0);
   plain.gear = 'tome'; plain.owned = ['tome'];
+  plain.traits = ['brave']; // Phase 7: neutral temperament pins the tenth.
   g.world.troops.push(plain);
   g.assign(plain.id, stall.id);
   assert.ok(Math.abs(auras(g.world, d).trade - 0.1) < 1e-9, 'one posted haggler barters a tenth better');
@@ -802,7 +805,7 @@ test('ph10: posted hagglers sharpen trade a tenth each; the cap holds at 0.3', (
   // A full market at tier 2 never breaks the ceiling.
   stall.level = 2;
   const crew = [makeUnit('haggler', d, 1), makeUnit('haggler', d, 2), makeUnit('haggler', d, 3)];
-  for (const u of crew) { u.level = 25; g.world.troops.push(u); g.assign(u.id, stall.id); }
+  for (const u of crew) { u.level = 25; u.traits = ['brave']; g.world.troops.push(u); g.assign(u.id, stall.id); }
   assert.ok(auras(g.world, d).trade <= 0.3 + 1e-9, 'trade never breaks 0.3');
   assert.ok(Math.abs(auras(g.world, d).trade - 0.3) < 1e-9, 'a full tier-2 market presses the cap');
 });

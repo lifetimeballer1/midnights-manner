@@ -1,3 +1,4 @@
+import {towerCrewBonus, raidDamageMult} from './villagers.js';
 import {enemyRole,defenseTarget,retreat,enemyBuildingTarget} from './tactics.js';
 import {distance,center,stats,unlockedAbilities,auras,gearArmor,proximityArmor,reviveFraction,siegeBonus} from '../model.js';
 import {move,blocked} from './pathfinding.js';
@@ -98,15 +99,17 @@ export function tickCombat(world,data,dt) {
    if(move(world,data,unit,order,s.speed,dt,.4,false,true))unit.order=null;
    continue;
   }
-  if(order&&order.kind==='hold'){const e2=world.enemies.filter(e=>e.hp>0).sort((a,b)=>distance(unit,a)-distance(unit,b))[0];if(e2&&distance(unit,e2)<=s.range&&unit.attackTimer<=0){const dealt=s.damage*(1+aura.damage);e2.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,e2,data.items[unit.gear].animation);dmgNum(world,e2,dealt);}continue;}
+  // Phase 7 temperament: Brave holds (+10%) and Cowardly falters (−10%) while raiders walk. No raid, no modifier.
+  const grit=raidDamageMult(unit,world.enemies.some(e=>e.hp>0));
+  if(order&&order.kind==='hold'){const e2=world.enemies.filter(e=>e.hp>0).sort((a,b)=>distance(unit,a)-distance(unit,b))[0];if(e2&&distance(unit,e2)<=s.range&&unit.attackTimer<=0){const dealt=s.damage*(1+aura.damage)*grit;e2.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,e2,data.items[unit.gear].animation);dmgNum(world,e2,dealt);}continue;}
   if(order&&order.kind==='attack'){const tgt=world.enemies.find(e=>e.id===order.targetId&&e.hp>0);if(!tgt){unit.order=null;continue;}
-   if(move(world,data,unit,tgt,s.speed,dt,s.range,false,true)&&unit.attackTimer<=0){const dealt=s.damage*(1+aura.damage);tgt.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,tgt,data.items[unit.gear].animation);dmgNum(world,tgt,dealt);}continue;}
+   if(move(world,data,unit,tgt,s.speed,dt,s.range,false,true)&&unit.attackTimer<=0){const dealt=s.damage*(1+aura.damage)*grit;tgt.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,tgt,data.items[unit.gear].animation);dmgNum(world,tgt,dealt);}continue;}
   if(!world.enemies.length){unit.hp=Math.min(stats(unit,data).hp,unit.hp+dt*2);continue;}
   if(data.troops[unit.type].role!=='combat')continue;
   const enemy=defenseTarget(world,data,unit);if(!enemy)continue;
   if(s.range>2&&distance(unit,enemy)<1.7)retreat(world,data,unit,enemy,s.speed,dt);
   if(move(world,data,unit,enemy,s.speed,dt,s.range,false,true)&&unit.attackTimer<=0){
-   const dealt=s.damage*(1+aura.damage);
+   const dealt=s.damage*(1+aura.damage)*grit;
    enemy.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,enemy,data.items[unit.gear].animation);dmgNum(world,enemy,dealt);
    for(const a of unlockedAbilities(unit,data)) if(a.effect==='splash')for(const other of world.enemies)if(other!==enemy&&distance(other,enemy)<a.radius)other.hp-=s.damage*a.factor;
   }
@@ -117,9 +120,10 @@ export function tickCombat(world,data,dt) {
   const c=center(b,data),enemy=world.enemies.find(e=>e.hp>0&&distance(c,e)<tier.range);
   if(enemy&&b.cooldown===0){
    // Siege-craft: tongs-sharpened crews teach every defense — trap, tower
-   // and watchfire all ride the same bonus. Fire traps add a burn stack:
+   // and watchfire all ride the same bonus. Phase 7: living Marksmen spot
+   // for the towers (+2% each, max +20%). Fire traps add a burn stack:
    // damage-over-time from data `burn`/`burnDuration`, first of its kind.
-   const mult=1+siegeBonus(world,data),dealt=(tier.damage||0)*mult;
+   const mult=1+siegeBonus(world,data)+towerCrewBonus(world),dealt=(tier.damage||0)*mult;
    enemy.hp-=dealt;
    if(tier.burn)enemy.burn={dps:tier.burn*mult,timer:tier.burnDuration||3};
    // Slow heavy engines (the ballista's data `cooldown`) reload on
