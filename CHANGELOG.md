@@ -1,3 +1,9 @@
+## Unreleased — Notice board (Phase 9)
+
+- Patch notes live inside the game: a notice board fed by data/updates.json opens a "What's new" modal the first time a village sees a new version.
+- Entries link straight into the relevant panels (workshop, people, jobs, stores). Dismissible in one tap, Escape closes it, and it never pauses the village.
+- Save-compat is additive only: `seenUpdatesVersion` rides in the save blob when present; old saves see the board once, fresh villages stay quiet.
+
 ## 0.3.0 — A village from every angle
 
 - Original low-poly buildings, connected walls, trees, villagers, raiders, and placement previews replace fixed-angle map sprites.
