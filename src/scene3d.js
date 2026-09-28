@@ -29,7 +29,7 @@ export function shade(hex,n,light,emissive=0,depth01=0,ao=1,local=0){
  return '#'+[value>>16,(value>>8)&255,value&255].map((v,i)=>{let c=Math.min(255,Math.round(v*(lit[i]+local*[1,.57,.22][i])*dim));if(fog>0)c=Math.round(c+(light.fogRGB[i]*255-c)*fog);return c.toString(16).padStart(2,'0');}).join('');
 }
 export class MeshScene {
- constructor(r){this.r=r;this.faces=[];this.sources=[];this.owner=null;this.alpha=1;this.depthBias=0;this.light=FALLBACK_LIGHT;this.emissive=0;this.basis=cameraBasis(r);}
+ constructor(r){this.r=r;this.faces=[];this.sources=[];this.owner=null;this.alpha=1;this.depthBias=0;this.light=FALLBACK_LIGHT;this.emissive=0;this.fixture=false;this.basis=cameraBasis(r);}
  source(position,direction=null,radius=1.25,power=.7){
   if(this.alpha===1)this.sources.push({position,direction,radius,power,owner:this.owner});
  }
@@ -42,7 +42,7 @@ export class MeshScene {
   const B=this.basis;if(n[0]*B.s*B.v+n[1]*B.c*B.v+n[2]*B.p<=.00001)return;
   const points=vertices.map(p=>this.r.project(...p));if(points.every(p=>p.x<-60)||points.every(p=>p.x>this.r.width+60)||points.every(p=>p.y<-80)||points.every(p=>p.y>this.r.height+60))return;
   const zAvg=vertices.reduce((sum,p)=>sum+p[2],0)/vertices.length;
-  this.faces.push({points,color,center:vertices[0].map((_,i)=>vertices.reduce((sum,p)=>sum+p[i],0)/vertices.length),normal:n,emissive:this.emissive,ao:Math.min(1,AO_MIN+(1-AO_MIN)*Math.max(0,zAvg/AO_HEIGHT)),depth:vertices.reduce((sum,p)=>sum+this.r.depth(...p),0)/vertices.length+this.depthBias,owner:this.owner,alpha:this.alpha});
+  this.faces.push({points,color,center:vertices[0].map((_,i)=>vertices.reduce((sum,p)=>sum+p[i],0)/vertices.length),normal:n,emissive:this.emissive,fixture:this.fixture,ao:Math.min(1,AO_MIN+(1-AO_MIN)*Math.max(0,zAvg/AO_HEIGHT)),depth:vertices.reduce((sum,p)=>sum+this.r.depth(...p),0)/vertices.length+this.depthBias,owner:this.owner,alpha:this.alpha});
  }
  box(x,y,z,w,d,h,color,cap=true){const p=[[x,y,z],[x+w,y,z],[x+w,y+d,z],[x,y+d,z],[x,y,z+h],[x+w,y,z+h],[x+w,y+d,z+h],[x,y+d,z+h]];for(const f of [[0,3,2,1],[0,1,5,4],[1,2,6,5],[2,3,7,6],[3,0,4,7],...(cap?[[4,5,6,7]]:[])])this.face(f.map(i=>p[i]),color);}
  roof(x,y,z,w,d,h,color){const p=[[x,y,z],[x+w,y,z],[x+w,y+d,z],[x,y+d,z],[x+w/2,y,z+h],[x+w/2,y+d,z+h]];for(const f of [[0,4,5,3],[4,1,2,5],[0,1,4],[3,5,2]])this.face(f.map(i=>p[i]),color);}
@@ -83,16 +83,17 @@ function gateLiftStage(r,b,world,time){
 function trapArmed(b){return b.hp>0&&!(b.remaining>0)&&!(Number.isFinite(+b.cooldown)&&+b.cooldown>0);}
 function fence(s,x,y,w,d,color=timber){for(let i=0;i<=w;i+=.45){s.box(x+i,y,.05,.09,.09,.45,color);s.box(x+i,y+d-.09,.05,.09,.09,.45,color);}for(let j=.4;j<d;j+=.45){s.box(x,y+j,.05,.09,.09,.45,color);s.box(x+w-.09,y+j,.05,.09,.09,.45,color);}s.box(x,y,.23,w,.055,.07,color);s.box(x,y+d-.06,.23,w,.055,.07,color);s.box(x,y,.23,.055,d,.07,color);s.box(x+w-.06,y,.23,.055,d,.07,color);}
 function torch(s,x,y,z,direction=null,radius=.95,power=.5){
- const dx=direction?.[0]||0,dy=direction?.[1]||0;
+ const dx=direction?.[0]||0,dy=direction?.[1]||0,fixture=s.fixture;s.fixture=true;
  s.box(x-.025-dx*.06,y-.025-dy*.06,z-.22,.05,.05,.23,'#594737');
  s.box(x-.04-dx*.02,y-.04-dy*.02,z-.03,.08,.08,.05,'#41372f');
- s.emissive=1;s.pyramid(x,y,z,.075,.16,'#f2b35c',5);s.emissive=0;
+ s.emissive=1;s.pyramid(x,y,z,.075,.16,'#f2b35c',5);s.emissive=0;s.fixture=fixture;
  s.source([x,y,z+.08],direction,radius,power);
 }
 function lanternPost(s,x,y,z=.72,radius=1.05,power=.46){
+ const fixture=s.fixture;s.fixture=true;
  s.box(x-.035,y-.035,.12,.07,.07,Math.max(.18,z-.18),timber);
  s.box(x-.09,y-.09,z-.1,.18,.18,.08,'#4d514b');
- s.emissive=1;s.box(x-.05,y-.05,z-.025,.1,.1,.11,'#ffd58b');s.emissive=0;
+ s.emissive=1;s.box(x-.05,y-.05,z-.025,.1,.1,.11,'#ffd58b');s.emissive=0;s.fixture=fixture;
  s.source([x,y,z+.035],null,radius,power);
 }
 function pine(s,x,y,height=1.7,cold=false){s.box(x-.045,y-.045,0,.09,.09,height*.65,'#73543c');for(let i=0;i<3;i++)s.pyramid(x,y,height*(.23+i*.21),height*(.31-i*.055),height*.53,cold?['#598c83','#80b8ae','#b6ded0'][i]:['#315d43','#477953','#699358'][i],6);}
