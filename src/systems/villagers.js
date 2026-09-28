@@ -175,6 +175,17 @@ export function autoAssign(world, data, {onlyIdle = true} = {}) {
   }
   return placed;
 }
+// Idle hands with a trade but nowhere to practice it: no finished building
+// fits their job. The auto-assign button names these instead of claiming
+// no hands are idle — a tap that changes nothing must still tell the truth.
+export function idleWithoutPosts(world, data) {
+  return (world.troops || []).filter(u => {
+    if (!u || u.hp <= 0 || u.manualPost || u.expedition) return false;
+    if (!isIdle(u)) return false;
+    if (!data?.troops?.[u.type]?.job) return false;
+    return !(world.buildings || []).some(b => postValid(world, data, u, b));
+  });
+}
 // Marksman tower doctrine: every living Marksman sharpens every tower +2%,
 // capped at +20%. Readers: combat.js tower branch.
 export function towerCrewBonus(world) {

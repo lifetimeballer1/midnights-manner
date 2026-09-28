@@ -9,7 +9,7 @@ import {createWorld,makeBuilding,makeUnit,canPlace,inBounds,pay,afford,stats,bui
 import {buildTiles} from './systems/biomes.js';
 import {claimCheck,setClaimed,claimRect,claimRegion,claimPreclaimed,regionFor} from './systems/expansion.js';
 import {tickVillage,gainXp} from './systems/village.js';
-import {ensureIdentity, tickVillagerJobs, autoAssign as autoAssignJobs, scorePost} from './systems/villagers.js';
+import {ensureIdentity, tickVillagerJobs, autoAssign as autoAssignJobs, idleWithoutPosts, scorePost} from './systems/villagers.js';
 import {tickEconomy} from './systems/economy.js';
 import {tickExpeditions,startExpedition} from './systems/expeditions.js';
 import {tickCombat,spawnRaid,activateAbility,raidSides} from './systems/combat.js';
@@ -202,7 +202,11 @@ export class Game {
  // locks are never moved — the player always has the last word.
  autoAssignIdle(){
   const placed=autoAssignJobs(this.world,this.data,{onlyIdle:true});
-  this.notify(placed?`${placed} idle hand${placed>1?'s':''} found ${placed>1?'their posts':'a post'} — traits matched, locks respected.`:'No idle hands need posts. Every worker is placed or resting by your order.');
+  const stuck=idleWithoutPosts(this.world,this.data);
+  if(placed&&!stuck.length)this.notify(`${placed} idle hand${placed>1?'s':''} found ${placed>1?'their posts':'a post'} — traits matched, locks respected.`);
+  else if(placed)this.notify(`${placed} posted — traits matched, locks respected. ${stuck.length} still idle: no open post for their trade yet.`);
+  else if(stuck.length){const needs=[...new Set(stuck.map(u=>this.data.buildings[this.data.troops[u.type]?.job?.workplace]?.name||this.data.troops[u.type]?.job?.workplace).filter(Boolean))];this.notify(`${stuck.length} idle hand${stuck.length>1?'s':''}, but no finished post fits ${stuck.length>1?'their trades':'their trade'}${needs.length?` — a finished ${needs.join(' or ')} would put them to work`:''}.`);}
+  else this.notify('No idle hands need posts. Every worker is placed or resting by your order.');
   return placed;
  }
  level(id){const u=this.world.troops.find(t=>t.id===id);if(!u||u.level>=this.data.troops[u.type].maxLevel)return;const curve=u.level>=5?1.5:1;

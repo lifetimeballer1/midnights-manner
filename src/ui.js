@@ -82,7 +82,7 @@ export class UI {
    if(b.dataset.recruit)this.game.recruit(b.dataset.recruit,b.dataset.workplace||null);
    if(b.dataset.staff)this.game.assign(b.dataset.staff,this.workplaceId);
    if(b.dataset.release)this.game.assign(b.dataset.release,null);
-   if(b.dataset.autoassign){this.game.autoAssignIdle();this.lastPanel='';this.refresh();return;}
+   if(b.dataset.autoassign){const placed=this.game.autoAssignIdle();if(placed)this.lastPanel='';this.refresh();return;}
    if(b.dataset.level)this.game.level(b.dataset.level);
    if(b.dataset.gear)this.game.equip(b.dataset.unit,b.dataset.gear);
    if(b.dataset.promoteUnit)this.game.promote(b.dataset.promoteUnit,b.dataset.promoteTo);
