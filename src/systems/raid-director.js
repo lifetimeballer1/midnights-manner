@@ -41,7 +41,14 @@ export function scheduleRecovery(state,data,won,random=Math.random) {
 export function directorParty(state,data) {
  const c=data.world.homeRaids||{},w=state.world;
  if(!w.wave)return c.firstCount??2;
- return Math.min(c.maxCount??8,(c.baseCount??3)+w.wave*(c.perWave??1)+Math.floor(settlementThreat(state).score/35));
+ // Late war (Phase 12): the ladder answers high villages with heavier
+ // parties through the normal score path. Missing config reads zero.
+ let bonus=0;
+ try{
+  const ladder=(data.endgame?.threatLadder||[]).filter(t=>(state.vlevel||1)>=(t.minLevel||Infinity));
+  if(ladder.length)bonus=Math.max(...ladder.map(t=>t.partyBonus||0));
+ }catch{}
+ return Math.min(c.maxCount??8,(c.baseCount??3)+w.wave*(c.perWave??1)+Math.floor(settlementThreat(state).score/35)+bonus);
 }
 export function survivalStatus(state,data) {
  const w=state.world,threat=settlementThreat(state);

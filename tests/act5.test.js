@@ -371,7 +371,10 @@ test('ph5: the Pikewoman debuts the C1 melee-control kit', () => {
   const wall = data.buildings.stonewall;
   assert.equal(wall.size, 1);
   assert.deepEqual(wall.cost, {wood: 30, gold: 25});
-  assert.deepEqual(wall.tiers.map(t => t.hp), [520, 1040, 1560]);
+  // Phase 12 raised a fourth stonewall course (2600, village level 10) —
+  // the old three stand exactly as the act built them.
+  assert.deepEqual(wall.tiers.map(t => t.hp), [520, 1040, 1560, 2600]);
+  assert.equal(wall.tierGates['4'], 10);
   assert.ok(wall.repeatPlace, 'stone walls lay like palisades');
   assert.ok(data.buildings.wall.repeatPlace, 'palisades keep their rhythm');
   assert.ok(data.world.locked.includes('stonewall'));

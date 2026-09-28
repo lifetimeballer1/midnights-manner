@@ -1,8 +1,10 @@
 import {distance,center} from '../model.js';
 import {blocked,move} from './pathfinding.js';
 import {isWall} from './walls.js';
-export function factionFor(data,wave) {
- const factions=(data.world.enemyFactions||[]).filter(f=>wave>=(f.minWave||1));
+export function factionFor(data,wave,vlevel=1) {
+ // Endgame courts only answer seasoned villages: a minLevel gate keeps
+ // siege engines and pale courts out of mid-game raids entirely.
+ const factions=(data.world.enemyFactions||[]).filter(f=>wave>=(f.minWave||1)&&(vlevel||1)>=(f.minLevel||1));
  return factions.length?factions[(wave-1)%factions.length]:null;
 }
 export function enemyRole(data,enemy){return data.world.enemyRoles?.[enemy.role]||{};}
