@@ -92,12 +92,14 @@ try{
  assert.ok(await evaluate('document.querySelectorAll(".trait").length > 0'),'villager trait chips render');
  assert.ok(await evaluate('window.midnightsManner.snapshot().world.troops.every(t=>typeof t.name==="string"&&t.name.length>0)'),'every villager is named');
  // Auto-assign's posting logic is unit-tested (phase7-villagers.test.js). Here
- // we only prove the UI offers it: with idle hands and no finished posts yet
- // in this scene, the button is present and enabled; firing it must simply
- // not break the panel (placed=0 is a legal answer this early).
- assert.ok(await evaluate('Boolean(document.querySelector("[data-autoassign]:not([disabled])"))'),'auto-assign offered while hands idle');
- await fire('[data-autoassign]');
- await waitFor('Boolean(document.querySelector(".idle-bar"))||document.querySelector("#status").textContent.length>0');
+ // we only prove the UI offers it. Self-filling posts mean open work may
+ // already be taken by the time we look — so either the button is enabled
+ // (hands still idle) or no idle hands remain (they self-filled). Firing is
+ // only legal while hands are still idle.
+ assert.ok(await evaluate('Boolean(document.querySelector("[data-autoassign]"))'),'auto-assign control exists');
+ const autoState=await evaluate('(()=>{const g=window.midnightsManner.snapshot();const idle=g.world.troops.filter(t=>t.hp>0&&!t.workplace&&!t.order&&!t.expedition&&!t.emergency);const btn=document.querySelector("[data-autoassign]");return {enabled:!!(btn&&!btn.disabled),idle:idle.length};})()');
+ assert.ok(autoState.enabled||autoState.idle===0,'idle hands are offered posting or already self-filled');
+ if(autoState.enabled){await fire('[data-autoassign]');await waitFor('Boolean(document.querySelector(".idle-bar"))||document.querySelector("#status").textContent.length>0');}
  if(await evaluate('(()=>{const e=document.querySelector("#close-panel");return !!(e&&!e.disabled&&e.getClientRects().length);})()'))await fire('#close-panel');
  // Manage a workplace from its map selection, then hire directly into it.
  // The starting warrior stands in front of the crop bed: tap its upper half.
