@@ -2,7 +2,8 @@
 // Phase 1 froze construction-time baked colors. Phase 2 moved shading into
 // paint() and drove it from the sky clock. Phase 3 swept the key light
 // (sun/moon arcs) and let weather touch the meshes. Phase 4 adds per-face
-// ground-contact occlusion and the phase vignette. The guarantees now are:
+// ground-contact occlusion and the phase vignette; Phase 7 deliberately
+// reshapes wall ends and adds live defense states. The guarantees now are:
 //  - raw digests pin geometry and albedo, independent of light,
 //  - the frozen-light test proves the shading formula still reproduces the
 //    legacy formula byte-for-byte at flat AO (the Phase 1 digests' exact
@@ -55,7 +56,10 @@ const CASES = [
   ['hall-2', 'hall', 2, 255, 'b3c8e3eb68ee98d7', '6ede7136f8c2dd9e', '60ed48118a1b2ca4', '2f3f9790b7e86fd6'],
   ['hall-3', 'hall', 3, 263, '2aa94608b1269dee', 'adb160dbfe070e56', 'd20b428d3edad62d', '4c51e84b8b1835ba'],
   ['cottage-3', 'cottage', 3, 249, '20b192e637b329e1', '4946506e17b8730c', 'f0e9c18a9ec07de4', '4d25d86431210d5e'],
-  ['wall-3', 'wall', 3, 36, '7fcf762d1357358b', 'eab79823456bed6a', '60aa62a1fab1708a', '0f1fbaeeba8a235a'],
+  ['wall-3', 'wall', 3, 50, '66f49e5bb1ec257b', '0febfbad242f8c3c', 'cb5be678bcbe22ce', '5eb6da8274196240'],
+  ['gate-1', 'gate', 1, 62, '203bcfbe2c8ee633', '3e29f116f0466218', '0fdaf47b83804678', 'b977ef3e2afc2ccc'],
+  ['trap-1', 'trap', 1, 51, 'bdd62e2597b787f6', 'c520a25808aa9642', '353c6f1ac46c7783', '18c68f7d3ebb4324'],
+  ['fire-trap-1', 'fire-trap', 1, 54, 'bbe0759e8d33440e', 'f3051ca98323b89c', '66484937567b945d', '4d51194b3be300ca'],
   ['tower-3', 'tower', 3, 54, '58af5e84fee769b5', 'f8ed97103fac8643', '09f21bbcdf549fd9', '594d61a0d4a75d77'],
   ['sawmill-2', 'sawmill', 2, 132, 'ba8c21aace31c17a', 'e998dd16132d397e', '83030c9914c6f69c', '53b04042598c7487'],
   ['mill-2', 'mill', 2, 236, '92705efbc770ca5f', 'f6ad68c40637b2a9', 'c87208a185b44010', 'c9d4e518d0aea9d6'],

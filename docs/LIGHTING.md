@@ -24,8 +24,9 @@ then the fog veil: `painted = mix(painted, fogColor, fog × depth01)`.
   phase's directional light: `key.dir` (unnormalized allowed, `norm` divides
   the dot) or, when present, the phase's `key.arc` — see below.
 - `sky`: fraction of `max(0, N·z)` — the old upward fill.
-- `emissive`: per-face flag (windows, forge/watchfire flames) × the phase's
-  `emissive` boost. Keeps small warm faces readable at midnight.
+- `emissive`: per-face flag (windows, forge/watchfire flames and armed fire
+  traps) × the phase's `emissive` boost. Keeps small warm faces readable at
+  midnight.
 - `ao`: per-face ground-contact occlusion, fixed at construction —
   `0.8 + 0.2 × clamp(average vertex height / 0.7, 0, 1)`. Tall faces split
   into a 3×3 grid, so their feet shade darker than their crowns. Roofs and
@@ -80,8 +81,9 @@ direction beat the sweep); a bad override falls back to the base static dir.
   (exported, pure). `MeshScene` stores raw albedo, normal, emissive flag and
   face AO; `paint()` shades once per face per light bucket (`f.paintedKey`),
   scanning the depth range only when a fog veil is active. Windows,
-  forge/smeltery flames and watchfires are emissive. `drawVillage3D` accepts
-  the frame's resolved sky so the renderer resolves it once.
+  forge/smeltery flames, watchfires and armed fire traps are emissive.
+  `drawVillage3D` accepts the frame's resolved sky so the renderer resolves it
+  once.
 - `src/renderer.js` — resolves the sky once per frame and feeds shadows, the
   vignette, the overlay, the glows and the mesh shading. Fire sources
   (watchfire/forge/smeltery) draw a larger flickering halo; other finished

@@ -53,6 +53,30 @@ export class MeshScene {
   c.globalAlpha=f.alpha;c.fillStyle=f.painted;c.beginPath();f.points.forEach((p,i)=>i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y));c.closePath();c.fill();c.strokeStyle=f.painted;c.lineWidth=.45;c.stroke();}c.globalAlpha=1;this.r.sceneFaces=this.faces;}
 }
 const stone='#b4beb2',timber='#b38a59',gold='#e5bd66';
+const WALL_CAP='#c5a06a',GATE_STAGES=4,GATE_MOVE_MS=240;
+const WALL_DIRECTIONS=[[0,-1],[-1,0],[1,0],[0,1]];
+function wallEnds(neighbors){
+ let x=false,y=false;for(const [dx,dy]of neighbors){if(dx)x=true;if(dy)y=true;}
+ if(!x&&!y)return [[-1,0],[1,0]];
+ return WALL_DIRECTIONS.filter(([dx,dy])=>(dx?x:y)&&!neighbors.some(([nx,ny])=>nx===dx&&ny===dy));
+}
+function gateAxis(neighbors){let x=0,y=0;for(const [dx,dy]of neighbors){if(dx)x++;if(dy)y++;}return x>=y?'x':'y';}
+function gateLiftStage(r,b,world,time){
+ let threatened=false;if(b.hp>0&&!(b.remaining>0))for(const e of world.enemies||[])if(e.hp>0&&Math.hypot(e.x-b.x-.5,e.y-b.y-.5)<=1.4){threatened=true;break;}
+ const target=threatened?0:GATE_STAGES;
+ if(b.id==null)return target;
+ const now=Number.isFinite(time)?time:0;
+ let motions=r._gateMotion,motion=motions?.get(b.id);
+ if(r.calm){if(motion){motion.stage=motion.from=motion.to=target;motion.started=now;}return target;}
+ if(!motions)motions=r._gateMotion=new Map();
+ motion=motions.get(b.id);
+ if(!motion){motion={stage:target,from:target,to:target,started:now};motions.set(b.id,motion);}
+ else if(motion.to!==target){motion.from=motion.stage;motion.to=target;motion.started=now;}
+ const progress=Math.max(0,Math.min(1,(now-motion.started)/GATE_MOVE_MS));
+ motion.stage=Math.round(motion.from+(motion.to-motion.from)*progress);
+ return motion.stage;
+}
+function trapArmed(b){return b.hp>0&&!(b.remaining>0)&&!(Number.isFinite(+b.cooldown)&&+b.cooldown>0);}
 function fence(s,x,y,w,d,color=timber){for(let i=0;i<=w;i+=.45){s.box(x+i,y,.05,.09,.09,.45,color);s.box(x+i,y+d-.09,.05,.09,.09,.45,color);}for(let j=.4;j<d;j+=.45){s.box(x,y+j,.05,.09,.09,.45,color);s.box(x+w-.09,y+j,.05,.09,.09,.45,color);}s.box(x,y,.23,w,.055,.07,color);s.box(x,y+d-.06,.23,w,.055,.07,color);s.box(x,y,.23,.055,d,.07,color);s.box(x+w-.06,y,.23,.055,d,.07,color);}
 function pine(s,x,y,height=1.7,cold=false){s.box(x-.045,y-.045,0,.09,.09,height*.65,'#73543c');for(let i=0;i<3;i++)s.pyramid(x,y,height*(.23+i*.21),height*(.31-i*.055),height*.53,cold?['#598c83','#80b8ae','#b6ded0'][i]:['#315d43','#477953','#699358'][i],6);}
 function tower(s,x,y,size,h,color=stone){s.box(x,y,.12,size,size,h,color);s.box(x-.08,y-.08,h+.1,size+.16,size+.16,.16,color);for(const [dx,dy]of[[0,0],[size-.16,0],[0,size-.16],[size-.16,size-.16]])s.box(x+dx-.025,y+dy-.025,h+.26,.21,.21,.23,color);s.box(x+size*.38,y+size+.006,h*.48,size*.2,.012,.27,'#324a41');s.box(x+size+.006,y+size*.38,h*.48,.012,size*.2,.27,'#324a41');}
@@ -169,23 +193,43 @@ function workplaceDetails(s,b,n){
   for(const dx of [.33,.46,.58])s.pyramid(x+dx,front+.07,.28,.07,.12,'#90a369');
  }
 }
-function buildingShape(s,b,spec,world){
+function buildingShape(s,b,spec,world,time){
  const x=b.x,y=b.y,n=spec.size,l=b.level,t=b.type;s.owner={kind:'building',id:b.id};s.alpha=b.hp<=0?.35:b.remaining>0?.6:1;
  s.box(x+.1,y+.1,0,n-.2,n-.2,.12,l>1?stone:'#9b8864');
  // Gatehouse: twin posts and a high lintel with the middle left open —
- // the hole reads as passage, the posts read as wall. Timber gates grow
- // stone posts, then gold-capped battlements, so upgrades loom larger.
- if(t==='gate'){const h=.55+l*.22,post=l===1?timber:stone;for(const [dx,dy]of wallNeighbors(b,world))s.box(x+.4+Math.min(0,dx*.5),y+.4+Math.min(0,dy*.5),.1,.2+Math.abs(dx)*.5,.2+Math.abs(dy)*.5,h-.15,post);
-  for(const px of [.16,.72]){s.box(x+px,y+.16,.1,.12,.12,h,post);s.box(x+px-.02,y+.14,h+.12,.16,.16,.14,post);}
-  s.box(x+.14,y+.14,h,.72,.72,.16,l>=3?gold:post);
-  for(const px of [.2,.42,.64])s.box(x+px,y+.2,h+.16,.12,.12,.14,l>=3?gold:post);
-  if(l>=2)s.box(x+.44,y+.42,h*.3,.12,.12,.3,'#324a41');
-  if(l>=3){s.box(x+.47,y+.2,h+.3,.06,.06,.5,timber);s.box(x+.53,y+.2,h+.62,.2,.02,.12,'#b76053');}
+ // the hole reads as passage. Its portcullis rises at peace and lowers when
+ // raiders press close; four cached stages avoid rebuilding it every frame.
+ if(t==='gate'){const h=.55+l*.22,post=l===1?timber:stone,neighbors=wallNeighbors(b,world),axis=gateAxis(neighbors),lift=gateLiftStage(s.r,b,world,time)/GATE_STAGES;
+  for(const [dx,dy]of neighbors){if(axis==='x'&&dx)s.box(x+(dx<0?-.1:.67),y+.4,.1,.43,.2,h-.15,post);else if(axis==='y'&&dy)s.box(x+.4,y+(dy<0?-.1:.67),.1,.2,.43,h-.15,post);}
+  const doorZ=.12+lift*(h+.1),door=l===1?'#785336':'#45525a';
+  if(axis==='x'){
+   s.box(x+.15,y+.36,.1,.18,.28,h+.18,post);s.box(x+.67,y+.36,.1,.18,.28,h+.18,post);
+   s.box(x+.15,y+.36,h+.18,.7,.28,.16,l>=3?gold:post);s.box(x+.14,y+.44,.1,.72,.12,.07,post);
+   for(const px of [.34,.42,.5,.58])s.box(x+px,y+.44,doorZ,.035,.12,.55,door);
+   for(const z of [.09,.45])s.box(x+.32,y+.44,doorZ+z,.4,.12,.055,post);
+   if(l>=2)s.box(x+.435,y+.38,h+.22,.13,.22,.07,'#324a41');
+   if(l>=3){s.box(x+.74,y+.43,h+.36,.05,.05,.42,timber);s.box(x+.79,y+.43,h+.69,.2,.02,.12,'#b76053');}
+  }else{
+   s.box(x+.36,y+.15,.1,.28,.18,h+.18,post);s.box(x+.36,y+.67,.1,.28,.18,h+.18,post);
+   s.box(x+.36,y+.15,h+.18,.28,.7,.16,l>=3?gold:post);s.box(x+.44,y+.14,.1,.12,.72,.07,post);
+   for(const py of [.34,.42,.5,.58])s.box(x+.44,y+py,doorZ,.12,.035,.55,door);
+   for(const z of [.09,.45])s.box(x+.44,y+.32,doorZ+z,.12,.4,.055,post);
+   if(l>=2)s.box(x+.38,y+.435,h+.22,.22,.13,.07,'#324a41');
+   if(l>=3){s.box(x+.43,y+.74,h+.36,.05,.05,.42,timber);s.box(x+.43,y+.79,h+.69,.02,.2,.12,'#b76053');}
+  }
   return;}
- if(isWall(b)){const ramp=t==='rampart',h=.38+l*.17+(t==='stonewall'?.15:0)+(ramp?.12:0),color=ramp?'#8a6f4d':l>1||t==='stonewall'?stone:timber;for(const [dx,dy]of wallNeighbors(b,world))s.box(x+.4+Math.min(0,dx*.5),y+.4+Math.min(0,dy*.5),.1,.2+Math.abs(dx)*.5,.2+Math.abs(dy)*.5,h-.13,color);s.box(x+.28,y+.28,.1,.44,.44,h,color);
+ if(isWall(b)){const ramp=t==='rampart',h=.38+l*.17+(t==='stonewall'?.15:0)+(ramp?.12:0),color=ramp?'#8a6f4d':l>1||t==='stonewall'?stone:timber,neighbors=wallNeighbors(b,world);for(const [dx,dy]of neighbors.filter(([a,c])=>a+c<0))s.box(x+.4+Math.min(0,dx*.5),y+.4+Math.min(0,dy*.5),.1,.2+Math.abs(dx)*.5,.2+Math.abs(dy)*.5,h-.13,color);s.box(x+.28,y+.28,.1,.44,.44,h,color);
   if(ramp){s.box(x+.2,y+.2,.1,.6,.6,.1,timber);s.box(x+.2,y+.2,h-.12,.6,.07,.07,'#6b543a');}
-  if(l===1&&t==='wall')s.pyramid(x+.5,y+.5,h+.1,.32,.2,color);else for(const [a,c]of[[.25,.25],[.6,.25],[.25,.6],[.6,.6]])s.box(x+a,y+c,h+.1,.16,.16,.18,l>=3||ramp&&l>=2?gold:color);return;}
- if(t.includes('trap')){s.box(x+.18,y+.18,.12,.64,.64,.08,'#665445');for(let i=0;i<3;i++)for(let j=0;j<3;j++)s.pyramid(x+.28+i*.21,y+.28+j*.21,.2,.09,.3,t==='fire-trap'?'#eb9a4f':'#c0cdcd');return;}
+   if(l===1&&t==='wall')s.pyramid(x+.5,y+.5,h+.1,.32,.2,color);else for(const [a,c]of[[.25,.25],[.6,.25],[.25,.6],[.6,.6]])s.box(x+a,y+c,h+.1,.16,.16,.18,l>=3||ramp&&l>=2?gold:color);
+  for(const [dx,dy]of neighbors.filter(([a,c])=>a+c>=0))s.box(x+.4+Math.min(0,dx*.5),y+.4+Math.min(0,dy*.5),.1,.2+Math.abs(dx)*.5,.2+Math.abs(dy)*.5,h-.13,color);
+  const cap=ramp?'#b89c70':l>1||t==='stonewall'?'#d3d9d0':WALL_CAP;
+  for(const [dx,dy]of wallEnds(neighbors)){const alongX=!!dx,px=dx<0?.15:dx>0?.65:.37,py=dy<0?.15:dy>0?.65:.37,w=alongX?.2:.26,d=alongX?.26:.2;s.box(x+px,y+py,.1,w,d,h+.12,cap);}
+  return;}
+  if(t.includes('trap')){const armed=trapArmed(b),fire=t==='fire-trap';s.box(x+.18,y+.18,.12,.64,.64,.08,'#665445');s.box(x+.25,y+.25,.2,.5,.5,.035,armed?(fire?'#815338':'#75664c'):'#4d4840');
+   if(fire&&armed)s.emissive=.7;
+   for(let i=0;i<3;i++)for(let j=0;j<3;j++)s.pyramid(x+.28+i*.21,y+.28+j*.21,armed?.2:.16,armed?.09:.055,armed?.3:.055,armed?(fire?'#eb9a4f':'#c0cdcd'):(fire?'#754330':'#665d52'));
+   if(fire&&armed)s.pyramid(x+.5,y+.5,.21,.11,.2,'#f2ca6d',5);
+   s.emissive=0;return;}
  if(['farm','pasture'].includes(t)){s.box(x+.2,y+.2,.12,n-.4,n-.4,.05,t==='farm'?'#72553b':'#8da964');if(t==='farm'){for(let i=.32;i<n-.2;i+=.28)for(let j=.32;j<n-.2;j+=.32){s.box(x+i,y+j,.17,.045,.045,.18+l*.03,'#799658');s.pyramid(x+i,y+j,.3,.085,.16,'#e1c776');}}else{for(const [a,c]of[[.6,.7],[1.3,1.1]]){s.box(x+a,y+c,.3,.36,.22,.2,'#eee5d0');s.box(x+a+.3,y+c,.28,.12,.14,.18,'#76674f');for(const k of [0,.26])s.box(x+a+k,y+c,.12,.05,.18,.2,'#5e5543');}}if(l>1||t==='pasture')fence(s,x+.13,y+.13,n-.26,n-.26);return;}
  if(['pond','deephole'].includes(t)){s.box(x+.18,y+.18,.13,n-.36,n-.36,.02,'#4e9aaa');for(let i=.22;i<n-.1;i+=.32)s.box(x+i,y+.14,.13,.22,.12,.1,stone);s.box(x+.2,y+n-.45,.16,n-.4,.23,.1,timber);s.box(x+.25,y+n-.45,.16,.08,.08,.65,timber);s.box(x+n-.35,y+n-.45,.16,.08,.08,.65,timber);return;}
  if(['grove','frostgrove'].includes(t)){for(const [a,c]of[[.5,.5],[1.35,.65],[.9,1.4]])pine(s,x+a,y+c,1.2+l*.15,t==='frostgrove');fence(s,x+.15,y+.15,n-.3,n-.3);return;}
@@ -237,8 +281,8 @@ function buildingShape(s,b,spec,world){
  if(t==='hall'&&l>=2)tower(s,x+n-.7,y+.25,.48,1.35,stone);
  if(['mason_yard','shieldwall-yard'].includes(t)){for(let i=0;i<3;i++)s.box(x+.25+i*.42,y+n-.15,.13,.28,.16,.3,stone);}
 }
-export function buildingModel(s,b,spec,world){
- buildingShape(s,b,spec,world);
+export function buildingModel(s,b,spec,world,time=0){
+ buildingShape(s,b,spec,world,time);
  if(b.id==null)return; // placement previews already have a clear ghost treatment
  const x=b.x,y=b.y,n=spec.size;
  if(b.hp<=0){
@@ -303,18 +347,18 @@ export function drawVillage3D(r,world,time,light){const s=new MeshScene(r),W=r.d
  s.light=light||skyLightAt(world.elapsed,r.data,{calm:r.calm});
  // Large settlements keep outfit/weapon silhouettes but omit tiny face/trim meshes.
  s.characterDetail=world.troops.length+world.enemies.length<=64;
- // Project static meshes only when the camera, footprint, building state or
- // production stage changes. Reserve moves every tick; the key quantizes it
- // to the four pile steps plus the ready flag, so the cache survives fills.
- const key=JSON.stringify([r.width,r.height,r.cx,r.cy,r.cam,W,H,world.buildings.map(b=>{const spec=r.data.buildings[b.type];return [b.id,b.type,b.x,b.y,b.level,b.hp<=0,b.remaining>0,productionStage(b,spec),spec?.production&&reserveReady(b,spec)?1:0];})]);
+  // Project static meshes only when the camera, footprint, building state or
+  // visible defense/production stage changes; moving gates quantize to four
+  // steps and traps key only their armed state, never every cooldown tick.
+  const key=JSON.stringify([r.width,r.height,r.cx,r.cy,r.cam,W,H,world.buildings.map(b=>{const spec=r.data.buildings[b.type];return [b.id,b.type,b.x,b.y,b.level,b.hp<=0,b.remaining>0,productionStage(b,spec),spec?.production&&reserveReady(b,spec)?1:0,b.type==='gate'?gateLiftStage(r,b,world,time):0,b.type.includes('trap')?(trapArmed(b)?1:0):0];})]);
  if(r._meshStatic?.key===key)s.faces=r._meshStatic.faces.slice();else{
  // Border trees share depth sorting with the village, including reverse views.
  for(let i=-1;i<W+2;i++){s.owner=null;if(i%2)pine(s,i,-1.5,1.4+(i%3)*.22);if(i%3===0)pine(s,-1.5,((i%H)+H)%H,1.5);if(i%3===1)pine(s,W+1,i%H,1.6);if(i%4===0)pine(s,i,H+3,1.5);}
- for(const b of world.buildings)buildingModel(s,b,r.data.buildings[b.type],world);
+  for(const b of world.buildings)buildingModel(s,b,r.data.buildings[b.type],world,time);
  r._meshStatic={key,faces:s.faces.slice()};
  }
 
  for(const u of world.troops)characterModel(s,u,r.data,time);for(const e of world.enemies)characterModel(s,e,r.data,time,true);
- if(r.placing&&r.hover){const source=world.buildings.find(b=>b.id===r.moving),ghosts=placementCells(r).map(p=>({type:r.placing,...p,level:source?.level||1,hp:1,remaining:1,id:null})),preview={buildings:[...world.buildings.filter(b=>b.id!==r.moving),...ghosts]};for(const b of ghosts)buildingModel(s,b,r.data.buildings[b.type],preview);}
+  if(r.placing&&r.hover){const source=world.buildings.find(b=>b.id===r.moving),ghosts=placementCells(r).map(p=>({type:r.placing,...p,level:source?.level||1,hp:1,remaining:1,id:null})),preview={buildings:[...world.buildings.filter(b=>b.id!==r.moving),...ghosts]};for(const b of ghosts)buildingModel(s,b,r.data.buildings[b.type],preview,time);}
  s.paint();
 }

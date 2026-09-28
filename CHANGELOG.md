@@ -7,6 +7,14 @@
 - Prioritized building cards above village statistics on small screens.
 - No gameplay, economy, progression or save changes.
 
+## Presentation pass — Phase 7: Hold the line (2026-09-28)
+
+- Wall silhouettes now cap only exposed run ends, with caps meeting the wall body so connected straights, corners and junctions read as one defense line. Gates align with their connected wall axis; connector arms stop at the frame, leaving the raised passage clear. The portcullis raises/lowers across four cached stages as raiders approach, and `prefers-reduced-motion` snaps and synchronizes its state.
+- Spike and fire traps show their existing cooldown as a sprung, retracted state, then rearm at zero. The mesh cache keys only the armed/sprung edge, not every cooldown tick.
+- All state is derived in the renderer from existing enemies and building cooldowns. No simulation rules, save fields or save version changed. Geometry and day/night digests in `tests/lighting-baseline.test.js` were deliberately updated and now pin wall ends, gates, and both trap meshes.
+- Review: `node scripts/defenses-preview.mjs` writes `artifacts/defenses-preview.png` (optional external `@napi-rs/canvas`); reviewed at game scale: straight ends, turns and junctions remain distinct, gate travel is visible, and raised/retracted trap teeth separate both cooldown states.
+- Tests: `tests/defense-viz.test.js` adds 8 checks for wall topology/contact, connected gate clearance/travel/reduced motion, trap state, cache boundaries, and save-state purity. `npm test` count: 474 → 482.
+
 ## Presentation pass — Phase 6: The haul on the hill (2026-09-28)
 
 - Producers show their on-site haul on the building itself: a stockpile of the matching resource (timber for wood/lumber/frostwood, grain sacks for food, ore for gold, plate bars for plate) grows in four steps as the tap reserve fills toward `harvest.capacity`, and a gold pennant flies once the haul crosses `reserveNotifyAt`. The 2D bubble and badge remain the tap affordance; the mesh is the at-a-glance state.
