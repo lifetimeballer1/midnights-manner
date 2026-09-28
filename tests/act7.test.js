@@ -26,7 +26,7 @@ function richState(d) {
 // Act VII Phase 11 — The War Band Grows Up: the Oathsworn, second C-kit,
 // first proximity aura, heaviest recruit yet.
 test('ph11: the Oathsworn is the second C-kit at the heaviest recruit yet', () => {
-  assert.equal(Object.keys(data.troops).length, 33);
+  assert.equal(Object.keys(data.troops).length, 35);
   const o = data.troops.oathsworn;
   assert.equal(o.role, 'combat');
   assert.deepEqual([o.base.hp, o.base.damage], [260, 18]);
@@ -783,8 +783,8 @@ test('ph15: twin banners — both roads open, the mirror recruitable either way'
 });
 
 // Act VII cross-cutting: totals, chains, conditionals, saves.
-test('viii: the legend counts — 33 people, 15 chapters, 22 steps, 2640 XP', () => {
-  assert.equal(Object.keys(data.troops).length, 33);
+test('viii: the legend counts — 35 people, 15 chapters, 22 steps, 2640 XP', () => {
+  assert.equal(Object.keys(data.troops).length, 35);
   assert.equal(data.missions.length, 15);
   assert.equal(data.quests.length, 22);
   assert.equal(data.quests.reduce((n, x) => n + x.xp, 0), 2640);

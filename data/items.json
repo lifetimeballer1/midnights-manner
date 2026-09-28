@@ -1366,7 +1366,7 @@
       "gather": 1.1
     },
     "animation": "slash",
-    "sprite": "item-sword.png",
+    "sprite": "item-ash-blade.png",
     "rarity": "common",
     "craftOnly": true,
     "craft": {
@@ -1392,7 +1392,7 @@
       "carry": 4
     },
     "animation": "slash",
-    "sprite": "item-sword.png",
+    "sprite": "item-steel-blade.png",
     "rarity": "uncommon",
     "craftOnly": true,
     "craft": {
@@ -1418,7 +1418,7 @@
       "carry": 6
     },
     "animation": "slash",
-    "sprite": "item-starforged-oathblade.png",
+    "sprite": "item-runed-blade.png",
     "rarity": "rare",
     "craftOnly": true,
     "craft": {
@@ -1445,7 +1445,7 @@
       "carry": 8
     },
     "animation": "slash",
-    "sprite": "item-starforged-oathblade.png",
+    "sprite": "item-dawn-blade.png",
     "rarity": "epic",
     "craftOnly": true,
     "craft": {
@@ -1472,7 +1472,7 @@
       "carry": 12
     },
     "animation": "slash",
-    "sprite": "item-starforged-oathblade.png",
+    "sprite": "item-first-dawn-blade.png",
     "rarity": "legendary",
     "craftOnly": true,
     "craft": {
@@ -1516,7 +1516,7 @@
       "armor": 0.12,
       "carry": 2
     },
-    "sprite": "item-padded-coat.png",
+    "sprite": "item-levy-gambeson.png",
     "rarity": "common",
     "craftOnly": true,
     "craft": {
@@ -1545,7 +1545,7 @@
       "carry": 4,
       "gather": 1.1
     },
-    "sprite": "item-padded-coat.png",
+    "sprite": "item-steel-chain.png",
     "rarity": "uncommon",
     "craftOnly": true,
     "craft": {
@@ -1575,7 +1575,7 @@
       "carry": 6,
       "gather": 1.15
     },
-    "sprite": "item-knights-plate.png",
+    "sprite": "item-runed-ward.png",
     "rarity": "rare",
     "craftOnly": true,
     "craft": {
@@ -1606,7 +1606,7 @@
       "carry": 8,
       "gather": 1.2
     },
-    "sprite": "item-knights-plate.png",
+    "sprite": "item-dawn-ward.png",
     "rarity": "epic",
     "craftOnly": true,
     "craft": {
@@ -1637,7 +1637,7 @@
       "carry": 12,
       "gather": 1.25
     },
-    "sprite": "item-ember-ward.png",
+    "sprite": "item-aegis-of-dawn.png",
     "rarity": "legendary",
     "craftOnly": true,
     "craft": {

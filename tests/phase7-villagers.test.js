@@ -230,7 +230,7 @@ test('phase7: living marksmen sharpen towers; craftsmen do not', () => {
   assert.ok(dealt >= tier.damage * 1.19, `tower hits with the marksman bonus (dealt ${dealt})`);
 });
 
-test('phase7: old saves migrate to v10 with identity intact and progress untouched', () => {
+test('phase7: old saves migrate with identity intact and progress untouched', () => {
   const g = setup();
   g.recruit('farmer');
   const raw = JSON.parse(exportSave(g.state));
@@ -246,7 +246,9 @@ test('phase7: old saves migrate to v10 with identity intact and progress untouch
     assert.equal(t.jobLevel, 1);
     assert.equal(t.manualPost, false);
   }
-  assert.deepEqual(out.state.world.resources, raw.world.resources, 'stores untouched');
+  // Phase-8 v11 adds chain stores with quiet defaults on top of the
+  // v10 identity backfill — old food/gold/wood still read untouched.
+  assert.deepEqual(out.state.world.resources, {...raw.world.resources, lumber: 0, flour: 0, bread: 0}, 'stores untouched');
   assert.equal(out.state.world.buildings.length, raw.world.buildings.length, 'roofs untouched');
 });
 
