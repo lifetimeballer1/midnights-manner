@@ -1,3 +1,11 @@
+## Presentation pass — Phase 2: Midnight lighting core (2026-09-28)
+
+- Mesh shading now follows the sky clock. `skyLightAt()` (`src/systems/daynight.js`) resolves key light, ambient, sky fill and an emissive boost per phase from the new `SKIES` table, crossfading out of the previous phase over `lightBlend` (default 4% of a day); `calm` players get a plain step. Overrides live at `world.daynight.lighting.<phase>` and clamp exactly like the overlay always did.
+- `scene3d.js` stores raw albedo and normals; `shade()` is exported and applied in `paint()`, once per face per light bucket (192/day, cached on the face). Windows, forge/smeltery flames and watchfires are emissive so the village reads at midnight. No point lights yet (Phase 3); terrain tinting and AO are Phase 4.
+- Day is byte-identical to the old baked look: `tests/lighting-baseline.test.js` (5 checks) compares paint-time day output against a frozen copy of the legacy formula for all eight canonical meshes, pins raw geometry digests plus night/dawn painted digests, and keeps the static-cache invariant. New `tests/lighting.test.js` (4 checks) covers resolution, purity/buckets, crossfade/calm and overrides/clamps. Spec: `docs/LIGHTING.md`.
+- The renderer's sky overlay reads the same resolved object (`skyLightAt().overlay`), so screen tint and mesh light come from one clock read per frame; the static mesh cache still ignores the clock.
+- Reviewed captures: day matches the pre-Phase-2 baseline, dusk warms, midnight keeps lit windows. `npm test` 440 → 446; README gains an "Add a lighting phase" data guide. No save fields, no save-version change.
+
 ## Presentation pass — Phase 1: Baseline harness (2026-09-28)
 
 - Local Windows verification is real: `npm test` 440/440 (rebase-merged with the Phase 12 endgame suite), `npm run build` green, `npm run test:browser` green on Chromium Edge. Fixed `scripts/browser-smoke.mjs`'s static-server path guard (`resolve('dist')` plus a hardcoded `/` never matches Windows backslash paths, so every file 404'd off-CI). No game behavior change.

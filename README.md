@@ -77,7 +77,7 @@ These are design references only. No screenshots or commercial game assets are b
 
 ### Verification
 
-`npm test` includes 440 simulation/rendering/input/update regression checks. `npm run test:browser` requires a locally installed Chromium (`CHROME_BIN` may point at Chrome or Edge). CI runs real pointer/touch input checks for placement preview/confirm, menus, equipment/training, missions, raids, save/reload, one-finger pan, pinch zoom, and no document overflow at portrait/landscape sizes. Screenshots are attached to the Actions run. A browser test failure blocks deployment.
+`npm test` includes 446 simulation/rendering/input/update regression checks. `npm run test:browser` requires a locally installed Chromium (`CHROME_BIN` may point at Chrome or Edge). CI runs real pointer/touch input checks for placement preview/confirm, menus, equipment/training, missions, raids, save/reload, one-finger pan, pinch zoom, and no document overflow at portrait/landscape sizes. Screenshots are attached to the Actions run. A browser test failure blocks deployment.
 
 For visual work, `npm run build && npm run capture` writes deterministic look snapshots (dawn/day/dusk/night desktop plus a phone night view — calm motion, clear skies, pinned camera) to `artifacts/look-*.png`. `tests/lighting-baseline.test.js` freezes the current mesh shading and the static-cache invariant until a phase updates them deliberately. The `?perf` badge and `window.midnightsManner.frameReport()` report frame times plus painted and cached face counts.
 
@@ -137,6 +137,10 @@ Append to `data/quests.json`: `id`, `name`, `text`, `task` (`build`/`recruit`/`a
 ### Add a mission
 
 Append to `data/missions.json` with a unique `id`, `name`, `chapter`, `description`, `timeLimit`, `troopLimit`, `startingResources`, `objectives` (`resource`, `amount`), `map.buildings`, `map.troops`, `raids` (`at`, `count`), `rewards`, `unlocks`, and `requires` (prior mission IDs). Optional flavor: `act` (`III` defense, `IV` expansion), `beat` (one-line design note), `ceremony` (`warning` on launch, `victory`/`defeat` on return). All optional; old entries load unchanged. Multiple missions can share the same prerequisite for branching. Objectives track production/deliveries since mission start, excluding starting stock and combat loot. All scheduled waves must spawn and be defeated before victory. All resource objectives must be met before the timer expires, and the manor must survive. Rewards are applied to the saved home world only when returning from a first victory.
+
+### Add a lighting phase
+
+Mesh shading follows the sky clock through `skyLightAt()` (`src/systems/daynight.js`). Each phase (`dawn`, `day`, `dusk`, `night`) has a key light (`key.dir`, `key.color`, `key.intensity`), ambient (`ambient.color`, `ambient.intensity`), a `sky` fill for upward faces, and an `emissive` boost for windows and flames. Override any field under `world.daynight.lighting.<phase>`; missing fields keep their defaults and bad values clamp and fall back, so a broken table can never black the screen. `lightBlend` (fraction of a day, default 0.04) sets the crossfade out of the previous phase; `calm` players get a plain step per phase. Day reproduces the legacy fixed-light formula byte-for-byte (`tests/lighting-baseline.test.js` pins it); `docs/LIGHTING.md` has the full model and test map.
 
 Use `data/world.json` to change grid size, home resources/layout/roster and campaign-gated IDs. This prototype renderer is composed for the default 20×16 map; larger grids also need camera/projection work. Existing browser saves retain their current world; change the save version/migration policy deliberately when changing incompatible schemas.
 

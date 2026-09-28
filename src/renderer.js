@@ -6,7 +6,7 @@ import {center,canPlace,stats,housing,assignedWorkers} from './model.js';
 import {sfx} from './systems/audio.js';
 import {isWall} from './building-art.js';
 import {drawVillage3D,pointInPolygon} from './scene3d.js';
-import {phaseAt,weatherAt,lightingFor} from './systems/daynight.js';
+import {weatherAt,skyLightAt} from './systems/daynight.js';
 export class Renderer {
  constructor(canvas,data,images){this.canvas=canvas;this.ctx=canvas.getContext('2d');this.data=data;this.images=images;this.grid=false;this.hover=null;this.selection=null;this.placing=null;this.moving=null;this.tw=43;this.th=22;this.ox=510;this.oy=97;this.shake=0;this.cam={x:10,y:8,zoom:1,yaw:DEFAULT_YAW,pitch:DEFAULT_PITCH};this.orbitMode=false;this.cx=550;this.cy=370;this.width=1100;this.height=740;this.dpr=1;this.hitAreas=[];this.staticLayer=null;this.staticKey='';this.frameTimes=[];this._pendingStaticKey=null;this._noCache=false;this._lastFrame=null;try{this.calm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch{this.calm=false;}this.seen=new Map();this.flash=new Map();this.deadAt=new Map();this.tints=new Map();}
  base(x,y){return {x:this.ox+(x-y)*this.tw/2,y:this.oy+(x+y)*this.th/2};}
@@ -163,8 +163,8 @@ export class Renderer {
 // daylight, dusk ember, deep night blue — plus the weather veil. All drawn
 // every frame AFTER the static-layer blit, so the cached terrain stays valid
 // and per-frame cost stays flat: two fullscreen fills, lamp glows, rain.
-  {const phase=phaseAt(world.elapsed,this.data),weather=weatherAt(world.elapsed,this.data);
-   const lamp=lightingFor(phase.id,this.data);
+  {const sky=skyLightAt(world.elapsed,this.data,{calm:this.calm}),weather=weatherAt(world.elapsed,this.data);
+   const lamp=sky.overlay;
    if(lamp.color&&lamp.alpha>0){c.globalAlpha=lamp.alpha;c.fillStyle=lamp.color;c.fillRect(0,0,this.width,this.height);c.globalAlpha=1;}
    if(weather.color&&weather.alpha>0){c.globalAlpha=weather.alpha;c.fillStyle=weather.color;c.fillRect(0,0,this.width,this.height);c.globalAlpha=1;}
    // Lamp glow: every finished standing building breathes warm light after
@@ -180,7 +180,7 @@ export class Renderer {
     for(let i=0;i<36;i++){const rx=(i*97.31)%this.width,ry=((i*57.73)+time*.35)%(this.height+14)-7;
      c.moveTo(rx,ry);c.lineTo(rx-4,ry+9);}
     c.stroke();c.globalAlpha=1;}
-   this._skyPhase=phase.id;}
+   this._skyPhase=sky.phase.id;}
   if(didShake)c.restore();else this.shake=0;
   if(!this.calm)for(let i=0;i<8;i++){const p=this.project(4+i*1.8,4+(i*3)%9);c.globalAlpha=.25+Math.sin(time/1000+i)*.2;c.fillStyle='#fcf4c0';c.fillRect(p.x+Math.sin(time/1500+i)*8,p.y-25,2,2);}c.globalAlpha=1;
   // Critters keep the clock: gold butterflies by day, warm fireflies
