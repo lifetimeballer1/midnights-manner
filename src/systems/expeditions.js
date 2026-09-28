@@ -107,7 +107,7 @@ export function tickExpeditions(world, data, dt, rng = Math.random) {
     if (u.hp <= 0 || !capable(data, u)) { u.expedition = null; continue; }
     const speed = stats(u, data).speed;
     if (e.phase === 'out') {
-      if (move(world, data, u, {x: e.entryX, y: e.entryY}, speed, dt, 0.6)) {
+      if (move(world, data, u, {x: e.entryX, y: e.entryY}, speed, dt, 0.6, false, true)) {
         e.phase = 'gather';
         e.timer = e.duration;
         e.offgrid = true;
@@ -120,7 +120,7 @@ export function tickExpeditions(world, data, dt, rng = Math.random) {
         u.x = e.entryX; u.y = e.entryY;
       }
     } else if (e.phase === 'back') {
-      if (move(world, data, u, {x: e.homeX, y: e.homeY}, speed, dt, 1.2)) {
+      if (move(world, data, u, {x: e.homeX, y: e.homeY}, speed, dt, 1.2, false, true)) {
         deliver(world, data, u, rng);
       }
     } else {

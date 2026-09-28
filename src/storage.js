@@ -1,6 +1,6 @@
 const KEY='midnights-manner-v2';
 const OLD_KEY='midnights-manner-v1';
-export const VERSION = 8;
+export const VERSION = 9;
 // In-memory fallback when localStorage is missing (private mode, SSR, tests)
 // or full (quota). Saves still work for the session; persist() warns.
 const memFallback = new Map();
@@ -200,7 +200,24 @@ function migrateV7toV8(value, data) {
   value.version = 8;
   return value;
 }
-const MIGRATIONS = {1: migrateV1toV2, 2: migrateV2toV3, 3: migrateV3toV4, 4: migrateV4toV5, 5: migrateV5toV6, 6: migrateV6toV7, 7: migrateV7toV8};
+// v8 -> v9: Phase 6 defense expansion (gates, ramparts, archer/ballista
+// towers). New buildings are data-driven unlocks, so old villages need no
+// structural change — this step only normalizes live defense cooldowns
+// (a missing cooldown reads NaN and would silence towers) and otherwise
+// leaves resources, buildings, troops and progress untouched. Never wipes.
+function migrateV8toV9(value, data) {
+  if (!value || typeof value !== 'object') return null;
+  for (const key of ['world', 'home']) {
+    const w = value[key];
+    if (!w || typeof w !== 'object') continue;
+    for (const b of w.buildings || []) {
+      if (!Number.isFinite(+b.cooldown)) b.cooldown = 0;
+    }
+  }
+  value.version = 9;
+  return value;
+}
+const MIGRATIONS = {1: migrateV1toV2, 2: migrateV2toV3, 3: migrateV3toV4, 4: migrateV4toV5, 5: migrateV5toV6, 6: migrateV6toV7, 7: migrateV7toV8, 8: migrateV8toV9};
 export function migrate(value, data) {
   return migrateToLatest(value, data);
 }

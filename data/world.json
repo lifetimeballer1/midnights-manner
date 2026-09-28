@@ -104,6 +104,10 @@
     "brass-chalice",
     "pikewoman",
     "stonewall",
+    "gate",
+    "rampart",
+    "archer_tower",
+    "ballista",
     "pike",
     "kite-shield",
     "woodward",
@@ -298,7 +302,9 @@
       "name": "Stone construction",
       "text": "Replace exposed timber with stone defenses.",
       "unlocks": [
-        "stonewall"
+        "stonewall",
+        "gate",
+        "rampart"
       ],
       "requires": [],
       "points": 10,
@@ -334,7 +340,8 @@
       "text": "Prepare traps and better melee weapons.",
       "unlocks": [
         "trap",
-        "axe"
+        "axe",
+        "archer_tower"
       ],
       "requires": [],
       "points": 10,
@@ -351,7 +358,8 @@
       "text": "Hold the perimeter with signal defenses and heavy weapons.",
       "unlocks": [
         "watchfire",
-        "warhammer"
+        "warhammer",
+        "ballista"
       ],
       "requires": [
         "fieldcraft"

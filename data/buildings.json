@@ -284,6 +284,77 @@
       }
     ]
   },
+  "gate": {
+    "name": "Timber Gate",
+    "size": 1,
+    "cost": {
+      "wood": 30,
+      "gold": 15
+    },
+    "buildSeconds": 5,
+    "production": null,
+    "rate": 0,
+    "repeatPlace": true,
+    "gate": true,
+    "tiers": [
+      {
+        "sprite": "gate-1.png",
+        "hp": 420,
+        "rateMultiplier": 1,
+        "damage": 0,
+        "range": 0.75
+      },
+      {
+        "sprite": "gate-2.png",
+        "hp": 840,
+        "rateMultiplier": 2,
+        "damage": 0,
+        "range": 0.75
+      },
+      {
+        "sprite": "gate-3.png",
+        "hp": 1260,
+        "rateMultiplier": 3,
+        "damage": 0,
+        "range": 0.75
+      }
+    ]
+  },
+  "rampart": {
+    "name": "Earthen Rampart",
+    "size": 1,
+    "cost": {
+      "wood": 45,
+      "gold": 35
+    },
+    "buildSeconds": 6,
+    "production": null,
+    "rate": 0,
+    "repeatPlace": true,
+    "tiers": [
+      {
+        "sprite": "rampart-1.png",
+        "hp": 700,
+        "rateMultiplier": 1,
+        "damage": 0,
+        "range": 0.75
+      },
+      {
+        "sprite": "rampart-2.png",
+        "hp": 1400,
+        "rateMultiplier": 2,
+        "damage": 0,
+        "range": 0.75
+      },
+      {
+        "sprite": "rampart-3.png",
+        "hp": 2100,
+        "rateMultiplier": 3,
+        "damage": 0,
+        "range": 0.75
+      }
+    ]
+  },
   "tower": {
     "name": "Watchtower",
     "size": 1,
@@ -327,6 +398,69 @@
     "tierGates": {
       "4": 8
     }
+  },
+  "archer_tower": {
+    "name": "Archer Tower",
+    "size": 1,
+    "cost": {
+      "wood": 100,
+      "gold": 60
+    },
+    "buildSeconds": 5,
+    "production": null,
+    "rate": 0,
+    "tiers": [
+      {
+        "sprite": "archer_tower-1.png",
+        "hp": 280,
+        "rateMultiplier": 1,
+        "damage": 12,
+        "range": 6.2
+      },
+      {
+        "sprite": "archer_tower-2.png",
+        "hp": 560,
+        "rateMultiplier": 2,
+        "damage": 24,
+        "range": 6.6
+      },
+      {
+        "sprite": "archer_tower-3.png",
+        "hp": 840,
+        "rateMultiplier": 3,
+        "damage": 38,
+        "range": 7.0
+      }
+    ]
+  },
+  "ballista": {
+    "name": "Ballista Tower",
+    "size": 1,
+    "cost": {
+      "wood": 150,
+      "gold": 100
+    },
+    "buildSeconds": 6,
+    "production": null,
+    "rate": 0,
+    "tiers": [
+      {
+        "sprite": "ballista-1.png",
+        "hp": 380,
+        "rateMultiplier": 1,
+        "damage": 45,
+        "range": 4.2,
+        "cooldown": 2.6
+      },
+      {
+        "sprite": "ballista-2.png",
+        "hp": 760,
+        "rateMultiplier": 2,
+        "damage": 90,
+        "range": 4.5,
+        "cooldown": 2.6
+      }
+    ]
   },
   "trap": {
     "name": "Spike Trap",

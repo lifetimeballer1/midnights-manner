@@ -17,7 +17,14 @@ import {isWall} from './systems/walls.js';
 export {isWall};
 export function wallNeighbors(b,world){return [[0,-1],[-1,0],[1,0],[0,1]].filter(([dx,dy])=>world.buildings.some(n=>isWall(n)&&n.hp>0&&n.x===b.x+dx&&n.y===b.y+dy));}
 export function drawWall(r,b,world){
- const c=r.ctx,p=PALETTES[Math.min(2,b.level-1+(b.type==='stonewall'?1:0))],height=10+b.level*5+(b.type==='stonewall'?4:0);
+ const c=r.ctx,p=PALETTES[Math.min(2,b.level-1+(b.type==='stonewall'||b.type==='rampart'?1:0))],height=10+b.level*5+(b.type==='stonewall'?4:0)+(b.type==='rampart'?3:0);
+ // Gatehouse: open middle, heavy posts — passage for friends, a wall for raiders.
+ if(b.type==='gate'){c.save();c.globalAlpha=b.hp<=0?.3:b.remaining>0?.65:1;
+  box(r,b.x+.12,b.y+.12,.76,.76,3,{top:'#8d8973',left:'#645e4c',right:'#494c40',trim:'#b6ae8c'});
+  for(const [ox,oy,w,d]of[[.14,.14,.2,.2],[.66,.14,.2,.2],[.14,.66,.2,.2],[.66,.66,.2,.2]])box(r,b.x+ox,b.y+oy,w,d,height+2,p);
+  box(r,b.x+.12,b.y+.12,.76,.76,height+6,{...p,top:p.trim});
+  if(b.level>=3)box(r,b.x+.4,b.y+.4,.2,.2,height+10,{...p,top:p.trim,left:'#b88636',right:'#805b28'});
+  c.restore();return;}
  c.save();c.globalAlpha=b.hp<=0?.3:b.remaining>0?.65:1;
  box(r,b.x+.12,b.y+.12,.76,.76,3,{top:'#8d8973',left:'#645e4c',right:'#494c40',trim:'#b6ae8c'});
  const neighbors=b.hp>0?wallNeighbors(b,world):[];

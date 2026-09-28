@@ -1,6 +1,7 @@
 // Straight, connected wall runs stop at gaps; corners never sweep a whole enclosure.
 import {buildingCost} from '../model.js';
-export const isWall=b=>b?.type==='wall'||b?.type==='stonewall';
+export const isWall=b=>b?.type==='wall'||b?.type==='stonewall'||b?.type==='rampart'||b?.type==='gate';
+export const isGate=b=>b?.type==='gate';
 
 export function wallRow(world,id,axis='x') {
  const start=world.buildings.find(b=>b.id===id);
