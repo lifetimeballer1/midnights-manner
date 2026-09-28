@@ -16,6 +16,7 @@ import {tickExpeditions,startExpedition} from './systems/expeditions.js';
 import {tickCombat,spawnRaid,activateAbility,raidSides} from './systems/combat.js';
 import {startMission,tickMission,finishMission} from './systems/campaign.js';
 import {load,save} from './storage.js';
+import {ensureMultiplayer,validateUsername,randomCode,addFriend,removeFriend,giftReason,makeGift,speedupReason,makeSpeedup,applyInbox,pushActivity,publicSnapshot,stampCloud} from './multiplayer.js';
 import {dayKey,seasonFor,modifierFor,calendarEffects,performTrade,marketOpen,describeDeal} from './systems/calendar.js';
 import {phaseAt,weatherAt,clockConfig} from './systems/daynight.js';
 import {bossFor,spawnBoss,endgameSpawnOpts,renownCost,renownAvailable,paragonEligible,paragonCost,buildingMaxHp} from './systems/endgame.js';
@@ -53,7 +54,10 @@ export class Game {
    try{claimPreclaimed(w,this.data.expansion);}catch{}
   }
  }catch{}
- this.paused=false;this.message='Welcome home. Build a farm, equip your people, and prepare for the night.';this.dirty=true;this.saveTimer=0;}
+ this.paused=false;this.message='Welcome home. Build a farm, equip your people, and prepare for the night.';this.dirty=true;this.saveTimer=0;
+ // Multiplayer shelf (v12): old saves backfill quietly; any help waiting
+ // in the inbox lands on arrival — gifts in storage, hands on scaffolds.
+ try{ensureMultiplayer(this.state);applyInbox(this.state);}catch{}}
  get world(){return this.state.world;}
  notify(message){this.message=message;this.dirty=true;}
  locked(id){return this.data.world.locked.includes(id)&&!this.state.unlocks.includes(id);}
@@ -405,6 +409,22 @@ export class Game {
  // Same guards as harvest; a single summary notice instead of one per site.
  collectAll(){if(this.paused)return {};const totals={};let sites=0;for(const b of this.world.buildings){const spec=b&&this.data.buildings[b.type];if(!b||!spec?.production||b.hp<=0||b.remaining>0)continue;const amount=Math.floor(b.harvestBonus||0);if(amount<1)continue;b.harvestBonus-=amount;this.world.resources[spec.production]=(this.world.resources[spec.production]||0)+amount;this.world.gathered[spec.production]=(this.world.gathered[spec.production]||0)+amount;totals[spec.production]=(totals[spec.production]||0)+amount;sites++;const at=center(b,this.data);this.world.effects.push({x:at.x,y:at.y,tx:at.x,ty:at.y,kind:'float',text:resourceLabel(spec.production,amount),color:resourceInfo(spec.production).color,life:.9});}if(!sites){this.notify('Nothing ready to collect — production buildings store output on-site as they work.');return totals;}sfx.collect();this.persist();this.notify(`Collected ${Object.entries(totals).map(([k,v])=>`${v} ${k}`).join(', ')} from ${sites} building${sites>1?'s':''}.`);return totals;}
  persist(){const ok=save(this.state);if(!ok)this.notify('Browser storage is unavailable. Progress cannot be saved here.');return ok;}
+ // Async multiplayer (visits + helping): all local-first. Cloud sync is
+ // best-effort and never blocks play — without Supabase configured the
+ // village simply keeps its friendships on this browser.
+ mp(){return ensureMultiplayer(this.state);}
+ setUsername(name){const v=validateUsername(name);if(!v.ok){this.notify(v.error);return v;}const mp=this.mp();const first=!mp.username;mp.username=v.name;if(!mp.friendCode)mp.friendCode=randomCode();pushActivity(mp,first?`${v.name} raised their banner — welcome to the roads.`:`Now known as ${v.name}.`);this.persist();this.notify(first?`Welcome, ${v.name}. Your friend code is ${mp.friendCode} — share it, never your email.`:`Village renamed to ${v.name}.`);return {ok:true,name:v.name};}
+ addFriend(username,code){const r=addFriend(this.mp(),username,code);this.notify(r.ok?`${r.name} joined your travels.` :r.error);if(r.ok)this.persist();return r;}
+ dropFriend(username){const r=removeFriend(this.mp(),username);if(r.ok){pushActivity(this.mp(),`Parted ways with ${username}.`);this.persist();this.notify(`Parted ways with ${username}.`);}return r;}
+ sendGift(friendName,resource,amount){const mp=this.mp();const reason=giftReason(mp,this.world,friendName,resource,amount);if(reason){this.notify(reason);return {ok:false,error:reason};}const n=Math.floor(Number(amount));this.world.resources[resource]-=n;const gift=makeGift(mp,mp.username||'A neighbor',friendName,resource,n);mp.outbox.push(gift);pushActivity(mp,`Sent +${n} ${resource} to ${friendName}.`);this.persist();this.notify(`Packed +${n} ${resource} for ${friendName}. Safe travels.`);return {ok:true,gift};}
+ sendHelp(friendName,buildingId){const mp=this.mp();const reason=speedupReason(mp,this.world,friendName,buildingId);if(reason){this.notify(reason);return {ok:false,error:reason};}const help=makeSpeedup(mp,mp.username||'A neighbor',friendName,buildingId);mp.outbox.push(help);pushActivity(mp,`Lent hands to ${friendName} (−${help.seconds}s on a build).`);this.persist();this.notify(`Your crew's echo travels to ${friendName} — a build finishes sooner.`);return {ok:true,help};}
+ // Apply queued help waiting in the inbox (runs at boot and after sync).
+ // Gifts pour into storage, speedups shorten rising scaffolds.
+ collectHelp(){const landed=applyInbox(this.state);if(landed.length){this.persist();this.notify(landed.map(l=>l.text).join(' '));}return landed;}
+ visitSnapshot(){return publicSnapshot(this.state);}
+ // Best-effort cloud push: stamps + saves locally first, then tries the
+ // shelf. Failures whisper — local play is never interrupted.
+ async syncCloud(){stampCloud(this.state);this.persist();let cloud=null;try{cloud=await import('./cloud.js');}catch{return {ok:false,offline:true,local:true};}if(!cloud.configured())return {ok:false,offline:true,local:true};const session=cloud.getSession();if(!session?.user&&!session?.user?.id){return {ok:false,error:'Sign in first — then the village can travel to the cloud.'};}const userId=session.user?.id||session.user_id||session.sub;const snap=publicSnapshot(this.state);const r=await cloud.pushVillage(userId,{username:this.mp().username,friend_code:this.mp().friendCode,save:this.state,public:snap});if(!r.ok&&r.offline)return {ok:false,offline:true,local:true};return r;}
  importState(state){this.state=state;
  // Imported blobs predate tile grids the same way old saves do — build
  // from settled bounds so imports never gift the wilderness.

@@ -1,7 +1,7 @@
 import {ensureIdentity} from './systems/villagers.js';
 const KEY='midnights-manner-v2';
 const OLD_KEY='midnights-manner-v1';
-export const VERSION = 11;
+export const VERSION = 12;
 // In-memory fallback when localStorage is missing (private mode, SSR, tests)
 // or full (quota). Saves still work for the session; persist() warns.
 const memFallback = new Map();
@@ -257,7 +257,31 @@ function migrateV10toV11(value, data) {
   value.version = 11;
   return value;
 }
-const MIGRATIONS = {1: migrateV1toV2, 2: migrateV2toV3, 3: migrateV3toV4, 4: migrateV4toV5, 5: migrateV5toV6, 6: migrateV6toV7, 7: migrateV7toV8, 8: migrateV8toV9, 9: migrateV9toV10, 10: migrateV10toV11};
+// v11 -> v12: async multiplayer (visits + helping). Backfills the social
+// shelf — username, friend code, friend list, help inbox/outbox, activity
+// feed and the cloud timestamp. Additive only: every world, resource,
+// building, troop and progress key passes through untouched. Old saves
+// load as local-only villages until a username is chosen.
+function migrateV11toV12(value, data) {
+  if (!value || typeof value !== 'object') return null;
+  const mp = value.multiplayer && typeof value.multiplayer === 'object' ? value.multiplayer : {};
+  value.multiplayer = {
+    username: typeof mp.username === 'string' ? mp.username : null,
+    friendCode: typeof mp.friendCode === 'string' ? mp.friendCode : null,
+    friends: Array.isArray(mp.friends) ? mp.friends : [],
+    inbox: Array.isArray(mp.inbox) ? mp.inbox : [],
+    outbox: Array.isArray(mp.outbox) ? mp.outbox : [],
+    activity: Array.isArray(mp.activity) ? mp.activity : [],
+    giftsSentDay: mp.giftsSentDay ?? null,
+    giftsSent: Number.isFinite(mp.giftsSent) ? mp.giftsSent : 0,
+    helpsSentDay: mp.helpsSentDay ?? null,
+    helpsSent: Number.isFinite(mp.helpsSent) ? mp.helpsSent : 0,
+  };
+  if (!Number.isFinite(value.cloudUpdatedAt)) value.cloudUpdatedAt = 0;
+  value.version = 12;
+  return value;
+}
+const MIGRATIONS = {1: migrateV1toV2, 2: migrateV2toV3, 3: migrateV3toV4, 4: migrateV4toV5, 5: migrateV5toV6, 6: migrateV6toV7, 7: migrateV7toV8, 8: migrateV8toV9, 9: migrateV9toV10, 10: migrateV10toV11, 11: migrateV11toV12};
 export function migrate(value, data) {
   return migrateToLatest(value, data);
 }
@@ -266,7 +290,7 @@ export function migrateToLatest(value, data) {
   let v = value.version || 1;
   if (v > VERSION) return null;
   let guard = 0;
-  while (v < VERSION && guard++ < 10) {
+  while (v < VERSION && guard++ < 16) {
     const step = MIGRATIONS[v];
     if (!step) return null; // unknown version — refuse rather than corrupt
     value = step(value, data);
