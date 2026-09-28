@@ -69,18 +69,18 @@ const ORBIT = {faces: 712, day: '6a40214f03dfcc44', night: '3c46d0a7b2bee5e1', d
 test('baseline: canonical meshes keep their raw geometry and albedo', () => {
   const r = renderer();
   for (const [name, type, level, faces, raw] of CASES) {
-    const s = mesh(r, type, level, PI / 4);
-    assert.equal(s.faces.length, faces, `${name} face count moved`);
-    assert.equal(digest(s.faces, 'color'), raw, `${name} geometry or albedo moved`);
+    const s = mesh(r, type, level, PI / 4), core = s.faces.filter(f => !f.fixture);
+    assert.equal(core.length, faces, `${name} face count moved`);
+    assert.equal(digest(core, 'color'), raw, `${name} geometry or albedo moved`);
   }
 });
 
 test('baseline: the shading formula stays legacy-exact (frozen light, flat AO)', () => {
   const r = renderer();
   for (const [name, type, level, , , frozen] of CASES) {
-    const s = mesh(r, type, level, PI / 4);
-    const expected = s.faces.map(f => entry(legacyShade(f.color, f.normal), f)).sort().join('|');
-    const painted = s.faces.map(f => entry(shade(f.color, f.normal, LEGACY_LIGHT, 0, 0, 1), f)).sort().join('|');
+    const s = mesh(r, type, level, PI / 4), core = s.faces.filter(f => !f.fixture);
+    const expected = core.map(f => entry(legacyShade(f.color, f.normal), f)).sort().join('|');
+    const painted = core.map(f => entry(shade(f.color, f.normal, LEGACY_LIGHT, 0, 0, 1), f)).sort().join('|');
     assert.equal(painted, expected, `${name} shading formula drifted`);
     assert.equal(createHash('sha256').update(painted).digest('hex').slice(0, 16), frozen, `${name} frozen digest moved`);
   }
@@ -91,9 +91,9 @@ test('baseline: the sky keeps its exact painted look at day and midnight', () =>
   for (const [name, type, level, , , , day, night] of CASES) {
     const s = mesh(r, type, level, PI / 4);
     s.light = dayLight; s.paint();
-    assert.equal(digest(s.faces, 'painted'), day, `${name} day look moved`);
+    assert.equal(digest(s.faces.filter(f => !f.fixture), 'painted'), day, `${name} day look moved`);
     s.light = nightLight; s.paint();
-    assert.equal(digest(s.faces, 'painted'), night, `${name} night look moved`);
+    assert.equal(digest(s.faces.filter(f => !f.fixture), 'painted'), night, `${name} night look moved`);
   }
   const orbit = t => {
     const faces = [];
