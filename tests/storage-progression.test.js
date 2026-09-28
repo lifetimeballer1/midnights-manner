@@ -25,6 +25,7 @@ test('dedicated stores add capacity without clamping an existing over-cap save',
 
 test('manual collection takes only what storage can hold and leaves the rest on-site',()=>{
  const g=new Game(structuredClone(data));
+ g.state.research={points:0,completed:[],active:null};
  const farm=g.world.buildings.find(b=>b.type==='farm');
  g.world.resources.food=490;
  farm.harvestBonus=50;
@@ -52,6 +53,7 @@ test('collector work feeds the producer buffer instead of bypassing storage',()=
 
 test('core producer limits grow from two to four through research unlock tokens',()=>{
  const g=new Game(structuredClone(data));
+ g.state.research={points:0,completed:[],active:null};
  assert.equal(buildingLimit(g.state,g.data,'farm'),2);
  g.world.buildings.push(makeBuilding('farm',2,2,g.data));
  assert.equal(buildingCount(g.world,'farm'),2);
