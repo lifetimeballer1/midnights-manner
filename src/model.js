@@ -1,4 +1,5 @@
 import {hasTrait, jobLevelMult, CRAFT_SHOPS} from './systems/villagers.js';
+import {artifactBonus} from './systems/artifacts.js';
 import {skyGatherBonus} from './systems/daynight.js';
 export const copy = value => structuredClone(value);
 export const distance = (a,b) => Math.hypot(a.x-b.x,a.y-b.y);
@@ -302,6 +303,12 @@ export function auras(world, data) {
   if (world.buildings.some(b => b.hp > 0 && b.remaining <= 0 && data.buildings[b.type]?.dawnAura)) {
     const amt = Math.max(0, ...world.buildings.filter(b => b.hp > 0 && b.remaining <= 0 && data.buildings[b.type]?.dawnAura).map(b => data.buildings[b.type].dawnAura));
     for (const k of Object.keys(out)) out[k] += amt;
+  }
+  // Phase 11 — recovered artifacts pour onto the same table: permanent
+  // village blessings, still held by the caps below. Worlds without a
+  // shelf (old saves) add exactly nothing.
+  for (const [k, v] of Object.entries(artifactBonus(world, data))) {
+    if (k in out) out[k] += v;
   }
   out.damage = Math.min(.3, out.damage);
   out.armor = Math.min(.3, out.armor);

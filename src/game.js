@@ -327,7 +327,7 @@ export class Game {
   if(res.xp)gainXp(this.state,res.xp);
   sfx.collect();
   const left=res.left>0?` (${res.left} left today)`:' (that was the last one today)';
-  this.notify(`Deal struck — ${describeDeal(res.deal)}${left}. ${res.deal.flavor}`);
+  this.notify(`Deal struck — ${describeDeal(res.deal)}${left}.${res.haggled>0?` The ledger haggled ${res.haggled} off the price.`:''} ${res.deal.flavor}`);
   this.persist();
   return true;
  }
@@ -399,8 +399,9 @@ export class Game {
    if(this.world.elapsed>=this.world.nextRaidAt&&this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)){
     const count=directorParty(this.state,this.data);
     cfg.warning=directorConfig(this.data).warning;
-    this.world.raidPending={timer:cfg.warning,count,scheduled:true};this.world.raidKills=0;this.world.raidLoot=0;this.world.raidResult=null;sfx.horn();
-    this.notify(fillLine(pickLine(cfg.warningLines,this.world.wave),{count,seconds:Math.ceil(cfg.warning),wave:this.world.wave+1}));
+    const scout=Math.min(15,this.world.scoutBonus||0);this.world.scoutBonus=0;
+    this.world.raidPending={timer:cfg.warning+scout,count,scheduled:true};this.world.raidKills=0;this.world.raidLoot=0;this.world.raidResult=null;sfx.horn();
+    this.notify(fillLine(pickLine(cfg.warningLines,this.world.wave),{count,seconds:Math.ceil(cfg.warning+scout),wave:this.world.wave+1})+(scout>0?` Ranger word bought us +${scout}s.`:''));
    }
   }
   if(this.world.raidPending&&!this.state.mission){this.world.raidPending.timer-=dt;
@@ -410,7 +411,7 @@ export class Game {
   // Phase 7 identity backfill: old saves and mission rosters gain names,
   // traits and job ledgers lazily — additive defaults, never a wipe.
   for(const w of [this.world,this.state.home]){if(!w)continue;for(const u of w.troops||[])ensureIdentity(u,this.data,w.troops);}
-  this.world.elapsed+=dt;this.tickClock();tickResearch(this.state,this.data,dt,m=>this.notify(m));tickEmergency(this.world,this.data,dt);tickVillagerJobs(this.world,this.data,dt);const filled=autoFillTick(this.world,this.data,dt);if(filled&&(this.world.elapsed-(this.world.lastAutoFillNote||0)>60)){this.world.lastAutoFillNote=this.world.elapsed;this.notify(`${filled} idle hand${filled>1?'s':''} took ${filled>1?'open posts':'an open post'} on their own — traits matched, locks respected.`);}tickEconomy(this.world,this.data,dt);tickRefine(this.world,this.data,dt);for(const c of tickCraft(this.world,this.data,dt)){const name=this.data.items[c.item]?.name||c.item;this.notify(`${name} finished — fit it from the People panel.`);}tickExpeditions(this.world,this.data,dt);tickCombat(this.world,this.data,dt);tickVillage(this.state,this.data,dt,m=>this.notify(m));const before=this.state.mission?.status;tickMission(this.state,this.data);
+  this.world.elapsed+=dt;this.tickClock();tickResearch(this.state,this.data,dt,m=>this.notify(m));tickEmergency(this.world,this.data,dt);tickVillagerJobs(this.world,this.data,dt);const filled=autoFillTick(this.world,this.data,dt);if(filled&&(this.world.elapsed-(this.world.lastAutoFillNote||0)>60)){this.world.lastAutoFillNote=this.world.elapsed;this.notify(`${filled} idle hand${filled>1?'s':''} took ${filled>1?'open posts':'an open post'} on their own — traits matched, locks respected.`);}tickEconomy(this.world,this.data,dt);tickRefine(this.world,this.data,dt);for(const c of tickCraft(this.world,this.data,dt)){const name=this.data.items[c.item]?.name||c.item;this.notify(`${name} finished — fit it from the People panel.`);}tickExpeditions(this.world,this.data,dt,Math.random,{state:this.state,notify:m=>this.notify(m)});tickCombat(this.world,this.data,dt);tickVillage(this.state,this.data,dt,m=>this.notify(m));const before=this.state.mission?.status;tickMission(this.state,this.data);
   if(raided&&!this.world.enemies.length&&!this.world.raidPending&&this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)){const kills=this.world.raidKills??0,loot=this.world.raidLoot??0;
    const damaged=this.world.buildings.filter(b=>b.hp<this.data.buildings[b.type].tiers[b.level-1].hp);
    const repairWood=damaged.reduce((n,b)=>n+Math.ceil((this.data.buildings[b.type].tiers[b.level-1].hp-b.hp)/15),0);

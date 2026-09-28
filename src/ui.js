@@ -258,9 +258,23 @@ export class UI {
   const outHtml=out.length?out.map(o=>{const spec=d.troops[o.type];return `<div class="adv-row"><span>${o.name}<small>${spec?.name||o.type} · ${o.status||'ranging'}</small></span><b>OUT</b></div>`;}).join(''):'<p class="adv-empty">No hands in the treeline. The woods keep their counsel.</p>';
   const idleHtml=idle.length?idle.map(o=>{const spec=d.troops[o.type];const haul=Object.entries(o.yields).map(([k,v])=>`+${v} ${k}`).join(' · ');const riskPct=Math.round((o.risk||0)*100);return `<article class="adv-ranger"><div><b>${o.name}</b><small>${spec?.name||o.type} · hauls ${haul} · ~${o.durationSec}s · ${riskPct}% mishap</small></div><button data-expedition="${o.id}">Send →</button></article>`;}).join(''):'<p class="adv-empty">No idle rangers. Foragers, woodcutters and wayfinders range — fighters hold the walls.</p>';
   return `<div class="panel-heading"><span>EXPEDITIONS · WOODLAND RANGING</span><span>${out.length} out · ${idle.length} ready</span></div>
-  <p class="adv-note">Rangers slip into the treeline and haul back wild goods. This is ranging — campaign chapters march under the Campaign tab.</p>
-  <div class="panel-heading"><span>OUT NOW</span></div><article class="adv-card">${outHtml}</article>
+  <p class="adv-note">Rangers slip into the treeline and haul back wild goods. This is ranging — campaign chapters march under the Campaign tab.</p>${this.shelfLine(g)}
+  <div class="panel-heading"><span>OUT NOW</span></div><article class="adv-card">${outHtml}</article>${this.lastReturnCard(g)}
   <div class="panel-heading"><span>READY TO SEND</span></div>${idleHtml}`;
+ }
+ // Phase 11 — the shelf: recovered artifacts and what they bless.
+ shelfLine(g){
+  const shelf=g.world?.artifacts||[];
+  if(!shelf.length)return '';
+  const known=new Map((g.data.artifacts?.artifacts||[]).map(a=>[a.id,a]));
+  const names=shelf.map(id=>known.get(id)?.name||id).join(' · ');
+  return `<p class="adv-note">◈ Relics on the shelf (${shelf.length}): ${names}.</p>`;
+ }
+ // Phase 11 — the last homecoming, kept on the world for the panel.
+ lastReturnCard(g){
+  const r=g.world?.lastReturn;
+  if(!r||!r.lines?.length)return '';
+  return `<div class="panel-heading"><span>LAST RETURN · DAY ${r.day}</span><span>home</span></div><article class="adv-card"><div class="adv-row"><span>${r.ranger}</span><b>HOME</b></div><p class="adv-note">${r.lines.join('; ')}.</p></article>`;
  }
  campaignBlock(g){const w=g.world;
   const cards=campaignCards(g.data,g.state);
@@ -310,8 +324,13 @@ export class UI {
  chronicleBlock(g){
   const rumor=pickRumor(g.data.rumors,daySeed());
   const board=rumor?`<div class="notice-board" aria-live="polite"><span>NOTICE BOARD</span><p>${rumor.text}</p></div>`:'';
+  // Phase 11 — the latest homecoming is pinned above the rumors: rangers
+  // bring the news home, and the manner remembers it here.
+  const pages=g.world?.expeditionLog||[];
+  const latest=pages.length?pages[pages.length-1]:null;
+  const home=latest?`<div class="notice-board" aria-live="polite"><span>HOMECOMING · DAY ${latest.day}</span><p>${latest.ranger} — ${latest.text}</p></div>`:'';
   const legends=(g.data.legends||[]).map(l=>`<div class="quest qdone"><b>☾ ${l.title}</b><span>${l.text}</span></div>`).join('');
-  return `<div class="panel-heading"><span>CHRONICLE</span><span>memory</span></div><p class="adv-note">What the manner remembers — rumors on the board, Issa's chart pages, old legends.</p>${board}${this.chartLog(g)}${legends?`<div class="panel-heading"><span>LEGENDS OF THE MANNER</span><span>${(g.data.legends||[]).length} tales</span></div><div class="quests">${legends}</div>`:''}`;
+  return `<div class="panel-heading"><span>CHRONICLE</span><span>memory</span></div><p class="adv-note">What the manner remembers — rumors on the board, Issa's chart pages, old legends.</p>${home}${board}${this.chartLog(g)}${legends?`<div class="panel-heading"><span>LEGENDS OF THE MANNER</span><span>${(g.data.legends||[]).length} tales</span></div><div class="quests">${legends}</div>`:''}`;
  }
  // Chart Log: Issa's persistent record. Quests with a `log` line leave a
  // page here once completed — panel history, never toast-only.
