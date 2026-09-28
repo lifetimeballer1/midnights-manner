@@ -5,6 +5,7 @@ import {characterModel} from './character-art.js';
 import {isWall,wallNeighbors} from './building-art.js';
 import {placementCells} from './systems/walls.js';
 import {DAY_LENGTH,skyLightAt} from './systems/daynight.js';
+import {reserveCapacity,reserveReady} from './resources.js';
 export function pointInPolygon(x,y,points){let inside=false;for(let i=0,j=points.length-1;i<points.length;j=i++){const a=points[i],b=points[j];if((a.y>y)!==(b.y>y)&&x<(b.x-a.x)*(y-a.y)/(b.y-a.y)+a.x)inside=!inside;}return inside;}
 const FALLBACK_LIGHT=skyLightAt(DAY_LENGTH*.3,null); // high noon, for bare MeshScene uses
 // Phase 4 — ground-contact occlusion: faces near the dirt lose a slice of
@@ -252,6 +253,49 @@ export function buildingModel(s,b,spec,world){
   for(const dy of [.13,n-.21])s.box(x+.13,y+dy,h*.57,n-.26,.07,.07,'#d0af79');
   s.box(x+.18,y+.21,.13,Math.min(.54,n-.36),.24,.17,'#c5a16e');
  }
+ productionPile(s,b,spec);
+}
+
+// Phase 6 — the on-site haul is visible on the building itself: a stockpile
+// grows in four steps as the tap reserve fills (harvest.capacity), and a gold
+// pennant flies once the haul is worth collecting. Pure geometry over b
+// fields; the static mesh cache keys on productionStage()/reserveReady() so
+// it only repaints when a step or the badge flips, never per reserve unit.
+export function productionStage(b,spec){
+ if(!spec?.production||b.hp<=0||b.remaining>0)return -1;
+ const level=Math.max(1,Math.floor(+b.level||1));
+ const cap=Math.max(1,reserveCapacity(spec,level));
+ const held=Number.isFinite(+b.harvestBonus)?Math.max(0,+b.harvestBonus):0;
+ return Math.min(3,Math.floor((held/cap)*4));
+}
+const PILES={
+ wood:{kind:'timber',a:'#8a6a48',b:'#b38a59'},
+ lumber:{kind:'timber',a:'#c8a06a',b:'#d9b57e'},
+ frostwood:{kind:'timber',a:'#7e9aa3',b:'#b6d4da'},
+ food:{kind:'sacks',a:'#c8a44e',b:'#e1c776'},
+ gold:{kind:'ore',a:'#8b8378',b:'#e5bd66'},
+ plate:{kind:'bars',a:'#8b96a0',b:'#b7c7dc'},
+};
+function productionPile(s,b,spec){
+ const stage=productionStage(b,spec);
+ if(stage<=0)return;
+ const n=spec.size,px=b.x+n*.78,py=b.y+n*.82,pile=PILES[spec.production]||PILES.wood;
+ if(pile){const {a,b:c}=pile;
+  if(pile.kind==='timber'){
+   for(let i=0;i<stage;i++)s.box(px-.26+i*.16,py-.2,.1,.13,.4,.12,i%2?c:a);
+   if(stage>=3)s.box(px-.24,py-.08,.22,.42,.16,.1,c);
+  }else if(pile.kind==='sacks'){
+   for(let i=0;i<stage;i++)s.pyramid(px-.16+(i%2)*.3,py-.12+Math.floor(i/2)*.3,.02,.1,.17,i%2?c:a,5);
+   if(stage>=3)s.box(px-.22,py-.1,.24,.36,.14,.12,c);
+  }else if(pile.kind==='ore'){
+   for(let i=0;i<stage;i++)s.pyramid(px-.14+(i%2)*.26,py-.1+Math.floor(i/2)*.26,.02,.09,.14,i%2?c:a,5);
+   if(stage>=3)s.pyramid(px-.02,py+.02,.02,.3,.12,c,6);
+  }else{
+   for(let i=0;i<stage;i++)s.box(px-.3,py-.24+i*.16,.1,.12,.3,.07,i%2?c:a);
+   if(stage>=3)s.box(px-.24,py-.2,.17,.42,.26,.06,a);
+  }
+ }
+ if(reserveReady(b,spec)){s.box(b.x+.24,b.y+n-.14,.1,.05,.05,.52,timber);s.box(b.x+.29,b.y+n-.14,.58,.24,.03,.14,'#f2c96e');}
 }
 export function drawVillage3D(r,world,time,light){const s=new MeshScene(r),W=r.data.world.width,H=r.data.world.height;
  // Phase 2/3/4 — one resolved sky per frame: mesh shading follows the clock,
@@ -259,8 +303,10 @@ export function drawVillage3D(r,world,time,light){const s=new MeshScene(r),W=r.d
  s.light=light||skyLightAt(world.elapsed,r.data,{calm:r.calm});
  // Large settlements keep outfit/weapon silhouettes but omit tiny face/trim meshes.
  s.characterDetail=world.troops.length+world.enemies.length<=64;
- // Project static meshes only when the camera, footprint, or building state changes.
- const key=JSON.stringify([r.width,r.height,r.cx,r.cy,r.cam,W,H,world.buildings.map(b=>[b.id,b.type,b.x,b.y,b.level,b.hp<=0,b.remaining>0])]);
+ // Project static meshes only when the camera, footprint, building state or
+ // production stage changes. Reserve moves every tick; the key quantizes it
+ // to the four pile steps plus the ready flag, so the cache survives fills.
+ const key=JSON.stringify([r.width,r.height,r.cx,r.cy,r.cam,W,H,world.buildings.map(b=>{const spec=r.data.buildings[b.type];return [b.id,b.type,b.x,b.y,b.level,b.hp<=0,b.remaining>0,productionStage(b,spec),spec?.production&&reserveReady(b,spec)?1:0];})]);
  if(r._meshStatic?.key===key)s.faces=r._meshStatic.faces.slice();else{
  // Border trees share depth sorting with the village, including reverse views.
  for(let i=-1;i<W+2;i++){s.owner=null;if(i%2)pine(s,i,-1.5,1.4+(i%3)*.22);if(i%3===0)pine(s,-1.5,((i%H)+H)%H,1.5);if(i%3===1)pine(s,W+1,i%H,1.6);if(i%4===0)pine(s,i,H+3,1.5);}

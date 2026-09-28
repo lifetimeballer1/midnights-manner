@@ -1,3 +1,10 @@
+## Presentation pass — Phase 6: The haul on the hill (2026-09-28)
+
+- Producers show their on-site haul on the building itself: a stockpile of the matching resource (timber for wood/lumber/frostwood, grain sacks for food, ore for gold, plate bars for plate) grows in four steps as the tap reserve fills toward `harvest.capacity`, and a gold pennant flies once the haul crosses `reserveNotifyAt`. The 2D bubble and badge remain the tap affordance; the mesh is the at-a-glance state.
+- The static mesh cache key now quantizes the reserve (four steps plus the ready flag): the village repaints when a step or the badge flips, never per reserve unit. Ticking reserves never touch the 60fps budget, and the terrain cache is untouched.
+- Review: `node scripts/production-preview.mjs` renders five producers × three reserve levels from the actual meshes (`artifacts/production-preview.png`) — reviewed: piles read per resource and the pennant appears at the ready threshold.
+- Tests: new `tests/production-viz.test.js` (3 checks — four-step growth and state gating, pennant at notifyAt, cache step quantization). `npm test` 471 → 474. No save fields, no save-version change.
+
 ## Presentation pass — Phase 5: Housing silhouettes (2026-09-28)
 
 - Cottages read by shape, tier over tier: tier 2 grows a lit loft window in the front gable with a rail beneath it; tier 3 adds a porch (deck, posts, awning) over the door and raises the kitchen stack clear of the ridge line (the old stack barely cleared it at tier 3). Tier 1 stays the plain timber hut.
