@@ -1,3 +1,11 @@
+## Presentation pass — Phase 3: Dynamic lights, moon and weather (2026-09-28)
+
+- The key light sweeps: `key.arc` samples sun/moon direction across each phase (east to west by day, back again over the night; dawn/dusk carry low sunrise/sunset light). The day arc's midpoint is the Phase 2 legacy direction; an explicit `key.dir` in data beats the base arc, and `calm` pins the arc at its midpoint.
+- Weather now lands on the meshes: `WEATHERS[].mesh` adds a depth-weighted fog veil (far faces mix toward `fogColor`) and a flat rain `dim`; `weatherLightAt()` resolves and clamps it, and the light bucket id folds in the weather so a sky change repaints while a clock tick reuses. Overridable at `world.daynight.weather.<id>.mesh`.
+- Fire sources (watchfire/forge/smeltery) draw a larger flickering halo — deterministic per building id, frozen under `calm`; other buildings keep the soft window halo.
+- `shade()` gains `dim` and fog mixing (`depth01`; the depth scan runs only when a veil is active). Frozen-light formula equality and raw geometry digests still pass; day/night/dawn painted digests updated deliberately for the sweeping sky.
+- `npm run capture` now writes seven deterministic views (adds day-rain and night-fog; both reviewed). `npm test` 446 → 449 (arcs, weather merge/clamps, fog/dim shade contract). Spec updated: `docs/LIGHTING.md`. No save fields, no save-version change.
+
 ## Presentation pass — Phase 2: Midnight lighting core (2026-09-28)
 
 - Mesh shading now follows the sky clock. `skyLightAt()` (`src/systems/daynight.js`) resolves key light, ambient, sky fill and an emissive boost per phase from the new `SKIES` table, crossfading out of the previous phase over `lightBlend` (default 4% of a day); `calm` players get a plain step. Overrides live at `world.daynight.lighting.<phase>` and clamp exactly like the overlay always did.

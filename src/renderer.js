@@ -169,10 +169,16 @@ export class Renderer {
    if(weather.color&&weather.alpha>0){c.globalAlpha=weather.alpha;c.fillStyle=weather.color;c.fillRect(0,0,this.width,this.height);c.globalAlpha=1;}
    // Lamp glow: every finished standing building breathes warm light after
    // dark. One batched fillStyle, one ellipse per roof — flat O(buildings).
-   if(lamp.glow>0){c.globalAlpha=.16*lamp.glow;c.fillStyle='#f2c96e';
+   // Fire sources burn larger and flicker (calm holds a steady glow); every
+   // other finished building keeps the soft window-light halo.
+   if(lamp.glow>0){const fires=['watchfire','forge','smeltery'];c.fillStyle='#f2c96e';
     for(const b of world.buildings){if(b.hp<=0||b.remaining>0)continue;
      const spec=this.data.buildings[b.type];if(!spec)continue;
-     const gp=this.project(b.x+spec.size/2,b.y+spec.size/2),r=(spec.size===2?46:30)*this.cam.zoom;
+     const fire=fires.includes(b.type),seed=phaseSeed(b.id);
+     const flick=this.calm?1:.9+.1*Math.sin(time/170+seed*1.7)*Math.sin(time/91+seed);
+     const base=(spec.size===2?46:30)*this.cam.zoom,r=(fire?base*1.7:base)*flick;
+     const gp=this.project(b.x+spec.size/2,b.y+spec.size/2);
+     c.globalAlpha=(fire?.2:.16)*lamp.glow*flick;
      c.beginPath();c.ellipse(gp.x,gp.y-10*this.cam.zoom,r,r*.42,0,0,Math.PI*2);c.fill();}
     c.globalAlpha=1;}
    // Rain streaks: 36 deterministic slashes, falling with the clock. Flat.

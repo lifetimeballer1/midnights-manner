@@ -23,9 +23,9 @@ const LIGHTING = {
 };
 
 const WEATHERS = {
-  clear: {id: 'clear', name: 'Clear', icon: '🌤️', color: null, alpha: 0, streaks: false},
-  rain: {id: 'rain', name: 'Rain', icon: '🌧', color: '#2e4a5a', alpha: 0.08, streaks: true},
-  fog: {id: 'fog', name: 'Fog', icon: '🌫', color: '#9aa7b5', alpha: 0.14, streaks: false},
+  clear: {id: 'clear', name: 'Clear', icon: '🌤️', color: null, alpha: 0, streaks: false, mesh: {fog: 0, dim: 1}},
+  rain: {id: 'rain', name: 'Rain', icon: '🌧', color: '#2e4a5a', alpha: 0.08, streaks: true, mesh: {fog: 0, dim: 0.92}},
+  fog: {id: 'fog', name: 'Fog', icon: '🌫', color: '#9aa7b5', alpha: 0.14, streaks: false, mesh: {fog: 0.5, dim: 0.9, fogColor: '#9aa7b5'}},
 };
 
 const DEFAULTS = {
@@ -102,11 +102,15 @@ export function lightingFor(phaseId, data) {
 // below (including the hand-written norm 1.187) exist so paint-time day
 // output stays identical to the old construction-time baked shading.
 // `dir` may stay unnormalized; `norm` divides the dot when present.
+// Phase 3 — `arc` sweeps the key light across the phase ([from, to], phase-
+// local progress): the sun crosses east to west through the legacy noon
+// direction, the moon crosses back over the night. Mid-day lands on the
+// Phase 2 constant, so the classic look is the day's center, not its edge.
 const SKIES = {
-  dawn: {key: {dir: [-0.2, -0.6, 0.8], color: '#f2c96e', intensity: 0.24}, ambient: {color: '#a8b6cc', intensity: 0.6}, sky: 0.1, emissive: 0.25},
-  day: {key: {dir: [-0.4, -0.5, 1], norm: 1.187, color: '#ffffff', intensity: 0.26}, ambient: {color: '#ffffff', intensity: 0.72}, sky: 0.12, emissive: 0},
-  dusk: {key: {dir: [-0.6, -0.35, 0.75], color: '#e8a25e', intensity: 0.24}, ambient: {color: '#c9a68c', intensity: 0.58}, sky: 0.1, emissive: 0.22},
-  night: {key: {dir: [0.45, -0.3, 0.85], color: '#9fb4e8', intensity: 0.16}, ambient: {color: '#4a5f8e', intensity: 0.4}, sky: 0.07, emissive: 0.6},
+  dawn: {key: {dir: [-0.2, -0.6, 0.8], arc: [[-0.55, -0.75, 0.3], [-0.25, -0.6, 0.85]], color: '#f2c96e', intensity: 0.24}, ambient: {color: '#a8b6cc', intensity: 0.6}, sky: 0.1, emissive: 0.25},
+  day: {key: {dir: [-0.4, -0.5, 1], norm: 1.187, arc: [[-0.9, -0.4, 0.95], [0.1, -0.6, 1.05]], color: '#ffffff', intensity: 0.26}, ambient: {color: '#ffffff', intensity: 0.72}, sky: 0.12, emissive: 0},
+  dusk: {key: {dir: [-0.6, -0.35, 0.75], arc: [[-0.6, -0.35, 0.75], [0.35, -0.55, 0.5]], color: '#e8a25e', intensity: 0.24}, ambient: {color: '#c9a68c', intensity: 0.58}, sky: 0.1, emissive: 0.22},
+  night: {key: {dir: [0.45, -0.3, 0.85], arc: [[0.75, -0.45, 0.55], [-0.6, -0.3, 0.75]], color: '#9fb4e8', intensity: 0.16}, ambient: {color: '#4a5f8e', intensity: 0.4}, sky: 0.07, emissive: 0.6},
 };
 const LIGHT_BUCKETS = 192; // painted-color cache steps per day (~1.6s at 300s days)
 const PHASE_ORDER = PHASES.map(p => p.id);
@@ -122,19 +126,33 @@ function bounded(value, fallback, min, max) {
   return Number.isFinite(value) ? Math.max(min, Math.min(max, value)) : fallback;
 }
 
+function goodDir(d) {
+  return Array.isArray(d) && d.length === 3 && d.every(Number.isFinite);
+}
+
 // One phase's light, merging optional data overrides. Every number is
 // clamped so a bad data file can neither black the screen nor blow out the
 // palette (same defensive contract as lightingFor's overlay clamps).
-function skyFor(phaseId, data) {
+function skyFor(phaseId, data, p = 0.5) {
   const base = SKIES[phaseId] || SKIES.day;
   const over = data?.world?.daynight?.lighting?.[phaseId];
   const ok = over && typeof over === 'object' ? over : {};
   const key = {...base.key, ...(ok.key && typeof ok.key === 'object' ? ok.key : {})};
+  const overKey = ok.key && typeof ok.key === 'object' ? ok.key : {};
   const ambient = {...base.ambient, ...(ok.ambient && typeof ok.ambient === 'object' ? ok.ambient : {})};
-  const dir = Array.isArray(key.dir) && key.dir.length === 3 && key.dir.every(Number.isFinite) ? key.dir : base.key.dir;
+  let dir = goodDir(key.dir) ? key.dir : base.key.dir;
+  let norm = Number.isFinite(key.norm) && key.norm > 0 ? key.norm : 0;
+  // An explicit dir in data steers direction; the base phase's arc only
+  // applies when the author is not overriding direction at all.
+  const arc = !('dir' in overKey) && Array.isArray(key.arc) && key.arc.length === 2 && goodDir(key.arc[0]) && goodDir(key.arc[1]) ? key.arc : null;
+  if (arc) {
+    const k = Math.max(0, Math.min(1, p));
+    dir = arc[0].map((v, i) => v + (arc[1][i] - v) * k);
+    norm = 0; // the sweep is a fresh vector; normalize it below
+  }
   return {
     keyDir: dir,
-    keyNorm: Number.isFinite(key.norm) && key.norm > 0 ? key.norm : (Math.hypot(...dir) || 1),
+    keyNorm: norm > 0 ? norm : (Math.hypot(...dir) || 1),
     keyRGB: hexRGB(key.color, hexRGB(base.key.color, [1, 1, 1])),
     keyI: bounded(key.intensity, base.key.intensity, 0, 1.5),
     ambRGB: hexRGB(ambient.color, hexRGB(base.ambient.color, [1, 1, 1])),
@@ -160,23 +178,44 @@ function mixSky(a, b, u) {
   };
 }
 
-// Phase 2 — resolved light for scene meshes plus the overlay descriptor the
+// Phase 3 — how each sky lands on the meshes: a fog mixture toward a pale
+// veil (depth-weighted in the paint loop) and a flat rain dim. Clamped and
+// overridable like everything else under world.daynight.
+export function weatherLightAt(weatherId, data) {
+  const base = (WEATHERS[weatherId] || WEATHERS.clear).mesh;
+  const over = data?.world?.daynight?.weather?.[weatherId]?.mesh;
+  const ok = over && typeof over === 'object' ? over : {};
+  return {
+    fog: bounded(ok.fog, base.fog, 0, 0.85),
+    dim: bounded(ok.dim, base.dim, 0.5, 1.1),
+    fogRGB: hexRGB(ok.fogColor, hexRGB(base.fogColor, [0.6, 0.65, 0.7])),
+  };
+}
+
+// Phase 2/3 — resolved light for scene meshes plus the overlay descriptor the
 // renderer already used (one clock read, one source). Crossfades out of the
-// previous phase over `lightBlend` of a day; calm players get a plain step.
-// Pure over elapsed: same moment, same light, every load.
+// previous phase over `lightBlend` of a day and sweeps the key arc across the
+// phase; calm players get one plain step per phase. The bucket id folds in
+// the weather, so a sky change repaints while a clock tick reuses. Pure over
+// elapsed: same moment, same light, every load.
 export function skyLightAt(elapsed, data, opts = {}) {
   const phase = phaseAt(elapsed, data);
+  const idx = PHASE_ORDER.indexOf(phase.id);
   const start = PHASE_START[phase.id] ?? 0;
-  let u = 1;
+  const end = PHASES[idx]?.span ?? 1;
+  let u = 1, p = 0.5;
   if (!opts.calm) {
     const blend = bounded(clockConfig(data).lightBlend, DEFAULTS.lightBlend, 0.005, 0.25);
     u = Math.max(0, Math.min(1, (phase.t - start) / blend));
+    p = Math.max(0, Math.min(1, (phase.t - start) / ((end - start) || 1)));
   }
-  const prevId = PHASE_ORDER[(PHASE_ORDER.indexOf(phase.id) + PHASE_ORDER.length - 1) % PHASE_ORDER.length];
-  const light = mixSky(skyFor(prevId, data), skyFor(phase.id, data), u);
+  const prevId = PHASE_ORDER[(idx + PHASE_ORDER.length - 1) % PHASE_ORDER.length];
+  const light = mixSky(skyFor(prevId, data, 1), skyFor(phase.id, data, p), u);
+  const weather = weatherAt(elapsed, data), wm = weatherLightAt(weather.id, data);
+  light.fog = wm.fog; light.fogRGB = wm.fogRGB; light.dim = wm.dim; light.weatherId = weather.id;
   light.phase = phase;
   light.overlay = lightingFor(phase.id, data);
-  light.key = phase.id + ':' + Math.round((phase.t || 0) * LIGHT_BUCKETS);
+  light.key = phase.id + ':' + Math.round((phase.t || 0) * LIGHT_BUCKETS) + ':' + weather.id;
   return light;
 }
 

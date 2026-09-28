@@ -7,16 +7,18 @@ import {placementCells} from './systems/walls.js';
 import {DAY_LENGTH,skyLightAt} from './systems/daynight.js';
 export function pointInPolygon(x,y,points){let inside=false;for(let i=0,j=points.length-1;i<points.length;j=i++){const a=points[i],b=points[j];if((a.y>y)!==(b.y>y)&&x<(b.x-a.x)*(y-a.y)/(b.y-a.y)+a.x)inside=!inside;}return inside;}
 const FALLBACK_LIGHT=skyLightAt(DAY_LENGTH*.3,null); // high noon, for bare MeshScene uses
-// Phase 2 — paint-time shading. Day defaults reproduce the legacy baked
+// Phase 2/3 — paint-time shading. Day defaults reproduce the legacy baked
 // formula byte-for-byte (SKIES in systems/daynight.js is the tuning home);
 // emissive faces (windows, flames) carry a warm boost of their own albedo so
-// the village still reads at midnight. Normals stay in world space.
-export function shade(hex,n,light,emissive=0){
+// the village still reads at midnight. Weather lands here too: `dim` flattens
+// the whole lit value and `fog` mixes far faces (depth01 = 0 near, 1 far)
+// toward the weather veil. Normals stay in world space.
+export function shade(hex,n,light,emissive=0,depth01=0){
  const value=parseInt(hex.slice(1),16);
  const key=Math.max(0,(n[0]*light.keyDir[0]+n[1]*light.keyDir[1]+n[2]*light.keyDir[2])/light.keyNorm)*light.keyI;
- const up=Math.max(0,n[2])*light.sky,glow=emissive*light.emissive;
+ const up=Math.max(0,n[2])*light.sky,glow=emissive*light.emissive,dim=light.dim??1,fog=(light.fog??0)*depth01;
  const lit=[light.ambRGB[0]*light.ambI+light.keyRGB[0]*key+up+glow,light.ambRGB[1]*light.ambI+light.keyRGB[1]*key+up+glow,light.ambRGB[2]*light.ambI+light.keyRGB[2]*key+up+glow];
- return '#'+[value>>16,(value>>8)&255,value&255].map((v,i)=>Math.min(255,Math.round(v*lit[i])).toString(16).padStart(2,'0')).join('');
+ return '#'+[value>>16,(value>>8)&255,value&255].map((v,i)=>{let c=Math.min(255,Math.round(v*lit[i]*dim));if(fog>0)c=Math.round(c+(light.fogRGB[i]*255-c)*fog);return c.toString(16).padStart(2,'0');}).join('');
 }
 export class MeshScene {
  constructor(r){this.r=r;this.faces=[];this.owner=null;this.alpha=1;this.depthBias=0;this.light=FALLBACK_LIGHT;this.emissive=0;this.basis=cameraBasis(r);}
@@ -33,9 +35,13 @@ export class MeshScene {
  box(x,y,z,w,d,h,color,cap=true){const p=[[x,y,z],[x+w,y,z],[x+w,y+d,z],[x,y+d,z],[x,y,z+h],[x+w,y,z+h],[x+w,y+d,z+h],[x,y+d,z+h]];for(const f of [[0,3,2,1],[0,1,5,4],[1,2,6,5],[2,3,7,6],[3,0,4,7],...(cap?[[4,5,6,7]]:[])])this.face(f.map(i=>p[i]),color);}
  roof(x,y,z,w,d,h,color){const p=[[x,y,z],[x+w,y,z],[x+w,y+d,z],[x,y+d,z],[x+w/2,y,z+h],[x+w/2,y+d,z+h]];for(const f of [[0,4,5,3],[4,1,2,5],[0,1,4],[3,5,2]])this.face(f.map(i=>p[i]),color);}
  pyramid(x,y,z,radius,h,color,sides=4){const ring=Array.from({length:sides},(_,i)=>[x+Math.cos(i*Math.PI*2/sides)*radius,y+Math.sin(i*Math.PI*2/sides)*radius,z]);for(let i=0;i<sides;i++)this.face([ring[i],ring[(i+1)%sides],[x,y,z+h]],color);}
- paint(){const c=this.r.ctx,light=this.light,key=light.key;this.faces.sort((a,b)=>a.depth-b.depth);for(const f of this.faces){
+ paint(){const c=this.r.ctx,light=this.light,key=light.key;this.faces.sort((a,b)=>a.depth-b.depth);
+  // Fog needs the frame's depth range; clear/rain skies skip the scan.
+  let dMin=0,dSpan=1;
+  if(light.fog>0){dMin=Infinity;let dMax=-Infinity;for(const f of this.faces){if(f.depth<dMin)dMin=f.depth;if(f.depth>dMax)dMax=f.depth;}dSpan=(dMax-dMin)||1;}
+  for(const f of this.faces){
   // Shade once per face per light bucket; every other frame reuses the paint.
-  if(f.paintedKey!==key){f.painted=shade(f.color,f.normal,light,f.emissive);f.paintedKey=key;}
+  if(f.paintedKey!==key){f.painted=shade(f.color,f.normal,light,f.emissive,light.fog>0?(f.depth-dMin)/dSpan:0);f.paintedKey=key;}
   c.globalAlpha=f.alpha;c.fillStyle=f.painted;c.beginPath();f.points.forEach((p,i)=>i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y));c.closePath();c.fill();c.strokeStyle=f.painted;c.lineWidth=.45;c.stroke();}c.globalAlpha=1;this.r.sceneFaces=this.faces;}
 }
 const stone='#b4beb2',timber='#b38a59',gold='#e5bd66';

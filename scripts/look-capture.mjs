@@ -48,6 +48,15 @@ try{
   const t=clearAt(fraction);await setSky(t);await shot('look-desktop-'+name);
   summary.views.push({file:`artifacts/look-desktop-${name}.png`,phase:phaseAt(t,{world}).id,weather:weatherAt(t,{world}).id,elapsed:t});
  }
+ // Weather proof shots: the first rain day and the first fog day that fit
+ // the scan window, pinned at the same camera as the clear views.
+ const findWeather=(id,fraction)=>{for(let day=0;day<60;day++){const t=day*DAY_LENGTH+DAY_LENGTH*fraction;if(weatherAt(t,{world}).id===id)return t;}return null;};
+ for(const [id,fraction,name] of [['rain',0.3,'look-desktop-day-rain'],['fog',0.8,'look-desktop-night-fog']]){
+  const t=findWeather(id,fraction);
+  if(t==null){summary.views.push({file:null,weather:id,skipped:'no such day in scan window'});continue;}
+  await setSky(t);await shot(name);
+  summary.views.push({file:`artifacts/${name}.png`,phase:phaseAt(t,{world}).id,weather:weatherAt(t,{world}).id,elapsed:t});
+ }
  await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:2,mobile:true});
  await new Promise(r=>setTimeout(r,250));await evaluate(camera(1.65));
  const tNight=clearAt(0.8);await setSky(tNight);await shot('look-phone-night');
