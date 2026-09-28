@@ -83,11 +83,16 @@ try{
  await waitFor('Boolean(document.querySelector(".idle-bar"))');
  assert.ok(await evaluate('document.querySelectorAll(".trait").length > 0'),'villager trait chips render');
  assert.ok(await evaluate('window.midnightsManner.snapshot().world.troops.every(t=>typeof t.name==="string"&&t.name.length>0)'),'every villager is named');
+ const idleOf=async ()=>await evaluate('window.midnightsManner.snapshot().world.troops.filter(t=>!t.workplace&&!t.order&&!t.expedition&&!t.emergency&&t.hp>0).length');
  for(let i=0;i<3;i++){
   await fire('[data-tab="troops"]');await waitFor('document.querySelector(".idle-bar")?.getClientRects().length>0');
   if(!(await evaluate('Boolean(document.querySelector("[data-autoassign]:not([disabled])"))')))break;
+  const idleBefore=await idleOf();
   await fire('[data-autoassign]');
-  try{await waitFor('document.querySelector("#status").textContent.includes("idle hand")||(document.querySelector("[data-autoassign]")?.disabled??true)',25);break;}
+  // The status toast is first-write-wins: construction and harvest notices
+  // overwrite it within a tick, so the durable proof is the idle count
+  // dropping (or the button disabling when no idle hands remain).
+  try{await waitFor(`document.querySelector("#status").textContent.includes("idle hand")||(document.querySelector("[data-autoassign]")?.disabled??true)||window.midnightsManner.snapshot().world.troops.filter(t=>!t.workplace&&!t.order&&!t.expedition&&!t.emergency&&t.hp>0).length<${idleBefore}`,25);break;}
   catch(e){if(i===2)throw e;}
  }
  if(await evaluate('(()=>{const e=document.querySelector("#close-panel");return !!(e&&!e.disabled&&e.getClientRects().length);})()'))await fire('#close-panel');
