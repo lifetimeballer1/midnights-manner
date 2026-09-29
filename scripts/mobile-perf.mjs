@@ -56,11 +56,12 @@ try{
  const call=(method,params={})=>send(method,params,sessionId);
  await call('Runtime.enable');await call('Page.enable');await call('Performance.enable');
  await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:2,mobile:true});
+ // Seed before the app module runs. Seeding after first boot is racy because
+ // pagehide persists the starter village during reload and overwrites the fixture.
+ await call('Page.addScriptToEvaluateOnNewDocument',{source:`try{localStorage.setItem('midnights-manner-v2',${JSON.stringify(saveBlob)})}catch{}`});
  const evaluate=async expression=>{const r=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(r.exceptionDetails.exception?.description||'Browser evaluation failed');return r.result.value;};
  const waitFor=async(expression,tries=120)=>{for(let i=0;i<tries;i++){if(await evaluate(expression))return;await new Promise(r=>setTimeout(r,100));}throw Error('Timed out: '+expression);};
  await call('Page.navigate',{url:`http://127.0.0.1:${port}/midnights-manner/`});await waitFor('Boolean(window.midnightsManner)');
- await evaluate(`localStorage.setItem('midnights-manner-v2',${JSON.stringify(saveBlob)})`);
- await call('Page.reload');await waitFor('Boolean(window.midnightsManner)');
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops.length'),150,'heavy save loads 150 villagers');
  await evaluate('document.querySelector("#begin").click()');await waitFor('window.midnightsManner.ready');
  await evaluate('document.querySelector("#recenter").click();window.midnightsManner.resetFrameReport()');
