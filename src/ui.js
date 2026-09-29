@@ -141,6 +141,7 @@ export class UI {
   if(unit){this.selected=null;this.selectedTroop=unit.id;r.selection=unit.id;this.refresh();sfx.click();return;}
   if(this.selectedTroop){if(hit?.kind==='enemy')g.commandAttack(this.selectedTroop,hit.id);else g.commandMove(this.selectedTroop,cell.x,cell.y);this.refresh();return;}
   if(hit?.kind==='site'){const site=(g.data.world.hotspots||[]).find(s=>s.id===hit.id);this.clearSelection();if(site){g.notify(`${site.name} — ${site.text}`);r.cam.x=site.x+.5;r.cam.y=site.y+.5;}this.refresh();sfx.click();return;}
+  if(hit?.kind==='faction-camp'){const camp=(g.data.world.frontierCamps||[]).find(c=>c.id===hit.id),faction=(g.data.world.enemyFactions||[]).find(f=>f.id===camp?.faction);this.clearSelection();if(camp){g.notify(`${camp.name} — ${camp.text}${faction?.lore?` ${faction.lore}`:''}`);r.cam.x=camp.x+.5;r.cam.y=camp.y+.5;}this.refresh();sfx.click();return;}
   if(hit?.kind==='scenery'){this.clearSelection();return;}
   const building=hit?.kind==='building'?g.world.buildings.find(b=>b.id===hit.id):g.world.buildings.find(b=>cell.x>=b.x&&cell.x<b.x+g.data.buildings[b.type].size&&cell.y>=b.y&&cell.y<b.y+g.data.buildings[b.type].size);
   // Clash-style tap: picking a building sweeps whatever its reserve holds (badges
