@@ -22,6 +22,8 @@ jobs:
       - run: npm run build
       - name: Browser gameplay and mobile smoke test
         run: npm run test:browser
+      - name: 390x844 / 150-villager performance benchmark
+        run: npm run test:perf-mobile
       - uses: actions/upload-artifact@v4
         if: always()
         with:

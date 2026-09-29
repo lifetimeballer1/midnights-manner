@@ -154,6 +154,36 @@ export function isClaimed(world, x, y) {
   return t.claimed === true;
 }
 
+// Cardinal edge entries for claimed land connected to an origin (normally the
+// Manor Hall). Isolated landmark/legacy claims cannot become surprise spawn
+// islands. Tile-less mission maps deliberately fall back in combat.
+export function claimedPerimeterEntries(world, dataWorld, side, origin = null) {
+  if (!Array.isArray(world?.tiles) || !world.tiles.length) return [];
+  const dir = {west:[-1,0], north:[0,-1], east:[1,0], south:[0,1]}[side];
+  if (!dir) return [];
+  const width = Number.isFinite(dataWorld?.width) ? dataWorld.width : Infinity;
+  const height = Number.isFinite(dataWorld?.height) ? dataWorld.height : Infinity;
+  const tiles = new Map();
+  for (const t of world.tiles) if (t?.claimed === true && t.x >= 0 && t.y >= 0 && t.x < width && t.y < height) tiles.set(t.x+','+t.y,t);
+  if (!tiles.size) return [];
+  let active = tiles;
+  const ox=Math.floor(origin?.x),oy=Math.floor(origin?.y),originKey=ox+','+oy;
+  if (Number.isFinite(ox) && Number.isFinite(oy) && tiles.has(originKey)) {
+    active=new Map();const queue=[tiles.get(originKey)];active.set(originKey,queue[0]);
+    for(let i=0;i<queue.length;i++){
+      const t=queue[i];
+      for(const [dx,dy] of [[-1,0],[1,0],[0,-1],[0,1]]){
+        const k=(t.x+dx)+','+(t.y+dy),next=tiles.get(k);
+        if(next&&!active.has(k)){active.set(k,next);queue.push(next);}
+      }
+    }
+  }
+  const [dx,dy]=dir,out=[];
+  for(const t of active.values()) if(!active.has((t.x+dx)+','+(t.y+dy))) out.push({x:t.x+.5,y:t.y+.5});
+  out.sort((a,b)=>(side==='west'||side==='east')?(a.y-b.y||a.x-b.x):(a.x-b.x||a.y-b.y));
+  return out;
+}
+
 export function neighborsClaimed(world, x, y) {
   return [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => isClaimed(world, x + dx, y + dy));
 }

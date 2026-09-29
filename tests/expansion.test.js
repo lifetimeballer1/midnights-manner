@@ -2,9 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createWorld, canPlace, inBounds} from '../src/model.js';
-import {ringFor, costFor, isClaimed, regionFor, regionCost, isRegionClaimed, regionAdjacent, claimRegion} from '../src/systems/expansion.js';
+import {ringFor, costFor, isClaimed, regionFor, regionCost, isRegionClaimed, regionAdjacent, claimRegion, claimedPerimeterEntries} from '../src/systems/expansion.js';
 import {claimRect} from '../src/systems/expansion.js';
 import {Game} from '../src/game.js';
+import {spawnRaid} from '../src/systems/combat.js';
 
 const data = Object.fromEntries(await Promise.all(
   ['world', 'troops', 'items', 'abilities', 'buildings', 'expansion', 'biomes'].map(async n => [n, JSON.parse(await readFile(new URL(`../data/${n}.json`, import.meta.url)))])
@@ -159,4 +160,14 @@ test('legacy ring lookups still serve maps without regions', () => {
   assert.equal(ringFor(bare, data.world, 10, 10), 0);
   assert.equal(costFor(bare, data.world, 10, 10), null);
   assert.deepEqual(costFor(bare, data.world, 13, 9, {w: 14, h: 12}), {wood: 60, gold: 25});
+});
+
+
+test('claimed frontier drives raid perimeter beyond legacy XP bounds', () => {
+  const w=createWorld(data),hall=w.buildings.find(b=>b.type==='hall'),origin={x:hall.x+.5,y:hall.y+.5};
+  const before=claimedPerimeterEntries(w,data.world,'east',origin);assert.ok(before.length,'fresh home has an east claimed edge');
+  const beforeX=Math.max(...before.map(p=>p.x)),east=regionFor(data.expansion,26,10);claimRegion(w,east);
+  const after=claimedPerimeterEntries(w,data.world,'east',origin);assert.ok(Math.max(...after.map(p=>p.x))>beforeX,'claim pushes the connected east perimeter outward');
+  spawnRaid(w,4,null,data);assert.equal(w.enemies.length,4,'four-side raid finds four frontier entries');
+  const eastRaider=w.enemies[2];assert.ok(eastRaider.x>w.bounds.w,'east raider no longer uses legacy XP width');assert.equal(isClaimed(w,Math.floor(eastRaider.x),Math.floor(eastRaider.y)),true,'raider enters on a claimed boundary tile');
 });

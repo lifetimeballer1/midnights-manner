@@ -46,8 +46,10 @@ export class Renderer {
    const n=((x*67+y*113+10000)*17)%101, checker=(x+y)%2===0;
    const edge=x<0||y<0||x>=W||y>=H;
    const bounds=world.bounds||{w:20,h:16};
-   // Wild rows: inside the map but outside the settled bounds — darker, red grid.
-   const usable=edge||(x>=1&&y>=1&&x<=bounds.w-2&&y<=bounds.h-2);
+   const rt=!edge?claimedByKey?.get(x+','+y):null;
+   // Tile-grid home worlds follow actual claims; tile-less mission/legacy
+   // worlds retain the authored bounds fallback.
+   const usable=edge||(rt?rt.claimed===true:(x>=1&&y>=1&&x<=bounds.w-2&&y<=bounds.h-2));
    // Moonlit-night checkerboard: deep pine vs moonlit moss; edges fall off darker.
    const inner=checker?['#668b46','#698e49','#6c924b','#648a43'][Math.abs(n)%4]:['#6b9148','#6e944b','#70964e','#6a8d46'][Math.abs(n)%4];
    const wild=checker?'#3e6037':'#43663b';
@@ -62,8 +64,7 @@ export class Renderer {
      if(tile.landmark){const lp=this.project(x+.5,y+.5);c.fillStyle='#f2e2a8';c.font='bold 10px system-ui';c.textAlign='center';c.fillText('✦ '+tile.landmark,lp.x,lp.y-8);c.textAlign='left';}
     }catch{}
     // Wilderness fog (Phase 2): unclaimed land renders dimmed/fogged, still visible.
-    const rt=claimedByKey?.get(x+','+y);
-    const isUnclaimed=rt?rt.claimed!==true:!(x>=1&&y>=1&&x<=(world.bounds?.w||20)-2&&y<=(world.bounds?.h||17)-2);
+    const isUnclaimed=rt?rt.claimed!==true:!usable;
     if(isUnclaimed)this.diamond(x,y,'#0a100c8c');
    }
    if(usable&&!edge){const dx=x-10,dy=y-8;if(dx*dx+dy*dy<17)this.diamond(x,y,'#d6be7130');} // hearth warmth on the village clearing
@@ -254,7 +255,8 @@ export class Renderer {
  tint(name){let t=this.tints.get(name);if(t!==undefined)return t;const img=this.images[name];t=null;try{if(img){t=document.createElement('canvas');t.width=img.naturalWidth||32;t.height=img.naturalHeight||32;const g=t.getContext('2d');g.drawImage(img,0,0);g.globalCompositeOperation='source-in';g.fillStyle='#fff';g.fillRect(0,0,t.width,t.height);}}catch{t=null;}this.tints.set(name,t);return t;}
  spriteFlash(name,x,y,size,key,time,dy=0){const until=this.flash.get(key);if(!until||time>until)return;const t=this.tint(name);if(!t)return;const p=this.project(x,y),raw=size*this.cam.zoom,s=32*Math.max(1,Math.round(raw/32)),c=this.ctx;c.globalAlpha=Math.min(1,(until-time)/150);c.drawImage(t,Math.round(p.x-s/2),Math.round(p.y-s+12*this.cam.zoom+dy),s,s);c.globalAlpha=1;}
  recordFrame(now){if(this._lastFrame==null){this._lastFrame=now;return;}const dt=now-this._lastFrame;this._lastFrame=now;if(dt>=0&&dt<1000){this.frameTimes.push(dt);if(this.frameTimes.length>240)this.frameTimes.shift();}}
- frameReport(){const a=[...this.frameTimes].sort((x,y)=>x-y);if(!a.length)return null;const avg=a.reduce((n,v)=>n+v,0)/a.length;const q=f=>a[Math.min(a.length-1,Math.floor(a.length*f))];return {n:a.length,avg:Math.round(avg*100)/100,p50:Math.round(q(.5)*100)/100,p95:Math.round(q(.95)*100)/100,faces:(this.sceneFaces||[]).length,staticFaces:(this._meshStatic?.faces||[]).length};}
+ resetFrameReport(){this.frameTimes=[];this._lastFrame=null;}
+ frameReport(){const a=[...this.frameTimes].sort((x,y)=>x-y);if(!a.length)return null;const avg=a.reduce((n,v)=>n+v,0)/a.length,q=f=>a[Math.min(a.length-1,Math.floor(a.length*f))],faces=this.sceneFaces||[],staticFaces=this._meshStatic?.faces||[],triangles=list=>list.reduce((n,f)=>n+Math.max(0,(f.points?.length||0)-2),0),meshTriangles=triangles(faces),staticTriangles=triangles(staticFaces);return {n:a.length,avg:Math.round(avg*100)/100,p50:Math.round(q(.5)*100)/100,p95:Math.round(q(.95)*100)/100,faces:faces.length,staticFaces:staticFaces.length,dynamicFaces:Math.max(0,faces.length-staticFaces.length),meshTriangles,staticTriangles,dynamicTriangles:Math.max(0,meshTriangles-staticTriangles),meshPaintOps:faces.length*2};}
  staticCacheKey(world){const b=world.bounds||{w:20,h:16};const seed=this.data.world?.seed??0;const lm=Array.isArray(this.data.world?.tiles)?this.data.world.tiles.length:0;let claimed=-1;try{if(Array.isArray(world.tiles)){claimed=0;for(const t of world.tiles)if(t.claimed)claimed++;}}catch{}this.claimedTileCount=claimed;return [this.cam.x.toFixed(2),this.cam.y.toFixed(2),this.cam.zoom,this.cam.yaw??DEFAULT_YAW,this.cam.pitch??DEFAULT_PITCH,this.width,this.height,this.dpr,this.grid?1:0,b.w,b.h,seed,lm,claimed].join('|');}
  blitCachedStatic(world){if(this._noCache)return false;const key=this.staticCacheKey(world);if(this.staticLayer&&key===this.staticKey){try{this.ctx.drawImage(this.staticLayer,0,0,this.width,this.height);}catch{this._noCache=true;return false;}return true;}this._pendingStaticKey=key;return false;}
  captureStatic(world){const key=this._pendingStaticKey;this._pendingStaticKey=null;if(!key||this._noCache||typeof document==='undefined')return;if(this.shake>0.2)return;try{const pw=Math.round(this.width*this.dpr),ph=Math.round(this.height*this.dpr);if(!this.staticLayer)this.staticLayer=document.createElement('canvas');if(this.staticLayer.width!==pw||this.staticLayer.height!==ph){this.staticLayer.width=pw;this.staticLayer.height=ph;}const g=this.staticLayer.getContext('2d');g.setTransform(1,0,0,1,0,0);g.drawImage(this.canvas,0,0);this.staticKey=key;}catch{this._noCache=true;this.staticLayer=null;this.staticKey='';}}

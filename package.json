@@ -9,7 +9,8 @@
     "test": "node --test tests/*.test.js",
     "build": "node scripts/build.mjs",
     "test:browser": "node scripts/browser-smoke.mjs",
-    "capture": "node scripts/look-capture.mjs"
+    "capture": "node scripts/look-capture.mjs",
+    "test:perf-mobile": "node scripts/mobile-perf.mjs"
   },
   "engines": {
     "node": ">=22"
