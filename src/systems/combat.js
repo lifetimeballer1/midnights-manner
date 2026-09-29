@@ -22,9 +22,20 @@ export function spawnRaid(world,count=4,scaling=null,data=null,faction=null,opts
  // curve, passed as opts.scaling. No opts, no change — mid-game untouched.
  const eg=opts?.scaling||null;
  const hp=(65+world.wave*hpPer)*(eg?.hp||1),dmg=(9+world.wave*dmgPer)*(eg?.damage||1);
- // Home raids follow the actually claimed frontier. Legacy/mission worlds
- // without a tile grid fall back to the historical settled rectangle.
- const perimeter=raidPerimeter(world,data?.world);
+ // Only the persistent home village opts into claimed-frontier entries.
+ // Campaign/authored maps and direct generic callers keep their explicit bounds.
+ let perimeter;
+ if(opts?.claimedFrontier)perimeter=raidPerimeter(world,data?.world);
+ else{
+  const width=Math.min(world.bounds?.w||data?.world.width||20,data?.world.width||Infinity);
+  const height=Math.min(world.bounds?.h||data?.world.height||17,data?.world.height||Infinity);
+  perimeter={
+   west:Array.from({length:Math.max(1,height-2)},(_,n)=>({x:.5,y:n+1.5})),
+   north:Array.from({length:Math.max(1,width-2)},(_,n)=>({x:n+1.5,y:.5})),
+   east:Array.from({length:Math.max(1,height-2)},(_,n)=>({x:width-.5,y:n+1.5})),
+   south:Array.from({length:Math.max(1,width-2)},(_,n)=>({x:n+1.5,y:height-.5}))
+  };
+ }
  const sides=raidSides(world.wave,count);
  for(let i=0;i<count;i++) {
   const side=sides[i%sides.length],raw=perimeter[side]||[],start=raw.length?(i+2+Math.floor(i/4)*3)%raw.length:0;
