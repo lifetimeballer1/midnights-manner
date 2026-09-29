@@ -25,7 +25,7 @@ try{
  const call=(method,params={})=>send(method,params,sessionId);
  const evaluate=async expression=>{const r=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(r.exceptionDetails.exception?.description||'Browser evaluation failed');return r.result.value;};
  const waitFor=async(expression,tries=160)=>{for(let i=0;i<tries;i++){if(await evaluate(expression))return;await new Promise(r=>setTimeout(r,50));}throw Error('Timed out: '+expression);};
- await call('Runtime.enable');await call('Page.enable');
+ await call('Runtime.enable');await call('Page.enable');await call('HeapProfiler.enable');
  await call('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
  await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:2,mobile:true});
  await call('Page.navigate',{url:`http://127.0.0.1:${port}/midnights-manner/?benchmark=1`});
@@ -42,14 +42,18 @@ try{
   assert.ok(report&&report.n>=120,mode+' frame sample collected');
   for(const k of ['avg','p50','p95','faces','staticFaces','drawCalls','triangles'])assert.ok(Number.isFinite(report[k]),mode+' '+k+' is finite');
   assert.ok(report.faces<30000&&report.triangles<60000,`${mode} mesh runaway`);
-  return {tiers,...report};
+  await call('HeapProfiler.collectGarbage');
+  const heapMB=await evaluate('Math.round(performance.memory.usedJSHeapSize/104857.6)/10');
+  return {tiers,...report,heapMB};
  };
+ const baseline1=await sample('baseline');
  const feature=await sample('feature');
- const baseline=await sample('baseline');
+ const baseline2=await sample('baseline');
  assert.deepEqual(errors,[],'no browser runtime errors');
- const pct=(a,b)=>+(((b-a)/a)*100).toFixed(1);
- const delta={avgPct:pct(baseline.avg,feature.avg),p50Pct:pct(baseline.p50,feature.p50),p95Pct:pct(baseline.p95,feature.p95),facesPct:pct(baseline.faces,feature.faces),trianglesPct:pct(baseline.triangles,feature.triangles)};
- console.log('UPGRADE_PAIRED_BENCHMARK '+JSON.stringify({viewport:'390x844@2x',villagers:population.population,baseline,feature,delta}));
+ const mean=(a,b)=>+((a+b)/2).toFixed(2),pct=(a,b)=>+(((b-a)/a)*100).toFixed(1);
+ const baseline={tiers:baseline1.tiers,n:Math.round(mean(baseline1.n,baseline2.n)),avg:mean(baseline1.avg,baseline2.avg),p50:mean(baseline1.p50,baseline2.p50),p95:mean(baseline1.p95,baseline2.p95),faces:baseline1.faces,staticFaces:baseline1.staticFaces,drawCalls:baseline1.drawCalls,triangles:baseline1.triangles,heapMB:mean(baseline1.heapMB,baseline2.heapMB)};
+ const delta={avgPct:pct(baseline.avg,feature.avg),p50Pct:pct(baseline.p50,feature.p50),p95Pct:pct(baseline.p95,feature.p95),facesPct:pct(baseline.faces,feature.faces),trianglesPct:pct(baseline.triangles,feature.triangles),heapPct:pct(baseline.heapMB,feature.heapMB)};
+ console.log('UPGRADE_SANDWICH_BENCHMARK '+JSON.stringify({viewport:'390x844@2x',villagers:population.population,baseline1,feature,baseline2,baseline,delta}));
 }finally{
  try{ws?.close();}catch{}
  killBrowser(chrome);server.close();
