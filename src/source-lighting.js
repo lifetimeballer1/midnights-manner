@@ -10,7 +10,7 @@ export const SOURCE_PROFILES=Object.freeze({
  trap:{falloff:1.85,reach:.70,push:0,alpha:.31,maxAlpha:.31,inner:'255,199,89',mid:'241,126,47',edge:'195,67,30',midStop:.27,midFade:.50,flicker:.18,freq:.014,cone:null}
 });
 export function sourceProfile(source){return SOURCE_PROFILES[source?.profile]||SOURCE_PROFILES.generic;}
-function sourcePhase(source){
+export function sourcePhase(source){
  if(Number.isFinite(source?.phase))return source.phase;
  let h=2166136261;
  const key=String(source?.owner?.id??'')+'|'+(source?.position||[]).join(',');
@@ -44,13 +44,12 @@ export function prepareSourceLighting(scene){
 function clipDirectional(c,d,profile){
  const cone=profile.cone||SOURCE_PROFILES.generic.cone;
  if(!d||!cone)return;
- const [start,nearWidth,end,farWidth]=cone,side=[-d[1],d[0]];
+ const start=cone[0],nearWidth=cone[1],end=cone[2],farWidth=cone[3],sx=-d[1],sy=d[0];
  c.beginPath();
- const corners=[[start,-nearWidth],[start,nearWidth],[end,farWidth],[end,-farWidth]];
- for(let i=0;i<corners.length;i++){
-  const [along,width]=corners[i],u=d[0]*along+side[0]*width,v=d[1]*along+side[1]*width;
-  i?c.lineTo(u,v):c.moveTo(u,v);
- }
+ c.moveTo(d[0]*start-sx*nearWidth,d[1]*start-sy*nearWidth);
+ c.lineTo(d[0]*start+sx*nearWidth,d[1]*start+sy*nearWidth);
+ c.lineTo(d[0]*end+sx*farWidth,d[1]*end+sy*farWidth);
+ c.lineTo(d[0]*end-sx*farWidth,d[1]*end-sy*farWidth);
  c.closePath();c.clip();
 }
 export function drawSourceSpill(scene,time=0){
