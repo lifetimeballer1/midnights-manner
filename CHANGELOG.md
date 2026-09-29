@@ -7,6 +7,13 @@
 - Prioritized building cards above village statistics on small screens.
 - No gameplay, economy, progression or save changes.
 
+## Detail/world/story expansion — Phase 4: Source lighting identity (2026-09-28)
+
+- Tagged luminous scene geometry with explicit renderer profiles: window, lantern, torch, open fire, and fire trap. Each profile has its own projected reach, falloff, spill shape and warm palette instead of sharing one generic amber pool.
+- Windows stay narrow and facade-directed; lanterns stay compact and steady; torches use a wider directional orange spill; forge/watch fires spread farther and hotter; armed fire traps pulse in a smaller footprint. The inexpensive local facade wash remains cached with the static mesh.
+- Dynamic flicker is deterministic per source/time, restrained, and affects only ground spill. Calm/reduced-motion pins every source at steady intensity. No simulation state, saves, light-source count, or gameplay rules changed.
+- Added three source-lighting regressions for profile assignment, deterministic/Calm flicker, fallback behavior and profile-specific falloff. Test target: 521 → 524.
+
 ## Detail/world/story expansion — Phase 3: Working villagers (2026-09-28)
 
 - Held tools now move when the villager is actually working: posted noncombat trades animate at their workplace, assigned collectors animate during the gather phase once they are carrying output, and builders hammer during repair emergencies. Existing combat animation still takes priority.
