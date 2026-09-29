@@ -10,6 +10,9 @@ import {join,extname,resolve,relative,isAbsolute} from 'node:path';
 import {createServer} from 'node:http';
 import {DAY_LENGTH,phaseAt,weatherAt} from '../src/systems/daynight.js';
 import {DEFAULT_YAW,DEFAULT_PITCH} from '../src/camera.js';
+import assert from 'node:assert/strict';
+import {createWorld,makeBuilding,makeUnit} from '../src/model.js';
+import {VERSION} from '../src/storage.js';
 // Windows browsers leave crashpad/utility children behind `kill()`; those
 // children inherit our stdio handles and can hang a piping shell long after
 // node exits. Kill the whole tree so the harness always returns promptly.
@@ -32,12 +35,25 @@ try{
  const evaluate=async expression=>{const r=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(r.exceptionDetails.exception?.description||'Browser evaluation failed');return r.result.value;};
  const waitFor=async (expression,tries=100)=>{for(let i=0;i<tries;i++){if(await evaluate(expression))return;await new Promise(r=>setTimeout(r,100));}throw Error('Timed out: '+expression);};
  await call('Runtime.enable');await call('Page.enable');
+ if(process.env.FRONTIER_CAPTURE==='1'){
+  const data=Object.fromEntries(await Promise.all(['world','troops','items','abilities','buildings','quests','expansion','biomes'].map(async name=>[name,JSON.parse(await readFile(new URL(`../data/${name}.json`,import.meta.url)))])));
+  const village=createWorld(data);
+  village.nextRaidAt=1e9;village.nextFrontierEventAt=1e9;
+  for(const [type,profession,x,y,level]of [['whisper-grove','heartwarden',2,2,1],['whisper-grove','heartwarden',2,5,2],['blackwater-weir','mudlark',5,2,1],['blackwater-weir','mudlark',5,5,2]]){
+   const b=makeBuilding(type,x,y,data,level),u=makeUnit(profession,data);
+   b.remaining=0;b.harvestBonus=160;u.workplace=b.id;u.x=x+1;u.y=y+1;u.armor=profession==='heartwarden'?'whisper-coat':'mire-coat';u.armorOwned=[u.armor];
+   village.buildings.push(b);village.troops.push(u);
+  }
+  const state={version:VERSION,world:village,home:null,mission:null,completed:[],unlocks:data.world.locked,xp:2640,vlevel:11,questsCompleted:data.quests.map(q=>q.id)};
+  await call('Page.addScriptToEvaluateOnNewDocument',{source:`localStorage.setItem('midnights-manner-v2',${JSON.stringify(JSON.stringify(state))});localStorage.setItem('midnights-manner-guide-v1','{"done":true}');`});
+ }
  // Calm motion before load: the renderer reads prefers-reduced-motion at boot.
  await call('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
  await call('Emulation.setDeviceMetricsOverride',{width:1280,height:900,deviceScaleFactor:1,mobile:false});
  await call('Page.navigate',{url:`http://127.0.0.1:${port}/midnights-manner/`});
  await waitFor('Boolean(window.midnightsManner)');
  await evaluate('document.querySelector("#begin").click()');await waitFor('window.midnightsManner.ready');
+ if(process.env.FRONTIER_CAPTURE==='1')assert.ok(await evaluate(`['whisper-grove','blackwater-weir'].every(type=>window.midnightsManner.snapshot().world.buildings.filter(b=>b.type===type).length===2)`),'frontier save fixture loaded');
  // Dismiss the first-run notice board if this build shows one.
  await new Promise(r=>setTimeout(r,600));await evaluate('document.querySelector("#news-close")?.click()');
  const hall=await evaluate('(()=>{const b=window.midnightsManner.snapshot().world.buildings.find(b=>b.type==="hall");return {x:b.x+1,y:b.y+1};})()');
@@ -65,9 +81,32 @@ try{
  await new Promise(r=>setTimeout(r,250));await evaluate(camera(1.65));
  const tNight=clearAt(0.8);await setSky(tNight);await shot('look-phone-night');
  summary.views.push({file:'artifacts/look-phone-night.png',phase:phaseAt(tNight,{world}).id,weather:weatherAt(tNight,{world}).id,elapsed:tNight});
+ if(process.env.FRONTIER_CAPTURE==='1'){
+  await evaluate(`window.midnightsManner.setCamera({yaw:${DEFAULT_YAW},pitch:${DEFAULT_PITCH},zoom:1.65,x:4,y:4})`);
+  await new Promise(r=>setTimeout(r,300));await shot('look-frontier-phone');
+  await call('Emulation.setDeviceMetricsOverride',{width:1280,height:900,deviceScaleFactor:1,mobile:false});
+  await evaluate('window.midnightsManner.setCamera({zoom:2.5,x:4,y:4})');
+  await new Promise(r=>setTimeout(r,300));await shot('look-frontier-desktop');
+  assert.ok(await evaluate(`(()=>{const g=window.midnightsManner;return g.snapshot().world.buildings.filter(b=>['whisper-grove','blackwater-weir'].includes(b.type)).every(b=>g.modelPoints(b.id).length>0);})()`),'both frontier tiers have selectable visible geometry');
+  summary.views.push({file:'artifacts/look-frontier-phone.png'},{file:'artifacts/look-frontier-desktop.png'});
+  const seconds=Number(process.env.SOAK_SECONDS||60);
+  assert.ok(Number.isFinite(seconds)&&seconds>=10&&seconds<=600,'soak duration must be 10-600 seconds');
+  const samples=[],start=Date.now(),startElapsed=await evaluate('window.midnightsManner.snapshot().world.elapsed');
+  while(Date.now()-start<seconds*1000){
+   await new Promise(r=>setTimeout(r,1000));
+   const sample=await evaluate('({frame:window.midnightsManner.frameReport(),effects:window.midnightsManner.snapshot().world.effects.length})');
+   assert.ok(sample.frame?.n>=10&&Number.isFinite(sample.frame.p95),'live frame telemetry');
+   assert.ok(sample.frame.faces<30000&&sample.frame.staticFaces<30000,'face budget');
+   assert.ok(sample.effects<=60,'effect pool budget');samples.push(sample);
+  }
+  const elapsed=await evaluate('window.midnightsManner.snapshot().world.elapsed');
+  assert.ok(elapsed>startElapsed+seconds*.5,'soak must run active simulation');
+  summary.soak={seconds,samples:samples.length,activeSeconds:elapsed-startElapsed,maxFaces:Math.max(...samples.map(s=>s.frame.faces)),maxStaticFaces:Math.max(...samples.map(s=>s.frame.staticFaces)),maxEffects:Math.max(...samples.map(s=>s.effects))};
+ }
  summary.frame=await evaluate('window.midnightsManner.frameReport()');
  summary.errors=errors;
  console.log(JSON.stringify(summary,null,1));
+ assert.ok(summary.frame?.faces<30000&&summary.frame.staticFaces<30000,'capture face budget');
  if(errors.length)throw Error('Page errors during capture: '+errors.join(' | '));
 }finally{
  try{ws?.close();}catch{}

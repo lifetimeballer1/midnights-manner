@@ -231,9 +231,9 @@ test('ph7: the Smeltery waits on a tier-2 Frostgrove (generic chain gate)', () =
   assert.deepEqual(s.requiresBuilding, {type: 'frostgrove', level: 2});
   assert.equal(new Set(s.tiers.map(t => t.sprite)).size, 2, 'tiers stay visually distinct');
   // The gate is generic data: only the chain-gated line carries the field
-  // (smeltery first, deephole + emberglass its second and third data points).
+   // (smeltery first; later frontier workplaces reuse it).
   for (const [id, b] of Object.entries(data.buildings)) {
-    if (['smeltery', 'deephole', 'emberglass'].includes(id)) continue;
+    if (['smeltery', 'deephole', 'emberglass', 'whisper-grove', 'blackwater-weir'].includes(id)) continue;
     assert.ok(!b.requiresBuilding, `${id} needs no chain`);
   }
   const d = structuredClone(data);

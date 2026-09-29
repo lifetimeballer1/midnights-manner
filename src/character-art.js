@@ -9,6 +9,8 @@ const uniforms={
  miner:['#747f88','lamp'],sapper:['#4f9e9c','lamp'],diver:['#5f87bd','lamp'],
  builder:['#a4875d','cap'],mason:['#9d9b88','cap'],
  lumberjack:['#725235','cap'],sawyer:['#8b684c','goggles'],woodward:['#648d87','hood'],
+ heartwarden:['#a2683e','hood'],
+ mudlark:['#385f68','straw'],
  fisherman:['#628c98','cap'],butcher:['#aa7966','apron'],
  weaponsmith:['#7f4939','apron'],armorer:['#657b8f','apron'],
  toolsmith:['#67a34d','apron'],leatherworker:['#d8b244','apron'],smelter:['#4f5962','apron'],
@@ -236,7 +238,7 @@ function carriedLoad(s,u,troop,x,y,detail){
   return;
  }
  if(res==='food'){
-  if(['fisherman','diver'].includes(u.type)){
+   if(['fisherman','diver','mudlark'].includes(u.type)){
    s.box(x-.16,y-.29,.29,.32,.18,.2,'#8c704e');
    s.box(x-.14,y-.31,.47,.28,.03,.035,leather);
    if(detail){s.box(x-.08,y-.315,.44,.12,.02,.035,'#8bc7d0');s.box(x+.04,y-.315,.39,.13,.02,.035,'#6fa7b4');}

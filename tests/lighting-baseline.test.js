@@ -37,12 +37,14 @@ function mesh(r, type, level, yaw) {
   return s;
 }
 function equipmentLineup(){
-  const r=renderer(),gear=[...new Set([...Object.values(data.troops).map(t=>t.defaultGear),'axe','warhammer','scythe','cart','berry-basket','orrery','toolkit'])].filter(id=>id&&id!=='apron');
+  // Freeze the shipped lineup; new outfits/tools have full-orbit coverage in character-art.test.js.
+  const troops=Object.entries(data.troops).filter(([id])=>!['heartwarden','mudlark'].includes(id));
+  const r=renderer(),gear=[...new Set([...troops.map(([,t])=>t.defaultGear),'axe','warhammer','scythe','cart','berry-basket','orrery','toolkit'])].filter(id=>id&&id!=='apron');
   r.calm=true;r.cam.x=2+(gear.length-1)*.8/2;r.cam.y=8;r.cam.zoom=1.65;r.cam.yaw=PI/4;
   const s=new MeshScene(r);
   gear.forEach((id,i)=>characterModel(s,{id:`equipment-${i}-${id}`,type:data.items[id]?.roles?.[0]||'warrior',x:2+i*.8,y:8,hp:100,gear:id},data,0));
   r.cam.y=16;
-  Object.keys(data.troops).forEach((type,i)=>characterModel(s,{id:`outfit-${i}-${type}`,type,x:2+i*.8,y:16,hp:100,gear:''},data,0));
+  troops.forEach(([type],i)=>characterModel(s,{id:`outfit-${i}-${type}`,type,x:2+i*.8,y:16,hp:100,gear:''},data,0));
   return s;
 }
 // The frozen Phase 1 formula — any drift here fails the test by construction.

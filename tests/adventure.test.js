@@ -36,7 +36,7 @@ test('adventure sections are the five phase-1 tabs; market stays a deep link', (
 test('questCards: first quest active, rest upcoming, progress always shaped', () => {
   const {data: d, state} = freshState();
   const cards = questCards(d, state);
-  assert.equal(cards.length, 22);
+  assert.equal(cards.length, 24);
   assert.equal(cards[0].status, 'active');
   assert.ok(cards.slice(1).every(c => c.status === 'upcoming'));
   for (const c of cards) {
@@ -162,7 +162,7 @@ test('homeSummary snapshots home without mutating state or saves', () => {
   const s = homeSummary(state, d);
   assert.equal(JSON.stringify(state), before, 'read-only: no new save keys, no drift');
   assert.equal(s.questsDone, 0);
-  assert.equal(s.questsTotal, 22);
+  assert.equal(s.questsTotal, 24);
   assert.equal(s.chaptersTotal, 18);
   assert.equal(s.chaptersDone, 0);
   assert.equal(s.lvl, 1);

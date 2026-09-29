@@ -84,6 +84,7 @@
     "flour": 0,
     "bread": 0
   },
+  "storageSettling": {"fractionPerSecond": 0.01, "flatPerSecond": 0.02},
   "storageBase": {
     "wood": 4000,
     "food": 4000,
@@ -281,7 +282,13 @@
     "oathkeeper-armor",
     "dawn-gate",
     "regalia",
-    "dawnbringer"
+    "dawnbringer",
+    "heartwarden",
+    "heartwood-axe",
+    "whisper-coat",
+    "mudlark",
+    "blackwater-net",
+    "mire-coat"
   ],
   "homeRaids": {
     "firstAt": 300,
@@ -901,6 +908,48 @@
           "id": "decline",
           "label": "Keep the coin",
           "result": "The wagon rolls north looking for another buyer. The salt smell lingers after the wheels are gone."
+        }
+      ]
+    },
+    {
+      "id": "whisperwood-paired-cuts",
+      "region": "whisperwood",
+      "minLevel": 6,
+      "title": "Fresh Cuts in Whisperwood",
+      "text": "Tomm finds a fallen heartwood trunk across the paired-cut trail. The wardens can clear it before the next caravan, if the Manor sends supper.",
+      "choices": [
+        {
+          "id": "supper",
+          "label": "Send 50 food",
+          "cost": {"food": 50},
+          "reward": {"gold": 80},
+          "result": "The wardens clear the fallen trunk without touching the living pines. A caravan pays its road fee at the Manor before dawn."
+        },
+        {
+          "id": "rest",
+          "label": "Let the grove rest",
+          "result": "Tomm hangs a warning at the fork. The caravans take the longer road, and the grove keeps its quiet."
+        }
+      ]
+    },
+    {
+      "id": "blackwater-white-thread",
+      "region": "blackwater-mouth",
+      "minLevel": 6,
+      "title": "A Thread above Blackwater",
+      "text": "The Mooncleric finds the first post leaning into the current. The mudlarks ask for straight timber to keep the white thread above the returning boats.",
+      "choices": [
+        {
+          "id": "brace",
+          "label": "Send 55 wood",
+          "cost": {"wood": 55},
+          "reward": {"food": 95},
+          "result": "The mudlarks brace the post before the tide turns. Returning boats leave smoked fish at the Manor, and the white thread stays dry."
+        },
+        {
+          "id": "wait",
+          "label": "Wait on the bank",
+          "result": "The Mooncleric lifts the thread to a safer branch. The boats take the far channel while the old post settles into the mud."
         }
       ]
     }

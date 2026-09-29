@@ -605,6 +605,23 @@
     "animation": "sweep",
     "sprite": "item-frostaxe.png"
   },
+  "heartwood-axe": {
+    "name": "Heartwood Axe",
+    "roles": ["heartwarden"],
+    "cost": {"gold": 70, "frostwood": 20},
+    "stats": {"gather": 1.4, "carry": 14},
+    "animation": "sweep",
+    "sprite": "item-heartwood-axe.png"
+  },
+  "whisper-coat": {
+    "name": "Whisper Coat",
+    "slot": "armor",
+    "roles": ["heartwarden"],
+    "cost": {"gold": 60, "frostwood": 25},
+    "stats": {"armor": 0.1, "gather": 1.1},
+    "animation": "tap",
+    "sprite": "item-whisper-coat.png"
+  },
   "winter-coat": {
     "name": "Winter Coat",
     "slot": "armor",
@@ -742,6 +759,23 @@
     },
     "animation": "sweep",
     "sprite": "item-net.png"
+  },
+  "blackwater-net": {
+    "name": "Blackwater Net",
+    "roles": ["mudlark"],
+    "cost": {"gold": 75, "wood": 40},
+    "stats": {"gather": 1.6, "carry": 18},
+    "animation": "sweep",
+    "sprite": "item-blackwater-net.png"
+  },
+  "mire-coat": {
+    "name": "Mire Coat",
+    "slot": "armor",
+    "roles": ["mudlark"],
+    "cost": {"gold": 65, "food": 45},
+    "stats": {"armor": 0.12, "speed": 1.1},
+    "animation": "tap",
+    "sprite": "item-mire-coat.png"
   },
   "oilskin-coat": {
     "name": "Oilskin Coat",

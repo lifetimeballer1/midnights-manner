@@ -9,6 +9,7 @@ import {midgameRate, reserveMult} from './economy.js';
 import {refinerCrew, crewPower} from './crafting.js';
 import {mealCost, mealConfig, townMouths} from './food.js';
 import {reserveCapacity} from '../resources.js';
+import {settlingRate} from './storage.js';
 
 export function economyDashboard(world, data) {
   const dayLength = mealConfig(data).secondsPerDay;
@@ -57,6 +58,7 @@ export function economyDashboard(world, data) {
     bump('food', 'use', meal.food / dayLength);
     bump('bread', 'use', meal.bread / dayLength);
   }
+  for (const key of Object.keys(world.resources || {})) bump(key, 'use', settlingRate(world, data, key));
   const list = Object.values(rows)
     .map(r => ({...r, net: r.prod - r.use}))
     .filter(r => Math.abs(r.prod) > 1e-9 || Math.abs(r.use) > 1e-9)

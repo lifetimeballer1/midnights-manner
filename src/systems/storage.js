@@ -6,8 +6,8 @@
 //   - production leftovers stay exactly where they were (on-site reserve,
 //     carried goods, un-refined input) and resume when room opens;
 //   - grant leftovers wait in world.pendingRewards until room opens.
-// Old saves grandfather: an over-cap balance keeps every unit; only new
-// central inflow is blocked until the player spends below the cap.
+// Old saves load unchanged; during active play, over-cap central balances
+// settle quietly toward the cap. Held rewards and on-site goods never drain.
 // Caps come from data: world.storageBase (the floor every village owns)
 // plus every living, finished building whose spec carries a `storage` map,
 // scaled by that tier's rateMultiplier, so storage grows with upgrades.
@@ -62,6 +62,15 @@ export function centralStored(world, key) {
 export function isOverCap(world, data, key) {
   const cap = storageCap(world, data, key);
   return Number.isFinite(cap) && centralStored(world, key) > cap;
+}
+
+export function settlingRate(world, data, key) {
+  const over = centralStored(world, key) - storageCap(world, data, key);
+  const cfg = data?.world?.storageSettling;
+  if (!(over > 0) || !cfg) return 0;
+  const fraction = Number.isFinite(cfg.fractionPerSecond) ? Math.max(0, cfg.fractionPerSecond) : 0;
+  const flat = Number.isFinite(cfg.flatPerSecond) ? Math.max(0, cfg.flatPerSecond) : 0;
+  return over * fraction + flat;
 }
 
 export function centralRoom(world, data, key) {

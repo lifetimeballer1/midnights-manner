@@ -428,5 +428,31 @@
       "regalia",
       "dawnbringer"
     ]
+  },
+  {
+    "id": "whisper-cuts",
+    "name": "Whisper Cuts",
+    "text": "Tomm follows the paired cuts through Whisperwood. Raise one Whisper Grove behind the old Moonberry Grove, and leave the unmarked trees standing.",
+    "giver": "Tomm",
+    "flavor": "Two cuts for the road, one clean stroke for the hearth. The rest belongs to the woods.",
+    "log": "Tomm marked the first heartwood trunks himself. The wardens carried their haul home without widening the road.",
+    "act": "X",
+    "task": {"kind": "build", "type": "whisper-grove", "count": 1},
+    "xp": 0,
+    "rewards": {},
+    "unlocks": ["heartwarden", "heartwood-axe", "whisper-coat"]
+  },
+  {
+    "id": "white-thread",
+    "name": "White Thread",
+    "text": "The Mooncleric ties a white thread to the first river post. Raise one Blackwater Weir behind the old pond, and leave a passage for the returning boats.",
+    "giver": "Mooncleric",
+    "flavor": "The thread is for the living. The river already knows the rest.",
+    "log": "A white thread marks the weir's first post. The mudlarks leave the boat channel open and carry the evening catch home.",
+    "act": "X",
+    "task": {"kind": "build", "type": "blackwater-weir", "count": 1},
+    "xp": 0,
+    "rewards": {},
+    "unlocks": ["mudlark", "blackwater-net", "mire-coat"]
   }
 ]

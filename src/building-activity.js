@@ -91,9 +91,9 @@ export function drawBuildingActivity(r,world,time){
   if(!state.active)continue;
   const n=spec.size||1,intensity=Math.min(1,.45+state.crew*.2);
   if(['forge','smeltery','workshop','butchery'].includes(b.type)){if(!r.calm)smoke(r,b,n,time,intensity);sparks(r,b,n,time,intensity);}
-  if(['lumber','timber_yard','sawmill'].includes(b.type))sawStroke(r,b,n,time,intensity);
+   if(['lumber','timber_yard','sawmill','whisper-grove'].includes(b.type))sawStroke(r,b,n,time,intensity);
   if(['mine','emberglass'].includes(b.type))mineGlint(r,b,n,time,intensity);
-  if(['pond','deephole'].includes(b.type))waterRipple(r,b,n,time,intensity);
+   if(['pond','deephole','blackwater-weir'].includes(b.type))waterRipple(r,b,n,time,intensity);
   if(b.type==='mill')wheel(r,b,n,time,intensity);
   if(['farm','pasture','grove','frostgrove'].includes(b.type))cropSweep(r,b,n,time,intensity);
   if(state.workplace&&['armory','fletcher','shieldwall-yard','tannery','scriptorium','schoolroom','scout_post'].includes(b.type))workGlint(r,b,n,time,intensity);

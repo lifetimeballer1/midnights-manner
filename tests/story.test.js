@@ -15,11 +15,11 @@ function freshState(d) {
 }
 
 test('story item 1: every quest carries giver, flavor and act', () => {
-  assert.equal(data.quests.length, 22, "twenty-two steps: sixteen shipped plus the three Act VII trials plus the three Act VIII legend trials");;
+  assert.equal(data.quests.length, 24, 'twenty-two shipped steps plus two zero-XP frontier quests');
   for (const q of data.quests) {
     assert.ok(typeof q.giver === 'string' && q.giver.length > 0, `${q.id} giver`);
     assert.ok(typeof q.flavor === 'string' && q.flavor.length > 0, `${q.id} flavor`);
-    assert.ok(['I', 'II', 'V', 'VI', 'VII', 'VIII'].includes(q.act), `${q.id} act`);
+    assert.ok(['I', 'II', 'V', 'VI', 'VII', 'VIII', 'X'].includes(q.act), `${q.id} act`);
   }
   assert.deepEqual(data.quests.slice(0, 5).map(q => q.act), ['I', 'I', 'I', 'I', 'I']);
   assert.deepEqual(data.quests.slice(5, 8).map(q => q.act), ['II', 'II', 'II']);

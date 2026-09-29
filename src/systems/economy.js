@@ -3,7 +3,7 @@ import {builderBonuses,center,unlockedAbilities,stats,auras,gatherBonus} from '.
 import {hasTrait, jobLevelMult} from './villagers.js';
 import {move} from './pathfinding.js';
 import {sfx} from './audio.js';
-import {depositCentral,flushPending} from './storage.js';
+import {depositCentral,flushPending,storageCap,settlingRate} from './storage.js';
 // Open resource maps: new keys (frostwood onward) ride without a schema
 // change, and pre-frostwood saves (no frostwood key yet) haul without NaN-ing.
 // Low-level primitive that skips central storage caps — central inflow goes
@@ -70,6 +70,11 @@ export function tickEconomy(world,data,dt) {
  // Held reward overflow banks first as room opens (Phase 1 storage caps):
  // quest caches, gifts and salvage wait here while the stores are full.
  flushPending(world,data);
+ // Only excess central stock settles; never dip into protected capacity.
+ for(const key of Object.keys(world.resources)){
+  const rate=settlingRate(world,data,key);
+  if(rate>0)world.resources[key]-=Math.min(world.resources[key]-storageCap(world,data,key),rate*dt);
+ }
  // Perf: one aura per tick shared with builderBonuses (was two full passes).
  const aura=auras(world,data);
  const bonus=builderBonuses(world,data,aura);
