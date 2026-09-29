@@ -28,7 +28,7 @@ export function occupiedTileKeys(world,data){
 }
 export function sceneryPlan(world,data){
  if(!Array.isArray(world?.tiles))return [];
- const occupied=occupiedTileKeys(world,data),seed=Number.isFinite(data?.world?.seed)?data.world.seed:0,out=[];
+ const occupied=occupiedTileKeys(world,data),seed=Number.isFinite(world?.biomeSeed)?world.biomeSeed:Number.isFinite(data?.world?.seed)?data.world.seed:0,out=[];
  for(const tile of world.tiles){
   if(occupied.has(tile.x+','+tile.y))continue;
   const prop=sceneryForTile(data.biomes,tile,seed);
@@ -97,7 +97,7 @@ function drawProp(s,item,seed){
 }
 export function addEnvironmentScenery(scene,world,data){
  if(!scene?.r||!Array.isArray(world?.tiles))return 0;
- const r=scene.r,zoom=r.cam.zoom,seed=Number.isFinite(data?.world?.seed)?data.world.seed:0;
+ const r=scene.r,zoom=r.cam.zoom,seed=Number.isFinite(world?.biomeSeed)?world.biomeSeed:Number.isFinite(data?.world?.seed)?data.world.seed:0;
  const plan=sceneryPlan(world,data),oldOwner=scene.owner,oldAlpha=scene.alpha;
  scene.owner=null;scene.alpha=1;
  let drawn=0,max=zoom<.75?50:zoom<1.2?85:130;
