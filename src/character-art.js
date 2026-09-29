@@ -185,10 +185,10 @@ function enemyRoleSilhouette(s,u,x,y,bob,detail,coat){
   s.box(x-.24,y-.15,.31,.08,.27,.18,leather);
   s.box(x-.26,y+.06,.38,.11,.04,.09,coat);
  }
- if(u.elite){
-  s.box(x-.24,y-.13,.5,.09,.18,.13,brass);
-  s.box(x+.15,y-.13,.5,.09,.18,.13,brass);
-  s.box(x-.025,y-.02,.82+bob,.05,.06,.18,brass);
+ if(u.elite){const eliteGold='#f1d487';
+  s.box(x-.24,y-.13,.5,.09,.18,.13,eliteGold);
+  s.box(x+.15,y-.13,.5,.09,.18,.13,eliteGold);
+  s.box(x-.025,y-.02,.82+bob,.05,.06,.18,eliteGold);
  }
  if(u.role==='boss'){
   if(u.bossId==='cinder-maul'){
