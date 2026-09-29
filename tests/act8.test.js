@@ -44,6 +44,8 @@ test('ph16: the pale court opens on EITHER banner road only after Southreach is 
   claimRegion(w,regionById(data.expansion,'southreach'));
   assert.ok(!missionLocked(m, ['red-banner'], w, data), 'red road opens once Southreach is held');
   assert.ok(!missionLocked(m, ['grey-banner'], w, data), 'grey road opens once Southreach is held');
+  const legacy=createWorld(data);
+  assert.ok(!missionLocked(m,['the-pale-court'],legacy,data),'a chapter cleared before destination gates stays replayable');
   assert.deepEqual(m.unlocks, ['moon-dial', 'envoys-gift', 'banner-cloak-grey']);
   assert.ok(m.map.troops.length > 0, 'the court walks its own showcase');
 });
