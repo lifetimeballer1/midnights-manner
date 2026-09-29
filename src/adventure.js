@@ -113,7 +113,8 @@ export function computeNextAction(state, data) {
   const cards = campaignCards(data, state);
   const next = (data?.missions || []).find(m => cards.find(c => c.id === m.id)?.state === 'available');
   if (next) {
-    return {kind: 'chapter', label: `Chapter ${next.chapter}: ${next.name}`, detail: `First-clear: ${rewardText(next.rewards)}`, goto: 'chapters', missionId: next.id};
+    const card=cards.find(c=>c.id===next.id),where=card?.destination?.name;
+    return {kind: 'chapter', label: `Chapter ${next.chapter}: ${next.name}`, detail: `${where?`Destination: ${where} · `:''}First-clear: ${rewardText(next.rewards)}`, goto: 'chapters', missionId: next.id};
   }
   const roster = expeditionRoster(state?.world, data);
   if (roster.idle.length) {
