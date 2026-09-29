@@ -31,8 +31,8 @@ export function shade(hex,n,light,emissive=0,depth01=0,ao=1,local=0){
 }
 export class MeshScene {
  constructor(r){this.r=r;this.faces=[];this.sources=[];this.owner=null;this.alpha=1;this.depthBias=0;this.light=FALLBACK_LIGHT;this.emissive=0;this.fixture=false;this.basis=cameraBasis(r);}
- source(position,direction=null,radius=1.25,power=.7){
-  if(this.alpha===1)this.sources.push({position,direction,radius,power,owner:this.owner});
+ source(position,direction=null,radius=1.25,power=.7,profile='generic'){
+  if(this.alpha===1)this.sources.push({position,direction,radius,power,profile,owner:this.owner});
  }
  face(vertices,color,split=true){
   // Split broad roof/wall planes so chimneys and neighboring meshes occlude
@@ -88,14 +88,14 @@ function torch(s,x,y,z,direction=null,radius=.95,power=.5){
  s.box(x-.025-dx*.06,y-.025-dy*.06,z-.22,.05,.05,.23,'#594737');
  s.box(x-.04-dx*.02,y-.04-dy*.02,z-.03,.08,.08,.05,'#41372f');
  s.emissive=1;s.pyramid(x,y,z,.075,.16,'#f2b35c',5);s.emissive=0;s.fixture=fixture;
- s.source([x,y,z+.08],direction,radius,power);
+ s.source([x,y,z+.08],direction,radius,power,'torch');
 }
 function lanternPost(s,x,y,z=.72,radius=1.05,power=.46){
  const fixture=s.fixture;s.fixture=true;
  s.box(x-.035,y-.035,.12,.07,.07,Math.max(.18,z-.18),timber);
  s.box(x-.09,y-.09,z-.1,.18,.18,.08,'#4d514b');
  s.emissive=1;s.box(x-.05,y-.05,z-.025,.1,.1,.11,'#ffd58b');s.emissive=0;s.fixture=fixture;
- s.source([x,y,z+.035],null,radius,power);
+ s.source([x,y,z+.035],null,radius,power,'lantern');
 }
 function pine(s,x,y,height=1.7,cold=false){s.box(x-.045,y-.045,0,.09,.09,height*.65,'#73543c');for(let i=0;i<3;i++)s.pyramid(x,y,height*(.23+i*.21),height*(.31-i*.055),height*.53,cold?['#598c83','#80b8ae','#b6ded0'][i]:['#315d43','#477953','#699358'][i],6);}
 function tower(s,x,y,size,h,color=stone){s.box(x,y,.12,size,size,h,color);s.box(x-.08,y-.08,h+.1,size+.16,size+.16,.16,color);for(const [dx,dy]of[[0,0],[size-.16,0],[0,size-.16],[size-.16,size-.16]])s.box(x+dx-.025,y+dy-.025,h+.26,.21,.21,.23,color);s.box(x+size*.38,y+size+.006,h*.48,size*.2,.012,.27,'#324a41');s.box(x+size+.006,y+size*.38,h*.48,.012,size*.2,.27,'#324a41');}
@@ -105,7 +105,7 @@ function windows(s,x,y,w,d,h){
  const bias=s.depthBias;s.depthBias+=.12;
  // Register each pane at the same world position as its visible geometry.
  s.emissive=1;
- for(const f of [.18,.72]){const z=h*.54,ww=Math.min(.18,w*.15);s.source([x+w*f+ww/2,y+d+.05,z+.095],[0,1]);s.source([x+w*f+ww/2,y-.05,z+.095],[0,-1]);s.source([x-.05,y+d*f+ww/2,z+.095],[-1,0]);s.source([x+w+.05,y+d*f+ww/2,z+.095],[1,0]);s.box(x+w*f,y+d+.008,z,ww,.024,.19,'#ffe6ab');s.box(x+w*f,y-.025,z,ww,.024,.19,'#ffe6ab');s.box(x-.025,y+d*f,z,.024,ww,.19,'#ffe6ab');s.box(x+w+.008,y+d*f,z,.024,ww,.19,'#ffe6ab');}
+ for(const f of [.18,.72]){const z=h*.54,ww=Math.min(.18,w*.15);s.source([x+w*f+ww/2,y+d+.05,z+.095],[0,1],1.25,.7,'window');s.source([x+w*f+ww/2,y-.05,z+.095],[0,-1],1.25,.7,'window');s.source([x-.05,y+d*f+ww/2,z+.095],[-1,0],1.25,.7,'window');s.source([x+w+.05,y+d*f+ww/2,z+.095],[1,0],1.25,.7,'window');s.box(x+w*f,y+d+.008,z,ww,.024,.19,'#ffe6ab');s.box(x+w*f,y-.025,z,ww,.024,.19,'#ffe6ab');s.box(x-.025,y+d*f,z,.024,ww,.19,'#ffe6ab');s.box(x+w+.008,y+d*f,z,.024,ww,.19,'#ffe6ab');}
  s.emissive=0;s.box(x+w*.4,y+d+.01,.1,w*.22,.026,.48,'#5b4735');
  s.depthBias=bias;
 }
@@ -142,7 +142,7 @@ function homeDetails(s,b,n,l){
  const x=b.x+.22,y=b.y+.22,w=n-.44,h=.42+l*.16;
  if(l>=2){
   // Loft window in the front gable, with a little rail under it.
-  s.source([x+w*.44+.065,y+w+.03,h+.265],[0,1],.9,.45);s.emissive=1;s.box(x+w*.44,y+w-.028,h+.2,.13,.05,.13,'#ffe6ab');s.emissive=0;
+  s.source([x+w*.44+.065,y+w+.03,h+.265],[0,1],.9,.45,'window');s.emissive=1;s.box(x+w*.44,y+w-.028,h+.2,.13,.05,.13,'#ffe6ab');s.emissive=0;
   for(const dx of [.34,.62])s.box(x+w*dx,y+w+.03,.1,.045,.045,h*.72,timber);
   s.box(x+w*.34,y+w+.03,.5,.3,.04,.045,timber);
  }
@@ -353,7 +353,7 @@ function buildingShape(s,b,spec,world,time){
   if(t.includes('trap')){const armed=trapArmed(b),fire=t==='fire-trap';s.box(x+.18,y+.18,.12,.64,.64,.08,'#665445');s.box(x+.25,y+.25,.2,.5,.5,.035,armed?(fire?'#815338':'#75664c'):'#4d4840');
    if(fire&&armed)s.emissive=.7;
    for(let i=0;i<3;i++)for(let j=0;j<3;j++)s.pyramid(x+.28+i*.21,y+.28+j*.21,armed?.2:.16,armed?.09:.055,armed?.3:.055,armed?(fire?'#eb9a4f':'#c0cdcd'):(fire?'#754330':'#665d52'));
-   if(fire&&armed){s.source([x+.5,y+.5,.43],null,1.05,.7);s.pyramid(x+.5,y+.5,.21,.11,.2,'#f2ca6d',5);}
+   if(fire&&armed){s.source([x+.5,y+.5,.43],null,1.05,.7,'trap');s.pyramid(x+.5,y+.5,.21,.11,.2,'#f2ca6d',5);}
    s.emissive=0;return;}
  if(['farm','pasture'].includes(t)){s.box(x+.2,y+.2,.12,n-.4,n-.4,.05,t==='farm'?'#72553b':'#8da964');if(t==='farm'){for(let i=.32;i<n-.2;i+=.28)for(let j=.32;j<n-.2;j+=.32){s.box(x+i,y+j,.17,.045,.045,.18+l*.03,'#799658');s.pyramid(x+i,y+j,.3,.085,.16,'#e1c776');}}else{for(const [a,c]of[[.6,.7],[1.3,1.1]]){s.box(x+a,y+c,.3,.36,.22,.2,'#eee5d0');s.box(x+a+.3,y+c,.28,.12,.14,.18,'#76674f');for(const k of [0,.26])s.box(x+a+k,y+c,.12,.05,.18,.2,'#5e5543');}}if(l>1||t==='pasture')fence(s,x+.13,y+.13,n-.26,n-.26);lanternPost(s,x+n-.28,y+n-.28,.7+l*.04,1.12,.43);return;}
  if(['pond','deephole'].includes(t)){s.box(x+.18,y+.18,.13,n-.36,n-.36,.02,'#4e9aaa');for(let i=.22;i<n-.1;i+=.32)s.box(x+i,y+.14,.13,.22,.12,.1,stone);s.box(x+.2,y+n-.45,.16,n-.4,.23,.1,timber);s.box(x+.25,y+n-.45,.16,.08,.08,.65,timber);s.box(x+n-.35,y+n-.45,.16,.08,.08,.65,timber);lanternPost(s,x+n-.31,y+n-.39,.77,1.05,.42);return;}
@@ -369,7 +369,7 @@ function buildingShape(s,b,spec,world,time){
   if(t==='ballista'){s.box(x+.14,y+.14,h,width+.1,width+.1,.12,timber);s.box(x+n/2-.3,y+n/2-.03,h+.12,.6,.06,.06,stone);s.box(x+n/2-.03,y+n/2-.3,h+.12,.06,.6,.06,stone);s.box(x+n/2-.02,y+n/2-.02,h+.12,.04,.5,.05,gold);}
   torch(s,x+n/2,y+(n+width)/2+.035,h*.58,[0,1],1.02,.45);
   return;}
- if(['watchfire','oathstone','moon-dial','cairnfield'].includes(t)){const spots=t==='cairnfield'?[[.5,.5],[1.3,.6],[.6,1.4],[1.35,1.35]]:[[n/2,n/2]];s.emissive=t==='watchfire'?1:0;for(const [a,c]of spots){s.box(x+a-.18,y+c-.18,.13,.36,.36,.22,stone);if(t==='watchfire'){s.source([x+a,y+c,.55],null,2.1,1);s.pyramid(x+a,y+c,.36,.26,.55,'#f2b35c',5);}else if(t==='moon-dial')s.pyramid(x+a,y+c,.35,.17,.55,gold);else s.box(x+a-.09,y+c-.06,.35,.18,.12,.6,t==='oathstone'?'#90b5b5':stone);}s.emissive=0;return;}
+ if(['watchfire','oathstone','moon-dial','cairnfield'].includes(t)){const spots=t==='cairnfield'?[[.5,.5],[1.3,.6],[.6,1.4],[1.35,1.35]]:[[n/2,n/2]];s.emissive=t==='watchfire'?1:0;for(const [a,c]of spots){s.box(x+a-.18,y+c-.18,.13,.36,.36,.22,stone);if(t==='watchfire'){s.source([x+a,y+c,.55],null,2.1,1,'fire');s.pyramid(x+a,y+c,.36,.26,.55,'#f2b35c',5);}else if(t==='moon-dial')s.pyramid(x+a,y+c,.35,.17,.55,gold);else s.box(x+a-.09,y+c-.06,.35,.18,.12,.6,t==='oathstone'?'#90b5b5':stone);}s.emissive=0;return;}
  if(t==='dawn-gate'){tower(s,x+.18,y+.35,.62,1.7,stone);tower(s,x+n-.8,y+.35,.62,1.7,stone);s.box(x+.8,y+.43,1.35,n-1.6,.46,.45,gold);s.roof(x+.05,y+.2,2,n-.1,.95,.32,'#638b92');torch(s,x+.68,y+.92,1.22,[0,1],1.25,.58);torch(s,x+n-.68,y+.92,1.22,[0,1],1.25,.58);return;}
  if(t==='market'){for(const [a,c,color]of[[.22,.24,'#b76053'],[1.7,.25,'#73956a'],[.6,1.75,'#ccac60']]){s.box(x+a,y+c,.14,1,.5,.35,timber);for(const dx of [0,.94])s.box(x+a+dx,y+c,.14,.06,.06,.95,timber);s.roof(x+a-.06,y+c-.12,1.02,1.12,.75,.12,color);}lanternPost(s,x+.32,y+n-.32,.9,1.12,.44);lanternPost(s,x+n-.32,y+n-.32,.9,1.12,.44);return;}
  // The new production chain buildings need to read differently at map scale.
@@ -403,7 +403,7 @@ function buildingShape(s,b,spec,world,time){
  hut(s,x+.22,y+.22,n-.44,n-.44,.42+l*.16,colors[t]||'#829a78',l);
  workplaceDetails(s,b,n);
  if(spec.housing)homeDetails(s,b,n,l);
- if(['forge','smeltery'].includes(t)){s.box(x+n-.55,y+.28,.1,.28,.28,1.5,stone);s.box(x+n-.57,y+.26,1.6,.32,.32,.12,'#4d514b');s.source([x+.5,y+n-.15,.33],[0,1],1.65,1);s.emissive=1;s.box(x+.3,y+n-.2,.2,.4,.024,.26,'#eea55d');s.emissive=0;}
+ if(['forge','smeltery'].includes(t)){s.box(x+n-.55,y+.28,.1,.28,.28,1.5,stone);s.box(x+n-.57,y+.26,1.6,.32,.32,.12,'#4d514b');s.source([x+.5,y+n-.15,.33],[0,1],1.65,1,'fire');s.emissive=1;s.box(x+.3,y+n-.2,.2,.4,.024,.26,'#eea55d');s.emissive=0;}
  if(t.includes('chapel')){tower(s,x+.25,y+.25,.4,1.35,stone);s.pyramid(x+.45,y+.45,1.65,.33,.6,colors[t]);}
  if(t==='hall'&&l>=2)tower(s,x+n-.7,y+.25,.48,1.35,stone);
  if(['mason_yard','shieldwall-yard'].includes(t)){for(let i=0;i<3;i++)s.box(x+.25+i*.42,y+n-.15,.13,.28,.16,.3,stone);}
@@ -489,7 +489,7 @@ export function drawVillage3D(r,world,time,light){const s=new MeshScene(r),W=r.d
 
  for(const u of world.troops)characterModel(s,u,r.data,time);for(const e of world.enemies)characterModel(s,e,r.data,time,true);
   if(r.placing&&r.hover){const source=world.buildings.find(b=>b.id===r.moving),ghosts=placementCells(r).map(p=>({type:r.placing,...p,level:source?.level||1,hp:1,remaining:1,id:null})),preview={buildings:[...world.buildings.filter(b=>b.id!==r.moving),...ghosts]};for(const b of ghosts)buildingModel(s,b,r.data.buildings[b.type],preview,time);}
- drawSourceSpill(s);
+ drawSourceSpill(s,time);
  s.paint();
  drawBuildingActivity(r,world,time);
 }
