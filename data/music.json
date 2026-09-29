@@ -1,0 +1,18 @@
+{
+  "bpm": 72,
+  "rootHz": 73.416,
+  "bars": 4,
+  "pulsesPerBar": 6,
+  "scale": [0, 2, 3, 5, 7, 9, 10],
+  "progression": [
+    [0, 3, 7, 10],
+    [5, 9, 12, 14],
+    [-2, 2, 5, 9],
+    [-5, 0, 2, 5]
+  ],
+  "melodySlots": [0, 2, 5],
+  "calmMelodySlots": [0],
+  "voices": {"bass": 0.08, "pad": 0.085, "pluck": 0.105},
+  "gain": 0.7,
+  "echo": {"seconds": 0.24, "gain": 0.12}
+}

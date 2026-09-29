@@ -92,21 +92,21 @@ Invariants you must keep green (pinned by tests):
   includes save-blob/migration and old-save fixtures.
 - Data reads are defensive: bad overrides clamp/fall back, never black-screen.
 
-## 5. Remaining phases (the original brief, verbatim scope)
+## 5. Phase status (the original brief's scope)
 
-7. **Walls/gates/traps** — connection-aware silhouettes (corners, ends, caps),
+7. **Walls/gates/traps — complete** — connection-aware silhouettes (corners, ends, caps),
    gate state/animation, trap armed/sprung readability.
-8. **Character/tool silhouette** — `src/character-art.js` `equipment()`: every
+8. **Character/tool silhouette — complete** — `src/character-art.js` `equipment()`: every
    held tool/weapon needs a distinct mesh (sword/axe/warhammer/pike/longbow…),
    profession outfits readable at gameplay zoom.
-9. **Rarity/profession** — visual language for item rarity + profession
+9. **Rarity/profession — complete** — visual language for item rarity + profession
    identification (trim/glow/accents), still data-driven off `items.json` /
    `troops.json`.
 10. **Input/camera** — polish `src/input.js` + `src/camera.js` feel; keep
     picking tests (`modelPoints`, orbit tests) green.
 11. **HUD/drawers/onboarding** — mobile pass on `src/ui.js` drawers, first-run
     guidance; keep focus containment + labels.
-12. **Sound + music** — NEW `src/music.js` + `data/music.json`: generative
+12. **Sound + music — complete** — `src/music.js` + `data/music.json`: generative
     WebAudio score (original composition, no rips), starts on "Enter village",
     respects `opt-sound` + `calm`; extend existing `src/systems/audio.js` SFX.
 13. **Juice** — pooled particles/shake/numbers (replace ad-hoc effects caps

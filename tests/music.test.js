@@ -1,0 +1,172 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {isMuted,sfx,toggleMute} from '../src/systems/audio.js';
+
+class FakeParam{
+ constructor(value=0){this.value=value;}
+ setValueAtTime(value){this.value=value;}
+ setTargetAtTime(value){this.value=value;}
+ exponentialRampToValueAtTime(value){this.value=value;}
+ cancelScheduledValues(){}
+}
+class FakeNode{
+ constructor(kind){this.kind=kind;this.connections=[];this.gain=new FakeParam(1);this.frequency=new FakeParam();this.detune=new FakeParam();this.delayTime=new FakeParam();this.stops=0;this.failStops=0;}
+ connect(node){this.connections.push(node);return node;}
+ disconnect(){this.connections=[];}
+ start(time){this.startAt=time;}
+ stop(){this.stops++;if(this.failStops){this.failStops--;throw Error('injected stop failure');}}
+}
+class FakeAudioContext{
+ constructor(){this.nodes=[];this.destination=new FakeNode('destination');this.currentTime=0;this.state='running';FakeAudioContext.last=this;}
+ createGain(){const node=new FakeNode('gain');this.nodes.push(node);return node;}
+ createOscillator(){const node=new FakeNode('oscillator');this.nodes.push(node);return node;}
+ createDelay(){const node=new FakeNode('delay');this.nodes.push(node);return node;}
+ resume(){return Promise.resolve();}
+}
+
+async function loadMusic(){
+ const engine=await import('../src/music.js').catch(()=>null);
+ assert.ok(engine,'music engine module loads');
+ const score=await readFile(new URL('../data/music.json',import.meta.url),'utf8').then(JSON.parse).catch(()=>null);
+ assert.ok(score,'music score data loads');
+ return {engine,score};
+}
+
+test('music player is safe without browser audio',async()=>{
+ const {engine,score}=await loadMusic(),previousWindow=globalThis.window;
+ delete globalThis.window;
+ try{
+  const player=new engine.MusicPlayer(score);
+  assert.doesNotThrow(()=>{player.start({calm:true});player.setEnabled(true);player.setCalm(false);player.stop();});
+ }finally{if(previousWindow!==undefined)globalThis.window=previousWindow;}
+});
+
+test('generated phrases stay in key, vary by phrase, and thin out under Calm',async()=>{
+ const {engine,score}=await loadMusic(),full=engine.createPhrase(score,0,false),calm=engine.createPhrase(score,0,true);
+ assert.deepEqual(full,engine.createPhrase(score,0,false),'a phrase index is reproducible');
+ assert.notDeepEqual(full,engine.createPhrase(score,1,false),'later phrases vary');
+ const melody=full.notes.filter(note=>note.voice==='pluck'),calmMelody=calm.notes.filter(note=>note.voice==='pluck');
+ assert.ok(melody.length>=8,'full mode carries a clear melody');
+ assert.ok(melody.every(note=>score.scale.includes((note.semitone%12+12)%12)),'melody stays in the configured mode');
+ assert.ok(calmMelody.length<melody.length,'Calm mode uses fewer plucked notes');
+ assert.ok(full.duration>0&&calm.duration===full.duration,'both arrangements loop on the same phrase boundary');
+});
+
+test('generated melodies keep adjacent plucks within a fifth',async()=>{
+ const {engine,score}=await loadMusic();
+ for(let phrase=0;phrase<8;phrase++){
+  const line=engine.createPhrase(score,phrase,false).notes.filter(note=>note.voice==='pluck');
+  for(let i=1;i<line.length;i++)assert.ok(Math.abs(line[i].semitone-line[i-1].semitone)<=7,`phrase ${phrase} has a leap wider than a fifth`);
+ }
+});
+
+test('melody voice-leading stays within a fifth across phrase boundaries',async()=>{
+ const {engine,score}=await loadMusic();let previous=31;
+ for(let phrase=0;phrase<32;phrase++){
+  const line=engine.createPhrase(score,phrase,false,previous).notes.filter(note=>note.voice==='pluck');
+  assert.ok(Math.abs(line[0].semitone-previous)<=7,`phrase ${phrase} starts with an octave jump`);
+  previous=line.at(-1).semitone;
+ }
+});
+
+test('muting mid-phrase resumes from the last pluck that actually played',async()=>{
+ const {engine,score}=await loadMusic(),previousWindow=globalThis.window,wasMuted=isMuted();let player=null;
+ globalThis.window={AudioContext:FakeAudioContext};
+ try{
+  if(wasMuted)toggleMute();
+  if(FakeAudioContext.last)FakeAudioContext.last.currentTime=0;
+  player=new engine.MusicPlayer(score);player.phrase=4;player.start();
+  const ctx=FakeAudioContext.last,played=engine.createPhrase(score,4,false,31).notes.find(note=>note.voice==='pluck').semitone;
+  ctx.currentTime=.08;player.setEnabled(false);
+  assert.equal(player.lastPitch,played,'muting records the last note that has begun, not a scheduled future note');
+  const prior=ctx.nodes.length;player.setEnabled(true);
+  const nextPitch=engine.createPhrase(score,5,false,played).notes.find(note=>note.voice==='pluck').semitone;
+  const resumed=ctx.nodes.slice(prior).filter(node=>node.kind==='oscillator');
+  assert.ok(resumed.some(node=>Math.abs(node.frequency.value-score.rootHz*2**(nextPitch/12))<.01),'the resumed phrase uses that played pitch for voice-leading');
+ }finally{
+  player?.stop();
+  if(isMuted()!==wasMuted)toggleMute();
+  if(previousWindow===undefined)delete globalThis.window;else globalThis.window=previousWindow;
+ }
+});
+
+test('a stop failure keeps a started voice tracked for retry',async()=>{
+ const {engine,score}=await loadMusic(),previousWindow=globalThis.window,wasMuted=isMuted();let player=null,ctx=null,originalCreate=null;
+ globalThis.window={AudioContext:FakeAudioContext};
+ try{
+  if(wasMuted)toggleMute();
+  sfx.place();ctx=FakeAudioContext.last;const prior=ctx.nodes.length;originalCreate=ctx.createOscillator;
+  const create=originalCreate.bind(ctx);let failFirst=true;
+  ctx.createOscillator=()=>{const node=create();if(failFirst){node.failStops=3;failFirst=false;}return node;};
+  player=new engine.MusicPlayer(score);player.start();
+  const failed=ctx.nodes.slice(prior).find(node=>node.kind==='oscillator'&&node.stops>=2);
+  assert.ok(failed&&player.sources.has(failed),'a started source remains owned after its first stop failure');
+  player.stop();assert.ok(player.sources.has(failed)&&player.context,'a repeated failure retains the source and its context');
+  player.stop();assert.ok(failed.stops>=4,'a later stop retries the source again');
+ }finally{
+  player?.stop();if(ctx&&originalCreate)ctx.createOscillator=originalCreate;
+  if(isMuted()!==wasMuted)toggleMute();
+  if(previousWindow===undefined)delete globalThis.window;else globalThis.window=previousWindow;
+ }
+});
+
+test('music notes route through the shared output and stop cleanly',async()=>{
+ const {engine,score}=await loadMusic(),previousWindow=globalThis.window,wasMuted=isMuted();let player=null;
+ globalThis.window={AudioContext:FakeAudioContext};
+ try{
+  if(wasMuted)toggleMute();
+  const prior=FakeAudioContext.last?.nodes.length||0;player=new engine.MusicPlayer(score);player.start({calm:false});
+  const ctx=FakeAudioContext.last,created=ctx.nodes.slice(prior),master=ctx.nodes.find(node=>node.kind==='gain'&&node.connections.includes(ctx.destination));
+  const sources=created.filter(node=>node.kind==='oscillator');
+  assert.ok(sources.length>=12,'the score schedules sustained harmony and melody notes');
+  assert.ok(sources.every(node=>node.connections[0]?.connections.some(target=>target.kind==='gain'&&target!==master)),'music voices have individual envelopes before the master');
+  player.setEnabled(false);
+  assert.ok(sources.every(node=>node.stops>0),'disabling music stops already-scheduled notes');
+ }finally{
+  player?.stop();if(isMuted()!==wasMuted)toggleMute();
+  if(previousWindow===undefined)delete globalThis.window;else globalThis.window=previousWindow;
+ }
+});
+
+test('ended notes disconnect their envelopes and pluck partials',async()=>{
+ const {engine,score}=await loadMusic(),previousWindow=globalThis.window,wasMuted=isMuted();
+ let player=null;
+ globalThis.window={AudioContext:FakeAudioContext};
+ try{
+  if(wasMuted)toggleMute();
+  const prior=FakeAudioContext.last?.nodes.length||0;player=new engine.MusicPlayer(score);player.start();
+  const ctx=FakeAudioContext.last,created=ctx.nodes.slice(prior),master=ctx.nodes.find(node=>node.kind==='gain'&&node.connections.includes(ctx.destination));
+  const output=created.find(node=>node.kind==='gain'&&node.connections.includes(master));
+  const envelopes=created.filter(node=>node.kind==='gain'&&node.connections.includes(output));
+  const partials=created.filter(node=>node.kind==='gain'&&node.connections.some(target=>envelopes.includes(target)));
+  const sources=created.filter(node=>node.kind==='oscillator');
+  player.setEnabled(false);
+  for(const source of sources)source.onended?.();
+  assert.ok(envelopes.length>0&&envelopes.every(node=>node.connections.length===0),'ended voices release their envelope nodes');
+  assert.ok(partials.length>0&&partials.every(node=>node.connections.length===0),'ended plucks release their harmonic nodes');
+ }finally{
+  player?.stop();
+  if(isMuted()!==wasMuted)toggleMute();
+  if(previousWindow===undefined)delete globalThis.window;else globalThis.window=previousWindow;
+ }
+});
+
+test('sound effects share a master output that the sound setting can mute',()=>{
+ const previousWindow=globalThis.window,wasMuted=isMuted();
+ globalThis.window={AudioContext:FakeAudioContext};
+ try{
+  if(wasMuted)toggleMute();
+  const prior=FakeAudioContext.last?.nodes.length||0;
+  sfx.place();
+  const ctx=FakeAudioContext.last,created=ctx.nodes.slice(prior),outputs=ctx.nodes.filter(node=>node.kind==='gain'&&node.connections.includes(ctx.destination));
+  assert.equal(outputs.length,1,'one master output connects to the device');
+  const [master]=outputs;
+  assert.ok(created.filter(node=>node.kind==='oscillator').every(node=>node.connections[0]?.connections.includes(master)),'all SFX route through the master output');
+  toggleMute();assert.equal(master.gain.value,0,'sound off silences active audio');
+  toggleMute();assert.equal(master.gain.value,1,'sound on restores audio');
+ }finally{
+  if(isMuted()!==wasMuted)toggleMute();
+  if(previousWindow===undefined)delete globalThis.window;else globalThis.window=previousWindow;
+ }
+});

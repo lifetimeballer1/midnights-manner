@@ -1,6 +1,7 @@
 // Tiny original WebAudio synth: short blips only, no assets, cheap on CPU.
 // Node-safe: every entry point no-ops without a browser AudioContext.
 let ctx = null;
+let output = null;
 let muted = false;
 let lastHit = 0;
 try {
@@ -11,16 +12,32 @@ export function isMuted() { return muted; }
 export function toggleMute() {
   muted = !muted;
   try { localStorage.setItem('midnights-manner-sound', muted ? 'off' : 'on'); } catch {}
+  const c = muted ? ctx : context();
+  if (c && output) {
+    output.gain.cancelScheduledValues(c.currentTime);
+    output.gain.setTargetAtTime(muted ? 0 : 1, c.currentTime, 0.025);
+  }
   return muted;
 }
-function ac() {
-  if (muted || typeof window === 'undefined') return null;
+function context() {
+  if (typeof window === 'undefined') return null;
   try {
-    if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (!ctx) {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (typeof AudioContext !== 'function') return null;
+      const c = new AudioContext(), bus = c.createGain();
+      bus.gain.value = muted ? 0 : 1;
+      bus.connect(c.destination);
+      ctx = c;
+      output = bus;
+    }
     if (ctx.state === 'suspended') void ctx.resume();
     return ctx;
   } catch { return null; }
 }
+function ac() { return muted ? null : context(); }
+export function sharedAudioContext() { return context(); }
+export function sharedAudioOutput() { return context() ? output : null; }
 export function unlock() { ac(); }
 function tone(freq, dur = 0.1, { type = 'sine', slide = 0, delay = 0, vol = 0.16 } = {}) {
   const c = ac();
@@ -35,7 +52,7 @@ function tone(freq, dur = 0.1, { type = 'sine', slide = 0, delay = 0, vol = 0.16
     g.gain.setValueAtTime(0.0001, t0);
     g.gain.exponentialRampToValueAtTime(vol, t0 + 0.012);
     g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-    o.connect(g).connect(c.destination);
+    o.connect(g).connect(output);
     o.start(t0);
     o.stop(t0 + dur + 0.02);
   } catch {}

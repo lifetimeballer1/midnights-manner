@@ -21,7 +21,7 @@ const img=name=>`<img src="./assets/sprites/${name}" alt="">`;
 const rarTag=item=>{const r=itemRarity(item);return r==='common'?'':` <em class="rarity" style="color:${RARITY_INFO[r].color}">· ${RARITY_INFO[r].name}</em>`;};
 const $=s=>document.querySelector(s);
 export class UI {
- constructor(game,renderer){this.game=game;this.renderer=renderer;this.tab='build';this.category='all';this.expandMode=false;this.selected=null;this.selectedTroop=null;this.clock=0;this.panel=$('#panel');this.lastMessage='';this.toastTime=0;this.lastPanel='';this.lastRail='';this.lastResult='';this.started=false;this.game.paused=true;this.bind();this.refresh();}
+ constructor(game,renderer,music){this.game=game;this.renderer=renderer;this.music=music;this.tab='build';this.category='all';this.expandMode=false;this.selected=null;this.selectedTroop=null;this.clock=0;this.panel=$('#panel');this.lastMessage='';this.toastTime=0;this.lastPanel='';this.lastRail='';this.lastResult='';this.started=false;this.game.paused=true;this.bind();this.refresh();}
  blocked(){return !this.started||this.game.paused||!$('#drawer').hidden||!$('#raid-overlay').hidden;}
  bind(){
   // Keep controls mounted between press and click, including slow touch taps.
@@ -31,7 +31,7 @@ export class UI {
   document.addEventListener('pointerup',release,true);
   document.addEventListener('pointercancel',release,true);
   window.addEventListener('blur',()=>{this.controlPressed=false;});
-  $('#begin').onclick=()=>{this.started=true;$('#title').hidden=true;this.game.paused=false;this.renderer.fitVillage(this.game.world);$('#world').focus({preventScroll:true});this.game.notify('Your village awaits. Drag to explore; pinch to zoom.');this.refresh();};
+  $('#begin').onclick=()=>{this.started=true;this.music.start({calm:this.renderer.calm});$('#title').hidden=true;this.game.paused=false;this.renderer.fitVillage(this.game.world);$('#world').focus({preventScroll:true});this.game.notify('Your village awaits. Drag to explore; pinch to zoom.');this.refresh();};
   document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>this.openPanel(b.dataset.tab));
   $('#close-panel').onclick=()=>this.closePanel();$('#drawer-backdrop').onclick=()=>this.closePanel();
   $('#quest-chip').onclick=()=>{this.openPanel('story');this.category='quests';this.lastPanel='';this.renderFilters();this.refresh();};
@@ -41,8 +41,8 @@ export class UI {
   $('#pause').onclick=()=>this.openPause();$('#resume').onclick=()=>this.closePause();
   try{if(localStorage.getItem('midnights-manner-calm')==='on')this.renderer.calm=true;}catch{}
   $('#pause-overlay').onclick=e=>{const b=e.target.closest('button');if(!b)return;
-   if(b.id==='opt-sound'){toggleMute();this.syncPause();}
-   if(b.id==='opt-motion'){this.renderer.calm=!this.renderer.calm;try{localStorage.setItem('midnights-manner-calm',this.renderer.calm?'on':'off');}catch{}this.syncPause();}
+   if(b.id==='opt-sound'){toggleMute();this.music.setEnabled(!isMuted());this.syncPause();}
+   if(b.id==='opt-motion'){this.renderer.calm=!this.renderer.calm;this.music.setCalm(this.renderer.calm);try{localStorage.setItem('midnights-manner-calm',this.renderer.calm?'on':'off');}catch{}this.syncPause();}
    if(b.id==='opt-grid'){this.renderer.grid=!this.renderer.grid;this.syncPause();}
    if(b.id==='opt-save'){if(this.game.persist())this.game.notify('Saved on this browser.');}
    if(b.id==='opt-export'){const blob=exportSave(this.game.state);if(!blob){this.game.notify('Export failed in this browser.');}else{const label='village save v'+(this.game.state.version||2);try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(blob).then(()=>{this.game.notify('Village copied ('+label+'). Paste it into Import on your other device.');this.refresh();},()=>{window.prompt('Copy your '+label+' (Ctrl+C, Enter):',blob);});}else{window.prompt('Copy your '+label+' (Ctrl+C, Enter):',blob);}}catch{window.prompt('Copy your '+label+' (Ctrl+C, Enter):',blob);}}this.refresh();}

@@ -7,6 +7,12 @@
 - Prioritized building cards above village statistics on small screens.
 - No gameplay, economy, progression or save changes.
 
+## Presentation pass — Phase 12: Sound + music (2026-09-28)
+
+- Added an original generative 6/8 D-Dorian score: warm sine bass, soft triangle harmony, chord-tone plucks that vary each phrase, and a restrained single echo. Notes are synthesized live from `data/music.json`; no recordings or audio assets.
+- The score starts on the **Enter village** gesture and shares the existing Sound control with SFX. Calm keeps the harmonic bed and reduces the melody to one pluck per bar. Muting fades the shared output and stops scheduled music voices. No save fields or gameplay changes.
+- Tests: `tests/music.test.js` covers Node-safe startup, tonal/repeatable phrase generation, bounded melodic leaps across loops and mute/resume, sparse Calm arrangements, voice cleanup/retry, and shared output muting. `scripts/browser-smoke.mjs` checks start/mute/resume and measures a non-silent, unclipped WebAudio signal. `npm test` count: 500 → 509.
+
 ## Presentation pass — Phase 9: Rarity and profession (2026-09-28)
 
 - Crafted gear and armor now render with the same rarity colors used by inventory labels. Every profession gets a narrow world-mesh accent from its unique `troops.json` color; item rarity comes from `items.json`. No new data fields, save keys, or gameplay effects.

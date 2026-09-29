@@ -27,6 +27,7 @@ try{
  const {sessionId}=await send('Target.attachToTarget',{targetId,flatten:true});
  const call=(method,params={})=>send(method,params,sessionId);
  await call('Runtime.enable');await call('Page.enable');await call('Emulation.setDeviceMetricsOverride',{width:1440,height:1100,deviceScaleFactor:1,mobile:false});
+ await call('Page.addScriptToEvaluateOnNewDocument',{source:`window.__audioProbe={starts:0,stops:0,analyser:null};const AC=window.AudioContext;if(AC){const create=AC.prototype.createOscillator;AC.prototype.createOscillator=function(...args){const node=create.apply(this,args),start=node.start.bind(node),stop=node.stop.bind(node);node.start=(...values)=>{window.__audioProbe.starts++;return start(...values);};node.stop=(...values)=>{window.__audioProbe.stops++;return stop(...values);};return node;};const connect=AudioNode.prototype.connect;AudioNode.prototype.connect=function(destination,...args){if(destination===this.context.destination&&!window.__audioProbe.analyser){const analyser=this.context.createAnalyser();analyser.fftSize=2048;window.__audioProbe.analyser=analyser;connect.call(this,analyser);connect.call(analyser,destination);return destination;}return connect.call(this,destination,...args);};}`});
  await call('Page.navigate',{url:`http://127.0.0.1:${port}/midnights-manner/`});
  const evaluate=async expression=>{const r=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(r.exceptionDetails.exception?.description||'Browser evaluation failed');return r.result.value;};
  for(let i=0;i<100;i++){if(await evaluate('Boolean(window.midnightsManner)'))break;await new Promise(r=>setTimeout(r,100));}
@@ -42,6 +43,14 @@ try{
  const fire=async selector=>{await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e||e.disabled)throw Error('Unfireable '+${JSON.stringify(selector)});e.click();})()`);await new Promise(r=>setTimeout(r,150));};
  assert.equal(await evaluate('window.midnightsManner.paused'),true,'welcome pauses simulation');
  await click('#begin');await waitFor('window.midnightsManner.ready');
+ const musicStarts=await evaluate('window.__audioProbe.starts');assert.ok(musicStarts>=12,'Enter village starts the generated score');
+ await new Promise(r=>setTimeout(r,180));
+ const musicLevel=await evaluate('(()=>{const a=window.__audioProbe.analyser;if(!a)return null;const data=new Float32Array(a.fftSize);a.getFloatTimeDomainData(data);let peak=0,power=0;for(const value of data){peak=Math.max(peak,Math.abs(value));power+=value*value;}return {peak,rms:Math.sqrt(power/data.length)};})()');
+ assert.ok(musicLevel&&musicLevel.rms>0.0001,'score produces a non-silent browser audio signal');assert.ok(musicLevel.peak<.95,'score leaves headroom instead of clipping');console.log('Music output level',musicLevel);
+ await click('#pause');const stopsBeforeMute=await evaluate('window.__audioProbe.stops');await click('#opt-sound');
+ assert.ok(await evaluate(`window.__audioProbe.stops>${stopsBeforeMute}`),'Sound off stops scheduled score notes');
+ const startsBeforeUnmute=await evaluate('window.__audioProbe.starts');await click('#opt-sound');
+ assert.ok(await evaluate(`window.__audioProbe.starts>${startsBeforeUnmute}`),'Sound on resumes the score');await click('#resume');
  await screenshot('desktop');
  assert.equal(await evaluate('document.documentElement.scrollHeight > innerHeight'),false,'game has no document scrolling');
  const count=await evaluate('window.midnightsManner.snapshot().world.buildings.length');
