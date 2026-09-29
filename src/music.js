@@ -62,6 +62,10 @@ export function createPhrase(score,phraseIndex=0,calm=false,previousPitch=31){
 }
 
 function voiceLevel(score,voice,fallback){return bounded(score?.voices?.[voice],fallback,0.005,.2);}
+function themeSupports(theme,mood){
+ const moods=Array.isArray(theme?.moods)?theme.moods.filter(m=>typeof m==='string'):[];
+ return !moods.length||moods.includes(mood);
+}
 function disconnect(node){try{node?.disconnect();}catch{}}
 
 export class MusicPlayer{
@@ -71,6 +75,8 @@ export class MusicPlayer{
   this.themeIndex=0;
   this.phrasesInSong=0;
   this.switchTimer=null;
+  this.mood='day';
+  this.pendingMoodSwitch=false;
   this.entered=false;this.enabled=false;this.playing=false;this.calm=false;this.phrase=0;this.lastPitch=31;this.activePhrase=null;this.timer=null;this.sources=new Set();this.context=null;this.output=null;this.delay=null;this.echo=null;
  }
  /**
@@ -85,25 +91,36 @@ export class MusicPlayer{
   }
   let next;
   if(Number.isInteger(forceIndex)&&forceIndex>=0&&forceIndex<this.themes.length)next=forceIndex;
-  else next=Math.floor(Math.random()*this.themes.length);
+  else{
+   const eligible=this.themes.map((theme,index)=>themeSupports(theme,this.mood)?index:-1).filter(index=>index>=0);
+   const pool=eligible.length?eligible:this.themes.map((_,index)=>index);
+   next=pool[Math.floor(Math.random()*pool.length)];
+  }
   const changed=next!==this.themeIndex;
   this.themeIndex=next;
   this.score=this.themes[next];
   this.phrasesInSong=0;
   return changed;
  }
- start({calm=false}={}){
-  this.entered=true;this.calm=Boolean(calm);
-  // On open: randomly choose one of the songs. Never start a second stack.
+ start({calm=false,mood=this.mood}={}){
+  this.entered=true;this.calm=Boolean(calm);this.mood=typeof mood==='string'&&mood?mood:'day';this.pendingMoodSwitch=false;
+  // On open: randomly choose one of the songs that fits the current world mood.
   this.pickTheme();
   this.setEnabled(!isMuted());
  }
  setEnabled(enabled){this.enabled=Boolean(enabled)&&!isMuted();if(!this.enabled){this.stopPlayback();return;}if(this.entered&&!this.playing)this.play();}
  setCalm(calm){this.calm=Boolean(calm);}
+ setMood(mood){
+  const next=typeof mood==='string'&&mood?mood:'day';
+  if(next===this.mood)return;
+  this.mood=next;
+  if(!themeSupports(this.score,next))this.pendingMoodSwitch=true;
+ }
  stop(){this.entered=false;this.enabled=false;this.stopPlayback();}
  play(){
   // Guard: never stack a second graph on top of an active one.
   if(this.playing)return;
+  if(this.pendingMoodSwitch){this.pendingMoodSwitch=false;this.pickTheme();}
   const context=sharedAudioContext(),destination=sharedAudioOutput();if(!context||!destination)return;
   this.context=context;this.output=context.createGain();this.output.gain.value=bounded(this.score?.gain,.7,0,1);this.output.connect(destination);
   this.delay=context.createDelay(.6);this.delay.delayTime.value=bounded(this.score?.echo?.seconds,.24,.08,.5);
@@ -113,6 +130,10 @@ export class MusicPlayer{
  }
  schedulePhrase(start){
   if(!this.playing)return;
+  if(this.pendingMoodSwitch){
+   this.pendingMoodSwitch=false;
+   if(this.pickTheme()){this.transitionToTheme();return;}
+  }
   // After a song segment, re-pick. If the theme changes, stop current audio fully
   // then resume after a short gap so themes never ring over each other.
   if(USE_MULTI_THEMES&&this.themes.length>1&&this.phrasesInSong>=PHRASES_PER_SONG){
