@@ -7,6 +7,15 @@
 - Prioritized building cards above village statistics on small screens.
 - No gameplay, economy, progression or save changes.
 
+## Detail/world/story expansion — Phase 12: Living faction camps (2026-09-29)
+
+- Added five data-driven persistent-home faction camps under `data/world.json.frontierCamps`: Thornband in Whisperwood, Pale Host at Starwatch Ridge, Cinder Clan and Ember Legion in Ashfall March, and a Pale Court pavilion on the Pale Coast.
+- Camps appear only after their configured minimum raid wave and only while their named region is still unclaimed. Claiming the region removes the camp automatically; campaign expedition maps never inherit home-frontier camp presence.
+- Added low-poly tent, banner, supply and cookfire geometry using each faction's existing color. Camp groups share the existing environment scenery LOD/budget and are depth-sorted with the village rather than drawn as a separate overlay.
+- Camp faces carry a generic `faction-camp` hit owner. Tapping one recenters the camera and reads both the local camp text and the faction's existing lore through the normal status surface.
+- The static mesh cache now includes `world.wave` so camps that become relevant at later threat levels refresh once on wave change, not every frame.
+- Added five `tests/frontier-camps.test.js` regressions for data integrity, progressive wave visibility, claimed-region removal, mission isolation, tappable ownership and bounded scenery. Test target: 555 → 560.
+
 ## Detail/world/story expansion — Phase 11: Sparse frontier events (2026-09-28)
 
 - Added seven claimed-region encounter definitions under `data/world.json.frontierEvents`: Southreach, Starwatch Ridge, Whisperwood, Blackwater Mouth, Ashfall March, Dawnfields and Pale Coast each receive a two-choice event using only existing wood/food/gold resources.
