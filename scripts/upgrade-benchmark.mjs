@@ -44,8 +44,8 @@ try{
   assert.ok(report.faces<30000&&report.triangles<60000,`${mode} mesh runaway`);
   return {tiers,...report};
  };
- const baseline=await sample('baseline');
  const feature=await sample('feature');
+ const baseline=await sample('baseline');
  assert.deepEqual(errors,[],'no browser runtime errors');
  const pct=(a,b)=>+(((b-a)/a)*100).toFixed(1);
  const delta={avgPct:pct(baseline.avg,feature.avg),p50Pct:pct(baseline.p50,feature.p50),p95Pct:pct(baseline.p95,feature.p95),facesPct:pct(baseline.faces,feature.faces),trianglesPct:pct(baseline.triangles,feature.triangles)};
