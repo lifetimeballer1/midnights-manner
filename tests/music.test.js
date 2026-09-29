@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {ambience,isMuted,sfx,toggleMute} from '../src/systems/audio.js';
+import {isMuted,sfx,toggleMute} from '../src/systems/audio.js';
 
 class FakeParam{
  constructor(value=0){this.value=value;}
@@ -202,15 +202,12 @@ test('MusicPlayer picks a random theme on start and can re-roll',async()=>{
  }finally{if(previousWindow!==undefined)globalThis.window=previousWindow;}
 });
 
-test('procedural ambience is node-safe and exposes quiet workplace layers',()=>{
- const previousWindow=globalThis.window;
- delete globalThis.window;
- try{
-  assert.doesNotThrow(()=>ambience.update({night:false,weather:'clear',buildings:[]}));
-  assert.equal(typeof sfx.workChop,'function');
-  assert.equal(typeof sfx.workPick,'function');
-  assert.equal(typeof sfx.workHammer,'function');
-  assert.equal(typeof sfx.bow,'function');
-  assert.equal(typeof sfx.blade,'function');
- }finally{if(previousWindow!==undefined)globalThis.window=previousWindow;}
+test('expanded SFX exposes quiet workplace and combat hooks',()=>{
+ assert.equal(typeof sfx.workChop,'function');
+ assert.equal(typeof sfx.workPick,'function');
+ assert.equal(typeof sfx.workHammer,'function');
+ assert.equal(typeof sfx.bow,'function');
+ assert.equal(typeof sfx.blade,'function');
+ assert.equal(typeof sfx.footstep,'function');
+ assert.equal(typeof sfx.warning,'function');
 });
