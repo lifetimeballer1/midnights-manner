@@ -833,5 +833,57 @@
         }
       ]
     }
+  ],
+  "frontierCamps": [
+    {
+      "id": "thornband-whisper",
+      "region": "whisperwood",
+      "faction": "thornband",
+      "x": 48,
+      "y": 14,
+      "minWave": 1,
+      "name": "Thornband Cut-Camp",
+      "text": "Fresh-cut stakes, hide tents, and a low cookfire sit under the pines. Thornband lookouts use this camp to watch the northern road."
+    },
+    {
+      "id": "pale-starwatch",
+      "region": "starwatch-ridge",
+      "faction": "pale-host",
+      "x": 48,
+      "y": 2,
+      "minWave": 3,
+      "name": "Pale Host Watch",
+      "text": "White cloth tied below the ridge marks a quiet roadside camp. Its fires stay low and every approach is carefully watched."
+    },
+    {
+      "id": "cinder-ashfall",
+      "region": "ashfall-march",
+      "faction": "cinder-clan",
+      "x": 48,
+      "y": 27,
+      "minWave": 5,
+      "name": "Cinder Clan Road-Camp",
+      "text": "A heavy timber rack and a blackened firepit sit beside the old march road. The camp is built for long stays, not a single night."
+    },
+    {
+      "id": "ember-ashfall",
+      "region": "ashfall-march",
+      "faction": "ember-legion",
+      "x": 43,
+      "y": 30,
+      "minWave": 8,
+      "name": "Ember Legion Works",
+      "text": "Red canvas shelters carts, timber frames, and stacked supplies. The site feels more like a field workshop than a temporary camp."
+    },
+    {
+      "id": "pale-court-coast",
+      "region": "pale-coast",
+      "faction": "pale-court",
+      "x": 49,
+      "y": 40,
+      "minWave": 12,
+      "name": "Pale Court Shore Pavilion",
+      "text": "Pale banners stand in precise rows above the salt grass. Supplies are arranged by rank, giving the whole camp a ceremonial order."
+    }
   ]
 }
