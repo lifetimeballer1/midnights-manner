@@ -5,7 +5,8 @@ import {levelForXp, makeBuilding, makeUnit, createWorld, stats, auras, unlockedA
 import {tickVillage, questProgress} from '../src/systems/village.js';
 import {tickCombat} from '../src/systems/combat.js';
 import {Game} from '../src/game.js';
-import {missionLocked, startMission, finishMission} from '../src/systems/campaign.js';
+import {missionLocked, startMission, finishMission, missionDestination} from '../src/systems/campaign.js';
+import {claimRegion, regionById} from '../src/systems/expansion.js';
 
 // Act VIII — Legends. Five phases (16 pale court, 17 prestige bell,
 // 18 sunken chapel, 19 warden-general, 20 dawn finale). New systems ride
@@ -13,7 +14,7 @@ import {missionLocked, startMission, finishMission} from '../src/systems/campaig
 // maxPerVillage, prestigeAura/dawnAura/moonDial/cairn flags, requiresOath /
 // requiresName gear gates) — no troop/item ids in src, pinned below.
 const data = Object.fromEntries(await Promise.all(
-  ['world', 'troops', 'items', 'abilities', 'buildings', 'missions', 'quests', 'levels', 'calendar', 'legends']
+  ['world', 'troops', 'items', 'abilities', 'buildings', 'missions', 'quests', 'levels', 'calendar', 'legends', 'expansion', 'biomes']
     .map(async n => [n, JSON.parse(await readFile(new URL(`../data/${n}.json`, import.meta.url)))])));
 const noop = () => {};
 function richGame(d) {
@@ -29,16 +30,20 @@ function finished(type, x, y, d, level = 1) {
 
 // Act VIII Phase 16 — The Pale Court: the OR-gate fires the delayed merge,
 // the Dial locks the sky, the Envoy pays keepers.
-test('ph16: the pale court opens on EITHER banner road (delayed merge)', () => {
+test('ph16: the pale court opens on EITHER banner road only after Southreach is claimed', () => {
   const m = data.missions.find(m => m.id === 'the-pale-court');
+  const w = createWorld(data);
   assert.ok(m, 'chapter 12 exists');
   assert.equal(m.chapter, '12');
   assert.equal(m.act, 'VIII');
   assert.equal(m.giver, 'The Pale Envoy');
   assert.deepEqual(m.requiresAny, ['red-banner', 'grey-banner']);
-  assert.ok(missionLocked(m, []), 'no road, no court');
-  assert.ok(!missionLocked(m, ['red-banner']), 'red road opens');
-  assert.ok(!missionLocked(m, ['grey-banner']), 'grey road opens');
+  assert.deepEqual(missionDestination(m,data), {id:'southreach',name:'Southreach Crossing',region:regionById(data.expansion,'southreach')});
+  assert.ok(missionLocked(m, [], w, data), 'no road, no court');
+  assert.ok(missionLocked(m, ['red-banner'], w, data), 'banner road alone cannot skip the frontier');
+  claimRegion(w,regionById(data.expansion,'southreach'));
+  assert.ok(!missionLocked(m, ['red-banner'], w, data), 'red road opens once Southreach is held');
+  assert.ok(!missionLocked(m, ['grey-banner'], w, data), 'grey road opens once Southreach is held');
   assert.deepEqual(m.unlocks, ['moon-dial', 'envoys-gift', 'banner-cloak-grey']);
   assert.ok(m.map.troops.length > 0, 'the court walks its own showcase');
 });
@@ -225,6 +230,7 @@ test('ph19: oathkeeper steel waits on an oathbound roster; the longest night is 
   assert.equal(m.raids.length, 3, 'three waves, the hardest raid');
   assert.deepEqual(m.requires, ['the-pale-court']);
   assert.deepEqual(m.requiresAny, ['red-banner', 'grey-banner']);
+  assert.deepEqual(m.destination,{region:'starwatch-ridge',name:'Starwatch Ridge'});
   assert.ok(m.unlocks.includes('squire') && m.unlocks.includes('cairnfield'), 'squire and cairn ride home together');
   assert.equal(data.troops.squire.role, 'combat');
   assert.deepEqual(Object.values(data.troops.squire.abilities), ['brace', 'armor', 'rally', 'veteran', 'phalanx'], 'squire walks the C1 road');
@@ -274,9 +280,12 @@ test('ph20: the regalia knows its name; dawn crowns the eldest Moonwarden', () =
   assert.equal(m.raids.length, 4, 'the final four-wave siege');
   assert.deepEqual(m.requires, ['the-longest-night']);
   assert.equal(m.crowning, 'Moonwarden');
-  // The dual finale: dawn won names the eldest of the roster.
+  // The dual finale: dawn won names the eldest of the roster, but the
+  // expedition cannot start until its real home destination is held.
   const expedition = {world: g.world, home: null, mission: null, completed: ['the-longest-night'], unlocks: []};
-  assert.ok(startMission(expedition, d, 'dawn'), 'dawn opens off the longest night');
+  assert.equal(startMission(expedition, d, 'dawn'),false,'the longest night alone cannot skip the Dawnfields');
+  claimRegion(expedition.world,regionById(d.expansion,'dawnfields'));
+  assert.ok(startMission(expedition, d, 'dawn'), 'dawn opens once the Dawnfields are claimed');
   expedition.mission.status = 'won';
   const hw = expedition.home;
   finishMission(expedition, d);
