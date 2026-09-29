@@ -7,6 +7,12 @@
 - Prioritized building cards above village statistics on small screens.
 - No gameplay, economy, progression or save changes.
 
+## Detail/world/story expansion — Phase 1: Workplace detail (2026-09-28)
+
+- Added a renderer-only second detail layer to make under-detailed workplaces readable from the village view: barracks training racks/dummies, forge coal and quench stations, armory/fletcher supplies, farm sacks/barrels, pasture troughs, lumber sawbucks, mine rails/carts, tannery vats, study chests, butchery tables, masonry tools and market cargo.
+- Detail is tier-aware where useful (extra crates, barrels, supplies) and uses zoom LOD: the layer drops out below 1.2×. It is suppressed on placement ghosts, unfinished buildings and ruins. No economy, combat, save fields or progression rules changed.
+- Added `tests/building-detail-pass.test.js` with four regression checks for workplace identity props, tier growth, distant-zoom LOD, and construction/ruin gating. Test target: 509 → 513.
+
 ## Presentation pass — Phase 12: Sound + music (2026-09-28)
 
 - Added an original generative 6/8 D-Dorian score: warm sine bass, soft triangle harmony, chord-tone plucks that vary each phrase, and a restrained single echo. Notes are synthesized live from `data/music.json`; no recordings or audio assets.
