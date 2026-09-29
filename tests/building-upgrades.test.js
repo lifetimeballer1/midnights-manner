@@ -40,17 +40,20 @@ test('upgrade expansion: generic upgrade path enforces longhouse gates and updat
  const baseline=housing(g.world,d).beds;
  assert.equal(baseline>=14,true);
  g.state.vlevel=5;g.upgrade(b.id);assert.equal(b.level,1,'level 5 cannot buy longhouse tier 2');
- g.state.vlevel=6;g.upgrade(b.id);assert.equal(b.level,2);assert.equal(housing(g.world,d).beds,baseline+8,'tier 2 adds eight beds');
- b.remaining=0;g.state.vlevel=7;g.upgrade(b.id);assert.equal(b.level,2,'level 7 cannot buy longhouse tier 3');
- g.state.vlevel=8;g.upgrade(b.id);assert.equal(b.level,3);assert.equal(housing(g.world,d).beds,baseline+18,'tier 3 reaches 32 beds');
+ g.state.vlevel=6;g.upgrade(b.id);assert.equal(b.level,2);assert.equal(housing(g.world,d).beds,baseline-14,'beds go offline while tier 2 is under construction');
+ b.remaining=0;assert.equal(housing(g.world,d).beds,baseline+8,'finished tier 2 adds eight beds');
+ g.state.vlevel=7;g.upgrade(b.id);assert.equal(b.level,2,'level 7 cannot buy longhouse tier 3');
+ g.state.vlevel=8;g.upgrade(b.id);assert.equal(b.level,3);assert.equal(housing(g.world,d).beds,baseline-14,'beds go offline while tier 3 is under construction');
+ b.remaining=0;assert.equal(housing(g.world,d).beds,baseline+18,'finished tier 3 reaches 32 beds');
 });
 
 test('upgrade expansion: tier-4 producer uses existing late-tier price curve and gate',()=>{
  const d=structuredClone(data),g=new Game(d);
  g.world.resources={...g.world.resources,wood:100000,food:100000,gold:100000};
  const farm=makeBuilding('farm',3,3,d,3);farm.remaining=0;g.world.buildings.push(farm);
- const quoted=buildingCost('farm',4,g.world,d);
- assert.deepEqual(quoted,{wood:440},'tier 4 keeps the existing 8x-base late-tier price curve');
+ const quoteWorld=structuredClone(g.world);quoteWorld.troops=[];
+ const quoted=buildingCost('farm',4,quoteWorld,d);
+ assert.deepEqual(quoted,{wood:440},'tier 4 keeps the existing 8x-base late-tier price curve before builder discounts');
  g.state.vlevel=7;g.upgrade(farm.id);assert.equal(farm.level,3,'tier 4 stays locked before level 8');
  g.state.vlevel=8;g.upgrade(farm.id);assert.equal(farm.level,4);
  assert.equal(farm.hp,640);
