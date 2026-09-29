@@ -577,5 +577,77 @@
       },
       "seconds": 120
     }
+  ],
+  "hotspots": [
+    {
+      "id": "stillwater",
+      "x": 3,
+      "y": 3,
+      "name": "Stillwater",
+      "text": "The water is older than the Manor. Wren says the dark surface is honest: draw too hard from the land and even Stillwater will show the cost."
+    },
+    {
+      "id": "timber-line",
+      "x": 15,
+      "y": 12,
+      "name": "Timber Line",
+      "text": "Old tax cuts still scar the boundary trees. Joren's tollmen are gone, but the line remains—a reminder that roads remember who charged for passage."
+    },
+    {
+      "id": "moonwell",
+      "x": 16,
+      "y": 4,
+      "name": "Moonwell",
+      "text": "Moonstone dust shines in the mortar around the old well. The Mooncleric calls it borrowed light, never a miracle."
+    },
+    {
+      "id": "starwatch-ridge",
+      "x": 45,
+      "y": 1,
+      "name": "Starwatch Ridge",
+      "text": "Sorrel's chalk marks survive on the high stones: horn counts, wind arrows, and the names of watchmen who stood here through nights too long to number."
+    },
+    {
+      "id": "whisperwood",
+      "x": 46,
+      "y": 10,
+      "name": "Whisperwood",
+      "text": "The pines carry sound farther than they should. Wayfinders leave paired cuts on safe trunks so travelers can tell an echo from a road."
+    },
+    {
+      "id": "ashfall-march",
+      "x": 45,
+      "y": 26,
+      "name": "Ashfall March",
+      "text": "Charcoal lies under the grass in black seams. Failed hearths once stood here; Sarella says the ground remembers every fire that was asked to burn too long."
+    },
+    {
+      "id": "blackwater-mouth",
+      "x": 2,
+      "y": 38,
+      "name": "Blackwater Mouth",
+      "text": "Broken pilings vanish beneath the black current. Fishers still tie a white thread to the first post before crossing, a habit nobody admits is a prayer."
+    },
+    {
+      "id": "southreach",
+      "x": 13,
+      "y": 38,
+      "name": "Southreach Crossing",
+      "text": "Four old roads meet under one weathered marker. The Pale Envoy chose this place because every road arrives owing something to another."
+    },
+    {
+      "id": "dawnfields",
+      "x": 31,
+      "y": 38,
+      "name": "Dawnfields",
+      "text": "The field earned its name from a single pale morning after the Longest Night. Nobody claims the sun returned; they only remember that the dark finally thinned."
+    },
+    {
+      "id": "pale-coast",
+      "x": 46,
+      "y": 39,
+      "name": "Pale Coast",
+      "text": "Salt crusts the ruined steps above the tide. Grey-market sailors leave copper nails in the cracks for luck and take nothing from the water after midnight."
+    }
   ]
 }
