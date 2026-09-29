@@ -7,6 +7,13 @@
 - Prioritized building cards above village statistics on small screens.
 - No gameplay, economy, progression or save changes.
 
+## Detail/world/story expansion — Phase 6: Outer Frontier (2026-09-28)
+
+- Expanded the home data grid from 40×34 to **52×44** while preserving every original coordinate. Seven claimable regions extend east and south: Starwatch Ridge, Whisperwood, Ashfall March, Blackwater Mouth, Southreach, Dawnfields and Pale Coast, each with a new unclaimed landmark.
+- Added save **v13** migration. Existing v12 tile-grid saves are projected onto the larger deterministic grid by coordinate; every old tile record is preserved and only newly appended coordinates are forced unclaimed. Tile-less vintage saves intentionally remain tile-less during storage migration so the existing Game bounds-reconstruction path keeps their old homestead claimed.
+- Region rectangles now form an exact 4×4 partition of the 52×44 world (16 regions total). East and south outer regions unlock by adjacency from the existing frontier, so late expansion continues instead of gifting remote land.
+- Added six `tests/outer-frontier.test.js` regressions plus dimension-agnostic wording in the vintage migration test. Coverage pins exact region tiling, wild landmarks, east/south claim chains, unchanged building coordinates, v12 grid preservation, and tile-less vintage handling. Test target: 529 → 535.
+
 ## Detail/world/story expansion — Phase 5: Biome scenery (2026-09-28)
 
 - Added data-driven scenery profiles under `data/biomes.json`: plains, forest, water, hills and unclaimed fringe now choose sparse deterministic 3D props (grass, stones/rocks, shrubs, stumps/logs, pines, reeds and cairns) from their own density/prop tables.
