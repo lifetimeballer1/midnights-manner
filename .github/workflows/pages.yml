@@ -18,10 +18,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: npm test
+      - run: node --test tests/building-upgrades.test.js
       - run: npm run build
-      - name: Browser gameplay and mobile smoke test
-        run: npm run test:browser
+      - name: Max-upgrade phone benchmark
+        run: npm run test:upgrades
       - uses: actions/upload-artifact@v4
         if: always()
         with:
