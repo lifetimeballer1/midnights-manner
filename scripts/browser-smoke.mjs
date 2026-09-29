@@ -224,6 +224,13 @@ try{
  await call('Network.emulateNetworkConditions',{offline:false,latency:0,downloadThroughput:-1,uploadThroughput:-1});
  await waitFor('!document.querySelector("#opt-update").disabled');
  updateFixture=true;
+ // A service-worker controller/update transition can briefly restore the game
+ // surface and hide the pause sheet without reloading the app. Re-open Settings
+ // before the second manual check, but fail loudly if a real early reload
+ // brought the title screen back.
+ assert.equal(await evaluate('document.querySelector("#title").hidden'),true,'update check does not reload before approval');
+ if(await evaluate('document.querySelector("#pause-overlay").hidden')){await click('#pause');await waitFor('!document.querySelector("#pause-overlay").hidden');}
+ await waitFor('document.querySelector("#opt-update")?.getClientRects().length>0 && !document.querySelector("#opt-update").disabled');
  await click('#opt-update');await waitFor('!document.querySelector("#update-notice").hidden');
  assert.notEqual(await evaluate('document.querySelector("meta[name=game-build]").content'),'browser-update-fixture','update waits for a click');
  await screenshot('update-ready');await click('#opt-update');
