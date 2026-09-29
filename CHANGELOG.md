@@ -7,6 +7,14 @@
 - Prioritized building cards above village statistics on small screens.
 - No gameplay, economy, progression or save changes.
 
+## Detail/world/story expansion — Phase 10: Environmental story hotspots (2026-09-28)
+
+- Added original lore entries for all ten named persistent-home landmarks: Stillwater, Timber Line, Moonwell, Starwatch Ridge, Whisperwood, Ashfall March, Blackwater Mouth, Southreach Crossing, Dawnfields and Pale Coast. Content lives under `data/world.json.hotspots` and adds no saved state.
+- Home landmark geometry now carries a generic `{kind:'site'}` hit owner when a hotspot exists at that coordinate. Tapping the marker recenters the camera and reads the site's lore through the existing game-status/toast surface.
+- Hotspot identity is restricted to the persistent full-size home tile sheet. Mission-local landmarks remain ordinary scenery even if their local coordinate happens to equal a home hotspot coordinate (for example Dawnfields at mission 15,12 vs Timber Line at home 15,12).
+- Ordinary scenery remains noninteractive, and hotspot lookup is read-only. No rewards, resources, claims, progression, save keys or migration were added in this first environmental-story pass.
+- Added four `tests/story-hotspots.test.js` regressions for data/landmark integrity, selectable site mesh ownership, expedition isolation, and read-only lookup. Test target: 545 → 549.
+
 ## Detail/world/story expansion — Phase 9: Destination expedition themes (2026-09-28)
 
 - Campaign mission worlds now build their own visual tile sheet instead of inheriting the persistent home's landmark list. Expedition grids remain the intended **20×17 homestead scale**, avoiding a hidden 52×44 visual tile load after the home frontier expansion.
