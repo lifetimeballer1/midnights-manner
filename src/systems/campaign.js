@@ -1,11 +1,11 @@
 import {createWorld} from '../model.js';
 import {spawnRaid} from './combat.js';
 import {isRegionClaimed} from './expansion.js';
-// Branch reconvergence (coin-and-cinder onward): a mission may list
-// `requiresAny` — an OR-gate of chapter ids, open when at least one is
-// completed — beside the classic AND-gate `requires`. Both ride the same
-// completed list; missions with neither gate stay open. No chapter ids
-// live here: every gate is data on the mission object.
+// Campaign gates are data-driven: `requires` is an AND-gate, `requiresAny`
+// is an OR-gate, and optional `destination.region` requires that named home
+// frontier region to be claimed before the first departure. No chapter or
+// region ids live in this system. Completed chapters remain replayable even
+// if destination gates are added later.
 export function missionDestination(mission,data) {
  const id=mission?.destination?.region;
  if(!id)return null;
