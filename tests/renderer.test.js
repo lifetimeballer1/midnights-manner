@@ -61,5 +61,5 @@ test('visual pass: calm mode renders the same states without motion', () => {
 test('visual pass: renderer effects stay capped so juice never floods', () => {
   const {game, renderer} = boot();
   for (let i = 0; i < 200; i++) renderer.burst(game.world, 5, 5, 5, 5, 'sparkle', .4);
-  assert.ok(game.world.effects.length <= 48);
+  assert.ok(game.world.effects.length <= 60);
 });

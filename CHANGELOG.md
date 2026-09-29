@@ -1,3 +1,9 @@
+# Stormglass Folklore — Phase C: pooled motion + calm parity
+
+- Motion pool capped at 60 transient effects (was 48) so raids stay flat on phones; `tests/renderer.test.js` cap updated deliberately in the same commit.
+- Calm parity fixed: place-ring and slam shake are now calm-gated like all other shake sources. Also fixed mid-frame shake being wiped same-frame (`else this.shake=0` → residue-only clear), so slam/place shake actually renders the next frame in full-motion play and never in calm mode.
+- No save fields or gameplay changes. Review: `npm run capture` desktop + phone night checked (hint/HUD clear, warm windows intact); browser smoke green, no console errors. `npm test` 585 green, `npm run build` 355 precached.
+
 # Stormglass Folklore — Phase B: tokens + first-run hint
 
 - Stormglass tokens land in `src/kingdom.css` (`--night:#1a2c4e`, `--brass:#f4cc73`, `--parchment:#eee4c9`, new `--lamp:#ffb95b`); theme-color matches. CSS-only, no gameplay or save changes.
