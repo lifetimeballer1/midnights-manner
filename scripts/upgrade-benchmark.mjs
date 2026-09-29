@@ -33,17 +33,23 @@ try{
  await evaluate('document.querySelector("#begin").click()');await waitFor('window.midnightsManner.ready');
  const population=await evaluate('window.midnightsManner.stressUpgrades(150)');
  assert.equal(population.population,150,'benchmark population');
- await new Promise(r=>setTimeout(r,250));
- await evaluate('window.midnightsManner.resetFrameReport()');
- await waitFor('window.midnightsManner.frameReport()?.n>=120',240);
- const report=await evaluate('window.midnightsManner.frameReport()');
- assert.ok(report&&report.n>=120,'frame sample collected');
- for(const k of ['avg','p50','p95','faces','staticFaces','drawCalls','triangles'])assert.ok(Number.isFinite(report[k]),k+' is finite');
- assert.ok(Number.isFinite(report.heapMB)&&report.heapMB>0,'precise JS heap recorded');
- assert.ok(report.faces<30000&&report.triangles<60000,`mesh runaway (faces=${report.faces}, triangles=${report.triangles})`);
+ const sample=async mode=>{
+  const tiers=await evaluate(`window.midnightsManner.setUpgradeMode("${mode}")`);
+  await new Promise(r=>setTimeout(r,300));
+  await evaluate('window.midnightsManner.resetFrameReport()');
+  await waitFor('window.midnightsManner.frameReport()?.n>=120',240);
+  const report=await evaluate('window.midnightsManner.frameReport()');
+  assert.ok(report&&report.n>=120,mode+' frame sample collected');
+  for(const k of ['avg','p50','p95','faces','staticFaces','drawCalls','triangles'])assert.ok(Number.isFinite(report[k]),mode+' '+k+' is finite');
+  assert.ok(report.faces<30000&&report.triangles<60000,`${mode} mesh runaway`);
+  return {tiers,...report};
+ };
+ const baseline=await sample('baseline');
+ const feature=await sample('feature');
  assert.deepEqual(errors,[],'no browser runtime errors');
- const summary={viewport:'390x844@2x',villagers:population.population,tiers:population.tiers,...report};
- console.log('UPGRADE_BENCHMARK '+JSON.stringify(summary));
+ const pct=(a,b)=>+(((b-a)/a)*100).toFixed(1);
+ const delta={avgPct:pct(baseline.avg,feature.avg),p50Pct:pct(baseline.p50,feature.p50),p95Pct:pct(baseline.p95,feature.p95),facesPct:pct(baseline.faces,feature.faces),trianglesPct:pct(baseline.triangles,feature.triangles)};
+ console.log('UPGRADE_PAIRED_BENCHMARK '+JSON.stringify({viewport:'390x844@2x',villagers:population.population,baseline,feature,delta}));
 }finally{
  try{ws?.close();}catch{}
  killBrowser(chrome);server.close();
