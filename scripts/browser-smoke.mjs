@@ -210,6 +210,10 @@ try{
  await click('#close-panel');
  await call('Emulation.setDeviceMetricsOverride',{width:844,height:390,deviceScaleFactor:2,mobile:true});await new Promise(r=>setTimeout(r,100));await click('#recenter');await screenshot('landscape');
  assert.equal(await evaluate('document.documentElement.scrollHeight > innerHeight'),false,'landscape has no scrolling');
+ const perf=await evaluate('window.midnightsManner.frameReport()');
+ assert.ok(perf&&perf.n>=10&&Number.isFinite(perf.avg)&&Number.isFinite(perf.p95),'frame telemetry stays live');
+ assert.ok(perf.faces<30000&&perf.staticFaces<30000,`visible mesh stays bounded (faces=${perf.faces}, static=${perf.staticFaces})`);
+ console.log('Frame report',perf);
  await click('[data-tab="troops"]');await click('[data-category="recruit"]');
  assert.ok((await evaluate('document.querySelectorAll("[data-recruit]").length'))>=20,'all professions retained');
  // Serve a second build while the standalone-sized page stays open.
