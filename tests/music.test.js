@@ -174,11 +174,11 @@ test('sound effects share a master output that the sound setting can mute',()=>{
  }
 });
 
-test('multi-theme music resolves three original ambient scores',async()=>{
+test('multi-theme music resolves four original ambient scores',async()=>{
  const {engine,themes}=await loadMusic();
- assert.ok(themes.length>=3,'three theme songs are available');
+ assert.ok(themes.length>=4,'four theme songs are available');
  const ids=themes.map(t=>t.id);
- assert.ok(ids.includes('ember')&&ids.includes('grove')&&ids.includes('haze'),'ember, grove, and haze themes present');
+ assert.ok(ids.includes('ember')&&ids.includes('grove')&&ids.includes('haze')&&ids.includes('lattice'),'ember, grove, haze, and lattice themes present');
  for(const theme of themes){
   const phrase=engine.createPhrase(theme,0,false);
   assert.ok(phrase.notes.length>0&&phrase.duration>0,`theme ${theme.id} generates a playable phrase`);
@@ -192,11 +192,11 @@ test('MusicPlayer picks a random theme on start and can re-roll',async()=>{
  delete globalThis.window;
  try{
   const player=new engine.MusicPlayer(data);
-  assert.equal(player.themes.length,3,'player loads all three themes');
+  assert.equal(player.themes.length,4,'player loads all four themes');
   player.start({calm:true});
   assert.ok(player.score&&player.score.id,'start selects a score');
   const first=player.themeIndex;
-  player.pickTheme((first+1)%3);
+  player.pickTheme((first+1)%4);
   assert.notEqual(player.themeIndex,first,'pickTheme can change the active song');
   player.stop();
  }finally{if(previousWindow!==undefined)globalThis.window=previousWindow;}
