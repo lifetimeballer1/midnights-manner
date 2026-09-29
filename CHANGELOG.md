@@ -1,3 +1,10 @@
+# Stormglass Folklore — Phase E: lighting rework + design spec
+
+- Stormglass light retune in `src/systems/daynight.js`: cooler moonblue night key (`#8fb0f0` × 0.17) over deeper blue ambient (`#42578a` × 0.42), warmer window emissive (0.75), deeper night vignette (0.55); rose-gold dawn, deeper ember dusk; cooler fog veil (`#8fa3bd`); night overlay alpha 0.22. Day is byte-identical to the legacy formula — all day digests verified unchanged.
+- Baselines updated deliberately in the same commit: night/dawn painted digests in `tests/lighting-baseline.test.js`, fog-veil pins + night-ambient fallback in `tests/lighting.test.js`. Geometry, frozen formula, directionality, windows-outshine-walls and cache invariants hold.
+- New `docs/STORMGLASS_SPEC.md`: mood/non-goals, palette tokens, 8-icon set, UI states, motion budget, lighting table, review matrix and verify commands. `docs/LIGHTING.md` sky table updated.
+- Review: `npm run capture` dawn/day/dusk/night + rain/fog + phone-night checked — warm windows against deep blue night, readable silhouettes/HUD on both angles; browser smoke green (one headless-audio threshold flake passed on retry), no console errors. `npm test` 587 green, `npm run build` 355 precached.
+
 # Stormglass Folklore — Phase D: input feel
 
 - Tap threshold 7→10px so shaky fingers select instead of panning; real drags still pan. Wheel zoom is now delta-proportional (trackpad ticks ease, wheel notches land ~old steps), still anchored at the pointer; Firefox line-deltas handled.

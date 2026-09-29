@@ -16,16 +16,16 @@ const PHASES = [
 ];
 
 const LIGHTING = {
-  dawn: {color: '#f2c96e', alpha: 0.06, glow: 0.35},
+  dawn: {color: '#f2c96e', alpha: 0.07, glow: 0.35},
   day: {color: null, alpha: 0, glow: 0},
-  dusk: {color: '#c05a4e', alpha: 0.08, glow: 0.65},
-  night: {color: '#1a2c4e', alpha: 0.2, glow: 1},
+  dusk: {color: '#b65448', alpha: 0.08, glow: 0.7},
+  night: {color: '#1a2c4e', alpha: 0.22, glow: 1},
 };
 
 const WEATHERS = {
   clear: {id: 'clear', name: 'Clear', icon: '🌤️', color: null, alpha: 0, streaks: false, mesh: {fog: 0, dim: 1}},
   rain: {id: 'rain', name: 'Rain', icon: '🌧', color: '#2e4a5a', alpha: 0.08, streaks: true, mesh: {fog: 0, dim: 0.92}},
-  fog: {id: 'fog', name: 'Fog', icon: '🌫', color: '#9aa7b5', alpha: 0.14, streaks: false, mesh: {fog: 0.5, dim: 0.9, fogColor: '#9aa7b5'}},
+  fog: {id: 'fog', name: 'Fog', icon: '🌫', color: '#8fa3bd', alpha: 0.14, streaks: false, mesh: {fog: 0.5, dim: 0.9, fogColor: '#8fa3bd'}},
 };
 
 const DEFAULTS = {
@@ -107,10 +107,10 @@ export function lightingFor(phaseId, data) {
 // direction, the moon crosses back over the night. Mid-day lands on the
 // Phase 2 constant, so the classic look is the day's center, not its edge.
 const SKIES = {
-  dawn: {key: {dir: [-0.2, -0.6, 0.8], arc: [[-0.55, -0.75, 0.3], [-0.25, -0.6, 0.85]], color: '#f2c96e', intensity: 0.24}, ambient: {color: '#a8b6cc', intensity: 0.6}, sky: 0.1, emissive: 0.25, vignette: 0.4},
+  dawn: {key: {dir: [-0.2, -0.6, 0.8], arc: [[-0.55, -0.75, 0.3], [-0.25, -0.6, 0.85]], color: '#f5c078', intensity: 0.25}, ambient: {color: '#b3bfd4', intensity: 0.62}, sky: 0.1, emissive: 0.3, vignette: 0.4},
   day: {key: {dir: [-0.4, -0.5, 1], norm: 1.187, arc: [[-0.9, -0.4, 0.95], [0.1, -0.6, 1.05]], color: '#ffffff', intensity: 0.26}, ambient: {color: '#ffffff', intensity: 0.72}, sky: 0.12, emissive: 0, vignette: 0.34},
-  dusk: {key: {dir: [-0.6, -0.35, 0.75], arc: [[-0.6, -0.35, 0.75], [0.35, -0.55, 0.5]], color: '#e8a25e', intensity: 0.24}, ambient: {color: '#c9a68c', intensity: 0.58}, sky: 0.1, emissive: 0.22, vignette: 0.44},
-  night: {key: {dir: [0.45, -0.3, 0.85], arc: [[0.75, -0.45, 0.55], [-0.6, -0.3, 0.75]], color: '#9fb4e8', intensity: 0.16}, ambient: {color: '#4a5f8e', intensity: 0.4}, sky: 0.07, emissive: 0.6, vignette: 0.52},
+  dusk: {key: {dir: [-0.6, -0.35, 0.75], arc: [[-0.6, -0.35, 0.75], [0.35, -0.55, 0.5]], color: '#e08a4e', intensity: 0.25}, ambient: {color: '#c2a088', intensity: 0.6}, sky: 0.1, emissive: 0.28, vignette: 0.46},
+  night: {key: {dir: [0.45, -0.3, 0.85], arc: [[0.75, -0.45, 0.55], [-0.6, -0.3, 0.75]], color: '#8fb0f0', intensity: 0.17}, ambient: {color: '#42578a', intensity: 0.42}, sky: 0.07, emissive: 0.75, vignette: 0.55},
 };
 const LIGHT_BUCKETS = 192; // painted-color cache steps per day (~1.6s at 300s days)
 const PHASE_ORDER = PHASES.map(p => p.id);

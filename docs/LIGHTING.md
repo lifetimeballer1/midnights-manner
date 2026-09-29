@@ -1,6 +1,6 @@
 # LIGHTING — sky shading, source profiles, weather and AO
 
-Status: sky-light phases 2–4 plus source-light identity implemented 2026-09-28. Scope: scene mesh shading, the key-light arc, source-projected ground spill, weather response on meshes, per-face ground occlusion, contact shadows and the vignette. Terrain tinting and cast shadows between separate structures remain future work.
+Status: sky-light phases 2–4 plus source-light identity implemented 2026-09-28; Stormglass retune (dawn/dusk/night, fog veil) landed after Phase E with day byte-identical. Scope: scene mesh shading, the key-light arc, source-projected ground spill, weather response on meshes, per-face ground occlusion, contact shadows and the vignette. Terrain tinting and cast shadows between separate structures remain future work.
 
 ## Goal
 
@@ -57,8 +57,8 @@ direction beat the sweep); a bad override falls back to the base static dir.
   `.42 × min(1, keyI/0.26)` tiles — with alpha `max(.06, min(.22, keyI × .75))`.
   The offset swings with the sun/moon arc and fades after dark. One polygon
   per body per frame; never baked into the terrain cache, never blurred.
-- **Vignette**: per-phase `vignette` (dawn 0.40, day 0.34, dusk 0.44, night
-  0.52), crossfaded with the other light fields, clamped ≤ 0.7.
+- **Vignette**: per-phase `vignette` (dawn 0.40, day 0.34, dusk 0.46, night
+  0.55), crossfaded with the other light fields, clamped ≤ 0.7.
 - **Moon glow**: the warm corner glow follows the key light's east–west
   component (`width × (.5 + .42 × clamp(keyDir.x))`), so the Phase 3 moon
   sweep is visible on screen; it fades with the overlay glow (day = none).
@@ -124,16 +124,16 @@ at noon that is the pre-Phase-2 look.
 
 | phase | arc (from → to)              | key color × I    | ambient × I      | sky  | emissive | vignette |
 |-------|------------------------------|------------------|------------------|------|----------|----------|
-| dawn  | -0.55,-0.75,0.30 → -0.25,-0.60,0.85 | `#f2c96e` × 0.24 | `#a8b6cc` × 0.60 | 0.10 | 0.25     | 0.40     |
+| dawn  | -0.55,-0.75,0.30 → -0.25,-0.60,0.85 | `#f5c078` × 0.25 | `#b3bfd4` × 0.62 | 0.10 | 0.30     | 0.40     |
 | day   | -0.90,-0.40,0.95 → 0.10,-0.60,1.05  | `#ffffff` × 0.26 | `#ffffff` × 0.72 | 0.12 | 0        | 0.34     |
-| dusk  | -0.60,-0.35,0.75 → 0.35,-0.55,0.50  | `#e8a25e` × 0.24 | `#c9a68c` × 0.58 | 0.10 | 0.22     | 0.44     |
-| night | 0.75,-0.45,0.55 → -0.60,-0.30,0.75  | `#9fb4e8` × 0.16 | `#4a5f8e` × 0.40 | 0.07 | 0.60     | 0.52     |
+| dusk  | -0.60,-0.35,0.75 → 0.35,-0.55,0.50  | `#e08a4e` × 0.25 | `#c2a088` × 0.60 | 0.10 | 0.28     | 0.46     |
+| night | 0.75,-0.45,0.55 → -0.60,-0.30,0.75  | `#8fb0f0` × 0.17 | `#42578a` × 0.42 | 0.07 | 0.75     | 0.55     |
 
 | weather | fog  | dim  | veil      |
 |---------|------|------|-----------|
 | clear   | 0    | 1    | —         |
 | rain    | 0    | 0.92 | —         |
-| fog     | 0.5  | 0.9  | `#9aa7b5` |
+| fog     | 0.5  | 0.9  | `#8fa3bd` |
 
 Balanced-visuals rule: night keeps silhouettes readable (ambient ≥ 0.4) and
 lamps/windows carry the warmth; the screen-space overlay still does the deep

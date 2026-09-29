@@ -83,12 +83,12 @@ test('lighting: weather lands on the meshes and stays clamped and tunable', () =
   const mist = weatherLightAt('fog', null);
   assert.equal(mist.fog, 0.5);
   assert.equal(mist.dim, 0.9);
-  assert.ok(close(mist.fogRGB[0], 0x9a / 255) && close(mist.fogRGB[2], 0xb5 / 255), 'the veil matches the fog tint');
+  assert.ok(close(mist.fogRGB[0], 0x8f / 255) && close(mist.fogRGB[2], 0xbd / 255), 'the veil matches the fog tint');
   const wild = {world: {daynight: {weather: {fog: {mesh: {fog: 9, dim: 0.1, fogColor: 'not-a-color'}}}}}};
   const clamped = weatherLightAt('fog', wild);
   assert.equal(clamped.fog, 0.85, 'fog clamps at its ceiling');
   assert.equal(clamped.dim, 0.5, 'dim clamps at its floor');
-  assert.deepEqual(clamped.fogRGB, [0x9a / 255, 0xa7 / 255, 0xb5 / 255], 'bad color falls back to the base');
+  assert.deepEqual(clamped.fogRGB, [0x8f / 255, 0xa3 / 255, 0xbd / 255], 'bad color falls back to the base');
   assert.deepEqual(weatherLightAt('eclipse', null), weatherLightAt('clear', null), 'unknown skies read clear');
   // The bucket id folds in the weather, so a sky change forces a repaint.
   const rainDay = (() => { for (let d = 0; d < 60; d++) { const t = d * DAY_LENGTH + DAY; if (weatherAt(t, {world}).id === 'rain') return t; } throw Error('no rain day found'); })();
@@ -109,7 +109,7 @@ test('lighting: data overrides merge, clamp, and fall back on bad values', () =>
   assert.equal(l.ambI, 0.5, 'override intensity wins');
   assert.deepEqual(l.keyDir, [0.45, -0.3, 0.85], 'bad dir falls back to the base');
   assert.deepEqual(l.keyRGB, [0xb9 / 255, 0xc9 / 255, 0xff / 255], 'override color parses');
-  assert.deepEqual(l.ambRGB, [0x4a / 255, 0x5f / 255, 0x8e / 255], 'bad color falls back to the base');
+  assert.deepEqual(l.ambRGB, [0x42 / 255, 0x57 / 255, 0x8a / 255], 'bad color falls back to the base');
   assert.equal(l.sky, 0.5, 'sky clamps at its ceiling');
   assert.equal(l.emissive, 2, 'glow clamps at its ceiling');
   assert.equal(l.vignette, 0.7, 'vignette clamps at its ceiling');
