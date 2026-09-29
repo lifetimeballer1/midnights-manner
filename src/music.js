@@ -2,8 +2,10 @@ import {isMuted,sharedAudioContext,sharedAudioOutput} from './systems/audio.js';
 
 // MULTI-THEME: set false (or remove themes from music.json) to revert to single-score behavior.
 const USE_MULTI_THEMES=true;
-// How many phrases (bars*4) play before a new random theme may be chosen. Easy to tune.
+// How many phrases play before a new random theme may be chosen. Easy to tune.
 const PHRASES_PER_SONG=5;
+// Silence between themes so notes never overlap across songs (ms).
+const THEME_GAP_MS=420;
 
 const DEFAULT_SCALE=[0,2,3,5,7,9,10];
 const DEFAULT_PROGRESSION=[[0,3,7,10],[5,9,12,14],[-2,2,5,9],[-5,0,2,5]];
@@ -68,21 +70,31 @@ export class MusicPlayer{
   this.score=this.themes[0];
   this.themeIndex=0;
   this.phrasesInSong=0;
+  this.switchTimer=null;
   this.entered=false;this.enabled=false;this.playing=false;this.calm=false;this.phrase=0;this.lastPitch=31;this.activePhrase=null;this.timer=null;this.sources=new Set();this.context=null;this.output=null;this.delay=null;this.echo=null;
  }
- /** Pick a random theme. On first call (start) any of the three; later calls re-roll randomly. */
+ /**
+  * Pick a theme. Returns true if the active theme actually changed.
+  * On start, any of the pool; later calls re-roll randomly.
+  */
  pickTheme(forceIndex){
-  if(!USE_MULTI_THEMES||this.themes.length<2){this.score=this.themes[0];this.themeIndex=0;return;}
+  if(!USE_MULTI_THEMES||this.themes.length<2){
+   const same=this.themeIndex===0&&this.score===this.themes[0];
+   this.score=this.themes[0];this.themeIndex=0;this.phrasesInSong=0;
+   return !same;
+  }
   let next;
   if(Number.isInteger(forceIndex)&&forceIndex>=0&&forceIndex<this.themes.length)next=forceIndex;
   else next=Math.floor(Math.random()*this.themes.length);
+  const changed=next!==this.themeIndex;
   this.themeIndex=next;
   this.score=this.themes[next];
   this.phrasesInSong=0;
+  return changed;
  }
  start({calm=false}={}){
   this.entered=true;this.calm=Boolean(calm);
-  // On open: randomly choose one of the three songs.
+  // On open: randomly choose one of the songs. Never start a second stack.
   this.pickTheme();
   this.setEnabled(!isMuted());
  }
@@ -90,6 +102,8 @@ export class MusicPlayer{
  setCalm(calm){this.calm=Boolean(calm);}
  stop(){this.entered=false;this.enabled=false;this.stopPlayback();}
  play(){
+  // Guard: never stack a second graph on top of an active one.
+  if(this.playing)return;
   const context=sharedAudioContext(),destination=sharedAudioOutput();if(!context||!destination)return;
   this.context=context;this.output=context.createGain();this.output.gain.value=bounded(this.score?.gain,.7,0,1);this.output.connect(destination);
   this.delay=context.createDelay(.6);this.delay.delayTime.value=bounded(this.score?.echo?.seconds,.24,.08,.5);
@@ -99,15 +113,28 @@ export class MusicPlayer{
  }
  schedulePhrase(start){
   if(!this.playing)return;
-  // After the opening song segment, re-pick a random theme for the next segment.
+  // After a song segment, re-pick. If the theme changes, stop current audio fully
+  // then resume after a short gap so themes never ring over each other.
   if(USE_MULTI_THEMES&&this.themes.length>1&&this.phrasesInSong>=PHRASES_PER_SONG){
-   this.pickTheme();
+   if(this.pickTheme()){
+    this.transitionToTheme();
+    return;
+   }
   }
   const phrase=createPhrase(this.score,this.phrase++,this.calm,this.lastPitch),context=this.context;this.activePhrase={...phrase,start};
   this.phrasesInSong++;
   for(const note of phrase.notes)this.playNote(note,start+note.time);
   const next=start+phrase.duration;
   this.timer=setTimeout(()=>{if(!this.playing)return;this.lastPitch=phrase.lastPitch;this.activePhrase=null;this.schedulePhrase(Math.max(next,context.currentTime+.05));},Math.max(20,(next-context.currentTime)*1000));
+ }
+ /** Fade out current theme completely, then start the new one after THEME_GAP_MS. */
+ transitionToTheme(){
+  this.stopPlayback();
+  if(this.switchTimer!==null){clearTimeout(this.switchTimer);this.switchTimer=null;}
+  this.switchTimer=setTimeout(()=>{
+   this.switchTimer=null;
+   if(this.entered&&this.enabled&&!this.playing)this.play();
+  },THEME_GAP_MS);
  }
  playNote(note,when){
   const context=this.context,env=context.createGain(),start=Math.max(when,context.currentTime+.01),end=start+note.duration;
@@ -132,6 +159,7 @@ export class MusicPlayer{
  }
  stopPlayback(){
   if(this.timer!==null)clearTimeout(this.timer);this.timer=null;
+  if(this.switchTimer!==null){clearTimeout(this.switchTimer);this.switchTimer=null;}
   const context=this.context,output=this.output,delay=this.delay,echo=this.echo;
   if(context&&this.activePhrase){const elapsed=context.currentTime-this.activePhrase.start,heard=this.activePhrase.notes.filter(note=>note.voice==='pluck'&&note.time<=elapsed).at(-1);if(heard)this.lastPitch=heard.semitone;}
   this.activePhrase=null;
