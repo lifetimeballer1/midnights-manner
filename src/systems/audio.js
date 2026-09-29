@@ -3,7 +3,7 @@
 let ctx = null;
 let output = null;
 let muted = false;
-let lastHit = 0;
+const lastPlayed = {hit: 0, step: 0, work: 0, combat: 0};
 try {
   muted = typeof localStorage !== 'undefined' && localStorage.getItem('midnights-manner-sound') === 'off';
 } catch { muted = false; }
@@ -39,6 +39,13 @@ function ac() { return muted ? null : context(); }
 export function sharedAudioContext() { return context(); }
 export function sharedAudioOutput() { return context() ? output : null; }
 export function unlock() { ac(); }
+function clockNow() { return typeof performance !== 'undefined' ? performance.now() : Date.now(); }
+function ready(key, gap) {
+  const now = clockNow();
+  if (now - (lastPlayed[key] || 0) < gap) return false;
+  lastPlayed[key] = now;
+  return true;
+}
 function tone(freq, dur = 0.1, { type = 'sine', slide = 0, delay = 0, vol = 0.16 } = {}) {
   const c = ac();
   if (!c) return;
@@ -58,6 +65,39 @@ function tone(freq, dur = 0.1, { type = 'sine', slide = 0, delay = 0, vol = 0.16
   } catch {}
 }
 export const sfx = {
+  workChop() {
+    if (!ready('work', 150)) return;
+    tone(170, 0.065, { type: 'triangle', slide: -58, vol: 0.036 });
+    tone(82, 0.09, { type: 'sine', delay: 0.025, slide: -18, vol: 0.022 });
+  },
+  workPick() {
+    if (!ready('work', 150)) return;
+    tone(1180, 0.035, { type: 'square', slide: -350, vol: 0.022 });
+    tone(205, 0.075, { type: 'triangle', delay: 0.016, slide: -50, vol: 0.026 });
+  },
+  workHammer() {
+    if (!ready('work', 150)) return;
+    tone(720, 0.04, { type: 'square', slide: -150, vol: 0.024 });
+    tone(220, 0.07, { type: 'triangle', delay: 0.02, slide: -38, vol: 0.028 });
+  },
+  arrow() {
+    if (!ready('combat', 80)) return;
+    tone(520, 0.055, { type: 'triangle', slide: 720, vol: 0.035 });
+    tone(1260, 0.04, { type: 'sine', delay: 0.025, slide: -390, vol: 0.018 });
+  },
+  blade() {
+    if (!ready('combat', 80)) return;
+    tone(1360, 0.045, { type: 'triangle', slide: -470, vol: 0.028 });
+    tone(310, 0.055, { type: 'square', delay: 0.025, slide: -70, vol: 0.018 });
+  },
+  footstep() {
+    if (!ready('step', 125)) return;
+    tone(82, 0.045, { type: 'triangle', slide: -24, vol: 0.018 });
+  },
+  gate() { tone(92, 0.22, { type: 'triangle', slide: -28, vol: 0.055 }); tone(145, 0.06, { type: 'square', delay: 0.16, slide: -50, vol: 0.018 }); },
+  warning() { [196, 196, 147].forEach((f, i) => tone(f, 0.24, { type: 'sawtooth', delay: i * 0.21, vol: 0.045 })); },
+  research() { [440, 554, 659, 880].forEach((f, i) => tone(f, 0.085, { type: 'sine', delay: i * 0.07, vol: 0.065 })); },
+  fail() { tone(220, 0.09, { type: 'triangle', slide: -55, vol: 0.055 }); tone(165, 0.12, { type: 'triangle', delay: 0.08, slide: -35, vol: 0.045 }); },
   place() { tone(120, 0.14, { type: 'sine', slide: -70, vol: 0.22 }); tone(62, 0.16, { type: 'triangle', vol: 0.18 }); },
   collect() { tone(880, 0.07, { vol: 0.1 }); tone(1320, 0.09, { delay: 0.06, vol: 0.1 }); },
   upgrade() { [523, 659, 784].forEach((f, i) => tone(f, 0.1, { type: 'triangle', delay: i * 0.08, vol: 0.14 })); },
@@ -67,10 +107,9 @@ export const sfx = {
   horn() { tone(196, 0.5, { type: 'sawtooth', vol: 0.1 }); tone(147, 0.6, { type: 'sawtooth', delay: 0.05, vol: 0.1 }); },
   bell() { tone(1046, 0.5, { type: 'sine', vol: 0.12 }); tone(784, 0.6, { type: 'sine', delay: 0.25, vol: 0.1 }); },
   hit() {
-    const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
-    if (now - lastHit < 90) return;
-    lastHit = now;
-    tone(210, 0.05, { type: 'square', slide: -80, vol: 0.05 });
+    if (!ready('hit', 90)) return;
+    tone(210, 0.05, { type: 'square', slide: -80, vol: 0.045 });
+    tone(96, 0.075, { type: 'triangle', delay: 0.012, slide: -25, vol: 0.03 });
   },
   win() { [523, 659, 784, 1046].forEach((f, i) => tone(f, 0.14, { type: 'triangle', delay: i * 0.1, vol: 0.14 })); },
   lose() { [392, 330, 262, 196].forEach((f, i) => tone(f, 0.18, { type: 'triangle', delay: i * 0.13, vol: 0.12 })); },
