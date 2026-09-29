@@ -4,7 +4,7 @@ import {survivalStatus} from './systems/raid-director.js';
 // Chronicle). No rendering, no state mutation, no save keys — presentation
 // only. Safe to unit-test in Node.
 import {currentQuest, questProgress, growthStatus} from './systems/village.js';
-import {missionLocked} from './systems/campaign.js';
+import {missionLocked,missionDestination,missionRegionClaimed} from './systems/campaign.js';
 import {capable, expeditionSpec, expeditionStatus} from './systems/expeditions.js';
 import {housing, XP_LEVELS} from './model.js';
 
@@ -32,8 +32,11 @@ export function questCards(data, state) {
 export function campaignCards(data, state) {
   const completed = state?.completed || [];
   const currentId = state?.mission?.id || null;
+  const home = state?.home || state?.world || null;
   return (data?.missions || []).map(m => {
-    const locked = missionLocked(m, completed);
+    const destination = missionDestination(m, data);
+    const regionClaimed = destination ? missionRegionClaimed(m, home, data) : true;
+    const locked = missionLocked(m, completed, home, data);
     return {
       id: m.id,
       chapter: m.chapter,
@@ -41,6 +44,7 @@ export function campaignCards(data, state) {
       locked,
       requires: m.requires || [],
       requiresAny: m.requiresAny || [],
+      destination: destination ? {id:destination.id,name:destination.name,claimed:regionClaimed} : null,
     };
   });
 }
