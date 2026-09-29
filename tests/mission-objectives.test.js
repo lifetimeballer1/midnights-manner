@@ -27,7 +27,7 @@ test('mission objectives: legacy resource objects remain gather objectives',()=>
 });
 
 test('mission objectives: protect and build read finished living structures',()=>{
- const d=structuredClone(data),w=createWorld(d);
+ const d=structuredClone(data),w={buildings:[],gathered:{},elapsed:0,raidKills:0};
  const tower=makeBuilding('tower',4,4,d);tower.remaining=0;w.buildings.push(tower);
  let protect=missionObjectiveProgress({kind:'protect',type:'tower',count:1},w,d);
  assert.equal(protect.complete,true);
