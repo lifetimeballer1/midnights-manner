@@ -5,10 +5,10 @@ function seedOf(id){
  for(const ch of String(id||'')){h^=ch.charCodeAt(0);h=Math.imul(h,16777619);}
  return (h>>>0)/4294967296;
 }
-export function buildingActivityState(building,spec,world){
+export function buildingActivityState(building,spec,world,crewCounts=null){
  if(!building||!spec||building.hp<=0||building.remaining>0)return {active:false,crew:0,producer:false,workplace:false,stocking:false};
- let crew=0;
- for(const u of world?.troops||[])if(u?.hp>0&&u.workplace===building.id&&!u.emergency&&!u.expedition&&!u.order)crew++;
+ let crew=crewCounts?.get(building.id)||0;
+ if(!crewCounts)for(const u of world?.troops||[])if(u?.hp>0&&u.workplace===building.id&&!u.emergency&&!u.expedition&&!u.order)crew++;
  let producer=false;
  if(spec.production){
   const cap=Math.max(1,reserveCapacity(spec,Math.max(1,Math.floor(+building.level||1))));
@@ -74,10 +74,20 @@ function cropSweep(r,b,n,t,intensity){
  const a=point(r,x-.08,y,.47),d=point(r,x+.1,y,.64);
  line(r.ctx,a,d,Math.max(1,r.cam.zoom),'#f0d98c',.25+.35*intensity);
 }
+function workGlint(r,b,n,t,intensity){
+ const pulse=r.calm?.5:(Math.sin(t*.006+seedOf(b.id)*11)+1)/2,p=point(r,b.x+n*.28,b.y+n*.82,.48+pulse*.08),c=r.ctx;
+ c.save();c.globalAlpha=.18+.38*pulse*intensity;c.fillStyle='#f1d58c';c.beginPath();c.arc(p.x,p.y,(1.5+1.3*pulse)*r.cam.zoom,0,Math.PI*2);c.fill();c.restore();
+}
+function dustTick(r,b,n,t,intensity){
+ const phase=r.calm?.4:(t*.0011+seedOf(b.id))%1,p=point(r,b.x+n*.52,b.y+n*.78,.22+phase*.22),c=r.ctx;
+ c.save();c.globalAlpha=(1-phase)*.24*intensity;c.fillStyle='#c9bea5';c.beginPath();c.arc(p.x,p.y,(2+phase*3)*r.cam.zoom,0,Math.PI*2);c.fill();c.restore();
+}
 export function drawBuildingActivity(r,world,time){
  if(!r||!world||r.cam.zoom<1.05)return;
+ const crewCounts=new Map();
+ for(const u of world.troops||[])if(u?.hp>0&&u.workplace&&!u.emergency&&!u.expedition&&!u.order)crewCounts.set(u.workplace,(crewCounts.get(u.workplace)||0)+1);
  for(const b of world.buildings||[]){
-  const spec=r.data.buildings[b.type],state=buildingActivityState(b,spec,world);
+  const spec=r.data.buildings[b.type],state=buildingActivityState(b,spec,world,crewCounts);
   if(!state.active)continue;
   const n=spec.size||1,intensity=Math.min(1,.45+state.crew*.2);
   if(['forge','smeltery','workshop','butchery'].includes(b.type)){if(!r.calm)smoke(r,b,n,time,intensity);sparks(r,b,n,time,intensity);}
@@ -86,5 +96,8 @@ export function drawBuildingActivity(r,world,time){
   if(['pond','deephole'].includes(b.type))waterRipple(r,b,n,time,intensity);
   if(b.type==='mill')wheel(r,b,n,time,intensity);
   if(['farm','pasture','grove','frostgrove'].includes(b.type))cropSweep(r,b,n,time,intensity);
+  if(state.workplace&&['armory','fletcher','shieldwall-yard','tannery','scriptorium','schoolroom','scout_post'].includes(b.type))workGlint(r,b,n,time,intensity);
+  if(state.workplace&&b.type==='mason_yard')dustTick(r,b,n,time,intensity);
+  if(state.stocking&&b.type==='fletcher')workGlint(r,b,n,time,intensity);
  }
 }
