@@ -1,6 +1,7 @@
 // Original low-poly outfits and equipment. All choices are renderer-only;
 // no generated appearance is written into a villager or player save.
 import {phaseSeed} from './camera.js';
+import {RARITY_COLORS} from './rarity.js';
 
 const wood='#987046',metal='#b7c8ca',leather='#624b37',brass='#dfba6a';
 const uniforms={
@@ -20,8 +21,7 @@ const uniforms={
  pikewoman:['#8b727f','helmet'],halberdier:['#947454','helmet'],
  oathsworn:['#c17d39','helmet'],squire:['#c8a95f','cap'],
 };
-const rarityMetal={uncommon:'#c1d0c9',rare:'#87c6d3',epic:'#b5a2d5',legendary:'#efd389'};
-
+function rarityColor(rarity){return Object.hasOwn(RARITY_COLORS,rarity)?RARITY_COLORS[rarity]:metal;}
 function shaft(s,x,y,z,height=.55){s.box(x+.22,y-.025,z,.045,.045,height,wood);}
 function bookEquipment(s,gear,x,y,z,detail){
  if(!gear.includes('tome')&&!gear.includes('hymnal')&&!gear.includes('primer'))return false;
@@ -149,7 +149,7 @@ function workshopEquipment(s,gear,x,y,z,steel){
  return false;
 }
 function equipment(s,gear,item,x,y,lift,detail){
- const steel=rarityMetal[item?.rarity]||metal,z=.3+lift;
+ const steel=rarityColor(item?.rarity),z=.3+lift;
  if(bookEquipment(s,gear,x,y,z,detail)||fieldEquipment(s,gear,x,y,z,steel,detail)
   ||weaponEquipment(s,gear,item,x,y,z,lift,steel,detail)||workshopEquipment(s,gear,x,y,z,steel)||relicEquipment(s,gear,x,y,z,steel))return;
  if(gear&&gear!=='apron')shaft(s,x,y,z,.48);
@@ -161,7 +161,7 @@ export function characterModel(s,u,data,time,enemy=false){
  const p=s.r.project(u.x,u.y),pad=50*s.r.cam.zoom;
  if(p.x<-pad||p.x>s.r.width+pad||p.y<-pad||p.y>s.r.height+pad)return;
  s.owner={kind:enemy?'enemy':'unit',id:u.id};s.alpha=1;
- const role=data.troops[u.type]?.role;
+ const troop=data.troops[u.type],role=troop?.role,professionColor=enemy?null:troop?.color;
  const faction=data.world.enemyFactions?.find(f=>f.id===u.faction);
  const [coat,hat]=enemy?[faction?.color||'#a65c54',u.role==='archer'?'hood':u.role==='scout'?'hood':'helmet']
   :uniforms[u.type]||[role==='combat'?'#5d8093':'#8c946c',role==='combat'?'helmet':'cap'];
@@ -178,7 +178,7 @@ export function characterModel(s,u,data,time,enemy=false){
  if(hat==='robe')s.box(x-.17,y-.13,.13,.34,.26,.2,coat);
  if(hat==='apron')s.box(x-.1,y+.115,.24,.2,.02,.3,'#d3b58b');
  if(detail){s.box(x-.154,y-.114,.29,.308,.228,.045,leather);s.box(x-.035,y+.117,.29,.07,.018,.046,'#d8bd79');}
- for(const dx of [-.22,.15])s.box(x+dx,y-.075,.29,.07,.13,.23,coat);
+ for(const dx of [-.22,.15])s.box(x+dx,y-.075,.29,.07,.13,.23,dx===.15&&professionColor?professionColor:coat);
  if(detail){s.box(x-.22,y-.076,.27,.075,.14,.075,skin);s.box(x+.15,y-.076,.27+lift,.075,.14,.075,skin);}
  s.box(x-.1,y-.09,.57+bob,.2,.18,.19,skin);
  if(detail)s.box(x-.105,y-.105,.66+bob,.21,.04,.13,hair);
@@ -210,8 +210,8 @@ export function characterModel(s,u,data,time,enemy=false){
   if(detail)for(const dx of [-.1,-.04])s.box(x+dx,y-.18,.61,.02,.02,.17,'#d9cda5');
  }
  if(enemy&&u.role==='breaker')s.box(x-.27,y-.13,.28,.09,.32,.37,'#687777');
- if(u.armor){
-  const armorColor=rarityMetal[data.items[u.armor]?.rarity]||metal;
+  if(u.armor){
+   const armorColor=rarityColor(data.items[u.armor]?.rarity);
   if(/shield/.test(u.armor)){
    s.box(x-.31,y-.12,.22,.075,.3,.38,armorColor);
    if(detail)s.box(x-.33,y-.015,.35,.03,.09,.1,'#ddbb75');

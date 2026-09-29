@@ -7,6 +7,12 @@
 - Prioritized building cards above village statistics on small screens.
 - No gameplay, economy, progression or save changes.
 
+## Presentation pass — Phase 9: Rarity and profession (2026-09-28)
+
+- Crafted gear and armor now render with the same rarity colors used by inventory labels. Every profession gets a narrow world-mesh accent from its unique `troops.json` color; item rarity comes from `items.json`. No new data fields, save keys, or gameplay effects.
+- Review: `node scripts/equipment-preview.mjs` shows 31 held-tool archetypes, all crafted rarity tiers, and all 35 profession defaults from front/reverse at gameplay zoom (`artifacts/equipment-{front,reverse}.png`).
+- Tests: `tests/character-art.test.js` checks all profession colors without extra geometry, rarity tiers, and invalid rarity fallbacks; `tests/phase8-chains-crafting.test.js` covers inherited rarity keys. `tests/lighting-baseline.test.js` pins the updated lineup. `npm test` count: 496 → 500.
+
 ## Presentation pass — Phase 8: Tools that tell the tale (2026-09-28)
 
 - Held equipment now keeps its own gameplay-scale silhouette instead of falling through broad shape groups: bow/longbow (with visible strings below the detail threshold), carpenter/forge/war hammers, battle/felling axes, cleaver, pike/halberd, fishing and herding tools, carrying gear, craft kits, and calling instruments. Material-tier variants retain their archetype shape.

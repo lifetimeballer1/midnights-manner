@@ -76,7 +76,7 @@ const CASES = [
 ];
 const ORBIT = {faces: 712, day: '6a40214f03dfcc44', night: '3c46d0a7b2bee5e1', dawn: '2cfa301ab21eed78'};
 // Canonical tool and outfit lineups at the mobile/gameplay zoom.
-const EQUIPMENT_BASELINE={faces:2140,raw:'6d895422c001cd58',frozen:'2bb841c750f02352',day:'1863c86501f8e381',night:'65977c5503864b24',dawn:'c7b2b93292a27954'};
+const EQUIPMENT_BASELINE={faces:2140,raw:'04e853c014207128',frozen:'241d8b95966059b3',day:'df338acc4f413950',night:'88b06e34596880b5',dawn:'a116f41f658eb445'};
 
 test('baseline: canonical meshes keep their raw geometry and albedo', () => {
   const r = renderer();

@@ -9,21 +9,22 @@
 // model.js, economy.js, village.js, game.js and storage.js import from
 // here, so this module must import nothing from them (no cycles).
 import {hasTrait, jobLevelMult} from './villagers.js';
+import {RARITY_COLORS} from '../rarity.js';
 
 // Weapon/armor tiers ARE the rarity ladder: common → uncommon → rare →
 // epic → legendary, one crafted step per tier. Old gear without a rarity
 // reads common — never a wipe, never a re-price.
 export const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
 export const RARITY_INFO = {
-  common: {name: 'Common', color: '#c9c9c9'},
-  uncommon: {name: 'Uncommon', color: '#7fc76f'},
-  rare: {name: 'Rare', color: '#6fa8dc'},
-  epic: {name: 'Epic', color: '#b678e0'},
-  legendary: {name: 'Legendary', color: '#f0b429'},
+  common: {name: 'Common', color: RARITY_COLORS.common},
+  uncommon: {name: 'Uncommon', color: RARITY_COLORS.uncommon},
+  rare: {name: 'Rare', color: RARITY_COLORS.rare},
+  epic: {name: 'Epic', color: RARITY_COLORS.epic},
+  legendary: {name: 'Legendary', color: RARITY_COLORS.legendary},
 };
 export function itemRarity(item) {
   const r = item?.rarity;
-  return r && RARITY_INFO[r] ? r : 'common';
+  return Object.hasOwn(RARITY_INFO, r) ? r : 'common';
 }
 export function rarityName(item) {
   return RARITY_INFO[itemRarity(item)].name;

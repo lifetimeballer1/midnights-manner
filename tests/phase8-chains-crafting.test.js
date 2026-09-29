@@ -38,6 +38,13 @@ test('phase8: rarity ladder resolves, old gear reads common', () => {
   assert.equal(itemRarity(data.items['aegis-of-dawn']), 'legendary');
 });
 
+test('phase8: inherited rarity keys fall back to common', () => {
+  for (const rarity of ['constructor', '__proto__']) {
+    assert.equal(itemRarity({rarity}), 'common');
+    assert.equal(rarityName({rarity}), 'Common');
+  }
+});
+
 test('phase8: forged tiers hit strictly harder and guard strictly better', () => {
   const blades = ['ash-blade', 'steel-blade', 'runed-blade', 'dawn-blade', 'first-dawn-blade'];
   const damages = blades.map(id => data.items[id].stats.damage);
