@@ -999,7 +999,7 @@
       "victory": "The court held, and both banners fly over it now — red and grey together. The Envoy bowed once and left a dial, a gift, and a cloak of the other color.",
       "defeat": "The court scattered before the second horn. The Envoy waited, patient as winter, for you to try the road again."
     },
-    "description": "The Pale Envoy holds court where the red and grey roads meet. Either banner may enter; hold two raids and reunite the doctrine.",
+    "description": "The Pale Envoy holds court at Southreach Crossing, where the old roads kneel together. Claim the crossing, hold two raids, and reunite the doctrine.",
     "timeLimit": 320,
     "troopLimit": 8,
     "objectives": [
@@ -1072,7 +1072,11 @@
     "requiresAny": [
       "red-banner",
       "grey-banner"
-    ]
+    ],
+    "destination": {
+      "region": "southreach",
+      "name": "Southreach Crossing"
+    }
   },
   {
     "id": "the-longest-night",
@@ -1087,7 +1091,7 @@
       "victory": "The longest night broke at last. Sorrel chalked every name — the living on the bell, the fallen on the cairns. Squires stood where wardens fell.",
       "defeat": "The night outlasted, as the old song warned. Sorrel sounds the retreat in good order: swear again, hold longer, mind the horns."
     },
-    "description": "Sorrel stakes everything on one ridge: three steepening assaults, the hardest raid the Manner has seen. Oathbound wardens welcome.",
+    "description": "Sorrel stakes everything on Starwatch Ridge: claim the height, then survive three steepening assaults — the hardest raid the Manner has seen.",
     "timeLimit": 360,
     "troopLimit": 9,
     "objectives": [
@@ -1178,7 +1182,11 @@
     "requiresAny": [
       "red-banner",
       "grey-banner"
-    ]
+    ],
+    "destination": {
+      "region": "starwatch-ridge",
+      "name": "Starwatch Ridge"
+    }
   },
   {
     "id": "dawn",
@@ -1193,7 +1201,7 @@
       "victory": "Dawn breaks over the Manner — Issa, Tomm, Maro, Sarella, Fen, Wren, Pella, Sorrel, Rue, Tam, Old Bell and the Pale Envoy standing one line. The eldest is named Moonwarden, the Gate stands open, and the credits are chalked in gold.",
       "defeat": "The dark held past first light. Twelve givers, one ridge, and the dawn still coming — walk it again, all together."
     },
-    "description": "The final siege: four waves against the whole Manner, every giver on the ridge. Hold till dawn and name the Moonwarden.",
+    "description": "The final siege waits in the Dawnfields beyond the southern road. Claim the fields, carry the whole Manner there, and hold four waves until first light.",
     "timeLimit": 420,
     "troopLimit": 10,
     "objectives": [
@@ -1284,6 +1292,10 @@
     "crowning": "Moonwarden",
     "requires": [
       "the-longest-night"
-    ]
+    ],
+    "destination": {
+      "region": "dawnfields",
+      "name": "Dawnfields"
+    }
   }
 ]

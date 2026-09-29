@@ -14,7 +14,7 @@ import {tickEconomy} from './systems/economy.js';
 import {tickRefine, tickCraft, startCraftOrder} from './systems/crafting.js';
 import {tickExpeditions,startExpedition} from './systems/expeditions.js';
 import {tickCombat,spawnRaid,activateAbility,raidSides} from './systems/combat.js';
-import {startMission,tickMission,finishMission} from './systems/campaign.js';
+import {startMission,tickMission,finishMission,missionLockReason} from './systems/campaign.js';
 import {load,save} from './storage.js';
 import {ensureMultiplayer,validateUsername,randomCode,addFriend,removeFriend,giftReason,makeGift,speedupReason,makeSpeedup,applyInbox,pushActivity,publicSnapshot,stampCloud} from './multiplayer.js';
 import {dayKey,seasonFor,modifierFor,calendarEffects,performTrade,marketOpen,describeDeal} from './systems/calendar.js';
@@ -350,7 +350,7 @@ export class Game {
  clearOrder(id){const u=this.world.troops.find(t=>t.id===id);if(!u)return false;u.order=null;this.notify(`${this.data.troops[u.type].name} resuming duties.`);return true;}
  raid(count){if(this.state.mission)return this.notify('Campaign raids follow the mission timeline.');if(this.world.enemies.length||this.world.raidPending)return this.notify('A raid is already underway.');if(!this.world.buildings.some(b=>b.type==='hall'&&b.hp>0))return this.notify('Repair the manor before another raid.');
   const party=count??(this.world.wave===0?3:4+this.world.wave);this.world.raidPending={timer:3,count:party};this.world.raidKills=0;this.world.raidLoot=0;this.world.raidResult=null;sfx.horn();this.notify(`Scouts report ${party} raiders from ${raidSides(this.world.wave+1,party).join(" / ")} — 3 seconds to positions!`);return true;}
- mission(id){const m=this.data.missions.find(m=>m.id===id);if(startMission(this.state,this.data,id))this.notify(`${m?.ceremony?.warning||'Expedition begun.'} Your home village is safely paused.`);else this.notify('Finish the current raid or unlock the previous chapter first.');}
+ mission(id){const m=this.data.missions.find(m=>m.id===id);const reason=missionLockReason(m,this.state.completed||[],this.state.world,this.data);if(reason)return this.notify(reason);if(startMission(this.state,this.data,id))this.notify(`${m?.ceremony?.warning||'Expedition begun.'} Your home village is safely paused.`);else this.notify('Finish the current raid before another expedition.');}
  returnHome(){const m=this.data.missions.find(m=>m.id===this.state.mission?.id);const result=finishMission(this.state,this.data);if(result?.first)this.notify(`${m?.ceremony?.victory||'Victory!'} Rewards and unlocks delivered to your village.`);else if(result?.won)this.notify('Returned home. First-clear rewards can only be claimed once.');else this.notify(`${m?.ceremony?.defeat||'Expedition lost.'} Your home is safe.`);this.persist();}
  research(id){if(this.paused)return false;const reason=researchReason(this.state,this.data,id);if(reason){this.notify(reason);return false;}const ok=startResearch(this.state,this.data,id);if(ok){this.notify('Research begun. Your scholars are at work.');this.persist();}return ok;}
  trade(id,date=new Date()){
