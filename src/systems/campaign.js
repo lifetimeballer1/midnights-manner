@@ -1,20 +1,38 @@
 import {createWorld} from '../model.js';
 import {spawnRaid} from './combat.js';
+import {isRegionClaimed} from './expansion.js';
 // Branch reconvergence (coin-and-cinder onward): a mission may list
 // `requiresAny` — an OR-gate of chapter ids, open when at least one is
 // completed — beside the classic AND-gate `requires`. Both ride the same
 // completed list; missions with neither gate stay open. No chapter ids
 // live here: every gate is data on the mission object.
-export function missionLocked(mission,completed) {
- if(!mission)return true;
- const andOk=(mission.requires||[]).every(id=>completed.includes(id));
+export function missionDestination(mission,data) {
+ const id=mission?.destination?.region;
+ if(!id)return null;
+ const region=data?.expansion?.regions?.find(r=>r.id===id)||null;
+ return {id,name:mission.destination.name||region?.landmark?.name||region?.name||id,region};
+}
+export function missionRegionClaimed(mission,world,data) {
+ const destination=missionDestination(mission,data);
+ if(!destination)return true;
+ return !!destination.region&&!!world&&isRegionClaimed(world,destination.region);
+}
+export function missionLockReason(mission,completed,world=null,data=null) {
+ if(!mission)return 'Chapter not found.';
+ const missing=(mission.requires||[]).filter(id=>!completed.includes(id));
+ if(missing.length)return 'Complete the previous chapter first.';
  const orList=mission.requiresAny||[];
- const orOk=!orList.length||orList.some(id=>completed.includes(id));
- return !(andOk&&orOk);
+ if(orList.length&&!orList.some(id=>completed.includes(id)))return 'Complete one of the required branch chapters first.';
+ const destination=missionDestination(mission,data);
+ if(destination&&!missionRegionClaimed(mission,world,data))return `Claim ${destination.name} in the Outer Frontier first.`;
+ return null;
+}
+export function missionLocked(mission,completed,world=null,data=null) {
+ return !!missionLockReason(mission,completed,world,data);
 }
 export function startMission(game,data,id) {
  const mission=data.missions.find(m=>m.id===id);
- if(!mission||game.mission||game.world.enemies.length||missionLocked(mission,game.completed))return false;
+ if(!mission||game.mission||game.world.enemies.length||missionLocked(mission,game.completed,game.world,data))return false;
  // Fletcher's bundles (Act VII): a stocked craft-only building at home
  // spends one bundle to sharpen the expedition's bows for the whole
  // mission. Data `arrowBuff` names the roles, stat and value — no troop
