@@ -6,7 +6,7 @@ import { Game } from '../src/game.js';
 
 // Jesce's home-screen bookmark save: a vintage 20x16-era v1 blob with no
 // bounds and no tile grid. The frontier migration must expand it into the
-// full 40x34 grid with the old footprint claimed, preserving every
+// current full frontier grid with the old footprint claimed, preserving every
 // building, troop, resource and XP — never a reset, never gifted wilds.
 const data = Object.fromEntries(await Promise.all(['world', 'troops', 'items', 'abilities', 'buildings', 'missions', 'quests', 'expansion'].map(async (n) => [n, JSON.parse(await readFile(new URL(`../data/${n}.json`, import.meta.url)))])));
 
@@ -27,7 +27,7 @@ test('vintage v1 bookmark save migrates to current version with content intact',
   assert.equal(state.vlevel, 2);
 });
 
-test('vintage save expands into the 40x34 grid with the old footprint claimed', async () => {
+test('vintage save expands into the current frontier grid with the old footprint claimed', async () => {
   const state = await vintageState();
   const before = {
     buildings: structuredClone(state.world.buildings),
