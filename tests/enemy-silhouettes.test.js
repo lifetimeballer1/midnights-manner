@@ -44,8 +44,8 @@ test('enemy silhouettes: bombard carries a metal field tube with brass hardware'
 
 test('enemy silhouettes: elites gain recognition trim without changing faction coat',()=>{
  const normal=colors(faces('raider')),elite=colors(faces('raider',{elite:true}));
- assert.equal(normal.has('#dfba6a'),false,'ordinary raider has no elite brass crest');
- assert.equal(elite.has('#dfba6a'),true,'elite gains brass crest/shoulders');
+ assert.equal(normal.has('#f1d487'),false,'ordinary raider has no elite pale-gold trim');
+ assert.equal(elite.has('#f1d487'),true,'elite gains pale-gold crest/shoulders');
  assert.ok(elite.has('#ad5948'),'elite keeps Cinder Clan faction color');
 });
 
