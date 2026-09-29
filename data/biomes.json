@@ -3,30 +3,79 @@
     "name": "Plains",
     "tint": "#6b9148",
     "spriteVariant": "plains",
-    "yieldModifier": 1.0
+    "yieldModifier": 1,
+    "scenery": {
+      "claimedDensity": 0.045,
+      "wildDensity": 0.085,
+      "props": [
+        "grass",
+        "stone",
+        "stump"
+      ]
+    }
   },
   "forest": {
     "name": "Timber Forest",
     "tint": "#2d6340",
     "spriteVariant": "forest",
-    "yieldModifier": 1.25
+    "yieldModifier": 1.25,
+    "scenery": {
+      "claimedDensity": 0.09,
+      "wildDensity": 0.18,
+      "props": [
+        "pine",
+        "shrub",
+        "stump",
+        "log"
+      ]
+    }
   },
   "water": {
     "name": "Stillwater",
     "tint": "#2e6b7a",
     "spriteVariant": "water",
-    "yieldModifier": 1.0
+    "yieldModifier": 1,
+    "scenery": {
+      "claimedDensity": 0.055,
+      "wildDensity": 0.11,
+      "props": [
+        "reeds",
+        "reeds",
+        "stone"
+      ]
+    }
   },
   "hills": {
     "name": "Stone Hills",
     "tint": "#8a8a7a",
     "spriteVariant": "hills",
-    "yieldModifier": 1.25
+    "yieldModifier": 1.25,
+    "scenery": {
+      "claimedDensity": 0.075,
+      "wildDensity": 0.145,
+      "props": [
+        "rock",
+        "rock",
+        "cairn",
+        "shrub"
+      ]
+    }
   },
   "unclaimed-fringe": {
     "name": "Unclaimed Fringe",
     "tint": "#3e6037",
     "spriteVariant": "fringe",
-    "yieldModifier": 1.0
+    "yieldModifier": 1,
+    "scenery": {
+      "claimedDensity": 0.08,
+      "wildDensity": 0.18,
+      "props": [
+        "pine",
+        "shrub",
+        "rock",
+        "stump",
+        "log"
+      ]
+    }
   }
 }
