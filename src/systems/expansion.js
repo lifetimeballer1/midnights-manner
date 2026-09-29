@@ -154,6 +154,40 @@ export function isClaimed(world, x, y) {
   return t.claimed === true;
 }
 
+// Home raids should enter from land the player actually owns, not the old
+// XP rectangle. Mission/legacy worlds without tile claims keep the historical
+// rectangular perimeter so authored maps and vintage saves behave unchanged.
+export function raidPerimeter(world, dataWorld) {
+  const gridW = Math.max(2, Math.floor(dataWorld?.width || world?.bounds?.w || 20));
+  const gridH = Math.max(2, Math.floor(dataWorld?.height || world?.bounds?.h || 17));
+  const rectangle = () => {
+    const w = Math.max(2, Math.min(gridW, Math.floor(world?.bounds?.w || gridW)));
+    const h = Math.max(2, Math.min(gridH, Math.floor(world?.bounds?.h || gridH)));
+    return {
+      west: Array.from({length: Math.max(1, h - 2)}, (_, i) => ({x: .5, y: i + 1.5})),
+      north: Array.from({length: Math.max(1, w - 2)}, (_, i) => ({x: i + 1.5, y: .5})),
+      east: Array.from({length: Math.max(1, h - 2)}, (_, i) => ({x: w - .5, y: i + 1.5})),
+      south: Array.from({length: Math.max(1, w - 2)}, (_, i) => ({x: i + 1.5, y: h - .5})),
+      bounds: {minX: 0, minY: 0, maxX: w - 1, maxY: h - 1},
+      source: 'bounds'
+    };
+  };
+  if (!Array.isArray(world?.tiles) || !world.tiles.length) return rectangle();
+  const claimed = world.tiles.filter(t => t?.claimed === true && Number.isInteger(t.x) && Number.isInteger(t.y));
+  if (!claimed.length) return rectangle();
+  let minX = gridW - 1, minY = gridH - 1, maxX = 0, maxY = 0;
+  for (const t of claimed) { minX = Math.min(minX, t.x); minY = Math.min(minY, t.y); maxX = Math.max(maxX, t.x); maxY = Math.max(maxY, t.y); }
+  const side = (axis, value, other) => claimed.filter(t => t[axis] === value).sort((a,b) => a[other] - b[other]).map(t => ({x: t.x + .5, y: t.y + .5}));
+  return {
+    west: side('x', minX, 'y'),
+    north: side('y', minY, 'x'),
+    east: side('x', maxX, 'y'),
+    south: side('y', maxY, 'x'),
+    bounds: {minX, minY, maxX, maxY},
+    source: 'claimed'
+  };
+}
+
 export function neighborsClaimed(world, x, y) {
   return [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => isClaimed(world, x + dx, y + dy));
 }
