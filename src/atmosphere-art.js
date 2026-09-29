@@ -2,7 +2,7 @@ import {center} from './model.js';
 import {visibleFrontierCamps} from './environment-art.js';
 import {phaseSeed} from './camera.js';
 
-const SMOKE_TYPES=new Set(['hall','cottage','forge','smeltery','butchery']);
+const SMOKE_TYPES=new Set(['hall','cottage']);
 export const ATMOSPHERE_LIMITS=Object.freeze({smokeSources:8,trailActors:12,rainSplashes:14});
 
 function actorTarget(world,data,actor,enemy=false){
