@@ -7,6 +7,14 @@
 - Prioritized building cards above village statistics on small screens.
 - No gameplay, economy, progression or save changes.
 
+## Detail/world/story expansion — Phase 13: Enemy role silhouettes (2026-09-29)
+
+- Reworked enemy equipment selection so siege roles no longer fall back to the generic sword silhouette. Archers keep bows, breakers keep heavy hammers, scouts use a lighter blade, while ram/bombard roles use purpose-built renderer geometry.
+- Rams now carry a broad timber frame with iron cap and harness straps; bombards carry a compact metal field tube on a timber frame. Both read distinctly at village-map scale without changing collision, movement or combat stats.
+- Elite enemies gain unique pale-gold shoulder/crest trim while retaining their faction coat color.
+- Bosses now read as named characters: Gorm the Cinder-Maul gains dark-red heavy armor and crest work; the Pale Queen gains a pale cloak/hood, longbow and crown detail.
+- Added five `tests/enemy-silhouettes.test.js` regressions for role gear mapping, ram/bombard profiles, elite recognition trim and boss differentiation. Test target: 560 → 565.
+
 ## Detail/world/story expansion — Phase 12: Living faction camps (2026-09-29)
 
 - Added five data-driven persistent-home faction camps under `data/world.json.frontierCamps`: Thornband in Whisperwood, Pale Host at Starwatch Ridge, Cinder Clan and Ember Legion in Ashfall March, and a Pale Court pavilion on the Pale Coast.

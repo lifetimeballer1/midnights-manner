@@ -155,6 +155,54 @@ function equipment(s,gear,item,x,y,lift,detail){
  if(gear&&gear!=='apron')shaft(s,x,y,z,.48);
 }
 
+export function enemyGearFor(unit){
+ if(!unit)return '';
+ if(unit.role==='archer')return 'bow';
+ if(unit.role==='breaker')return 'warhammer';
+ if(unit.role==='scout')return 'blade';
+ if(unit.role==='raider')return 'sword';
+ if(unit.role==='boss'&&unit.bossId==='cinder-maul')return 'warhammer';
+ if(unit.role==='boss'&&unit.bossId==='pale-queen')return 'longbow';
+ return '';
+}
+function enemyRoleSilhouette(s,u,x,y,bob,detail,coat){
+ if(!u)return;
+ if(u.role==='ram'){
+  // Carried beam + iron cap: a siege profile broader than an ordinary raider.
+  s.box(x-.42,y-.19,.28,.84,.16,.17,wood);
+  s.box(x+.36,y-.2,.27,.13,.18,.19,metal);
+  s.box(x-.27,y-.12,.36,.06,.24,.34,leather);
+  s.box(x+.18,y-.12,.36,.06,.24,.34,leather);
+ }
+ if(u.role==='bombard'){
+  // Short field tube on a shoulder frame; intentionally compact at map scale.
+  s.box(x-.18,y-.2,.34,.36,.18,.28,wood);
+  s.box(x-.04,y-.27,.5,.15,.45,.14,metal);
+  s.box(x-.055,y+.14,.49,.18,.08,.16,brass);
+  if(detail)s.box(x-.22,y-.18,.29,.07,.15,.33,leather);
+ }
+ if(u.role==='scout'&&detail){
+  s.box(x-.24,y-.15,.31,.08,.27,.18,leather);
+  s.box(x-.26,y+.06,.38,.11,.04,.09,coat);
+ }
+ if(u.elite){const eliteGold='#f1d487';
+  s.box(x-.24,y-.13,.5,.09,.18,.13,eliteGold);
+  s.box(x+.15,y-.13,.5,.09,.18,.13,eliteGold);
+  s.box(x-.025,y-.02,.82+bob,.05,.06,.18,eliteGold);
+ }
+ if(u.role==='boss'){
+  if(u.bossId==='cinder-maul'){
+   s.box(x-.26,y-.15,.43,.52,.3,.18,'#6b4637');
+   s.box(x-.31,y-.16,.5,.12,.24,.17,metal);s.box(x+.19,y-.16,.5,.12,.24,.17,metal);
+   s.box(x-.03,y-.02,.84+bob,.06,.07,.25,'#b55a3d');
+  }else if(u.bossId==='pale-queen'){
+   s.box(x-.2,y-.18,.2,.4,.05,.46,'#d8ddea');
+   s.box(x-.14,y-.13,.77+bob,.28,.25,.08,'#d8ddea');
+   for(const dx of [-.1,0,.1])s.pyramid(x+dx,y-.01,.84+bob,.045,.14,brass,4);
+  }
+ }
+}
+
 export function workMotionFor(u,troop,time,calm=false){
  if(calm||!u||u.hp<=0||u.expedition||u.order)return 0;
  if((u.animation||0)>0)return Math.sin(u.animation*14)*.12;
@@ -211,7 +259,8 @@ export function characterModel(s,u,data,time,enemy=false){
  s.owner={kind:enemy?'enemy':'unit',id:u.id};s.alpha=1;
  const troop=data.troops[u.type],role=troop?.role,professionColor=enemy?null:troop?.color;
  const faction=data.world.enemyFactions?.find(f=>f.id===u.faction);
- const [coat,hat]=enemy?[faction?.color||'#a65c54',u.role==='archer'?'hood':u.role==='scout'?'hood':'helmet']
+ const bossCoat=u.bossId==='pale-queen'?'#b9c5d4':u.bossId==='cinder-maul'?'#8d4b38':null;
+ const [coat,hat]=enemy?[bossCoat||faction?.color||'#a65c54',u.role==='archer'||u.role==='scout'||u.bossId==='pale-queen'?'hood':'helmet']
   :uniforms[u.type]||[role==='combat'?'#5d8093':'#8c946c',role==='combat'?'helmet':'cap'];
  const detail=s.characterDetail!==false&&s.r.cam.zoom>=1.8,seed=phaseSeed(u.id);
  const skin=['#dbb38c','#b98c64','#936a50'][Math.floor(seed*100)%3];
@@ -251,8 +300,9 @@ export function characterModel(s,u,data,time,enemy=false){
    for(const dx of [-.066,.038])s.box(x+dx,y+.092,.65+bob,.028,.016,.025,'#33443a');
    s.box(x-.02,y+.097,.613+bob,.045,.025,.035,skin);
   }
- const gear=enemy?(u.role==='archer'?'bow':u.role==='breaker'?'warhammer':'sword'):(u.gear||'');
+ const gear=enemy?enemyGearFor(u):(u.gear||'');
  equipment(s,gear,data.items[gear],x,y,lift,detail);
+ if(enemy)enemyRoleSilhouette(s,u,x,y,bob,detail,coat);
  if(/bow/.test(gear)){
   s.box(x-.12,y-.2,.32,.13,.09,.32,leather);
   if(detail)for(const dx of [-.1,-.04])s.box(x+dx,y-.18,.61,.02,.02,.17,'#d9cda5');
