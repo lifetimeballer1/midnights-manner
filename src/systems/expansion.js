@@ -1,8 +1,8 @@
-// Frontier expansion (Phase 2b, Skylines-style): 9 named regions on a 3x3
-// grid. All content lives in data/expansion.json (regions with rect, name,
-// biome mix, nearby landmark, cost). Center is pre-claimed; the other 8 are
-// claimed whole via Expand mode + region adjacency. Generic lookups by
-// coordinate/region id only — no per-region or troop conditionals.
+// Frontier expansion (Skylines-style): named regions partition the full
+// data-world grid. Content lives in data/expansion.json (rect, name, biome
+// mix, landmark, cost). The hearth region is pre-claimed; every other region
+// is claimed whole through adjacency. Generic lookups by coordinate/region id
+// only — no per-region or troop conditionals.
 // Legacy ring table (rings/homestead) is kept as a fallback for saves and
 // maps without regions.
 export function homesteadOf(dataExpansion, dataWorld) {
