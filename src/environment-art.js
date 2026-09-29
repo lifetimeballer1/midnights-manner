@@ -111,7 +111,8 @@ export function addEnvironmentScenery(scene,world,data){
   if(zoom<1.2&&item.kind!=='landmark'&&(hash2(item.x,item.y,seed+401)&1))continue;
   const p=r.project(item.x+.5,item.y+.5);
   if(p.x<-100||p.x>r.width+100||p.y<-120||p.y>r.height+80)continue;
-  const hotspot=item.kind==='landmark'?hotspotAt(data?.world,item.x,item.y):null;
+  const homeSheet=world.tiles.length===(data?.world?.width||0)*(data?.world?.height||0);
+  const hotspot=homeSheet&&item.kind==='landmark'?hotspotAt(data?.world,item.x,item.y):null;
   scene.owner=hotspot?{kind:'site',id:hotspot.id,name:hotspot.name,x:item.x,y:item.y}:null;
   drawProp(scene,item,seed);drawn++;
  }
