@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createWorld, canPlace, inBounds} from '../src/model.js';
-import {ringFor, costFor, isClaimed, regionFor, regionCost, isRegionClaimed, regionAdjacent, claimRegion} from '../src/systems/expansion.js';
+import {ringFor, costFor, isClaimed, regionFor, regionCost, isRegionClaimed, regionAdjacent, claimRegion, raidPerimeter} from '../src/systems/expansion.js';
 import {claimRect} from '../src/systems/expansion.js';
 import {Game} from '../src/game.js';
 
@@ -56,6 +56,30 @@ test('center pre-claimed, every other region carries a positive frontier cost', 
 test('world grid extends to 52x44', () => {
   assert.equal(data.world.width, 52);
   assert.equal(data.world.height, 44);
+});
+
+test('raid perimeter follows actual claimed frontier rather than legacy XP bounds', () => {
+  const g = new Game(data);
+  const before = raidPerimeter(g.world, data.world);
+  assert.equal(before.source, 'claimed');
+  assert.ok(before.east.every(p => isClaimed(g.world, Math.floor(p.x), Math.floor(p.y))), 'initial east entries are owned tiles');
+  const oldEast = before.bounds.maxX;
+  g.world.resources = {wood: 10000, gold: 10000, food: 10000, frostwood: 10000, plate: 10000};
+  assert.equal(g.expandClaim(26, 10), true, 'Timber Deep claimed');
+  const after = raidPerimeter(g.world, data.world);
+  assert.equal(after.bounds.maxX, 39, 'east frontier reaches the purchased region edge');
+  assert.ok(after.bounds.maxX > oldEast, 'claim pushes raid edge outward');
+  assert.ok(after.east.length > 0 && after.east.every(p => p.x === 39.5), 'east raid entries sit on the new outer edge');
+  assert.ok(after.east.every(p => isClaimed(g.world, Math.floor(p.x), Math.floor(p.y))), 'raid entries never use unclaimed gaps');
+});
+
+test('raid perimeter keeps legacy rectangular fallback when tile claims are absent', () => {
+  const p = raidPerimeter({bounds:{w:20,h:17},tiles:null}, {width:52,height:44});
+  assert.equal(p.source, 'bounds');
+  assert.equal(p.west[0].x, .5);
+  assert.equal(p.east[0].x, 19.5);
+  assert.equal(p.north[0].y, .5);
+  assert.equal(p.south[0].y, 16.5);
 });
 
 test('region lookups: center tiles claimed, wild regions blocked', () => {
