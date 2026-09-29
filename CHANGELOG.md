@@ -10,7 +10,7 @@
 ## Detail/world/story expansion — Phase 14: Atmosphere and travel juice (2026-09-29)
 
 - Added a renderer-only atmosphere layer between terrain and the 3D village mesh: small building/camp smoke, short travel footprints behind moving villagers/raiders, and capped rain splashes.
-- Smoke is limited to finished living Hall/Cottage/Forge/Smeltery/Butchery buildings plus currently visible frontier camps, with at most **8** active sources. Rain softens smoke opacity rather than creating extra particles.
+- Ambient smoke is limited to finished living Hall/Cottage chimneys plus currently visible frontier camps, with at most **8** active sources. Active forge/smeltery/butchery smoke remains owned by the earlier state-driven workplace layer, avoiding doubled effects. Rain softens ambient smoke opacity rather than creating extra particles.
 - Travel marks are derived from existing movement intent only: manual move/attack orders, expedition out/back legs, and enemy target movement. At most **12** actors receive three tiny ground marks each.
 - Rain uses at most **14** deterministic ground splashes. The whole layer drops out below 0.9× zoom and is completely disabled under Calm/reduced-motion.
 - Atmosphere draws before `drawVillage3D()`, so footprints/splashes/smoke sit under characters and architecture rather than covering UI or roofs. It writes no effects/save fields and never mutates simulation state.
