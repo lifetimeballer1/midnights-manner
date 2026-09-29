@@ -1,4 +1,5 @@
 import {hash2} from './systems/biomes.js';
+import {regionById,isRegionClaimed} from './systems/expansion.js';
 
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function densityFor(config,claimed){
@@ -20,6 +21,15 @@ export function sceneryForTile(dataBiomes,tile,seed=0){
 export function hotspotAt(dataWorld,x,y){
  const sites=Array.isArray(dataWorld?.hotspots)?dataWorld.hotspots:[];
  return sites.find(site=>site?.x===x&&site?.y===y)||null;
+}
+export function visibleFrontierCamps(world,data){
+ if(!Array.isArray(world?.tiles)||world.tiles.length!==(data?.world?.width||0)*(data?.world?.height||0))return [];
+ const camps=Array.isArray(data?.world?.frontierCamps)?data.world.frontierCamps:[];
+ return camps.filter(camp=>{
+  if((world.wave||0)<(camp.minWave||0))return false;
+  const region=regionById(data?.expansion,camp.region);
+  return !!region&&!isRegionClaimed(world,region);
+ });
 }
 export function occupiedTileKeys(world,data){
  const out=new Set();
@@ -85,6 +95,20 @@ function landmark(s,item){
  s.pyramid(x,y,.65,.18,.3,gold,5);
  s.box(x-.025,y-.025,.94,.05,.05,.24,'#6c523b');
 }
+function frontierCamp(s,camp,faction){
+ const x=camp.x+.5,y=camp.y+.5,cloth=faction?.color||'#8b765f',dark='#5a4b3b',wood='#73583f',pale='#c9b88c';
+ // Two low canvas tents around a shared cookfire, plus a faction banner.
+ for(const [dx,dy,rot]of[[-.3,-.12,0],[.2,.16,1]]){
+  s.box(x+dx-.17,y+dy-.13,.03,.34,.26,.08,dark);
+  s.pyramid(x+dx,y+dy,.1,.28,.34,cloth,4);
+ }
+ s.box(x-.025,y-.37,.04,.05,.05,.78,wood);
+ s.box(x+.02,y-.37,.61,.34,.025,.18,cloth);
+ s.box(x-.18,y+.34,.04,.36,.09,.09,wood);
+ s.box(x-.13,y+.29,.1,.26,.2,.06,pale);
+ // The cookfire is small enough to read as occupancy, not a new lighting system.
+ s.pyramid(x,y+.02,.08,.11,.22,'#e5a458',5);
+}
 function drawProp(s,item,seed){
  const x=item.x+.5,y=item.y+.5,j=(hash2(item.x+13,item.y+29,seed)%1000)/1000;
  const scale=.78+j*.35,cold=item.biome==='water'||item.biome==='unclaimed-fringe';
@@ -115,6 +139,14 @@ export function addEnvironmentScenery(scene,world,data){
   const hotspot=homeSheet&&item.kind==='landmark'?hotspotAt(data?.world,item.x,item.y):null;
   scene.owner=hotspot?{kind:'site',id:hotspot.id,name:hotspot.name,x:item.x,y:item.y}:null;
   drawProp(scene,item,seed);drawn++;
+ }
+ for(const camp of visibleFrontierCamps(world,data)){
+  if(drawn>=max)break;
+  const p=r.project(camp.x+.5,camp.y+.5);
+  if(p.x<-120||p.x>r.width+120||p.y<-140||p.y>r.height+100)continue;
+  const faction=(data?.world?.enemyFactions||[]).find(f=>f.id===camp.faction);
+  scene.owner={kind:'faction-camp',id:camp.id,name:camp.name,faction:camp.faction,x:camp.x,y:camp.y};
+  frontierCamp(scene,camp,faction);drawn++;
  }
  scene.owner=oldOwner;scene.alpha=oldAlpha;
  return drawn;
