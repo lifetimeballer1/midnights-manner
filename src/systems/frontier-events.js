@@ -44,6 +44,8 @@ export function tickFrontierEvents(state,data,notify=()=>{}){
  const world=state?.world;
  if(!world||state?.mission||world.frontierEvent)return null;
  if(world.enemies?.length||world.raidPending)return null;
+ // Do not open a choice card immediately before scheduled horns.
+ if(Number.isFinite(world.nextRaidAt)&&world.nextRaidAt-(world.elapsed||0)<60)return null;
  const at=ensureFrontierEventClock(state,data);
  if(!Number.isFinite(at)||(world.elapsed||0)<at)return null;
  const choices=eligibleFrontierEvents(state,data);
