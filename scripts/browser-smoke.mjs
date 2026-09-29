@@ -206,6 +206,13 @@ try{
  await call('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
  assert.ok((await evaluate('window.midnightsManner.camera().zoom'))>zoomBefore,'two fingers zoom');
  await click('#recenter');await screenshot('mobile');
+ await click('#map-overview-button');await waitFor('!document.querySelector("#map-overview").hidden');
+ assert.equal(await evaluate('document.querySelectorAll("[data-map-region]").length'),16,'frontier overview renders all named regions');
+ assert.equal(await evaluate('document.querySelector("#map-overview").scrollWidth>innerWidth'),false,'frontier overview fits portrait width');
+ await screenshot('mobile-frontier-overview');
+ await click('[data-map-region="timber-deep"]');
+ const frontierCam=await evaluate('window.midnightsManner.camera()');assert.ok(Math.abs(frontierCam.x-32)<.01&&Math.abs(frontierCam.y-11.5)<.01,'tapping a frontier region centers the camera');
+ assert.equal(await evaluate('document.querySelector("#map-overview").hidden'),true,'region focus closes the overview');
  await click('[data-tab="build"]');await screenshot('mobile-build');
  await click('#close-panel');
  await call('Emulation.setDeviceMetricsOverride',{width:844,height:390,deviceScaleFactor:2,mobile:true});await new Promise(r=>setTimeout(r,100));await click('#recenter');await screenshot('landscape');
