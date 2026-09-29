@@ -54,6 +54,7 @@ test('source profiles tag windows, lanterns, torches and open fires by identity'
  assert.ok(forge.sources.some(s=>s.profile==='fire'),'forge mouth uses open-fire profile');
  assert.ok(watch.sources.some(s=>s.profile==='fire'),'watchfire uses open-fire profile');
  assert.ok(trap.sources.some(s=>s.profile==='trap'),'armed fire trap uses compact trap profile');
+ for(const scene of [cottage,farm,wall,forge,watch,trap])assert.ok(scene.sources.every(s=>Number.isFinite(s.phase)),'static source geometry precomputes flicker phase');
 });
 
 test('source flicker is deterministic, bounded and frozen by calm mode',()=>{
