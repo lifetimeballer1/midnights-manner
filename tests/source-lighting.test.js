@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {Renderer} from '../src/renderer.js';
 import {MeshScene,buildingModel,drawVillage3D} from '../src/scene3d.js';
-import {lightAt} from '../src/source-lighting.js';
+import {lightAt,sourceFlicker,sourceProfile,SOURCE_PROFILES} from '../src/source-lighting.js';
 import {skyLightAt,DAY_LENGTH} from '../src/systems/daynight.js';
 const data=Object.fromEntries(await Promise.all(['world','buildings'].map(async n=>[n,JSON.parse(await readFile(new URL(`../data/${n}.json`,import.meta.url)))])));
 const ctx=new Proxy({}, {get:(t,k)=>t[k]||(()=>k.includes('Gradient')?{addColorStop(){}}:undefined),set:(t,k,v)=>(t[k]=v,true)});
@@ -43,4 +43,35 @@ test('clock reuses source geometry; moving or destroying a building refreshes it
  assert.ok(cache.faces.some(f=>f.localLight>0));
  b.x++;drawVillage3D(r,w,0);assert.notEqual(r._meshStatic,cache);
  b.hp=0;drawVillage3D(r,w,0);assert.equal(r._meshStatic.sources.length,0);
+});
+
+
+test('source profiles tag windows, lanterns, torches and open fires by identity',()=>{
+ const cottage=mesh('cottage'),farm=mesh('farm'),wall=mesh('wall',{x:8,y:8}),forge=mesh('forge'),watch=mesh('watchfire'),trap=mesh('fire-trap');
+ assert.ok(cottage.sources.every(s=>s.profile==='window'),'cottage panes use window profile');
+ assert.ok(farm.sources.some(s=>s.profile==='lantern'),'farm post uses lantern profile');
+ assert.ok(wall.sources.some(s=>s.profile==='torch'),'wall flame uses torch profile');
+ assert.ok(forge.sources.some(s=>s.profile==='fire'),'forge mouth uses open-fire profile');
+ assert.ok(watch.sources.some(s=>s.profile==='fire'),'watchfire uses open-fire profile');
+ assert.ok(trap.sources.some(s=>s.profile==='trap'),'armed fire trap uses compact trap profile');
+});
+
+test('source flicker is deterministic, bounded and frozen by calm mode',()=>{
+ const source={position:[1,2,.5],owner:{id:'fire-a'},profile:'fire',radius:2,power:1};
+ const a=sourceFlicker(source,1000,false),again=sourceFlicker(source,1000,false),b=sourceFlicker(source,1600,false);
+ assert.equal(a,again,'same source and time produces the same flicker');
+ assert.notEqual(a,b,'open fire varies across time');
+ assert.ok(a>.8&&a<1.2&&b>.8&&b<1.2,'fire pulse stays restrained');
+ assert.equal(sourceFlicker(source,1000,true),1,'calm freezes fire');
+ assert.equal(sourceFlicker({...source,profile:'window'},1000,true),1,'calm freezes windows too');
+});
+
+test('source profile resolver keeps safe generic fallback and distinct falloff',()=>{
+ assert.equal(sourceProfile({profile:'not-a-profile'}),SOURCE_PROFILES.generic);
+ const base={position:[0,0,.5],radius:2,power:1},point=[0,.8,.5],normal=[0,-1,0];
+ const generic=lightAt(point,normal,{...base,profile:'generic'});
+ const fire=lightAt(point,normal,{...base,profile:'fire'});
+ const window=lightAt(point,normal,{...base,profile:'window'});
+ assert.ok(fire>generic,'open fire carries farther through its pool');
+ assert.ok(window<generic,'window spill falls off faster away from its pane');
 });
