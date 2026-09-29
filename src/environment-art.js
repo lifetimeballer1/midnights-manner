@@ -17,6 +17,10 @@ export function sceneryForTile(dataBiomes,tile,seed=0){
  const i=hash2(tile.x+37,tile.y-19,seed+977)%props.length;
  return {kind:props[i],biome:tile.biome};
 }
+export function hotspotAt(dataWorld,x,y){
+ const sites=Array.isArray(dataWorld?.hotspots)?dataWorld.hotspots:[];
+ return sites.find(site=>site?.x===x&&site?.y===y)||null;
+}
 export function occupiedTileKeys(world,data){
  const out=new Set();
  for(const b of world?.buildings||[]){
@@ -107,6 +111,8 @@ export function addEnvironmentScenery(scene,world,data){
   if(zoom<1.2&&item.kind!=='landmark'&&(hash2(item.x,item.y,seed+401)&1))continue;
   const p=r.project(item.x+.5,item.y+.5);
   if(p.x<-100||p.x>r.width+100||p.y<-120||p.y>r.height+80)continue;
+  const hotspot=item.kind==='landmark'?hotspotAt(data?.world,item.x,item.y):null;
+  scene.owner=hotspot?{kind:'site',id:hotspot.id,name:hotspot.name,x:item.x,y:item.y}:null;
   drawProp(scene,item,seed);drawn++;
  }
  scene.owner=oldOwner;scene.alpha=oldAlpha;
