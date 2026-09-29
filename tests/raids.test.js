@@ -104,7 +104,7 @@ test('home raid spawns move outward when an outer frontier region is claimed', (
   g.state.world = createWorld(data);
   g.world.resources = {...g.world.resources, wood: 10000, gold: 10000, food: 10000, frostwood: 10000, plate: 10000};
   assert.equal(g.expandClaim(26,10), true, 'Timber Deep claimed');
-  spawnRaid(g.world, 4, null, data);
+  spawnRaid(g.world, 4, null, data, null, {claimedFrontier:true});
   assert.equal(g.world.enemies.length, 4);
   assert.ok(g.world.enemies.some(e => e.x === 39.5), 'east-side raider enters from the purchased frontier edge');
   assert.ok(g.world.enemies.every(e => e.x >= .5 && e.x <= 39.5 && e.y >= .5 && e.y <= 19.5), 'spawn points stay on currently owned outer extremes');
