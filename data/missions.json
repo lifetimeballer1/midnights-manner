@@ -1006,6 +1006,11 @@
       {
         "resource": "gold",
         "amount": 300
+      },
+      {
+        "kind": "protect",
+        "type": "tower",
+        "count": 1
       }
     ],
     "startingResources": {
@@ -1098,6 +1103,11 @@
       {
         "resource": "gold",
         "amount": 350
+      },
+      {
+        "kind": "protect",
+        "type": "oathstone",
+        "count": 1
       }
     ],
     "startingResources": {
@@ -1208,6 +1218,15 @@
       {
         "resource": "gold",
         "amount": 400
+      },
+      {
+        "kind": "protect",
+        "type": "oathstone",
+        "count": 1
+      },
+      {
+        "kind": "survive",
+        "seconds": 360
       }
     ],
     "startingResources": {
