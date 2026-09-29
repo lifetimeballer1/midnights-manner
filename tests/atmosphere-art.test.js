@@ -18,9 +18,9 @@ test('atmosphere: hard caps stay intentionally small for mobile',()=>{
 test('atmosphere: smoke sources include finished village chimneys and visible wild camps only',()=>{
  const d=structuredClone(data),w=createWorld(d);
  w.wave=5;
- const forge=makeBuilding('forge',8,8,d);forge.remaining=0;w.buildings.push(forge);
+ const cottage=makeBuilding('cottage',8,8,d);cottage.remaining=0;w.buildings.push(cottage);
  let sources=smokeSources(w,d);
- assert.ok(sources.some(s=>s.id===forge.id&&s.type==='building'),'forge contributes smoke');
+ assert.ok(sources.some(s=>s.id===cottage.id&&s.type==='building'),'cottage chimney contributes ambient smoke');
  assert.ok(sources.some(s=>s.type==='camp'),'eligible wild faction camp contributes smoke');
  claimRegion(w,regionById(d.expansion,'whisperwood'));
  sources=smokeSources(w,d);
