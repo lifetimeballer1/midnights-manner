@@ -30,10 +30,20 @@ test('housing: every cottage tier adds silhouette, never a palette swap', () => 
   }
 });
 
-test('housing: the longhouse is a meadhall, not a bigger cottage', () => {
-  const hall = housing('longhouse', 1), top = housing('cottage', 3);
-  assert.ok(hall.length > top.length, `the hall out-silhouettes the best cottage (${hall.length} > ${top.length})`);
-  assert.ok(hall.some(f => f.color === '#5e8c9b'), 'the hall flies its banner');
-  assert.ok(hall.filter(f => f.color === '#786d5b').length >= 2, 'both ridge stacks wear their caps');
-  assert.ok(hall.every(f => f.points.every(p => Number.isFinite(p.x) && Number.isFinite(p.y))), 'the hall stays paintable');
+test('housing: every longhouse tier adds real structure', () => {
+  const one = housing('longhouse', 1), two = housing('longhouse', 2), three = housing('longhouse', 3), top = housing('cottage', 3);
+  assert.ok(one.length > top.length, `the first hall out-silhouettes the best cottage (${one.length} > ${top.length})`);
+  assert.ok(two.length > one.length, `tier 2 adds veranda/dormer structure (${one.length} → ${two.length})`);
+  assert.ok(three.length > two.length, `tier 3 adds the warden loft (${two.length} → ${three.length})`);
+  assert.ok(one.some(f => f.color === '#5e8c9b'), 'the first hall flies its blue banner');
+  assert.ok(three.some(f => f.color === '#d3b45d'), 'tier 3 earns gold civic trim');
+  assert.ok(three.some(f => f.color === '#ffe6ab'), 'tier 3 warden loft has a lit window');
+  for(const hall of [one,two,three])assert.ok(hall.every(f => f.points.every(p => Number.isFinite(p.x) && Number.isFinite(p.y))), 'longhouse tiers stay paintable');
+});
+
+test('production: tier 4 adds a visible work structure to each core producer', () => {
+  for(const type of ['farm','lumber','mine']){
+    const three=housing(type,3),four=housing(type,4);
+    assert.ok(four.length>three.length,`${type} tier 4 adds structure (${three.length} → ${four.length})`);
+  }
 });
