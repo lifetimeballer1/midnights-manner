@@ -7,6 +7,13 @@
 - Prioritized building cards above village statistics on small screens.
 - No gameplay, economy, progression or save changes.
 
+## Detail/world/story expansion — Phase 2: Active workplaces (2026-09-28)
+
+- Added lightweight renderer-only activity cues that come from actual building state: forge/smeltery/workshop sparks and smoke, lumber/sawmill saw strokes, mine/emberglass rail glints, pond/deephole ripples, a turning gristmill wheel, and field/grove work sweeps.
+- Passive producers animate only while their on-site reserve still has room. Staffed workshops animate only while a living posted worker is available (not ordered away, on expedition, or serving an emergency). Fletcher-style autonomous stocking is recognized by the shared state resolver.
+- Activity is drawn outside the static mesh cache, disappears below 1.05× zoom, and freezes/removes motion under Calm/reduced-motion. No production rates, worker rules, save fields, or gameplay state changed.
+- Added `tests/building-activity.test.js` with four state regressions. Test target: 513 → 517.
+
 ## Detail/world/story expansion — Phase 1: Workplace detail (2026-09-28)
 
 - Added a renderer-only second detail layer to make under-detailed workplaces readable from the village view: barracks training racks/dummies, forge coal and quench stations, armory/fletcher supplies, farm sacks/barrels, pasture troughs, lumber sawbucks, mine rails/carts, tannery vats, study chests, butchery tables, masonry tools and market cargo.
