@@ -4,6 +4,7 @@ let ctx = null;
 let output = null;
 let muted = false;
 let lastHit = 0;
+let lastStep = 0;
 try {
   muted = typeof localStorage !== 'undefined' && localStorage.getItem('midnights-manner-sound') === 'off';
 } catch { muted = false; }
@@ -61,16 +62,31 @@ export const sfx = {
   place() { tone(120, 0.14, { type: 'sine', slide: -70, vol: 0.22 }); tone(62, 0.16, { type: 'triangle', vol: 0.18 }); },
   collect() { tone(880, 0.07, { vol: 0.1 }); tone(1320, 0.09, { delay: 0.06, vol: 0.1 }); },
   upgrade() { [523, 659, 784].forEach((f, i) => tone(f, 0.1, { type: 'triangle', delay: i * 0.08, vol: 0.14 })); },
-  repair() { tone(440, 0.08, { type: 'triangle', vol: 0.12 }); tone(660, 0.1, { type: 'triangle', delay: 0.07, vol: 0.12 }); },
+  repair() { tone(440, 0.06, { type: 'triangle', slide: -75, vol: 0.11 }); tone(175, 0.055, { type: 'square', delay: 0.07, slide: -28, vol: 0.035 }); tone(660, 0.1, { type: 'triangle', delay: 0.13, vol: 0.1 }); },
   buildDone() { [660, 880].forEach((f, i) => tone(f, 0.12, { type: 'triangle', delay: i * 0.09, vol: 0.12 })); },
   destroy() { tone(140, 0.25, { type: 'sawtooth', slide: -90, vol: 0.12 }); tone(70, 0.3, { type: 'triangle', vol: 0.14 }); },
   horn() { tone(196, 0.5, { type: 'sawtooth', vol: 0.1 }); tone(147, 0.6, { type: 'sawtooth', delay: 0.05, vol: 0.1 }); },
   bell() { tone(1046, 0.5, { type: 'sine', vol: 0.12 }); tone(784, 0.6, { type: 'sine', delay: 0.25, vol: 0.1 }); },
+  chop() { tone(132, 0.055, { type: 'triangle', slide: -46, vol: 0.07 }); tone(76, 0.085, { type: 'sine', delay: 0.035, slide: -22, vol: 0.055 }); },
+  mine() { tone(1180, 0.028, { type: 'square', slide: -360, vol: 0.028 }); tone(185, 0.08, { type: 'triangle', delay: 0.02, slide: -55, vol: 0.045 }); },
+  hammer() { tone(730, 0.035, { type: 'square', slide: -180, vol: 0.035 }); tone(210, 0.065, { type: 'triangle', delay: 0.018, slide: -42, vol: 0.05 }); },
+  arrow() { tone(520, 0.055, { type: 'triangle', slide: 760, vol: 0.045 }); tone(1260, 0.045, { type: 'sine', delay: 0.025, slide: -420, vol: 0.025 }); },
+  shield() { tone(265, 0.055, { type: 'square', slide: -95, vol: 0.045 }); tone(540, 0.045, { type: 'triangle', delay: 0.018, slide: -180, vol: 0.035 }); },
+  gate() { tone(92, 0.22, { type: 'triangle', slide: -28, vol: 0.075 }); tone(145, 0.06, { type: 'square', delay: 0.16, slide: -50, vol: 0.025 }); },
+  footstep() {
+    const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+    if (now - lastStep < 125) return;
+    lastStep = now;
+    tone(82, 0.045, { type: 'triangle', slide: -24, vol: 0.025 });
+  },
+  research() { [440, 554, 659, 880].forEach((f, i) => tone(f, 0.09, { type: 'sine', delay: i * 0.07, vol: 0.075 })); },
+  fail() { tone(220, 0.09, { type: 'triangle', slide: -55, vol: 0.07 }); tone(165, 0.12, { type: 'triangle', delay: 0.08, slide: -35, vol: 0.06 }); },
   hit() {
     const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
     if (now - lastHit < 90) return;
     lastHit = now;
     tone(210, 0.05, { type: 'square', slide: -80, vol: 0.05 });
+    tone(96, 0.075, { type: 'triangle', delay: 0.012, slide: -25, vol: 0.035 });
   },
   win() { [523, 659, 784, 1046].forEach((f, i) => tone(f, 0.14, { type: 'triangle', delay: i * 0.1, vol: 0.14 })); },
   lose() { [392, 330, 262, 196].forEach((f, i) => tone(f, 0.18, { type: 'triangle', delay: i * 0.13, vol: 0.12 })); },
