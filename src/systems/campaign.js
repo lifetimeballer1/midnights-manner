@@ -33,6 +33,31 @@ export function missionLockReason(mission,completed,world=null,data=null) {
 export function missionLocked(mission,completed,world=null,data=null) {
  return !!missionLockReason(mission,completed,world,data);
 }
+export function missionObjectiveProgress(objective,world,data) {
+ const o=objective||{},kind=o.kind||(o.resource?'gather':'unknown');
+ let have=0,need=1,label='Complete the objective',progressText='0 / 1';
+ if(kind==='gather'){
+  need=Math.max(0,Number(o.amount)||0);have=Math.max(0,Number(world?.gathered?.[o.resource])||0);
+  label=`Collect ${need} ${o.resource}`;progressText=`${Math.floor(have)} / ${need} ${o.resource}`;
+ }else if(kind==='protect'||kind==='build'){
+  need=Math.max(1,Math.floor(Number(o.count)||1));
+  const name=data?.buildings?.[o.type]?.name||o.type||'structure';
+  have=(world?.buildings||[]).filter(b=>b.type===o.type&&b.hp>0&&(b.remaining||0)<=0).length;
+  label=kind==='protect'?`Keep ${need} ${name} standing`:`Raise ${need} ${name}`;
+  progressText=`${Math.min(have,need)} / ${need} ${name} ${kind==='protect'?'standing':'ready'}`;
+ }else if(kind==='survive'){
+  need=Math.max(1,Number(o.seconds??o.amount)||1);have=Math.min(need,Math.max(0,Number(world?.elapsed)||0));
+  label=`Hold for ${need}s`;progressText=`${Math.floor(have)} / ${need}s held`;
+ }else if(kind==='defeat'){
+  need=Math.max(1,Math.floor(Number(o.amount??o.count)||1));have=Math.max(0,Number(world?.raidKills)||0);
+  label=`Defeat ${need} raiders`;progressText=`${Math.floor(have)} / ${need} raiders defeated`;
+ }
+ return {kind,have,need,complete:have>=need,label,progressText};
+}
+export function missionObjectivesComplete(mission,world,data) {
+ return (mission?.objectives||[]).every(o=>missionObjectiveProgress(o,world,data).complete);
+}
+
 export function startMission(game,data,id) {
  const mission=data.missions.find(m=>m.id===id);
  if(!mission||game.mission||game.world.enemies.length||missionLocked(mission,game.completed,game.world,data))return false;
@@ -72,7 +97,7 @@ export function tickMission(game,data) {
  for(const [i,raid] of m.raids.entries())if(w.elapsed>=raid.at&&!game.mission.fired.includes(i)){spawnRaid(w,raid.count,m.scaling||raid.scaling||null,game.data);game.mission.fired.push(i);}
  const hall=w.buildings.find(b=>b.type==='hall');
  if(!hall||hall.hp<=0){game.mission.status='lost';return;}
- if(m.objectives.every(o=>w.gathered[o.resource]>=o.amount)&&game.mission.fired.length===m.raids.length&&w.enemies.length===0)game.mission.status='won';
+ if(missionObjectivesComplete(m,w,data)&&game.mission.fired.length===m.raids.length&&w.enemies.length===0)game.mission.status='won';
  else if(w.elapsed>=m.timeLimit)game.mission.status='lost';
 }
 export function finishMission(game,data) {
