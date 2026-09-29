@@ -8,6 +8,7 @@ import {placementCells} from './systems/walls.js';
 import {DAY_LENGTH,skyLightAt} from './systems/daynight.js';
 import {reserveCapacity,reserveReady} from './resources.js';
 import {drawBuildingActivity} from './building-activity.js';
+import {addEnvironmentScenery} from './environment-art.js';
 export function pointInPolygon(x,y,points){let inside=false;for(let i=0,j=points.length-1;i<points.length;j=i++){const a=points[i],b=points[j];if((a.y>y)!==(b.y>y)&&x<(b.x-a.x)*(y-a.y)/(b.y-a.y)+a.x)inside=!inside;}return inside;}
 const FALLBACK_LIGHT=skyLightAt(DAY_LENGTH*.3,null); // high noon, for bare MeshScene uses
 // Phase 4 — ground-contact occlusion: faces near the dirt lose a slice of
@@ -478,10 +479,11 @@ export function drawVillage3D(r,world,time,light){const s=new MeshScene(r),W=r.d
   // Project static meshes only when the camera, footprint, building state or
   // visible defense/production stage changes; moving gates quantize to four
   // steps and traps key only their armed state, never every cooldown tick.
-  const key=JSON.stringify([r.width,r.height,r.cx,r.cy,r.cam,W,H,world.buildings.map(b=>{const spec=r.data.buildings[b.type];return [b.id,b.type,b.x,b.y,b.level,b.hp<=0,b.remaining>0,productionStage(b,spec),spec?.production&&reserveReady(b,spec)?1:0,b.type==='gate'?gateLiftStage(r,b,world,time):0,b.type.includes('trap')?(trapArmed(b)?1:0):0];})]);
+  const key=JSON.stringify([r.width,r.height,r.cx,r.cy,r.cam,W,H,r.claimedTileCount??-1,world.buildings.map(b=>{const spec=r.data.buildings[b.type];return [b.id,b.type,b.x,b.y,b.level,b.hp<=0,b.remaining>0,productionStage(b,spec),spec?.production&&reserveReady(b,spec)?1:0,b.type==='gate'?gateLiftStage(r,b,world,time):0,b.type.includes('trap')?(trapArmed(b)?1:0):0];})]);
  if(r._meshStatic?.key===key){s.faces=r._meshStatic.faces.slice();s.sources=r._meshStatic.sources;}else{
  // Border trees share depth sorting with the village, including reverse views.
  for(let i=-1;i<W+2;i++){s.owner=null;if(i%2)pine(s,i,-1.5,1.4+(i%3)*.22);if(i%3===0)pine(s,-1.5,((i%H)+H)%H,1.5);if(i%3===1)pine(s,W+1,i%H,1.6);if(i%4===0)pine(s,i,H+3,1.5);}
+  addEnvironmentScenery(s,world,r.data);
   for(const b of world.buildings)buildingModel(s,b,r.data.buildings[b.type],world,time);
  prepareSourceLighting(s);
  r._meshStatic={key,faces:s.faces.slice(),sources:s.sources};
