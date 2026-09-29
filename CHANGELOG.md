@@ -7,6 +7,13 @@
 - Prioritized building cards above village statistics on small screens.
 - No gameplay, economy, progression or save changes.
 
+## Detail/world/story expansion — Phase 15: Final ship verification (2026-09-29)
+
+- Hardened the real-Chromium update smoke path after two unrelated feature PRs exposed the same service-worker timing race: a controller/update transition may hide the pause/settings sheet without reloading the game.
+- Before the second update check and the final apply click, the harness now explicitly asserts that the title screen has **not** returned, reopens Settings only when its overlay is hidden, waits for the live update button to become visible/enabled, then continues the existing player-approved update flow.
+- Added a browser performance sanity guard using the existing `window.midnightsManner.frameReport()`: telemetry must be live and both visible/static mesh counts must remain below a deliberately loose **30,000-face** runaway threshold. No CI millisecond threshold was added because shared runners are timing-noisy.
+- Refreshed the README's stale campaign count/status text to match the current 15-chapter game. No gameplay, save, balance or production code changes.
+
 ## Detail/world/story expansion — Phase 14: Atmosphere and travel juice (2026-09-29)
 
 - Added a renderer-only atmosphere layer between terrain and the 3D village mesh: small building/camp smoke, short travel footprints behind moving villagers/raiders, and capped rain splashes.
