@@ -59,6 +59,26 @@
       "voices": {"bass": 0.075, "pad": 0.09, "pluck": 0.1},
       "gain": 0.68,
       "echo": {"seconds": 0.28, "gain": 0.11}
+    },
+    {
+      "id": "lattice",
+      "name": "Lattice Light",
+      "bpm": 80,
+      "rootHz": 87.307,
+      "bars": 4,
+      "pulsesPerBar": 6,
+      "scale": [0, 2, 4, 5, 7, 9, 11],
+      "progression": [
+        [0, 4, 7, 11],
+        [2, 5, 9, 12],
+        [5, 9, 12, 16],
+        [0, 4, 7, 12]
+      ],
+      "melodySlots": [0, 2, 3, 5],
+      "calmMelodySlots": [0, 3],
+      "voices": {"bass": 0.065, "pad": 0.07, "pluck": 0.12},
+      "gain": 0.72,
+      "echo": {"seconds": 0.18, "gain": 0.09}
     }
   ]
 }
