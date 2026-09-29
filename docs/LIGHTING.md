@@ -1,10 +1,6 @@
-# LIGHTING — presentation phases 2–4 (shade() / paint() / sky arcs / weather / AO)
+# LIGHTING — sky shading, source profiles, weather and AO
 
-Status: Phase 2 (midnight lighting core), Phase 3 (dynamic lights/moon/weather)
-and Phase 4 (AO/depth/vignette) implemented 2026-09-28. Scope: scene mesh
-shading, the key-light arc, fire glow sprites, the weather response on meshes,
-per-face ground occlusion, contact shadows and the vignette. Terrain tinting
-and a full lighting pass on the ground tiles remain future work.
+Status: sky-light phases 2–4 plus source-light identity implemented 2026-09-28. Scope: scene mesh shading, the key-light arc, source-projected ground spill, weather response on meshes, per-face ground occlusion, contact shadows and the vignette. Terrain tinting and cast shadows between separate structures remain future work.
 
 ## Goal
 
@@ -67,6 +63,20 @@ direction beat the sweep); a bad override falls back to the base static dir.
   component (`width × (.5 + .42 × clamp(keyDir.x))`), so the Phase 3 moon
   sweep is visible on screen; it fades with the overlay glow (day = none).
 
+## Source lighting identity
+
+Visible emitters register tile-space light sources beside their actual geometry. Each source now carries one renderer-only profile:
+
+- **window** — pale warm light, fast falloff, narrow facade-directed spill, effectively steady.
+- **lantern** — compact gold radial pool with only a trace of motion.
+- **torch** — wider directional orange spill with restrained deterministic flicker.
+- **fire** — forge and watchfire pools reach farther, run hotter, and flicker more than torches.
+- **trap** — armed fire traps use a compact, sharper pulse so a trap never reads like a bonfire.
+
+`prepareSourceLighting()` still computes the inexpensive warm wash on the source building once with cached geometry. Profile falloff can change that local contribution, but time/flicker never enters the static mesh cache. `drawSourceSpill(scene, time)` is the dynamic half: it projects each source onto the ground plane with the orbit camera, applies the profile's radial or clipped directional footprint, palette and deterministic pulse, and draws beneath opaque meshes. `prefers-reduced-motion`/Calm returns a flicker multiplier of exactly 1.
+
+Profiles do not add save fields or simulation state. Unknown profile names fall back to `generic`.
+
 ## Where it lives
 
 - `src/systems/daynight.js` — the only tuning home. `SKIES` holds the four
@@ -84,11 +94,8 @@ direction beat the sweep); a bad override falls back to the base static dir.
   forge/smeltery flames, watchfires and armed fire traps are emissive.
   `drawVillage3D` accepts the frame's resolved sky so the renderer resolves it
   once.
-- `src/renderer.js` — resolves the sky once per frame and feeds shadows, the
-  vignette, the overlay, the glows and the mesh shading. Fire sources
-  (watchfire/forge/smeltery) draw a larger flickering halo; other finished
-  buildings keep the soft window halo. Flicker is deterministic per building
-  id and frozen under `calm`.
+- `src/renderer.js` — resolves the sky once per frame and feeds shadows, the vignette, overlay, glows and mesh shading.
+- `src/source-lighting.js` — source profile table, cached local-surface attenuation, deterministic flicker and projected ground spill. Windows/torches may clip the radial gradient into directional footprints; lanterns/open fires stay radial. Calm freezes profile motion.
 
 ## Data (all optional, additive)
 
@@ -142,6 +149,7 @@ darkening.
   touch the cache key. Contact shadows cost one polygon per building and one
   ellipse per unit per frame. The fog depth scan is one extra pass over the
   face list only while a veil is active.
+- Source positions/profiles and local face wash are cached with static geometry. Only the small ground-spill loop reads frame time for flicker; it does not rebuild or repaint mesh geometry, and Calm removes its time variation.
 - No per-frame allocations in the face loop (the shadow loop allocates one
   projected-point array per building; 20–40 bodies in play). The clock still
   never rebuilds the mesh cache (pinned since Phase 1).
@@ -157,5 +165,6 @@ darkening.
 - `tests/lighting-baseline.test.js` — raw geometry digests, frozen-light
   formula equality at flat AO, day/night/dawn painted digests, ground-vs-roof
   AO, static-cache invariant.
+- `tests/source-lighting.test.js` — emitter gating/placement, cache invariants, profile assignment, deterministic bounded flicker, Calm behavior, fallback and profile falloff.
 - `tests/daynight.test.js` — unchanged: overlay pins (`lightingFor` keeps its
   contract; `skyLightAt().overlay` re-exports it).
