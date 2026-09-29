@@ -7,6 +7,7 @@ import {isWall,wallNeighbors} from './building-art.js';
 import {placementCells} from './systems/walls.js';
 import {DAY_LENGTH,skyLightAt} from './systems/daynight.js';
 import {reserveCapacity,reserveReady} from './resources.js';
+import {drawBuildingActivity} from './building-activity.js';
 export function pointInPolygon(x,y,points){let inside=false;for(let i=0,j=points.length-1;i<points.length;j=i++){const a=points[i],b=points[j];if((a.y>y)!==(b.y>y)&&x<(b.x-a.x)*(y-a.y)/(b.y-a.y)+a.x)inside=!inside;}return inside;}
 const FALLBACK_LIGHT=skyLightAt(DAY_LENGTH*.3,null); // high noon, for bare MeshScene uses
 // Phase 4 — ground-contact occlusion: faces near the dirt lose a slice of
@@ -490,4 +491,5 @@ export function drawVillage3D(r,world,time,light){const s=new MeshScene(r),W=r.d
   if(r.placing&&r.hover){const source=world.buildings.find(b=>b.id===r.moving),ghosts=placementCells(r).map(p=>({type:r.placing,...p,level:source?.level||1,hp:1,remaining:1,id:null})),preview={buildings:[...world.buildings.filter(b=>b.id!==r.moving),...ghosts]};for(const b of ghosts)buildingModel(s,b,r.data.buildings[b.type],preview,time);}
  drawSourceSpill(s);
  s.paint();
+ drawBuildingActivity(r,world,time);
 }
