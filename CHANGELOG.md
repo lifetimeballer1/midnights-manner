@@ -7,6 +7,14 @@
 - Prioritized building cards above village statistics on small screens.
 - No gameplay, economy, progression or save changes.
 
+## Detail/world/story expansion — Phase 8: Mission objective variety (2026-09-28)
+
+- Replaced the gather-only mission completion check with a generic objective evaluator. Existing `{resource, amount}` data remains a backward-compatible gather objective; new mission data can declare `protect`, `survive`, `defeat`, or `build`.
+- Every objective reports a shared `have / need / complete / label / progressText` shape. Campaign logic, the live battle HUD, and Campaign cards now read the same evaluator instead of each assuming a resource counter.
+- Added meaningful late-game variety: **The Pale Court** must keep its tower standing, **The Longest Night** must keep the Oathstone standing, and **Dawn** must keep its Oathstone standing and hold until 360 seconds before victory can resolve.
+- Protect/build objectives count only living finished structures; survive progress caps at its target; defeat reads the existing cumulative raid-kill ledger. No new save fields, timers, or per-mission simulation branches were added.
+- Added five `tests/mission-objectives.test.js` regressions covering legacy gather compatibility, protect/build state, survive/defeat progress, Oathstone-gated Longest Night victory, and Dawn's timed hold. Test target: 536 → 541.
+
 ## Detail/world/story expansion — Phase 7: Frontier story destinations (2026-09-28)
 
 - Anchored three late Act VIII chapters to persistent home-frontier locations: **The Pale Court → Southreach Crossing**, **The Longest Night → Starwatch Ridge**, and **Dawn → Dawnfields**. Destination metadata lives on the mission data; campaign code contains no content-specific region ids.
