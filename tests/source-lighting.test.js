@@ -3,13 +3,13 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {Renderer} from '../src/renderer.js';
 import {MeshScene,buildingModel,drawVillage3D} from '../src/scene3d.js';
-import {lightAt,sourceFlicker,sourceProfile,SOURCE_PROFILES} from '../src/source-lighting.js';
+import {drawSourceSpill,lightAt,sourceFlicker,sourceProfile,SOURCE_PROFILES} from '../src/source-lighting.js';
 import {skyLightAt,DAY_LENGTH} from '../src/systems/daynight.js';
 const data=Object.fromEntries(await Promise.all(['world','buildings'].map(async n=>[n,JSON.parse(await readFile(new URL(`../data/${n}.json`,import.meta.url)))])));
 const ctx=new Proxy({}, {get:(t,k)=>t[k]||(()=>k.includes('Gradient')?{addColorStop(){}}:undefined),set:(t,k,v)=>(t[k]=v,true)});
 const renderer=()=>new Renderer({getContext:()=>ctx},data,{});
 const building=(type,extra={})=>({id:1,type,x:8,y:8,level:1,hp:100,remaining:0,...extra});
-function mesh(type,extra={}){const r=renderer(),s=new MeshScene(r),b=building(type,extra);buildingModel(s,b,data.buildings[type],{buildings:[b]});return s;}
+function mesh(type,extra={},zoom=1){const r=renderer();r.cam.zoom=zoom;const s=new MeshScene(r),b=building(type,extra);buildingModel(s,b,data.buildings[type],{buildings:[b]});return s;}
 test('only finished luminous structures emit light; previews and ruins stay dark',()=>{
  for(const type of ['cottage','hall','forge','smeltery','watchfire','gate','farm','pasture','mine','tower','sawmill','market']){
   assert.ok(mesh(type).sources.length>0,type);
@@ -75,4 +75,50 @@ test('source profile resolver keeps safe generic fallback and distinct falloff',
  const window=lightAt(point,normal,{...base,profile:'window'});
  assert.ok(fire>generic,'open fire carries farther through its pool');
  assert.ok(window<generic,'window spill falls off faster away from its pane');
+});
+
+test('longhouse entrance fires have visible flame geometry, and ruined halls have no fires',()=>{
+ const hall=mesh('longhouse'),torches=hall.sources.filter(source=>source.profile==='torch');
+ assert.equal(torches.length,2);
+ assert.ok(torches.every(source=>hall.faces.some(face=>face.fixture&&face.emissive>0&&Math.hypot(face.center[0]-source.position[0],face.center[1]-source.position[1])<.15)));
+ assert.equal(mesh('longhouse',{hp:0}).sources.length,0);
+});
+
+test('the starting hall has paired visible entry torches without lighting its ruins',()=>{
+ const hall=mesh('hall'),torches=hall.sources.filter(source=>source.profile==='torch');
+ assert.equal(torches.length,2);
+ assert.ok(torches.every(source=>hall.faces.some(face=>face.fixture&&face.emissive>0&&Math.hypot(face.center[0]-source.position[0],face.center[1]-source.position[1])<.15)));
+ assert.equal(mesh('hall',{hp:0}).sources.length,0);
+});
+
+test('off-screen sources do not create gradients, visible sources still illuminate',()=>{
+ let gradients=0;
+ const r=renderer();r.resize(400,300,1);
+ r.ctx.createRadialGradient=()=>{gradients++;return {addColorStop(){}};};
+ const s=new MeshScene(r);s.light=skyLightAt(DAY_LENGTH*.8,null);
+ s.source([500,500,.6],null,1,.8,'torch');
+ drawSourceSpill(s,0);assert.equal(gradients,0);
+ s.source([r.cam.x,r.cam.y,.6],null,1,.8,'torch');
+ drawSourceSpill(s,0);assert.equal(gradients,1);
+});
+
+test('storehouse storage has visible cargo and stronger high-tier architecture',()=>{
+ const low=mesh('storehouse',{},1.65),high=mesh('storehouse',{level:3},1.65);
+ assert.ok(low.faces.some(face=>face.color==='#8d6844'),'tier 1 already shows stored cargo');
+ assert.ok(high.faces.filter(face=>face.color==='#8d6844').length>low.faces.filter(face=>face.color==='#8d6844').length);
+ assert.ok(high.faces.length>low.faces.length);
+});
+
+test('longhouse gains a stronger roofline and hall cargo with upgrades',()=>{
+ const low=mesh('longhouse',{},1.65),high=mesh('longhouse',{level:3},1.65);
+ assert.ok(high.faces.length>low.faces.length);
+ assert.ok(high.faces.some(face=>face.color==='#5e8c9b'));
+ assert.ok(high.faces.some(face=>face.color==='#8d6844'));
+});
+
+test('the hall and starting work sites carry recognizable large props at play zoom',()=>{
+ for(const [type,color] of [['hall','#8d6844'],['farm','#d7af6d'],['mine','#252e2c'],['lumber','#c79861']]){
+  assert.ok(mesh(type,{},1.65).faces.some(face=>face.color===color),`${type} needs readable workplace detail`);
+  assert.ok(!mesh(type,{hp:0},1.65).faces.some(face=>face.color===color),`${type} ruins must not show working props`);
+ }
 });

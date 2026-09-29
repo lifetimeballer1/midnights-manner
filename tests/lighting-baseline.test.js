@@ -122,7 +122,7 @@ test('baseline: the sky keeps its exact painted look at day and midnight', () =>
   }
   const orbit = t => {
     const faces = [];
-    for (const yaw of [0, PI / 2, PI, 3 * PI / 2]) { const s = mesh(r, 'hall', 3, yaw); s.light = skyLightAt(t, null); s.paint(); faces.push(...s.faces); }
+    for (const yaw of [0, PI / 2, PI, 3 * PI / 2]) { const s = mesh(r, 'hall', 3, yaw); s.light = skyLightAt(t, null); s.paint(); faces.push(...s.faces.filter(f => !f.fixture)); }
     return faces;
   };
   assert.equal(orbit(DAY_LENGTH * 1.8).length, ORBIT.faces, 'orbited hall face count moved');

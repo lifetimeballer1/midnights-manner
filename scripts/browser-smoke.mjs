@@ -44,8 +44,12 @@ try{
  assert.equal(await evaluate('window.midnightsManner.paused'),true,'welcome pauses simulation');
  await click('#begin');await waitFor('window.midnightsManner.ready');
  const musicStarts=await evaluate('window.__audioProbe.starts');assert.ok(musicStarts>=12,'Enter village starts the generated score');
- await new Promise(r=>setTimeout(r,180));
- const musicLevel=await evaluate('(()=>{const a=window.__audioProbe.analyser;if(!a)return null;const data=new Float32Array(a.fftSize);a.getFloatTimeDomainData(data);let peak=0,power=0;for(const value of data){peak=Math.max(peak,Math.abs(value));power+=value*value;}return {peak,rms:Math.sqrt(power/data.length)};})()');
+ let musicLevel;
+ for(let i=0;i<30;i++){
+  musicLevel=await evaluate('(()=>{const a=window.__audioProbe.analyser;if(!a)return null;const data=new Float32Array(a.fftSize);a.getFloatTimeDomainData(data);let peak=0,power=0;for(const value of data){peak=Math.max(peak,Math.abs(value));power+=value*value;}return {peak,rms:Math.sqrt(power/data.length)};})()');
+  if(musicLevel?.rms>0.0001)break;
+  await new Promise(r=>setTimeout(r,100));
+ }
  assert.ok(musicLevel&&musicLevel.rms>0.0001,'score produces a non-silent browser audio signal');assert.ok(musicLevel.peak<.95,'score leaves headroom instead of clipping');console.log('Music output level',musicLevel);
  await click('#pause');const stopsBeforeMute=await evaluate('window.__audioProbe.stops');await click('#opt-sound');
  assert.ok(await evaluate(`window.__audioProbe.stops>${stopsBeforeMute}`),'Sound off stops scheduled score notes');

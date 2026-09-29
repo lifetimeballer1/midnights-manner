@@ -60,6 +60,8 @@ export function drawSourceSpill(scene,time=0){
   const [x,y]=source.position,d=source.direction,reach=source.radius*profile.reach;
   const push=d?profile.push*reach:0,cx=x+(d?d[0]*push:0),cy=y+(d?d[1]*push:0);
   const p=r.project(cx,cy,.015),px=r.project(cx+reach,cy,.015),py=r.project(cx,cy+reach,.015);
+  const extent=Math.hypot(px.x-p.x,px.y-p.y)+Math.hypot(py.x-p.x,py.y-p.y);
+  if(p.x+extent<0||p.x-extent>r.width||p.y+extent<0||p.y-extent>r.height)continue;
   c.save();
   // An affine ground-plane gradient follows yaw, pitch, zoom and resize.
   // Directional sources clip that pool into a facade/torch spill; open flames

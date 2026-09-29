@@ -87,9 +87,9 @@ function trapArmed(b){return b.hp>0&&!(b.remaining>0)&&!(Number.isFinite(+b.cool
 function fence(s,x,y,w,d,color=timber){for(let i=0;i<=w;i+=.45){s.box(x+i,y,.05,.09,.09,.45,color);s.box(x+i,y+d-.09,.05,.09,.09,.45,color);}for(let j=.4;j<d;j+=.45){s.box(x,y+j,.05,.09,.09,.45,color);s.box(x+w-.09,y+j,.05,.09,.09,.45,color);}s.box(x,y,.23,w,.055,.07,color);s.box(x,y+d-.06,.23,w,.055,.07,color);s.box(x,y,.23,.055,d,.07,color);s.box(x+w-.06,y,.23,.055,d,.07,color);}
 function torch(s,x,y,z,direction=null,radius=.95,power=.5){
  const dx=direction?.[0]||0,dy=direction?.[1]||0,fixture=s.fixture;s.fixture=true;
- s.box(x-.025-dx*.06,y-.025-dy*.06,z-.22,.05,.05,.23,'#594737');
- s.box(x-.04-dx*.02,y-.04-dy*.02,z-.03,.08,.08,.05,'#41372f');
- s.emissive=1;s.pyramid(x,y,z,.075,.16,'#f2b35c',5);s.emissive=0;s.fixture=fixture;
+ s.box(x-.035-dx*.06,y-.035-dy*.06,z-.33,.07,.07,.32,'#594737');
+ s.box(x-.065-dx*.02,y-.065-dy*.02,z-.04,.13,.13,.075,'#41372f');
+ s.emissive=1;s.pyramid(x,y,z,.095,.2,'#e8883f',5);s.pyramid(x,y,z+.05,.048,.15,'#ffe1a0',5);s.emissive=0;s.fixture=fixture;
  s.source([x,y,z+.08],direction,radius,power,'torch');
 }
 function lanternPost(s,x,y,z=.72,radius=1.05,power=.46){
@@ -244,6 +244,24 @@ function detailTool(s,x,y,z=.18,kind='hammer'){
 function buildingDetailLayer(s,b,spec){
  if(s.r.cam.zoom<1.2||b.hp<=0||b.remaining>0)return;
  const {x,y,type:t,level:l}=b,n=spec.size,front=y+n-.16,fine=s.r.cam.zoom>=1.65;
+ if(t==='storehouse'){
+  // Cargo remains outside the door, readable from either side of the roof.
+  detailCrate(s,x+.15,front-.22,.13,1.15);
+  detailBarrel(s,x+n-.39,front-.17,.13,1.1);
+  if(l>=2){detailCrate(s,x+.2,y+.16,.13,1.1);detailSack(s,x+n-.32,y+.22,.13,1.1);}
+  if(l>=3){detailCrate(s,x+.48,front-.2,.13,.85);detailBarrel(s,x+.16,y+.43,.13,1.1);}
+ }
+ if(t==='longhouse'){
+  detailBarrel(s,x+.18,front-.21,.13,1.15);
+  if(l>=2){detailCrate(s,x+n-.5,front-.22,.13,1.1);detailRack(s,x+.17,y+.2,.13,.6);}
+  if(l>=3){detailBarrel(s,x+n-.43,y+.22,.13,1.2);detailCrate(s,x+.2,y+.38,.13,1.05);}
+ }
+ if(t==='hall'){
+  const fixture=s.fixture;s.fixture=true;
+  detailCrate(s,x+n-.48,front-.24,.13,1.2);
+  detailBarrel(s,x+.18,front-.18,.13,1.1);
+  s.fixture=fixture;
+ }
  // Military yards: training gear should identify the job before the menu opens.
  if(t==='barracks'){
   detailRack(s,x+.18,front,.13,Math.min(.62,n-.36));
@@ -271,6 +289,9 @@ function buildingDetailLayer(s,b,spec){
   // Hand tools, seed sacks and a water barrel sell the field as a workplace.
   detailRack(s,x+.18,front,.13,.5);detailTool(s,x+.27,front+.015,.18,'axe');
   detailSack(s,x+n-.42,y+.28,.13,.9);if(l>=2)detailSack(s,x+n-.22,y+.42,.13,.82);
+  const fixture=s.fixture;s.fixture=true;
+  s.box(x+n-.55,y+.26,.18,.34,.42,.18,'#d7af6d');s.roof(x+n-.57,y+.25,.36,.38,.44,.15,'#c49a59');
+  s.fixture=fixture;
   if(l>=3)detailBarrel(s,x+.2,y+.25,.13,.95);
  }
  if(t==='pasture'){
@@ -281,14 +302,23 @@ function buildingDetailLayer(s,b,spec){
   // Sawbuck plus a stump/axe keeps the yard readable even before its reserve pile grows.
   for(const dx of [.22,.58]){s.box(x+dx,y+n-.48,.13,.06,.3,.42,timber);s.box(x+dx-.08,y+n-.31,.35,.22,.06,.06,timber);}
   s.box(x+n-.38,y+.24,.13,.27,.27,.14,'#76593d');detailTool(s,x+n-.31,y+.3,.26,'axe');
+  const fixture=s.fixture;s.fixture=true;
+  for(const dy of [n-.32,n-.18])s.box(x+.1,y+dy,.13,.55,.11,.12,'#c79861');
+  s.fixture=fixture;
   if(l>=2)detailCrate(s,x+.18,y+.24,.12,.9);
  }
  if(['mine','emberglass'].includes(t)){
   // Short rails and a loaded cart extend the mine entrance into the yard.
+  const fixture=s.fixture;s.fixture=true;
+  s.box(x+.39,y+.86,.16,.22,.02,.31,'#252e2c');
+  s.fixture=fixture;
   for(const rx of [x+.33,x+.64])s.box(rx,y+.58,.13,.045,.65,.035,'#687170');
   for(let j=0;j<4;j++)s.box(x+.29,y+.62+j*.16,.125,.45,.055,.035,timber);
   s.box(x+.42,y+.34,.18,.38,.3,.24,'#6f6253');s.box(x+.46,y+.38,.41,.3,.22,.055,t==='emberglass'?'#8ecac7':'#8e846f');
   for(const wx of [x+.45,x+.7])s.box(wx,y+.62,.13,.08,.08,.12,'#414845');
+  s.fixture=true;
+  for(const [dx,dy] of [[.13,.25],[.8,.38]])s.pyramid(x+dx,y+dy,.13,.13,.22,t==='mine'?'#a29074':'#96c5c2',5);
+  s.fixture=fixture;
   if(l>=2)detailCrate(s,x+n-.42,y+.2,.12,.82);
  }
  if(t==='tannery'){
@@ -400,7 +430,21 @@ function buildingShape(s,b,spec,world,time){
   for(let i=0;i<2;i++)s.box(x+.19+i*.36,y+n-.42,.14,.3,.27,.24,'#decaa0');
   return;
  }
- if(t==='longhouse'){longhouseShape(s,b,n);return;}
+ if(t==='longhouse'){
+  longhouseShape(s,b,n);
+  if(l>=2){
+   for(const side of [x+.53,x+n-.63])s.box(side,y+.46,.13,.085,n-.92,.55,l>=3?stone:timber);
+   s.box(x+n*.38,y+.42,.67,n*.24,.48,.55,stone);
+   s.roof(x+n*.37,y+.4,1.22,n*.26,.53,.24,l>=3?'#5e8c9b':'#977851');
+  }
+  if(l>=3){
+   for(const side of [x+.63,x+n-.72])s.box(side,y+n-.34,.13,.09,.09,1.23,stone);
+   s.box(x+.53,y+n-.38,1.32,n-1.06,.09,.08,gold);
+  }
+  torch(s,x+n*.3,y+n-.11,.73,[0,1],1.24,.56);
+  torch(s,x+n*.7,y+n-.11,.73,[0,1],1.24,.56);
+  return;
+ }
  // Town projects (Phase 4): grand works read as themselves at map scale —
  // an open plaza of striped stalls, a grain hall with chute and sacks,
  // hedge-lined gardens with a fountain, and a plinth obelisk. Tier lifts
@@ -440,6 +484,17 @@ function buildingShape(s,b,spec,world,time){
  }
  const colors={hall:'#658d99',barracks:'#b96d5a',cottage:'#9ba061',longhouse:'#977851',chapel:'#8e8dae','sunken-chapel':'#679fa5',forge:'#976b54',smeltery:'#846f67',armory:'#667b91',workshop:'#789380',tannery:'#bd9a69',schoolroom:'#ba9369',scriptorium:'#798ca7',butchery:'#a75e54',fletcher:'#7c9868','shieldwall-yard':'#668a91',mason_yard:'#949b90'};
  hut(s,x+.22,y+.22,n-.44,n-.44,.42+l*.16,colors[t]||'#829a78',l);
+ if(t==='hall'){
+  torch(s,x+n*.3,y+n-.12,.66,[0,1],1.15,.53);
+  torch(s,x+n*.7,y+n-.12,.66,[0,1],1.15,.53);
+ }
+ if(t==='storehouse'){
+  // A raised loading canopy and reinforced door set stores apart from homes.
+  s.box(x+n*.31,y+n-.15,.13,n*.38,.15,.1,timber);
+  for(const dx of [x+n*.31,x+n*.68])s.box(dx,y+n-.13,.13,.055,.055,.62,l>=2?stone:timber);
+  s.roof(x+n*.28,y+n-.24,.78,n*.44,.42,.19,l>=3?'#667d91':'#947052');
+  if(l>=3){s.box(x+n*.43,y+.36,1.12,.28,.28,.54,stone);s.roof(x+n*.4,y+.32,1.68,.34,.36,.2,'#667d91');}
+ }
  workplaceDetails(s,b,n);
  if(spec.housing)homeDetails(s,b,n,l);
  if(['forge','smeltery'].includes(t)){s.box(x+n-.55,y+.28,.1,.28,.28,1.5,stone);s.box(x+n-.57,y+.26,1.6,.32,.32,.12,'#4d514b');s.source([x+.5,y+n-.15,.33],[0,1],1.65,1,'fire');s.emissive=1;s.box(x+.3,y+n-.2,.2,.4,.024,.26,'#eea55d');s.emissive=0;}
