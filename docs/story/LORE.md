@@ -83,9 +83,9 @@ Twenty-one souls followed a Moonwarden survey-chart to Hob’s Cut, raised a hal
 
 **Naming pattern:** plain frontier noun + moon/night word. Two words maximum. Concrete and pronounceable.
 
-- **The Manner:** home valley — bowl of fields, stream, treeline. The 20×16 home map.
+- **The Manner:** home valley — bowl of fields, stream, treeline. The persistent home frontier is 52×44 tiles; the old 20×17 Hearthlands remain its settled core.
 - **Stillwater:** pond-chain and stream. Glimmerfish rise to moonlight.
-- **The Timber Line:** western treeline where the road enters. Every raid comes from the west because that is the only road that survived.
+- **The Timber Line:** western treeline where the oldest road enters. Early danger still gathers there, but as the Manner claims more frontier, hostile bands can approach from any exposed outer edge.
 - **The Ember Road:** old forge-highway south, now charcoal trail. Expedition country.
 - **Moonwell Hollow:** dell where moonstone runs near the surface. Village hungry twice over: bread and ore.
 - Far places (named, never shown): Grey Markets, Sunken Steeple, Lantern Towns. Used for notice-board flavor and trader stories only.
