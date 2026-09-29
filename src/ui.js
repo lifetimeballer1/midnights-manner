@@ -83,6 +83,7 @@ export class UI {
    this.refresh();
   };
   this.panel.onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;
+   if(b.dataset.frontierChoice){this.game.frontierChoice(b.dataset.frontierChoice);this.lastPanel='';this.refresh();return;}
    if(b.dataset.collect){this.game.harvest(b.dataset.collect);this.refresh();return;}
    if(b.dataset.collectAll){this.game.collectAll();this.refresh();return;}
    if(b.dataset.expandToggle||b.dataset.expandRegion){const target=b.dataset.expandRegion||null,on=target?true:!this.expandMode;this.cancel();this.expandMode=on;if(on){if(target){const region=this.game.data.expansion?.regions?.find(r=>r.id===target),p=region?.landmark||region?.rect&&{x:region.rect.x+region.rect.w/2,y:region.rect.y+region.rect.h/2};if(p){this.renderer.cam.x=p.x;this.renderer.cam.y=p.y;this.renderer.grid=true;}this.game.notify(`Expand mode — ${region?.landmark?.name||region?.name||'the destination'} is centered. Claim a bordering wild region to reach it.`);}else this.game.notify('Expand mode — tap a wild tile beside your land to claim it. Tap Expand again to stop.');this.closePanel();this.closeSelectionOnly();}this.lastPanel='';this.refresh();return;}
@@ -250,6 +251,8 @@ export class UI {
    ?`<button class="gold-button adv-next-btn" data-expedition="${n.unitId}">${n.label} →</button>`
    :`<button class="gold-button adv-next-btn" data-goto="${n.goto}">${n.label} →</button>`;
   const q=s.quest;
+  const activeFrontier=g.world.frontierEvent&&(g.data.world.frontierEvents||[]).find(e=>e.id===g.world.frontierEvent.id);
+  const frontierEvent=activeFrontier?`<article class="adv-card adv-trade"><div class="adv-eyebrow">FRONTIER EVENT · ${activeFrontier.region.replaceAll('-',' ').toUpperCase()}</div><h3>${activeFrontier.title}</h3><p>${activeFrontier.text}</p><div class="actions">${(activeFrontier.choices||[]).map(ch=>{const price=ch.cost||{},short=!afford(g.world.resources,price),suffix=Object.keys(price).length?` · ${cost(price)}`:'';return `<button data-frontier-choice="${ch.id}" ${short?'disabled':''}>${ch.label}${suffix}</button>`;}).join('')}</div></article>`:'';
   const objective=q
    ?`<article class="adv-card"><div class="adv-eyebrow">CURRENT OBJECTIVE · VILLAGE PATH</div><h3>${q.name}</h3><p>${q.text}</p><div class="progress" role="progressbar" aria-valuenow="${Math.min(s.progress.have,s.progress.need)}" aria-valuemax="${s.progress.need}" aria-label="${q.name} progress"><div style="width:${Math.min(100,s.progress.have/Math.max(1,s.progress.need)*100)}%"></div></div><div class="adv-meta">${taskHint(q.task,g.data)} · ${Math.min(s.progress.have,s.progress.need)} / ${s.progress.need} · +${q.xp} XP</div></article>`
    :`<article class="adv-card adv-done"><div class="adv-eyebrow">CURRENT OBJECTIVE</div><h3>The path is walked.</h3><p>All ${s.questsTotal} village-path quests complete. The frontier is yours to hold.</p></article>`;
@@ -274,6 +277,7 @@ export class UI {
   return `<div class="panel-heading"><span>ADVENTURE · HOME</span><span>${s.chaptersDone}/${s.chaptersTotal} chapters</span></div>
   <article class="adv-hero"><div class="adv-eyebrow">NEXT ACTION</div><h3>${n.label}</h3><p>${n.detail}</p>${nextBtn}</article>
   ${objective}
+  ${frontierEvent}
   <div class="panel-heading"><span>SURVIVAL STATUS</span><span>Wave ${s.wave}</span></div>
   <button class="gold-button adv-next-btn" data-goto="research">Technology tree →</button><article class="adv-card">${survival}${!s.away?`<div class="adv-row"><span>Settlement threat · size, stores & victories</span><b>${s.survival.label} · ${s.survival.score}/100</b></div><p class="adv-note">${factionFor(g.data,s.wave)?.name||"Raiders"}: ${factionFor(g.data,s.wave)?.lore||"Watch the treeline."}</p><p class="adv-note">Quiet time varies. Scouts warn before an attack. Ruined buildings stop producing until repaired. Civilians shelter during alarms; builders repair safe defenses and healers aid allies behind the fighting.</p>`:""}<div class="adv-row"><span>Food balance</span><b>${food}</b></div><div class="adv-row"><span>Cottage beds spoken for</span><b>${beds}</b></div><div class="adv-row"><span>Growth · ${s.growth.note}</span><b>${s.growth.pct}%</b></div><div class="adv-row"><span>Rangers out · idle hands</span><b>${s.ranging} · ${s.idleRangers}</b></div></article>
   <div class="panel-heading"><span>SETTLEMENT GOALS</span><span>Lvl ${s.lvl}</span></div>
