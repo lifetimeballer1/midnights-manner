@@ -1,7 +1,8 @@
 import {ensureIdentity} from './systems/villagers.js';
+import {buildTiles} from './systems/biomes.js';
 const KEY='midnights-manner-v2';
 const OLD_KEY='midnights-manner-v1';
-export const VERSION = 12;
+export const VERSION = 13;
 // In-memory fallback when localStorage is missing (private mode, SSR, tests)
 // or full (quota). Saves still work for the session; persist() warns.
 const memFallback = new Map();
@@ -281,7 +282,32 @@ function migrateV11toV12(value, data) {
   value.version = 12;
   return value;
 }
-const MIGRATIONS = {1: migrateV1toV2, 2: migrateV2toV3, 3: migrateV3toV4, 4: migrateV4toV5, 5: migrateV5toV6, 6: migrateV6toV7, 7: migrateV7toV8, 8: migrateV8toV9, 9: migrateV9toV10, 10: migrateV10toV11, 11: migrateV11toV12};
+// v12 -> v13: Outer Frontier grid expansion. Existing tile records are
+// copied onto the larger data-world grid exactly as saved; only coordinates
+// that did not exist in the old save are appended and forced unclaimed.
+// Tile-less vintage saves stay tile-less here so Game's established bounds
+// reconstruction path can restore their old homestead footprint safely.
+function migrateV12toV13(value, data) {
+  if (!value || typeof value !== 'object') return null;
+  const expand = w => {
+    if (!w || !Array.isArray(w.tiles) || !w.tiles.length) return;
+    const existing = new Map();
+    for (const t of w.tiles) if (Number.isInteger(t?.x) && Number.isInteger(t?.y)) existing.set(t.x + ',' + t.y, t);
+    let fresh = [];
+    try { fresh = buildTiles(data.world, {w:0,h:0}); } catch { return; }
+    for (const t of fresh) {
+      const old = existing.get(t.x + ',' + t.y);
+      if (old) Object.assign(t, old, {x:t.x, y:t.y});
+      else t.claimed = false;
+    }
+    w.tiles = fresh;
+  };
+  expand(value.world);
+  expand(value.home);
+  value.version = 13;
+  return value;
+}
+const MIGRATIONS = {1: migrateV1toV2, 2: migrateV2toV3, 3: migrateV3toV4, 4: migrateV4toV5, 5: migrateV5toV6, 6: migrateV6toV7, 7: migrateV7toV8, 8: migrateV8toV9, 9: migrateV9toV10, 10: migrateV10toV11, 11: migrateV11toV12, 12: migrateV12toV13};
 export function migrate(value, data) {
   return migrateToLatest(value, data);
 }

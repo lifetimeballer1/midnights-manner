@@ -15,8 +15,8 @@ const data = Object.fromEntries(await Promise.all(
     .map(async n => [n, JSON.parse(await readFile(new URL(`../data/${n}.json`, import.meta.url)))])));
 const noop = () => {};
 
-test('ph1: frontier grid is 40x34 with a 20x17 homestead; quest XP alone reaches level 6', () => {
-  assert.deepEqual([data.world.width, data.world.height], [40, 34]);
+test('ph1: frontier grid keeps a 20x17 homestead inside the expanded world; quest XP alone reaches level 6', () => {
+  assert.deepEqual([data.world.width, data.world.height], [52, 44]);
   const total = data.quests.reduce((n, q) => n + q.xp, 0);
   assert.ok(total >= 860, `quest XP ${total} covers the Act V foundation (Q9 lands level 6)`);
   assert.ok(levelForXp(total) >= 6);

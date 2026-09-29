@@ -10,18 +10,18 @@ const data = Object.fromEntries(await Promise.all(
   ['world', 'troops', 'items', 'abilities', 'buildings', 'expansion', 'biomes'].map(async n => [n, JSON.parse(await readFile(new URL(`../data/${n}.json`, import.meta.url)))])
 ));
 
-test('expansion.json holds 9 named regions on a 3x3 grid', () => {
+test('expansion.json holds 16 named regions across the 52x44 frontier', () => {
   assert.ok(Array.isArray(data.expansion.regions), 'regions array present');
-  assert.equal(data.expansion.regions.length, 9);
+  assert.equal(data.expansion.regions.length, 16);
   const ids = data.expansion.regions.map(r => r.id);
-  assert.equal(new Set(ids).size, 9, 'region ids unique');
+  assert.equal(new Set(ids).size, data.expansion.regions.length, 'region ids unique');
   for (const r of data.expansion.regions) {
     assert.ok(r.name, `${r.id} has a name`);
     assert.ok(r.rect && Number.isFinite(r.rect.x) && Number.isFinite(r.rect.w), `${r.id} has a rect`);
     assert.ok(Array.isArray(r.biomes) && r.biomes.length, `${r.id} has a biome mix`);
     assert.ok(r.landmark?.name, `${r.id} names a nearby landmark`);
   }
-  // Full coverage of the 40x34 grid, no overlaps.
+  // Full coverage of the current world grid, no overlaps.
   const seen = new Set();
   for (const r of data.expansion.regions) {
     for (let y = r.rect.y; y < r.rect.y + r.rect.h; y++) {
@@ -32,15 +32,15 @@ test('expansion.json holds 9 named regions on a 3x3 grid', () => {
       }
     }
   }
-  assert.equal(seen.size, 40 * 34, 'regions cover the whole grid');
+  assert.equal(seen.size, data.world.width * data.world.height, 'regions cover the whole grid');
 });
 
-test('center pre-claimed, other 8 carry escalating costs', () => {
+test('center pre-claimed, every other region carries a positive frontier cost', () => {
   const center = data.expansion.regions.find(r => r.preclaimed);
   assert.ok(center, 'one pre-claimed center');
   assert.equal(regionCost(center), null);
   const rest = data.expansion.regions.filter(r => !r.preclaimed);
-  assert.equal(rest.length, 8);
+  assert.equal(rest.length, data.expansion.regions.length - 1);
   for (const r of rest) {
     const c = regionCost(r);
     assert.ok(c && Object.values(c).every(v => Number.isFinite(v) && v > 0), `${r.id} has a positive cost`);
@@ -53,9 +53,9 @@ test('center pre-claimed, other 8 carry escalating costs', () => {
   assert.ok(far.cost.gold > regionCost(n).wood, 'far costs more than near');
 });
 
-test('world grid grew to 40x34', () => {
-  assert.equal(data.world.width, 40);
-  assert.equal(data.world.height, 34);
+test('world grid extends to 52x44', () => {
+  assert.equal(data.world.width, 52);
+  assert.equal(data.world.height, 44);
 });
 
 test('region lookups: center tiles claimed, wild regions blocked', () => {
@@ -132,9 +132,9 @@ test('XP settling claims newly opened rows', () => {
   assert.equal(isClaimed(w, 13, 9), true);
 });
 
-test('landmarks survive the 40x34 grid build', () => {
+test('landmarks survive the full frontier grid build', () => {
   const w = createWorld(data);
-  assert.equal(w.tiles.length, 40 * 34);
+  assert.equal(w.tiles.length, data.world.width * data.world.height);
   const still = w.tiles.find(t => t.x === 3 && t.y === 3);
   assert.equal(still.landmark, 'Stillwater');
   assert.equal(still.biome, 'water');

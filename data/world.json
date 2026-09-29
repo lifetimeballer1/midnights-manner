@@ -1,6 +1,6 @@
 {
-  "width": 40,
-  "height": 34,
+  "width": 52,
+  "height": 44,
   "seed": 7,
   "tiles": [
     {
@@ -23,6 +23,55 @@
       "biome": "plains",
       "landmark": "Moonwell",
       "claimed": true
+    },
+    {
+      "x": 45,
+      "y": 1,
+      "biome": "hills",
+      "landmark": "Starwatch Ridge",
+      "claimed": false
+    },
+    {
+      "x": 46,
+      "y": 10,
+      "biome": "forest",
+      "landmark": "Whisperwood",
+      "claimed": false
+    },
+    {
+      "x": 45,
+      "y": 26,
+      "biome": "hills",
+      "landmark": "Ashfall March",
+      "claimed": false
+    },
+    {
+      "x": 2,
+      "y": 38,
+      "biome": "water",
+      "landmark": "Blackwater Mouth",
+      "claimed": false
+    },
+    {
+      "x": 13,
+      "y": 38,
+      "biome": "plains",
+      "landmark": "Southreach Crossing",
+      "claimed": false
+    },
+    {
+      "x": 31,
+      "y": 38,
+      "biome": "plains",
+      "landmark": "Dawnfields",
+      "claimed": false
+    },
+    {
+      "x": 46,
+      "y": 39,
+      "biome": "water",
+      "landmark": "Pale Coast",
+      "claimed": false
     }
   ],
   "startingResources": {
@@ -172,21 +221,21 @@
     "perWave": 1,
     "maxCount": 8,
     "warningLines": [
-      "Horns on the night wind \u2014 riders under a pale moon. To the walls! They come in {count} heartbeats of {seconds}.",
+      "Horns on the night wind — riders under a pale moon. To the walls! They come in {count} heartbeats of {seconds}.",
       "Dust on the border roads and a horn through the pines. {count} raiders, {seconds} breaths out. Light the lamps.",
-      "The watchfire gutters \u2014 hoofbeats past the treeline. {count} coming, {seconds} to bar the doors."
+      "The watchfire gutters — hoofbeats past the treeline. {count} coming, {seconds} to bar the doors."
     ],
     "attackLines": [
-      "Wave {wave} \u2014 {count} raiders! Hold the manor!",
-      "They are over the fence! Wave {wave}, {count} strong \u2014 stand together!"
+      "Wave {wave} — {count} raiders! Hold the manor!",
+      "They are over the fence! Wave {wave}, {count} strong — stand together!"
     ],
     "victoryLines": [
-      "The bell rings long \u2014 the Manner stands. {kills} fell, their pouches ours (+{loot} gold). Mend what broke.",
+      "The bell rings long — the Manner stands. {kills} fell, their pouches ours (+{loot} gold). Mend what broke.",
       "Quiet again. {kills} raiders down, +{loot} gold in salvage. Oil the hinges and reset the traps."
     ],
     "defeatLines": [
       "The hall is ash and the bell is silent. Take the salvage wood and raise the beams again at dawn.",
-      "They broke the manor and melted into the trees. Salvage what you can \u2014 the village rises again."
+      "They broke the manor and melted into the trees. Salvage what you can — the village rises again."
     ],
     "director": {
       "minQuiet": 240,
