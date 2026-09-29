@@ -16,13 +16,14 @@ import {itemRarity, RARITY_INFO, stockCount} from './systems/crafting.js';
 import {ADVENTURE_LABELS, campaignCards, expeditionRoster, homeSummary, questCards, taskHint} from './adventure.js';
 import {missionObjectiveProgress} from './systems/campaign.js';
 import {sfx,isMuted,toggleMute} from './systems/audio.js';
+import {loadGuide,updateGuide} from './systems/tutorial.js';
 const icons={wood:'▰',food:'♧',gold:'◆',frostwood:'❄',plate:'▣',lumber:'▤',flour:'❀',bread:'◉'};
 const cost=c=>Object.entries(c).map(([k,v])=>`${icons[k]} ${Math.ceil(v)} ${k}`).join(' · ')||'Included';
 const img=name=>`<img src="./assets/sprites/${name}" alt="">`;
 const rarTag=item=>{const r=itemRarity(item);return r==='common'?'':` <em class="rarity" style="color:${RARITY_INFO[r].color}">· ${RARITY_INFO[r].name}</em>`;};
 const $=s=>document.querySelector(s);
 export class UI {
- constructor(game,renderer,music){this.game=game;this.renderer=renderer;this.music=music;this.tab='build';this.category='all';this.expandMode=false;this.selected=null;this.selectedTroop=null;this.clock=0;this.panel=$('#panel');this.lastMessage='';this.toastTime=0;this.lastPanel='';this.lastRail='';this.lastResult='';this.started=false;this.game.paused=true;this.bind();this.refresh();}
+ constructor(game,renderer,music){this.game=game;this.renderer=renderer;this.music=music;this.tab='build';this.category='all';this.expandMode=false;this.selected=null;this.selectedTroop=null;this.clock=0;this.panel=$('#panel');this.lastMessage='';this.toastTime=0;this.lastPanel='';this.lastRail='';this.lastResult='';this.started=false;this.game.paused=true;this.guide=loadGuide();this.bind();this.refresh();}
  blocked(){return !this.started||this.game.paused||!$('#drawer').hidden||!$('#raid-overlay').hidden;}
  bind(){
   // Keep controls mounted between press and click, including slow touch taps.
@@ -170,7 +171,8 @@ export class UI {
   $('#chapter-count').textContent=`${g.state.completed.length} / ${d.missions.length}`;$('#population-count').textContent=`${w.troops.length} villagers`;$('#wave-count').textContent=g.state.mission?'Expedition':`Wave ${w.wave+1}`;
   if(this.lastMessage!==g.message){this.lastMessage=g.message;$('#status').textContent=g.message;this.toastTime=4.5;$('#status').classList.add('show');const log=$('#event-log');if(log)log.textContent=g.message;}
   const q=currentQuest(g.state,d);$('#quest-name').textContent=q?.name||'Your village is thriving';
-  const legendEl=$('#title-legend');if(legendEl&&!$('#title').hidden){const legend=pickLegend(d.legends,daySeed());if(legend)legendEl.textContent=`${legend.title} — ${legend.text}`;}if(q){const p=questProgress(q.task,g.state);$('#quest-progress').textContent=`${Math.min(p.have,p.need)} / ${p.need} · +${q.xp} XP`;}else $('#quest-progress').textContent='Explore the campaign';
+  const legendEl=$('#title-legend');if(legendEl&&!$('#title').hidden){const legend=pickLegend(d.legends,daySeed());if(legend)legendEl.textContent=`${legend.title} — ${legend.text}`;}  if(q){const p=questProgress(q.task,g.state);$('#quest-progress').textContent=`${Math.min(p.have,p.need)} / ${p.need} · +${q.xp} XP`;}else $('#quest-progress').textContent='Explore the campaign';
+  try{const hint=this.started&&!g.paused?updateGuide(this.guide,g):null;const guideEl=$('#guide');if(guideEl){if(hint){guideEl.hidden=false;const line=`Step ${hint.index+1}/${hint.total} · ${hint.text}`;if(guideEl.textContent!==line)guideEl.textContent=line;}else if(!guideEl.hidden)guideEl.hidden=true;}}catch{}
   const mission=d.missions.find(m=>m.id===g.state.mission?.id),battle=$('#battle-hud');battle.hidden=!w.enemies.length&&!w.raidPending&&!mission;
   if(w.raidPending)battle.innerHTML=`<b>RAIDERS INCOMING · ${Math.ceil(w.raidPending.timer)}</b><small>${factionFor(d,w.wave+1)?.name||"Raiders"} · ${w.raidPending.count} approaching: ${raidSides(w.wave+1,w.raidPending.count).join(' · ')}</small>`;
   else if(w.enemies.length)battle.innerHTML=`<b>DEFEND THE MANOR</b><small>${w.enemies.length} raiders left · ${w.raidKills||0} defeated</small>`;
@@ -178,7 +180,7 @@ export class UI {
   const units=w.troops.filter(t=>d.troops[t.type].role==='combat'),rail=units.map(u=>`<button class="army-card ${this.selectedTroop===u.id?'selected':''}" data-select-unit="${u.id}" aria-label="Select ${d.troops[u.type].name}, level ${u.level}" ${u.hp<=0?'disabled':''}><span class="unit-level">${u.level}</span>${img(d.troops[u.type].sprite)}<small>${d.troops[u.type].name}</small><span class="unit-health"><i style="width:${Math.ceil(u.hp/stats(u,d).hp*100)}%"></i></span></button>`).join('');if(rail!==this.lastRail){const scroll=$('#army-rail').scrollLeft;$('#army-rail').innerHTML=rail;$('#army-rail').scrollLeft=scroll;this.lastRail=rail;}
   if(!$('#drawer').hidden){if(this.tab==='build')this.renderBuild();else if(this.tab==='troops')this.renderTroops();else if(this.tab==='workplace')this.renderWorkplace();else if(this.tab==='resources')this.renderResources();else if(this.tab==='friends')this.renderFriends();else this.renderStory();}
   this.renderInspector();this.placementHint();this.renderRaidOverlay();
-  this.renderer.collectionObstacles=[...document.querySelectorAll('.chief,#resources,#quest-chip,.camera-tools,.bottom-hud,#inspector,#battle-hud,#camera-panel')].filter(el=>el.getClientRects().length).map(el=>{const r=el.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height};});
+  this.renderer.collectionObstacles=[...document.querySelectorAll('.chief,#resources,#quest-chip,#guide,.camera-tools,.bottom-hud,#inspector,#battle-hud,#camera-panel')].filter(el=>el.getClientRects().length).map(el=>{const r=el.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height};});
   g.dirty=false;
  }
  renderRaidOverlay(){const g=this.game,w=g.world,el=$('#raid-overlay'),mission=g.state.mission;

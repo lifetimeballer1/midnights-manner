@@ -1,3 +1,9 @@
+# Stormglass Folklore — Phase B: tokens + first-run hint
+
+- Stormglass tokens land in `src/kingdom.css` (`--night:#1a2c4e`, `--brass:#f4cc73`, `--parchment:#eee4c9`, new `--lamp:#ffb95b`); theme-color matches. CSS-only, no gameplay or save changes.
+- The existing guide system (`src/systems/tutorial.js`, separate localStorage key) is now visible: a Stormglass pill under the quest chip on desktop, below the sky toast on phones; it walks place → collect → recruit → raid → survive, retires for veterans, and joins bubble-avoidance obstacles.
+- Review: `npm run capture` desktop + phone night checked — hint clear of troop rail/dock, warm windows intact; browser smoke green with no console errors. `npm test` 577 green, `npm run build` 354 precached.
+
 # Stormglass Folklore — Phase A: distinct resource icons
 
 - Lumber, flour and bread get original 64px SVG silhouettes (sawn planks, tied sack, bakery loaves); 8 resources now use 8 distinct sprites. No palette-swap reuse.

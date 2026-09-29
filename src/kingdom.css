@@ -1,5 +1,5 @@
 /* Moonlit kingdom UI. Presentation only; simulation and save contracts stay in their modules. */
-:root{--night:#101d33;--night-raised:#223650;--moon:#f8d58b;--mist:#b8c9df;--parchment:#f5efdf;--text-dark:#29394b;--muted-dark:#607080;--brass:#c6a46a;color-scheme:dark}
+:root{--night:#1a2c4e;--night-raised:#223650;--moon:#f8d58b;--mist:#b8c9df;--parchment:#eee4c9;--text-dark:#29394b;--muted-dark:#607080;--brass:#f4cc73;--lamp:#ffb95b;color-scheme:dark}
 button{transition:filter .16s,transform .16s,box-shadow .16s}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #72dce4;outline-offset:3px}
 #game::after{content:'';position:absolute;inset:0;box-shadow:inset 0 60px 65px -45px #07112299,inset 0 -70px 80px -50px #071122bb;pointer-events:none;z-index:2}
@@ -55,6 +55,11 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 @media(max-width:359px){.bottom-hud{left:6px;right:6px}.dock{gap:4px}.dock-button{min-width:52px;padding-inline:3px}.build-button{min-width:55px}.dock-button small{font-size:7px}.dock-center .dock-button b{font-size:9px}.title-card{padding:18px}}
 @media(max-height:550px) and (orientation:landscape){.chief{padding:0;background:none}.chief h1,.chief h1 b{display:inline;font-size:10px}.dock{max-width:none}.dock-center{flex:0;padding:3px}.dock-button{min-height:58px}.dock-button>svg{height:25px;width:25px}.dock-button small{display:none}.drawer{border-radius:20px}.title-card{max-width:600px;width:calc(100% - 30px);padding:18px 24px;gap:7px 24px}.title-card h2{font-size:34px}.title-emblem,.title-art{display:none}.title-card .title-legend{font-size:10px;margin:0}.title-card>.gold-button{min-height:44px}.resources{max-width:70%;flex-wrap:nowrap}}
 @media(prefers-reduced-motion:reduce){button{transition:none}.build-card:hover:not(:disabled){transform:none}}
+
+/* First-run guide hint: Stormglass pill under the quest chip. Presentation only. */
+#guide{position:absolute;left:12px;top:calc(150px + var(--safe-top));max-width:min(360px,calc(100% - 180px));padding:8px 14px;border:1px solid #f4cc7399;border-left:3px solid var(--lamp);border-radius:12px;background:#1a2c4ef2;color:#fff1d4;font-size:12px;line-height:1.5;text-align:left;pointer-events:none;z-index:3;box-shadow:0 4px 16px #07112266}
+#guide[hidden]{display:none}
+@media(max-width:700px){#guide{top:calc(274px + var(--safe-top));font-size:11px;padding:7px 10px;max-width:min(300px,calc(100% - 170px))}}
 
 /* Menu navigation stays mounted while content updates, keeping touch targets stable. */
 .menu-nav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;padding:10px 14px;background:#182a43;border-bottom:1px solid #8ea1ba44;flex-shrink:0}
