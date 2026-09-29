@@ -649,5 +649,189 @@
       "name": "Pale Coast",
       "text": "Salt crusts the ruined steps above the tide. Grey-market sailors leave copper nails in the cracks for luck and take nothing from the water after midnight."
     }
+  ],
+  "frontierEventTiming": {
+    "minDelay": 300,
+    "jitter": 180,
+    "retryDelay": 90
+  },
+  "frontierEvents": [
+    {
+      "id": "southreach-broken-axle",
+      "region": "southreach",
+      "minLevel": 5,
+      "title": "A Broken Axle at Southreach",
+      "text": "A Grey Road cart has thrown a wheel at the crossing. The driver has coin, but no timber worth trusting.",
+      "choices": [
+        {
+          "id": "repair",
+          "label": "Send 60 wood",
+          "cost": {
+            "wood": 60
+          },
+          "reward": {
+            "gold": 90
+          },
+          "result": "Your builders reset the axle before moonrise. The driver pays fair coin and carries your name down the road."
+        },
+        {
+          "id": "pass",
+          "label": "Let the road handle it",
+          "result": "You leave the cart to the road crews. By morning only ruts and a broken spoke remain."
+        }
+      ]
+    },
+    {
+      "id": "starwatch-signal",
+      "region": "starwatch-ridge",
+      "minLevel": 6,
+      "title": "Three Lights on Starwatch Ridge",
+      "text": "A watchman answers the Manor with three shielded lanterns: travelers below, weather turning, supplies running thin.",
+      "choices": [
+        {
+          "id": "supply",
+          "label": "Send 40 wood + 30 food",
+          "cost": {
+            "wood": 40,
+            "food": 30
+          },
+          "reward": {
+            "gold": 85
+          },
+          "result": "The ridge stays manned through the bad weather. A grateful caravan leaves coin with the watch on its way through."
+        },
+        {
+          "id": "dark",
+          "label": "Keep the ridge dark",
+          "result": "The lanterns go out one by one. The travelers find another road and the watch keeps its stores."
+        }
+      ]
+    },
+    {
+      "id": "whisperwood-wayfinders",
+      "region": "whisperwood",
+      "minLevel": 6,
+      "title": "Wayfinders in Whisperwood",
+      "text": "Two wayfinders have found an old safe trail but need provisions before they can mark it clearly enough for caravans.",
+      "choices": [
+        {
+          "id": "provision",
+          "label": "Send 50 food",
+          "cost": {
+            "food": 50
+          },
+          "reward": {
+            "gold": 80
+          },
+          "result": "The paired cuts appear on the right trees by dawn. Traders use the safer trail and leave a road fee at the Manor."
+        },
+        {
+          "id": "leave",
+          "label": "Leave the trail unmarked",
+          "result": "The wayfinders keep the route in their private charts. The woods stay quiet and difficult."
+        }
+      ]
+    },
+    {
+      "id": "blackwater-ferry",
+      "region": "blackwater-mouth",
+      "minLevel": 5,
+      "title": "A Boat at Blackwater Mouth",
+      "text": "A ferryman has grounded his flatboat on a split piling. He can save the cargo if the village sends straight timber.",
+      "choices": [
+        {
+          "id": "timber",
+          "label": "Send 55 wood",
+          "cost": {
+            "wood": 55
+          },
+          "reward": {
+            "food": 95
+          },
+          "result": "The boat floats free before the tide turns. The ferryman leaves smoked fish and grain from the saved cargo."
+        },
+        {
+          "id": "wait",
+          "label": "Wait for the tide",
+          "result": "The tide frees the hull hours later, but half the cargo has gone to the black water."
+        }
+      ]
+    },
+    {
+      "id": "ashfall-hearth",
+      "region": "ashfall-march",
+      "minLevel": 7,
+      "title": "Smoke under Ashfall March",
+      "text": "A buried charcoal hearth has begun breathing again under the turf. Sarella says it can be made safe, but not ignored cheaply.",
+      "choices": [
+        {
+          "id": "stabilize",
+          "label": "Send 70 wood + 40 food",
+          "cost": {
+            "wood": 70,
+            "food": 40
+          },
+          "reward": {
+            "gold": 130
+          },
+          "result": "Crews cut a safe vent and brace the old pit. Salvaged fittings and charcoal sell well on the Grey Road."
+        },
+        {
+          "id": "seal",
+          "label": "Mark it and move on",
+          "result": "The march is marked with white stones. Nobody camps there until the ground cools."
+        }
+      ]
+    },
+    {
+      "id": "dawnfields-camp",
+      "region": "dawnfields",
+      "minLevel": 7,
+      "title": "Travelers in the Dawnfields",
+      "text": "A family caravan has stopped beside the old battle field. They ask for supper and offer tools cut from good northern timber.",
+      "choices": [
+        {
+          "id": "feed",
+          "label": "Send 65 food",
+          "cost": {
+            "food": 65
+          },
+          "reward": {
+            "wood": 110
+          },
+          "result": "The travelers eat at your fire and trade a bundle of seasoned timber before taking the south road."
+        },
+        {
+          "id": "road",
+          "label": "Point them toward the road",
+          "result": "They thank the watch and move on before dark, keeping their stores for the long road."
+        }
+      ]
+    },
+    {
+      "id": "pale-coast-wagon",
+      "region": "pale-coast",
+      "minLevel": 8,
+      "title": "Salt from the Pale Coast",
+      "text": "A coast wagon offers preserved fish and salt at a steep road price before the tide road closes.",
+      "choices": [
+        {
+          "id": "buy",
+          "label": "Pay 70 gold",
+          "cost": {
+            "gold": 70
+          },
+          "reward": {
+            "food": 125
+          },
+          "result": "The Manor stores fill with salt fish before the wagon turns inland. Winter meals will stretch farther."
+        },
+        {
+          "id": "decline",
+          "label": "Keep the coin",
+          "result": "The wagon rolls north looking for another buyer. The salt smell lingers after the wheels are gone."
+        }
+      ]
+    }
   ]
 }
