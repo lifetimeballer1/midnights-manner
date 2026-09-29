@@ -4,7 +4,8 @@ import {readFile} from 'node:fs/promises';
 import {createWorld} from '../src/model.js';
 import {Game} from '../src/game.js';
 import {migrateToLatest, VERSION} from '../src/storage.js';
-const data = Object.fromEntries(await Promise.all(['world','troops','items','abilities','buildings','missions','quests','levels','calendar','traders'].map(async n=>[n,JSON.parse(await readFile(new URL(`../data/${n}.json`,import.meta.url)))])));
+import {spawnRaid} from '../src/systems/combat.js';
+const data = Object.fromEntries(await Promise.all(['world','troops','items','abilities','buildings','missions','quests','levels','calendar','traders','expansion','biomes'].map(async n=>[n,JSON.parse(await readFile(new URL(`../data/${n}.json`,import.meta.url)))])));
 
 test('unlock chain: all chapters grant something real, nothing dead or doubled', ()=>{
   assert.ok(data.missions.length >= 9, 'nine chapters shipped; Act VII grows the campaign');
@@ -96,6 +97,17 @@ test('test-button raids still work and also reschedule the horns', ()=>{
   assert.equal(g.world.enemies.length, 0);
   assert.ok(g.world.raidResult && g.world.raidResult.won);
   assert.ok(g.world.nextRaidAt > g.world.elapsed, 'manual raid pushes the next scheduled horn out');
+});
+
+test('home raid spawns move outward when an outer frontier region is claimed', ()=>{
+  const g = new Game(data);
+  g.state.world = createWorld(data);
+  g.world.resources = {...g.world.resources, wood: 10000, gold: 10000, food: 10000, frostwood: 10000, plate: 10000};
+  assert.equal(g.expandClaim(26,10), true, 'Timber Deep claimed');
+  spawnRaid(g.world, 4, null, data, null, {claimedFrontier:true});
+  assert.equal(g.world.enemies.length, 4);
+  assert.ok(g.world.enemies.some(e => e.x === 39.5), 'east-side raider enters from the purchased frontier edge');
+  assert.ok(g.world.enemies.every(e => e.x >= .5 && e.x <= 39.5 && e.y >= .5 && e.y <= 19.5), 'spawn points stay on currently owned outer extremes');
 });
 
 test('migration v3->latest: fresh raid clock, earned unlocks healed, stores untouched', ()=>{

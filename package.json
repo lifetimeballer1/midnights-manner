@@ -9,6 +9,7 @@
     "test": "node --test tests/*.test.js",
     "build": "node scripts/build.mjs",
     "test:browser": "node scripts/browser-smoke.mjs",
+    "test:frontier": "node scripts/frontier-benchmark.mjs",
     "capture": "node scripts/look-capture.mjs"
   },
   "engines": {

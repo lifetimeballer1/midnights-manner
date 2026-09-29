@@ -6,6 +6,7 @@ import {enemyDamageMult,enemySpeedMult} from './daynight.js';
 import {isWall} from './walls.js';
 import {bossTick,bossAuraMult,isSiegeRole,eliteLootMult,renownDamageMult,renownLootMult,paragonDamageMult,markElites} from './endgame.js';
 import {sfx} from './audio.js';
+import {raidPerimeter} from './expansion.js';
 export function raidSides(wave,count) {
  const sides=['west','north','east','south'];
  return Array.from({length:Math.min(4,count)},(_,i)=>sides[(Math.max(0,wave-1)+i)%4]);
@@ -21,16 +22,24 @@ export function spawnRaid(world,count=4,scaling=null,data=null,faction=null,opts
  // curve, passed as opts.scaling. No opts, no change — mid-game untouched.
  const eg=opts?.scaling||null;
  const hp=(65+world.wave*hpPer)*(eg?.hp||1),dmg=(9+world.wave*dmgPer)*(eg?.damage||1);
- // Use the settled perimeter, clamped to the configured navigation grid.
- const width=Math.min(world.bounds?.w||data?.world.width||20,data?.world.width||Infinity);
- const height=Math.min(world.bounds?.h||data?.world.height||17,data?.world.height||Infinity);
+ // Only the persistent home village opts into claimed-frontier entries.
+ // Campaign/authored maps and direct generic callers keep their explicit bounds.
+ let perimeter;
+ if(opts?.claimedFrontier)perimeter=raidPerimeter(world,data?.world);
+ else{
+  const width=Math.min(world.bounds?.w||data?.world.width||20,data?.world.width||Infinity);
+  const height=Math.min(world.bounds?.h||data?.world.height||17,data?.world.height||Infinity);
+  perimeter={
+   west:Array.from({length:Math.max(1,height-2)},(_,n)=>({x:.5,y:n+1.5})),
+   north:Array.from({length:Math.max(1,width-2)},(_,n)=>({x:n+1.5,y:.5})),
+   east:Array.from({length:Math.max(1,height-2)},(_,n)=>({x:width-.5,y:n+1.5})),
+   south:Array.from({length:Math.max(1,width-2)},(_,n)=>({x:n+1.5,y:height-.5}))
+  };
+ }
  const sides=raidSides(world.wave,count);
  for(let i=0;i<count;i++) {
-  const side=sides[i%sides.length],vertical=side==='west'||side==='east',length=vertical?height:width;
-  const entries=Array.from({length:Math.max(1,length-2)},(_,n)=>{
-   const along=1.5+(n+2+Math.floor(i/4)*3)%(length-2);
-   return vertical?{x:side==='west'?.5:width-.5,y:along}:{x:along,y:side==='north'?.5:height-.5};
-  });
+  const side=sides[i%sides.length],raw=perimeter[side]||[],start=raw.length?(i+2+Math.floor(i/4)*3)%raw.length:0;
+  const entries=raw.length?[...raw.slice(start),...raw.slice(0,start)]:[];
   const entry=entries.find(p=>!data||!blocked(world,data,Math.floor(p.x),Math.floor(p.y)));
   if(entry){const role=faction?.roles[i%faction.roles.length],spec=data?.world.enemyRoles?.[role]||{};
    world.enemies.push({id:crypto.randomUUID(),...entry,hp:hp*(spec.hp||1),maxHp:hp*(spec.hp||1),damage:dmg*(spec.damage||1),role,faction:faction?.id,attackTimer:i*.2,animation:0});}
