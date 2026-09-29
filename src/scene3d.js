@@ -211,6 +211,104 @@ function workplaceDetails(s,b,n){
   for(const dx of [.33,.46,.58])s.pyramid(x+dx,front+.07,.28,.07,.12,'#90a369');
  }
 }
+
+function detailCrate(s,x,y,z=.12,scale=1){
+ const w=.28*scale,d=.24*scale,h=.22*scale;
+ s.box(x,y,z,w,d,h,'#8d6844');
+ s.box(x-.012,y-.012,z+h,w+.024,d+.024,.045,'#b88a55');
+ s.box(x+w*.44,y-.018,z+.02,w*.12,d+.036,h+.06,'#604a39');
+}
+function detailBarrel(s,x,y,z=.12,scale=1){
+ const w=.22*scale,d=.22*scale,h=.34*scale;
+ s.box(x,y,z,w,d,h,'#8a6646');
+ for(const dz of [.04,h-.075])s.box(x-.012,y-.012,z+dz,w+.024,d+.024,.035,'#53544e');
+}
+function detailSack(s,x,y,z=.12,scale=1){
+ s.pyramid(x,y,z,.12*scale,.2*scale,'#d5bf8f',6);
+ s.box(x-.035*scale,y-.035*scale,z+.17*scale,.07*scale,.07*scale,.04*scale,'#8d7654');
+}
+function detailRack(s,x,y,z=.12,width=.56){
+ s.box(x,y,z,.055,.055,.62,timber);
+ s.box(x+width-.055,y,z,.055,.055,.62,timber);
+ s.box(x,y,z+.54,width,.055,.055,timber);
+}
+function detailTool(s,x,y,z=.18,kind='hammer'){
+ s.box(x,y,z,.035,.035,.44,'#72533a');
+ if(kind==='axe'){s.box(x-.07,y-.02,z+.32,.18,.07,.12,'#9dadab');return;}
+ if(kind==='spear'){s.pyramid(x+.018,y+.018,z+.42,.045,.16,'#aebbbb');return;}
+ s.box(x-.055,y-.025,z+.34,.145,.085,.09,'#9aa7a5');
+}
+function buildingDetailLayer(s,b,spec){
+ if(s.r.cam.zoom<1.2||b.hp<=0||b.remaining>0)return;
+ const {x,y,type:t,level:l}=b,n=spec.size,front=y+n-.16,fine=s.r.cam.zoom>=1.65;
+ // Military yards: training gear should identify the job before the menu opens.
+ if(t==='barracks'){
+  detailRack(s,x+.18,front,.13,Math.min(.62,n-.36));
+  detailTool(s,x+.26,front+.02,.18,'spear');detailTool(s,x+.48,front+.02,.18,'axe');
+  const dx=x+n-.42,dy=y+.28;s.box(dx,dy,.12,.08,.08,.66,timber);s.box(dx-.12,dy-.04,.55,.32,.08,.08,'#8f7555');s.box(dx-.09,dy-.055,.35,.26,.11,.21,'#9a765a');
+  if(l>=2)detailCrate(s,x+n-.48,front-.38,.12,.9);
+ }
+ if(['forge','smeltery','workshop'].includes(t)){
+  // Coal/ore bin, quench trough and a tool rack around the active work bay.
+  s.box(x+.18,y+.2,.12,.42,.34,.2,'#6b5541');s.box(x+.22,y+.24,.31,.34,.26,.06,t==='smeltery'?'#8d7770':'#383b38');
+  s.box(x+n-.58,front-.34,.12,.42,.26,.23,'#66858a');s.box(x+n-.54,front-.3,.31,.34,.18,.035,'#9fd0d0');
+  if(fine){detailRack(s,x+.2,front,.13,.58);detailTool(s,x+.28,front+.015,.18,'hammer');detailTool(s,x+.48,front+.015,.18,'axe');}
+  if(l>=2){for(let i=0;i<3;i++)s.box(x+.72+i*.14,y+.22,.13,.11,.28,.07,i%2?'#b6c1bf':'#879493');}
+ }
+ if(['armory','fletcher','shieldwall-yard'].includes(t)){
+  detailCrate(s,x+n-.52,y+.22,.12,.95);
+  if(t==='fletcher'){
+   for(let i=0;i<4;i++)s.box(x+n-.4+i*.045,y+.31,.2,.02,.02,.54,'#d5c59c');
+   if(fine)s.box(x+n-.44,y+.27,.16,.24,.15,.08,'#80634a');
+  }else{
+   for(let i=0;i<(l>=2?3:2);i++){const px=x+n-.44+i*.12;s.box(px,y+.28,.18,.09,.035,.28,'#718e9b');if(fine)s.box(px+.03,y+.292,.23,.03,.012,.18,gold);}
+  }
+ }
+ if(t==='farm'){
+  // Hand tools, seed sacks and a water barrel sell the field as a workplace.
+  detailRack(s,x+.18,front,.13,.5);detailTool(s,x+.27,front+.015,.18,'axe');
+  detailSack(s,x+n-.42,y+.28,.13,.9);if(l>=2)detailSack(s,x+n-.22,y+.42,.13,.82);
+  if(l>=3)detailBarrel(s,x+.2,y+.25,.13,.95);
+ }
+ if(t==='pasture'){
+  s.box(x+.28,front-.3,.13,.7,.24,.18,'#7f6445');s.box(x+.32,front-.26,.29,.62,.16,.035,'#b18b59');
+  detailBarrel(s,x+n-.48,y+.28,.13,.9);
+ }
+ if(['lumber','timber_yard'].includes(t)){
+  // Sawbuck plus a stump/axe keeps the yard readable even before its reserve pile grows.
+  for(const dx of [.22,.58]){s.box(x+dx,y+n-.48,.13,.06,.3,.42,timber);s.box(x+dx-.08,y+n-.31,.35,.22,.06,.06,timber);}
+  s.box(x+n-.38,y+.24,.13,.27,.27,.14,'#76593d');detailTool(s,x+n-.31,y+.3,.26,'axe');
+  if(l>=2)detailCrate(s,x+.18,y+.24,.12,.9);
+ }
+ if(['mine','emberglass'].includes(t)){
+  // Short rails and a loaded cart extend the mine entrance into the yard.
+  for(const rx of [x+.33,x+.64])s.box(rx,y+.58,.13,.045,.65,.035,'#687170');
+  for(let j=0;j<4;j++)s.box(x+.29,y+.62+j*.16,.125,.45,.055,.035,timber);
+  s.box(x+.42,y+.34,.18,.38,.3,.24,'#6f6253');s.box(x+.46,y+.38,.41,.3,.22,.055,t==='emberglass'?'#8ecac7':'#8e846f');
+  for(const wx of [x+.45,x+.7])s.box(wx,y+.62,.13,.08,.08,.12,'#414845');
+  if(l>=2)detailCrate(s,x+n-.42,y+.2,.12,.82);
+ }
+ if(t==='tannery'){
+  s.box(x+n-.54,y+.24,.12,.38,.38,.22,'#846646');s.box(x+n-.5,y+.28,.31,.3,.3,.035,'#70584b');
+  if(fine)detailBarrel(s,x+.18,y+.24,.13,.86);
+ }
+ if(['scriptorium','schoolroom'].includes(t)){
+  detailCrate(s,x+n-.48,y+.22,.12,.84);
+  if(fine){s.box(x+n-.43,y+.27,.37,.27,.18,.035,'#d7c9a4');s.box(x+n-.32,y+.27,.405,.035,.18,.018,'#765c4a');}
+ }
+ if(t==='butchery'){
+  s.box(x+.18,front-.34,.13,.58,.3,.25,'#7f6042');s.box(x+.15,front-.37,.38,.64,.36,.055,'#c19c6e');
+  if(fine){detailTool(s,x+.34,front-.24,.43,'axe');detailBarrel(s,x+n-.46,y+.25,.13,.82);}
+ }
+ if(t==='mason_yard'&&fine){
+  detailRack(s,x+.18,front,.13,.52);detailTool(s,x+.27,front+.015,.18,'hammer');
+  for(const [dx,dy,r]of[[.2,.24,.12],[.42,.3,.09],[.62,.22,.11]])s.pyramid(x+dx,y+dy,.13,r,.14,'#a8afa9',5);
+ }
+ if(t==='market'&&fine){
+  detailCrate(s,x+.28,y+n-.62,.13,.82);detailBarrel(s,x+n-.56,y+n-.58,.13,.82);detailSack(s,x+n*.5,y+n-.42,.13,.78);
+ }
+}
+
 function buildingShape(s,b,spec,world,time){
  const x=b.x,y=b.y,n=spec.size,l=b.level,t=b.type;s.owner={kind:'building',id:b.id};s.alpha=b.hp<=0?.35:b.remaining>0?.6:1;
  s.box(x+.1,y+.1,0,n-.2,n-.2,.12,l>1?stone:'#9b8864');
@@ -312,6 +410,7 @@ function buildingShape(s,b,spec,world,time){
 export function buildingModel(s,b,spec,world,time=0){
  buildingShape(s,b,spec,world,time);
  if(b.id==null)return; // placement previews already have a clear ghost treatment
+ buildingDetailLayer(s,b,spec);
  const x=b.x,y=b.y,n=spec.size;
  if(b.hp<=0){
   s.alpha=.95;
