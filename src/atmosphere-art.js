@@ -7,9 +7,10 @@ export const ATMOSPHERE_LIMITS=Object.freeze({smokeSources:8,trailActors:12,rain
 
 function actorTarget(world,data,actor,enemy=false){
  if(enemy){
-  const target=world.troops?.find(u=>u.id===actor.targetId&&u.hp>0)||world.buildings?.find(b=>b.id===actor.targetId&&b.hp>0);
-  if(!target)return null;
-  return 'type' in target?center(target,data):{x:target.x,y:target.y};
+  const unit=world.troops?.find(u=>u.id===actor.targetId&&u.hp>0);
+  if(unit)return {x:unit.x,y:unit.y};
+  const building=world.buildings?.find(b=>b.id===actor.targetId&&b.hp>0);
+  return building?center(building,data):null;
  }
  if(actor.order?.kind==='move'&&Number.isFinite(actor.order.x)&&Number.isFinite(actor.order.y))return {x:actor.order.x,y:actor.order.y};
  if(actor.order?.kind==='attack'){
