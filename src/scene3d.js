@@ -181,7 +181,9 @@ function longhouseShape(s,b,n){
   // Tier 3: a central warden loft and gold ridge caps turn the meadhall into a civic landmark.
   s.box(rx-.28,y+n*.46,h+.22,.56,.62,.52,stone);
   s.roof(rx-.34,y+n*.4,h+.78,.68,.74,.24,'#684f39');
-  s.source([rx,y+n*.73,h+.52],[0,1],1.05,.48,'window');s.emissive=1;s.box(rx-.08,y+n*.75,h+.48,.16,.025,.14,'#ffe6ab');s.emissive=0;
+  // The loft window glows visually but does not register another live light
+  // source; one extra source would relight thousands of visible faces every frame.
+  s.emissive=1;s.box(rx-.08,y+n*.75,h+.48,.16,.025,.14,'#ffe6ab');s.emissive=0;
   for(const cy of [y+.5,y+n-.58])s.box(rx-.06,cy,h+rise+.48,.12,.12,.18,gold);
  }
 }
