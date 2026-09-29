@@ -44,10 +44,11 @@ export class Renderer {
   c.fillStyle='#16281f45';c.beginPath();c.ellipse(this.width/2,this.height/2,Math.max(200,this.width*.45),Math.max(100,this.height*.4),0,0,Math.PI*2);c.fill();
   for(let y=-3;y<H+4;y++)for(let x=-3;x<W+4;x++){
    const n=((x*67+y*113+10000)*17)%101, checker=(x+y)%2===0;
-   const edge=x<0||y<0||x>=W||y>=H;
-   const bounds=world.bounds||{w:20,h:16};
-   // Wild rows: inside the map but outside the settled bounds — darker, red grid.
-   const usable=edge||(x>=1&&y>=1&&x<=bounds.w-2&&y<=bounds.h-2);
+   const edge=x<0||y<0||x>=W||y>=H,rt=!edge?claimedByKey?.get(x+','+y):null;
+   const bounds=world.bounds||{w:20,h:16},legacyUsable=x>=1&&y>=1&&x<=bounds.w-2&&y<=bounds.h-2;
+   // Tile claims are the source of truth on frontier maps. Legacy/mission maps
+   // without claim tiles keep the old XP-bounds treatment.
+   const usable=edge||(rt?rt.claimed===true:legacyUsable);
    // Moonlit-night checkerboard: deep pine vs moonlit moss; edges fall off darker.
    const inner=checker?['#668b46','#698e49','#6c924b','#648a43'][Math.abs(n)%4]:['#6b9148','#6e944b','#70964e','#6a8d46'][Math.abs(n)%4];
    const wild=checker?'#3e6037':'#43663b';
@@ -62,8 +63,7 @@ export class Renderer {
      if(tile.landmark){const lp=this.project(x+.5,y+.5);c.fillStyle='#f2e2a8';c.font='bold 10px system-ui';c.textAlign='center';c.fillText('✦ '+tile.landmark,lp.x,lp.y-8);c.textAlign='left';}
     }catch{}
     // Wilderness fog (Phase 2): unclaimed land renders dimmed/fogged, still visible.
-    const rt=claimedByKey?.get(x+','+y);
-    const isUnclaimed=rt?rt.claimed!==true:!(x>=1&&y>=1&&x<=(world.bounds?.w||20)-2&&y<=(world.bounds?.h||17)-2);
+    const isUnclaimed=rt?rt.claimed!==true:!legacyUsable;
     if(isUnclaimed)this.diamond(x,y,'#0a100c8c');
    }
    if(usable&&!edge){const dx=x-10,dy=y-8;if(dx*dx+dy*dy<17)this.diamond(x,y,'#d6be7130');} // hearth warmth on the village clearing
