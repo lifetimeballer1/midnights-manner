@@ -1,3 +1,9 @@
+# Stormglass Folklore — Phase A: distinct resource icons
+
+- Lumber, flour and bread get original 64px SVG silhouettes (sawn planks, tied sack, bakery loaves); 8 resources now use 8 distinct sprites. No palette-swap reuse.
+- Data-only: `RESOURCES.sprite` map in `src/resources.js`; no save fields or gameplay changes. Test expectation 5→8 in `tests/resources.test.js`.
+- Review: `npm run capture` dawn/day/dusk/night + phone-night checked (warm windows at night, readable HUD); new icons verified distinct at gameplay zoom. `npm test` 575 green, `npm run build` 354 precached.
+
 # UI — Moonlit kingdom
 
 - Unified navy-and-gold HUD, menus, camera controls, inspector, settings and welcome screen.

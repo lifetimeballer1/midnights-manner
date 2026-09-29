@@ -10,7 +10,7 @@ test('all production resources have named, distinct original icons',async()=>{
   const r=RESOURCES[key];assert.ok(r,key);assert.ok((await readFile(new URL(`../assets/sprites/${r.sprite}`,import.meta.url),'utf8')).includes('<svg'));
   assert.equal(resourceLabel(key,40.9),`+40 ${r.label}`);
  }
- assert.equal(new Set(Object.values(RESOURCES).map(r=>r.sprite)).size,5);
+ assert.equal(new Set(Object.values(RESOURCES).map(r=>r.sprite)).size,8);
  assert.equal(resourceInfo('new-resource').label,'new-resource');
 });
 test('zoomed-out collection labels scale without losing readable targets',()=>{
