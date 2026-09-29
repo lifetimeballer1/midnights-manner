@@ -36,14 +36,17 @@ export function campaignCards(data, state) {
   return (data?.missions || []).map(m => {
     const destination = missionDestination(m, data);
     const regionClaimed = destination ? missionRegionClaimed(m, home, data) : true;
+    const requires=m.requires||[],requiresAny=m.requiresAny||[];
+    const prerequisitesMet=requires.every(id=>completed.includes(id))&&(!requiresAny.length||requiresAny.some(id=>completed.includes(id)));
     const locked = missionLocked(m, completed, home, data);
     return {
       id: m.id,
       chapter: m.chapter,
       state: m.id === currentId ? 'current' : completed.includes(m.id) ? 'completed' : locked ? 'locked' : 'available',
       locked,
-      requires: m.requires || [],
-      requiresAny: m.requiresAny || [],
+      prerequisitesMet,
+      requires,
+      requiresAny,
       destination: destination ? {id:destination.id,name:destination.name,claimed:regionClaimed} : null,
     };
   });
@@ -115,6 +118,14 @@ export function computeNextAction(state, data) {
   if (next) {
     const card=cards.find(c=>c.id===next.id),where=card?.destination?.name;
     return {kind: 'chapter', label: `Chapter ${next.chapter}: ${next.name}`, detail: `${where?`Destination: ${where} · `:''}First-clear: ${rewardText(next.rewards)}`, goto: 'chapters', missionId: next.id};
+  }
+  const frontier = (data?.missions || []).find(m => {
+    const card=cards.find(c=>c.id===m.id);
+    return card?.state==='locked'&&card.prerequisitesMet&&card.destination&&!card.destination.claimed;
+  });
+  if(frontier){
+    const card=cards.find(c=>c.id===frontier.id);
+    return {kind:'frontier',label:`Claim ${card.destination.name}`,detail:`Chapter ${frontier.chapter}: ${frontier.name} waits beyond your border.`,goto:'chapters',missionId:frontier.id,destination:card.destination};
   }
   const roster = expeditionRoster(state?.world, data);
   if (roster.idle.length) {
