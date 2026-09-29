@@ -1,6 +1,6 @@
 // Original low-poly village geometry, projected by the shared orbit camera.
 // The game simulation stays in ground tiles; meshes add height only for display.
-import {prepareSourceLighting,drawSourceSpill} from './source-lighting.js';
+import {prepareSourceLighting,drawSourceSpill,sourcePhase} from './source-lighting.js';
 import {cameraBasis} from './camera.js';
 import {characterModel} from './character-art.js';
 import {isWall,wallNeighbors} from './building-art.js';
@@ -32,7 +32,7 @@ export function shade(hex,n,light,emissive=0,depth01=0,ao=1,local=0){
 export class MeshScene {
  constructor(r){this.r=r;this.faces=[];this.sources=[];this.owner=null;this.alpha=1;this.depthBias=0;this.light=FALLBACK_LIGHT;this.emissive=0;this.fixture=false;this.basis=cameraBasis(r);}
  source(position,direction=null,radius=1.25,power=.7,profile='generic'){
-  if(this.alpha===1)this.sources.push({position,direction,radius,power,profile,owner:this.owner});
+  if(this.alpha===1){const source={position,direction,radius,power,profile,owner:this.owner};source.phase=sourcePhase(source);this.sources.push(source);}
  }
  face(vertices,color,split=true){
   // Split broad roof/wall planes so chimneys and neighboring meshes occlude
