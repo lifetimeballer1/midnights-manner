@@ -139,6 +139,7 @@ export class UI {
   const unit=hit?.kind==='unit'?g.world.troops.find(t=>t.id===hit.id):null;
   if(unit){this.selected=null;this.selectedTroop=unit.id;r.selection=unit.id;this.refresh();sfx.click();return;}
   if(this.selectedTroop){if(hit?.kind==='enemy')g.commandAttack(this.selectedTroop,hit.id);else g.commandMove(this.selectedTroop,cell.x,cell.y);this.refresh();return;}
+  if(hit?.kind==='site'){const site=(g.data.world.hotspots||[]).find(s=>s.id===hit.id);this.clearSelection();if(site){g.notify(`${site.name} — ${site.text}`);r.cam.x=site.x+.5;r.cam.y=site.y+.5;}this.refresh();sfx.click();return;}
   if(hit?.kind==='scenery'){this.clearSelection();return;}
   const building=hit?.kind==='building'?g.world.buildings.find(b=>b.id===hit.id):g.world.buildings.find(b=>cell.x>=b.x&&cell.x<b.x+g.data.buildings[b.type].size&&cell.y>=b.y&&cell.y<b.y+g.data.buildings[b.type].size);
   // Clash-style tap: picking a building sweeps whatever its reserve holds (badges
