@@ -78,25 +78,29 @@ export function makeBuilding(type,x,y,data,level=1) {
   return b;
 }
 export function createWorld(data,layout=data.world) {
-  const full = {w:data.world.width,h:data.world.height};
+  const full = {w:data.world.width,h:data.world.height},missionMap=layout.map||null;
   // Campaign maps stay homestead-scale (data/expansion.json homestead,
   // 20x17 legacy): expeditions keep their designed raid walk distances
-  // even as the home grid grows to 40x34.
+  // even as the persistent home frontier grows larger.
   const hs = data.expansion?.homestead;
   const missionSize = {w:Math.min(full.w,Number.isFinite(hs?.w)?hs.w:20),h:Math.min(full.h,Number.isFinite(hs?.h)?hs.h:17)};
-  const bounds = copy(layout.bounds || (layout.map ? missionSize : START_BOUNDS));
+  const bounds = copy(layout.bounds || (missionMap ? missionSize : START_BOUNDS));
   const cfg = data.world.homeRaids || {};
-  // Biome tile grid (Phase 1, visual only): landmark tiles from
-  // layout.tiles win; every other cell fills deterministically.
+  // Mission maps own their visual tile sheet: they never inherit home
+  // landmarks, and may declare map.biome/map.seed/map.tiles. Home worlds
+  // keep the full data/world tile sheet and deterministic seed.
+  const tileData=missionMap
+    ? {...data.world,width:bounds.w,height:bounds.h,tiles:Array.isArray(missionMap.tiles)?missionMap.tiles:[],seed:missionMap.seed??layout.seed??data.world.seed,defaultBiome:missionMap.biome}
+    : {...data.world,...layout,tiles:layout.tiles||data.world.tiles,seed:layout.seed??data.world.seed};
   let tiles = [];
-  try { tiles = buildTiles({...data.world, ...layout, tiles: layout.tiles || data.world.tiles, seed: layout.seed ?? data.world.seed}, bounds); } catch { tiles = []; }
-  // Region model (Phase 2b): fresh home worlds claim only the pre-claimed
-  // center region; the other 8 regions start wild. Landmark tiles keep
-  // their explicit flag. Mission maps (layout.map) keep legacy behavior.
+  try { tiles = buildTiles(tileData, bounds); } catch { tiles = []; }
+  // Region model: fresh home worlds claim only the pre-claimed hearth
+  // region; all outer regions stay wild. Mission maps keep legacy bounds
+  // claiming and never consult the persistent region partition.
   // Old saves never reach this path with existing tiles — migration in
   // game.js only ever adds claims, never removes them.
   try {
-    if (!layout.map && regionsOf(data.expansion).length && Array.isArray(tiles)) {
+    if (!missionMap && regionsOf(data.expansion).length && Array.isArray(tiles)) {
       const pre = regionsOf(data.expansion).filter(r => r?.preclaimed && r.rect);
       const insidePre = (x, y) => pre.some(r => x >= r.rect.x && y >= r.rect.y && x < r.rect.x + r.rect.w && y < r.rect.y + r.rect.h);
       for (const t of tiles) {
@@ -106,7 +110,7 @@ export function createWorld(data,layout=data.world) {
       claimPreclaimed({tiles}, data.expansion);
     }
   } catch {}
-  return {resources:copy(layout.startingResources),bounds,survey:0,childTimer:0,tiles,biomeSeed:seedFor({...data.world, ...layout}),buildings:(layout.buildings||layout.map.buildings).map(b=>makeBuilding(b.type,b.x,b.y,data,b.level||1)),troops:(layout.troops||layout.map.troops).map((t,i)=>makeUnit(t,data,i)),enemies:[],effects:[],elapsed:0,gathered:{wood:0,food:0,gold:0,frostwood:0,plate:0,lumber:0,flour:0,bread:0},wave:0,raidTimer:0,nextRaidAt:Number.isFinite(cfg.firstAt)?cfg.firstAt:300};
+  return {resources:copy(layout.startingResources),bounds,survey:0,childTimer:0,tiles,biomeSeed:seedFor(tileData),buildings:(layout.buildings||missionMap.buildings).map(b=>makeBuilding(b.type,b.x,b.y,data,b.level||1)),troops:(layout.troops||missionMap.troops).map((t,i)=>makeUnit(t,data,i)),enemies:[],effects:[],elapsed:0,gathered:{wood:0,food:0,gold:0,frostwood:0,plate:0,lumber:0,flour:0,bread:0},wave:0,raidTimer:0,nextRaidAt:Number.isFinite(cfg.firstAt)?cfg.firstAt:300};
 }
 export function afford(resources,cost) { return Object.entries(cost).every(([k,v])=>resources[k]>=v); }
 export function pay(resources,cost) {if(!afford(resources,cost)) return false; for(const [k,v] of Object.entries(cost)) resources[k]-=v; return true;}
