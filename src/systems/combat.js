@@ -2,6 +2,7 @@ import {towerCrewBonus, raidDamageMult} from './villagers.js';
 import {enemyRole,defenseTarget,retreat,enemyBuildingTarget} from './tactics.js';
 import {distance,center,stats,unlockedAbilities,auras,gearArmor,proximityArmor,reviveFraction,siegeBonus} from '../model.js';
 import {move,blocked} from './pathfinding.js';
+import {claimedPerimeterEntries} from './expansion.js';
 import {enemyDamageMult,enemySpeedMult} from './daynight.js';
 import {isWall} from './walls.js';
 import {bossTick,bossAuraMult,isSiegeRole,eliteLootMult,renownDamageMult,renownLootMult,paragonDamageMult,markElites} from './endgame.js';
@@ -21,16 +22,24 @@ export function spawnRaid(world,count=4,scaling=null,data=null,faction=null,opts
  // curve, passed as opts.scaling. No opts, no change — mid-game untouched.
  const eg=opts?.scaling||null;
  const hp=(65+world.wave*hpPer)*(eg?.hp||1),dmg=(9+world.wave*dmgPer)*(eg?.damage||1);
- // Use the settled perimeter, clamped to the configured navigation grid.
+ // Home worlds spawn from the connected claimed frontier, not the old XP
+ // rectangle. Mission/tile-less worlds retain their authored legacy bounds.
  const width=Math.min(world.bounds?.w||data?.world.width||20,data?.world.width||Infinity);
  const height=Math.min(world.bounds?.h||data?.world.height||17,data?.world.height||Infinity);
  const sides=raidSides(world.wave,count);
+ const hall=world.buildings?.find(b=>b.type==='hall');
+ const origin=hall?{x:hall.x+.5,y:hall.y+.5}:null;
  for(let i=0;i<count;i++) {
   const side=sides[i%sides.length],vertical=side==='west'||side==='east',length=vertical?height:width;
-  const entries=Array.from({length:Math.max(1,length-2)},(_,n)=>{
-   const along=1.5+(n+2+Math.floor(i/4)*3)%(length-2);
+  const span=Math.max(1,length-2);
+  const legacyEntries=Array.from({length:span},(_,n)=>{
+   const along=1.5+(n+2+Math.floor(i/4)*3)%span;
    return vertical?{x:side==='west'?.5:width-.5,y:along}:{x:along,y:side==='north'?.5:height-.5};
   });
+  const frontier=data?claimedPerimeterEntries(world,data.world,side,origin):[];
+  const pool=frontier.length?frontier:legacyEntries;
+  const start=pool.length?(world.wave+i*3+Math.floor(i/4)*5)%pool.length:0;
+  const entries=Array.from({length:pool.length},(_,n)=>pool[(start+n)%pool.length]);
   const entry=entries.find(p=>!data||!blocked(world,data,Math.floor(p.x),Math.floor(p.y)));
   if(entry){const role=faction?.roles[i%faction.roles.length],spec=data?.world.enemyRoles?.[role]||{};
    world.enemies.push({id:crypto.randomUUID(),...entry,hp:hp*(spec.hp||1),maxHp:hp*(spec.hp||1),damage:dmg*(spec.damage||1),role,faction:faction?.id,attackTimer:i*.2,animation:0});}
