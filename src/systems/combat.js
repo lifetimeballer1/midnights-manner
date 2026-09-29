@@ -37,9 +37,10 @@ export function spawnRaid(world,count=4,scaling=null,data=null,faction=null,opts
    return vertical?{x:side==='west'?.5:width-.5,y:along}:{x:along,y:side==='north'?.5:height-.5};
   });
   const frontier=data?claimedPerimeterEntries(world,data.world,side,origin):[];
-  const pool=frontier.length?frontier:legacyEntries;
-  const start=pool.length?(world.wave+i*3+Math.floor(i/4)*5)%pool.length:0;
-  const entries=Array.from({length:pool.length},(_,n)=>pool[(start+n)%pool.length]);
+  // Keep legacy ordering byte-for-byte for authored compact maps. Claimed
+  // frontiers rotate their own edge list so repeated attackers do not stack.
+  const start=frontier.length?(world.wave+i*3)%frontier.length:0;
+  const entries=frontier.length?Array.from({length:frontier.length},(_,n)=>frontier[(start+n)%frontier.length]):legacyEntries;
   const entry=entries.find(p=>!data||!blocked(world,data,Math.floor(p.x),Math.floor(p.y)));
   if(entry){const role=faction?.roles[i%faction.roles.length],spec=data?.world.enemyRoles?.[role]||{};
    world.enemies.push({id:crypto.randomUUID(),...entry,hp:hp*(spec.hp||1),maxHp:hp*(spec.hp||1),damage:dmg*(spec.damage||1),role,faction:faction?.id,attackTimer:i*.2,animation:0});}
