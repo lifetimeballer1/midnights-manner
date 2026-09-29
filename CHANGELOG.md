@@ -7,6 +7,14 @@
 - Prioritized building cards above village statistics on small screens.
 - No gameplay, economy, progression or save changes.
 
+## Detail/world/story expansion — Phase 7: Frontier story destinations (2026-09-28)
+
+- Anchored three late Act VIII chapters to persistent home-frontier locations: **The Pale Court → Southreach Crossing**, **The Longest Night → Starwatch Ridge**, and **Dawn → Dawnfields**. Destination metadata lives on the mission data; campaign code contains no content-specific region ids.
+- A destination chapter remains locked until its normal chapter prerequisites are satisfied **and** the home region is fully claimed. The same generic gate is enforced by direct mission starts and Adventure campaign cards. Chapters completed before destination gates existed remain replayable.
+- Adventure now exposes destination state on campaign cards. When story prerequisites are met but the region is still wild, Home promotes that claim as the next action and the Campaign card offers a live **Claim destination** button instead of a dead disabled button.
+- Story claim buttons enter the existing Expand mode, center the camera on the region landmark, enable the grid, and let the normal adjacency/cost system handle the actual claim. No new save fields or migration are required.
+- Extended Act VIII and Adventure regression coverage for region gating, replay compatibility, destination metadata, and story-next-action flow. Test target: 535 → 536.
+
 ## Detail/world/story expansion — Phase 6: Outer Frontier (2026-09-28)
 
 - Expanded the home data grid from 40×34 to **52×44** while preserving every original coordinate. Seven claimable regions extend east and south: Starwatch Ridge, Whisperwood, Ashfall March, Blackwater Mouth, Southreach, Dawnfields and Pale Coast, each with a new unclaimed landmark.
