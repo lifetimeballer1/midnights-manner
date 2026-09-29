@@ -472,7 +472,7 @@ export class Game {
     let egOpts=null;
     try{egOpts=endgameSpawnOpts(this.state,this.data);}catch{}
     const faction=factionFor(this.data,this.world.wave+1,this.state.vlevel||1);
-    spawnRaid(this.world,count,null,this.data,faction,egOpts);
+    spawnRaid(this.world,count,null,this.data,faction,{...(egOpts||{}),claimedFrontier:true});
     let boss=null;
     if(bossId){try{
      boss=(this.data.endgame?.bosses||[]).find(b=>b.id===bossId)||null;
