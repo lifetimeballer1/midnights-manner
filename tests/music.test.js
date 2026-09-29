@@ -174,9 +174,9 @@ test('sound effects share a master output that the sound setting can mute',()=>{
  }
 });
 
-test('multi-theme music resolves four original ambient scores',async()=>{
+test('multi-theme music resolves the expanded original soundtrack',async()=>{
  const {engine,themes}=await loadMusic();
- assert.ok(themes.length>=4,'four theme songs are available');
+ assert.ok(themes.length>=12,'twelve theme songs are available');
  const ids=themes.map(t=>t.id);
  assert.ok(ids.includes('ember')&&ids.includes('grove')&&ids.includes('haze')&&ids.includes('lattice'),'ember, grove, haze, and lattice themes present');
  for(const theme of themes){
@@ -192,12 +192,33 @@ test('MusicPlayer picks a random theme on start and can re-roll',async()=>{
  delete globalThis.window;
  try{
   const player=new engine.MusicPlayer(data);
-  assert.equal(player.themes.length,4,'player loads all four themes');
+  assert.ok(player.themes.length>=12,'player loads the expanded theme pool');
   player.start({calm:true});
   assert.ok(player.score&&player.score.id,'start selects a score');
   const first=player.themeIndex;
-  player.pickTheme((first+1)%4);
+  player.pickTheme((first+1)%player.themes.length);
   assert.notEqual(player.themeIndex,first,'pickTheme can change the active song');
   player.stop();
  }finally{if(previousWindow!==undefined)globalThis.window=previousWindow;}
+});
+
+
+test('music mood selection stays inside matching theme groups',async()=>{
+ const {engine,data}=await loadMusic(),previousWindow=globalThis.window;
+ delete globalThis.window;
+ try{
+  const player=new engine.MusicPlayer(data);
+  player.setMood('night');player.pickTheme();
+  assert.ok(player.score.moods.includes('night'),'night mood selects a night-capable theme');
+  player.setMood('danger');player.pickTheme();
+  assert.ok(player.score.moods.includes('danger'),'danger mood selects a danger-capable theme');
+  player.setMood('weather');player.pickTheme();
+  assert.ok(player.score.moods.includes('weather'),'weather mood selects a weather-capable theme');
+  player.stop();
+ }finally{if(previousWindow!==undefined)globalThis.window=previousWindow;}
+});
+
+test('expanded SFX exposes workplace and combat cues',()=>{
+ for(const name of ['workChop','workPick','workHammer','arrow','blade','footstep','gate','warning','research','fail'])
+  assert.equal(typeof sfx[name],'function',name+' cue is available');
 });
