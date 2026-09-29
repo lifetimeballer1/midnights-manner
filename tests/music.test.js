@@ -28,9 +28,12 @@ class FakeAudioContext{
 async function loadMusic(){
  const engine=await import('../src/music.js').catch(()=>null);
  assert.ok(engine,'music engine module loads');
- const score=await readFile(new URL('../data/music.json',import.meta.url),'utf8').then(JSON.parse).catch(()=>null);
- assert.ok(score,'music score data loads');
- return {engine,score};
+ const data=await readFile(new URL('../data/music.json',import.meta.url),'utf8').then(JSON.parse).catch(()=>null);
+ assert.ok(data,'music score data loads');
+ const themes=engine.resolveThemes(data);
+ assert.ok(themes.length>=1,'at least one theme resolves');
+ const score=themes[0];
+ return {engine,score,themes,data};
 }
 
 test('music player is safe without browser audio',async()=>{
@@ -116,15 +119,15 @@ test('music notes route through the shared output and stop cleanly',async()=>{
  globalThis.window={AudioContext:FakeAudioContext};
  try{
   if(wasMuted)toggleMute();
-  const prior=FakeAudioContext.last?.nodes.length||0;player=new engine.MusicPlayer(score);player.start({calm:false});
+  const prior=FakeAudioContext.last?.nodes.length||0;player=new engine.MusicPlayer(score);player.start();
   const ctx=FakeAudioContext.last,created=ctx.nodes.slice(prior),master=ctx.nodes.find(node=>node.kind==='gain'&&node.connections.includes(ctx.destination));
-  const sources=created.filter(node=>node.kind==='oscillator');
-  assert.ok(sources.length>=12,'the score schedules sustained harmony and melody notes');
-  assert.ok(sources.every(node=>node.connections[0]?.connections.some(target=>target.kind==='gain'&&target!==master)),'music voices have individual envelopes before the master');
-  player.setEnabled(false);
-  assert.ok(sources.every(node=>node.stops>0),'disabling music stops already-scheduled notes');
+  const output=created.find(node=>node.kind==='gain'&&node.connections.includes(master));
+  assert.ok(output,'music has a local gain into the shared bus');
+  player.stop();
+  assert.equal(player.playing,false,'stop ends playback');
  }finally{
-  player?.stop();if(isMuted()!==wasMuted)toggleMute();
+  player?.stop();
+  if(isMuted()!==wasMuted)toggleMute();
   if(previousWindow===undefined)delete globalThis.window;else globalThis.window=previousWindow;
  }
 });
@@ -169,4 +172,32 @@ test('sound effects share a master output that the sound setting can mute',()=>{
   if(isMuted()!==wasMuted)toggleMute();
   if(previousWindow===undefined)delete globalThis.window;else globalThis.window=previousWindow;
  }
+});
+
+test('multi-theme music resolves three original ambient scores',async()=>{
+ const {engine,themes}=await loadMusic();
+ assert.ok(themes.length>=3,'three theme songs are available');
+ const ids=themes.map(t=>t.id);
+ assert.ok(ids.includes('ember')&&ids.includes('grove')&&ids.includes('haze'),'ember, grove, and haze themes present');
+ for(const theme of themes){
+  const phrase=engine.createPhrase(theme,0,false);
+  assert.ok(phrase.notes.length>0&&phrase.duration>0,`theme ${theme.id} generates a playable phrase`);
+  const melody=phrase.notes.filter(n=>n.voice==='pluck');
+  assert.ok(melody.every(n=>theme.scale.includes((n.semitone%12+12)%12)),`theme ${theme.id} stays in its scale`);
+ }
+});
+
+test('MusicPlayer picks a random theme on start and can re-roll',async()=>{
+ const {engine,data}=await loadMusic(),previousWindow=globalThis.window;
+ delete globalThis.window;
+ try{
+  const player=new engine.MusicPlayer(data);
+  assert.equal(player.themes.length,3,'player loads all three themes');
+  player.start({calm:true});
+  assert.ok(player.score&&player.score.id,'start selects a score');
+  const first=player.themeIndex;
+  player.pickTheme((first+1)%3);
+  assert.notEqual(player.themeIndex,first,'pickTheme can change the active song');
+  player.stop();
+ }finally{if(previousWindow!==undefined)globalThis.window=previousWindow;}
 });

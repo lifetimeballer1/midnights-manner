@@ -1,5 +1,10 @@
 import {isMuted,sharedAudioContext,sharedAudioOutput} from './systems/audio.js';
 
+// MULTI-THEME: set false (or remove themes from music.json) to revert to single-score behavior.
+const USE_MULTI_THEMES=true;
+// How many phrases (bars*4) play before a new random theme may be chosen. Easy to tune.
+const PHRASES_PER_SONG=5;
+
 const DEFAULT_SCALE=[0,2,3,5,7,9,10];
 const DEFAULT_PROGRESSION=[[0,3,7,10],[5,9,12,14],[-2,2,5,9],[-5,0,2,5]];
 const mod12=n=>((n%12)+12)%12;
@@ -19,6 +24,13 @@ function scoreData(score){
   voices:score?.voices&&typeof score.voices==='object'?score.voices:{},
   gain:bounded(score?.gain,.7,0,1),echo:score?.echo&&typeof score.echo==='object'?score.echo:{},
  };
+}
+
+/** Normalize music.json: themes[] array, or legacy single score object. */
+export function resolveThemes(data){
+ if(Array.isArray(data?.themes)&&data.themes.length)return data.themes.map(t=>({...t}));
+ if(data&&typeof data==='object'&&(data.scale||data.progression||data.bpm))return [{...data,id:data.id||'default',name:data.name||'Theme'}];
+ return [{id:'default',name:'Theme',...scoreData(null)}];
 }
 
 function pickTone(chord,scale,phrase,bar,slot,previous){
@@ -51,8 +63,29 @@ function voiceLevel(score,voice,fallback){return bounded(score?.voices?.[voice],
 function disconnect(node){try{node?.disconnect();}catch{}}
 
 export class MusicPlayer{
- constructor(score){this.score=score||{};this.entered=false;this.enabled=false;this.playing=false;this.calm=false;this.phrase=0;this.lastPitch=31;this.activePhrase=null;this.timer=null;this.sources=new Set();this.context=null;this.output=null;this.delay=null;this.echo=null;}
- start({calm=false}={}){this.entered=true;this.calm=Boolean(calm);this.setEnabled(!isMuted());}
+ constructor(data){
+  this.themes=resolveThemes(data);
+  this.score=this.themes[0];
+  this.themeIndex=0;
+  this.phrasesInSong=0;
+  this.entered=false;this.enabled=false;this.playing=false;this.calm=false;this.phrase=0;this.lastPitch=31;this.activePhrase=null;this.timer=null;this.sources=new Set();this.context=null;this.output=null;this.delay=null;this.echo=null;
+ }
+ /** Pick a random theme. On first call (start) any of the three; later calls re-roll randomly. */
+ pickTheme(forceIndex){
+  if(!USE_MULTI_THEMES||this.themes.length<2){this.score=this.themes[0];this.themeIndex=0;return;}
+  let next;
+  if(Number.isInteger(forceIndex)&&forceIndex>=0&&forceIndex<this.themes.length)next=forceIndex;
+  else next=Math.floor(Math.random()*this.themes.length);
+  this.themeIndex=next;
+  this.score=this.themes[next];
+  this.phrasesInSong=0;
+ }
+ start({calm=false}={}){
+  this.entered=true;this.calm=Boolean(calm);
+  // On open: randomly choose one of the three songs.
+  this.pickTheme();
+  this.setEnabled(!isMuted());
+ }
  setEnabled(enabled){this.enabled=Boolean(enabled)&&!isMuted();if(!this.enabled){this.stopPlayback();return;}if(this.entered&&!this.playing)this.play();}
  setCalm(calm){this.calm=Boolean(calm);}
  stop(){this.entered=false;this.enabled=false;this.stopPlayback();}
@@ -66,7 +99,12 @@ export class MusicPlayer{
  }
  schedulePhrase(start){
   if(!this.playing)return;
+  // After the opening song segment, re-pick a random theme for the next segment.
+  if(USE_MULTI_THEMES&&this.themes.length>1&&this.phrasesInSong>=PHRASES_PER_SONG){
+   this.pickTheme();
+  }
   const phrase=createPhrase(this.score,this.phrase++,this.calm,this.lastPitch),context=this.context;this.activePhrase={...phrase,start};
+  this.phrasesInSong++;
   for(const note of phrase.notes)this.playNote(note,start+note.time);
   const next=start+phrase.duration;
   this.timer=setTimeout(()=>{if(!this.playing)return;this.lastPitch=phrase.lastPitch;this.activePhrase=null;this.schedulePhrase(Math.max(next,context.currentTime+.05));},Math.max(20,(next-context.currentTime)*1000));
