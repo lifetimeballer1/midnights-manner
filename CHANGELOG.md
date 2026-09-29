@@ -1,3 +1,9 @@
+# Stormglass Folklore — Phase D: input feel
+
+- Tap threshold 7→10px so shaky fingers select instead of panning; real drags still pan. Wheel zoom is now delta-proportional (trackpad ticks ease, wheel notches land ~old steps), still anchored at the pointer; Firefox line-deltas handled.
+- Feel-only: no picking, camera-math, gameplay or save changes; camera round-trips and wall/pinch tests stay green. Double-tap zoom deferred (would fight tap-select).
+- Review: `npm run capture` desktop + phone night checked (layout intact); browser smoke green incl. touch pan/pinch, no console errors. `npm test` 587 green, `npm run build` 355 precached.
+
 # Stormglass Folklore — Phase C: pooled motion + calm parity
 
 - Motion pool capped at 60 transient effects (was 48) so raids stay flat on phones; `tests/renderer.test.js` cap updated deliberately in the same commit.
