@@ -9,6 +9,7 @@ import {DAY_LENGTH,skyLightAt} from './systems/daynight.js';
 import {reserveCapacity,reserveReady} from './resources.js';
 import {drawBuildingActivity} from './building-activity.js';
 import {addEnvironmentScenery} from './environment-art.js';
+import {insideWorkplace} from './systems/villagers.js';
 export function pointInPolygon(x,y,points){let inside=false;for(let i=0,j=points.length-1;i<points.length;j=i++){const a=points[i],b=points[j];if((a.y>y)!==(b.y>y)&&x<(b.x-a.x)*(y-a.y)/(b.y-a.y)+a.x)inside=!inside;}return inside;}
 const FALLBACK_LIGHT=skyLightAt(DAY_LENGTH*.3,null); // high noon, for bare MeshScene uses
 // Phase 4 — ground-contact occlusion: faces near the dirt lose a slice of
@@ -400,6 +401,43 @@ function buildingShape(s,b,spec,world,time){
   return;
  }
  if(t==='longhouse'){longhouseShape(s,b,n);return;}
+ // Town projects (Phase 4): grand works read as themselves at map scale —
+ // an open plaza of striped stalls, a grain hall with chute and sacks,
+ // hedge-lined gardens with a fountain, and a plinth obelisk. Tier lifts
+ // each silhouette (gold caps, arcades, taller stone).
+ if(t==='market-square'){
+  s.box(x+.1,y+.1,.05,n-.2,n-.2,.03,'#8a7354');
+  for(const [a,c,color]of[[.18,.22,'#b76053'],[n-1.02,.25,'#73956a'],[.3,n-1.02,'#ccac60'],[n-1,.92,'#a26b7e']]){
+   s.box(x+a,y+c,.1,.82,.44,.3,timber);
+   for(const dx of [0,.76])s.box(x+a+dx,y+c,.1,.06,.06,.8,timber);
+   s.roof(x+a-.05,y+c-.1,.86,1,.66,.12,color);
+  }
+  if(l>=2){s.box(x+n*.43,y+n*.43,.09,.14,.14,.52,stone);s.pyramid(x+n*.5,y+n*.5,.61,.26,.32,gold,4);}
+  if(l>=3){s.box(x+.55,y+n-.26,.08,n-1.1,.13,.3,stone);s.box(x+n-1.45,y+.55,.08,.13,n-1.1,.3,stone);}
+  return;
+ }
+ if(t==='grand-granary'){
+  hut(s,x+.22,y+.22,n-.44,n-.44,.5+l*.16,l>=3?stone:timber,l);
+  s.box(x+n-.6,y+.16,.32,.36,.32,.42,'#d8c98f');
+  s.box(x+.24,y+n-.46,.14,.4,.3,.28,'#deca9f');
+  s.box(x+.48,y+n-.46,.14,.4,.3,.32,'#deca9f');
+  if(l>=3)for(const a of [.12,n-.34]){s.box(x+a,y+n*.42,.96,.18,.18,.8,'#e9dab2');s.pyramid(x+a+.09,y+n*.51,1.08,.15,.22,stone,4);}
+  return;
+ }
+ if(t==='manor-gardens'){
+  s.box(x+.1,y+.1,.04,n-.2,n-.2,.05,'#547b60');
+  for(const [a,c]of[[.42,.42],[n-.8,.5],[.5,n-.8]])pine(s,x+a,y+c,.6+l*.16,false);
+  if(l>=2){s.box(x+n*.4,y+n*.4,.1,.34,.34,.12,stone);s.box(x+n*.43,y+n*.43,.14,.28,.28,.1,'#4e9aaa');}
+  for(const [a,c]of[[.22,n*.5],[n-.36,n*.5],[n*.5,.22],[n*.5,n-.36]])s.pyramid(x+a,y+c,.08,.06,.15,l>=3?gold:'#a26b7e',4);
+  return;
+ }
+ if(t==='monument'){
+  if(l>=2){s.box(x+n*.14,y+n*.14,.1,.72,.72,.1,stone);s.box(x+n*.2,y+n*.2,.16,.6,.6,.16,'#e9dab2');}
+  s.box(x+n*.32,y+n*.32,.24,.36,.36,.5+l*.4,'#e9dab2');
+  s.pyramid(x+n*.5,y+n*.5,.9+l*.4,.16,.22,l>=3?gold:stone,4);
+  if(l>=3){s.box(x+n*.12,y+n*.12,.5,.16,.76,.09,stone);s.box(x+n*.12,y+n*.6,.5,.76,.16,.09,stone);}
+  return;
+ }
  const colors={hall:'#658d99',barracks:'#b96d5a',cottage:'#9ba061',longhouse:'#977851',chapel:'#8e8dae','sunken-chapel':'#679fa5',forge:'#976b54',smeltery:'#846f67',armory:'#667b91',workshop:'#789380',tannery:'#bd9a69',schoolroom:'#ba9369',scriptorium:'#798ca7',butchery:'#a75e54',fletcher:'#7c9868','shieldwall-yard':'#668a91',mason_yard:'#949b90'};
  hut(s,x+.22,y+.22,n-.44,n-.44,.42+l*.16,colors[t]||'#829a78',l);
  workplaceDetails(s,b,n);
@@ -489,7 +527,7 @@ export function drawVillage3D(r,world,time,light){const s=new MeshScene(r),W=r.d
  r._meshStatic={key,faces:s.faces.slice(),sources:s.sources};
  }
 
- for(const u of world.troops)characterModel(s,u,r.data,time);for(const e of world.enemies)characterModel(s,e,r.data,time,true);
+  for(const u of world.troops)if(!insideWorkplace(world,r.data,u))characterModel(s,u,r.data,time);for(const e of world.enemies)characterModel(s,e,r.data,time,true);
   if(r.placing&&r.hover){const source=world.buildings.find(b=>b.id===r.moving),ghosts=placementCells(r).map(p=>({type:r.placing,...p,level:source?.level||1,hp:1,remaining:1,id:null})),preview={buildings:[...world.buildings.filter(b=>b.id!==r.moving),...ghosts]};for(const b of ghosts)buildingModel(s,b,r.data.buildings[b.type],preview,time);}
  drawSourceSpill(s,time);
  s.paint();

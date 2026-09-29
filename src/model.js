@@ -5,6 +5,10 @@ export const copy = value => structuredClone(value);
 export const distance = (a,b) => Math.hypot(a.x-b.x,a.y-b.y);
 import {buildTiles, seedFor} from './systems/biomes.js';
 import {isClaimed, claimPreclaimed, regionsOf} from './systems/expansion.js';
+import {wellFedAuraEffects} from './systems/food.js';
+import {warChestAuraEffects,warChestBonus} from './systems/warchest.js';
+import {festivalAuraEffects} from './systems/festivals.js';
+import {conquestAuraEffects} from './systems/conquest.js';
 // New villages start small; the frontier opens as village XP grows (see village.js).
 export const START_BOUNDS = {w:14,h:12};
 export const XP_LEVELS = [0,100,220,380,580,830,1150,1500,2100,2400,2600];
@@ -110,7 +114,7 @@ export function createWorld(data,layout=data.world) {
       claimPreclaimed({tiles}, data.expansion);
     }
   } catch {}
-  return {resources:copy(layout.startingResources),bounds,survey:0,childTimer:0,tiles,biomeSeed:seedFor(tileData),buildings:(layout.buildings||missionMap.buildings).map(b=>makeBuilding(b.type,b.x,b.y,data,b.level||1)),troops:(layout.troops||missionMap.troops).map((t,i)=>makeUnit(t,data,i)),enemies:[],effects:[],elapsed:0,gathered:{wood:0,food:0,gold:0,frostwood:0,plate:0,lumber:0,flour:0,bread:0},wave:0,raidTimer:0,nextRaidAt:Number.isFinite(cfg.firstAt)?cfg.firstAt:300};
+  return {resources:copy(layout.startingResources),bounds,survey:0,childTimer:0,tiles,biomeSeed:seedFor(tileData),buildings:(layout.buildings||missionMap.buildings).map(b=>makeBuilding(b.type,b.x,b.y,data,b.level||1)),troops:(layout.troops||missionMap.troops).map((t,i)=>makeUnit(t,data,i)),enemies:[],effects:[],elapsed:0,gathered:{wood:0,food:0,gold:0,frostwood:0,plate:0,lumber:0,flour:0,bread:0},wave:0,raidTimer:0,nextRaidAt:Number.isFinite(cfg.firstAt)?cfg.firstAt:300,wellFed:false,lastMealDay:0};
 }
 export function afford(resources,cost) { return Object.entries(cost).every(([k,v])=>resources[k]>=v); }
 export function pay(resources,cost) {if(!afford(resources,cost)) return false; for(const [k,v] of Object.entries(cost)) resources[k]-=v; return true;}
@@ -285,6 +289,43 @@ export function auras(world, data) {
       if (k in out && Number.isFinite(v)) out[k] += v;
     }
   }
+  // Well Fed (Phase 3): a covered town table lends a gentle hand — the
+  // effects come from data.world.townMeal.wellFed.effects and only known
+  // aura keys merge. Worlds without the flag read exactly the pre-meal
+  // values; the caps below still hold the ceiling.
+  if (world.wellFed === true) {
+    for (const [k, v] of Object.entries(wellFedAuraEffects(data))) {
+      if (k in out && Number.isFinite(v)) out[k] += v;
+    }
+  }
+  // War Chest (Phase 6): while the chest is open, its combat stores lend
+  // aura damage, armor and mending — data effects, known keys, caps hold.
+  for (const [k, v] of Object.entries(warChestAuraEffects(world, data))) {
+    if (k in out && Number.isFinite(v)) out[k] += v;
+  }
+  // Festivals (Phase 6): a live celebration warms the same table — data
+  // effects, known keys, caps hold; no festival reads exactly zero.
+  for (const [k, v] of Object.entries(festivalAuraEffects(world, data))) {
+    if (k in out && Number.isFinite(v)) out[k] += v;
+  }
+  // Town projects (Phase 4): a finished grand work blesses the settlement
+  // itself — data `flatAuras`, scaled by the building's tier, only known
+  // keys. No crew and no workplace; the project stands, the town feels it.
+  for (const b of world.buildings) {
+    if (b.hp <= 0 || b.remaining > 0) continue;
+    const spec = data.buildings[b.type];
+    if (!spec?.flatAuras) continue;
+    const tier = spec.tiers?.[Math.max(0, (b.level || 1) - 1)];
+    const mult = Number.isFinite(tier?.rateMultiplier) ? tier.rateMultiplier : 1;
+    for (const [k, v] of Object.entries(spec.flatAuras)) {
+      if (k in out && Number.isFinite(v)) out[k] += v * mult;
+    }
+  }
+  // Annexed land (Phase 8): the conquered keep pours its own blessing —
+  // data flatAuras on the chosen annex, known keys, caps hold.
+  for (const [k, v] of Object.entries(conquestAuraEffects(world, data))) {
+    if (k in out && Number.isFinite(v)) out[k] += v;
+  }
   // Moon Dial (Act VIII): a finished dial locks one season blessing in at
   // half strength — the season is data on the building, the effects come
   // from data/calendar.json, only known aura keys merge. One per village.
@@ -357,11 +398,43 @@ export function housing(world, data) {
 }
 export function buildingCost(type,level,world,data) {
   const discount=builderBonuses(world,data).discount;
-  // Mid-game pacing: tier-3 price tags run 50% hot, and the first tier-4
-  // in the game (Watchtower tier 4) doubles. Tier 1-2 (the snappy opening)
-  // and 2-tier buildings are untouched.
-  const tier3 = level>=4 ? 2 : level>=3 ? 1.5 : 1;
-  return Object.fromEntries(Object.entries(data.buildings[type].cost).map(([k,v])=>[k,Math.ceil(v*level*tier3*(1-discount))]));
+  const spec=data.buildings[type];
+  // Upper-tier curves (Phase 2): data `costCurve` names the multiplier for
+  // every tier (index = level - 1, clamped at the last entry). Buildings
+  // without one keep the legacy mid-game formula byte-for-byte (level ×
+  // 1/1.5/2), so old content and pinned balances stay exactly put.
+  const curve=Array.isArray(spec.costCurve)?spec.costCurve:[];
+  const pick=curve.length?curve[Math.min(level,curve.length)-1]:null;
+  const mult=curve.length&&Number.isFinite(+pick)?+pick:level*(level>=4?2:level>=3?1.5:1);
+  // Forged and sawn goods join upper tiers (data `tierCosts`): extras are
+  // flat per tier — the curve never scales them, they already name the
+  // endgame price. The builder discount still trims them like coin.
+  const extra=spec.tierCosts?.[level]||{};
+  const out={};
+  for(const [k,v] of Object.entries(spec.cost))out[k]=Math.ceil(v*mult*(1-discount));
+  for(const [k,v] of Object.entries(extra))if(Number.isFinite(+v))out[k]=(out[k]||0)+Math.ceil(+v*(1-discount));
+  return out;
+}
+// Building limits (Phase 2): a spec's `maxCount` is a flat number or a
+// per-village-level array (clamped at the last entry, like housing). No
+// field means no limit — walls and traps stay free for layouts. Standing
+// buildings (scaffolds included) count; ruins never do, so a wrecked shop
+// can always be repaired or replaced. `bonus` (Phase 5 renown) raises a
+// finite cap; uncapped lines stay uncapped.
+export function buildingLimit(type,vlevel,data,bonus=0) {
+  const rule=data?.buildings?.[type]?.maxCount;
+  const add=Number.isFinite(+bonus)&&+bonus>0?Math.floor(+bonus):0;
+  if(typeof rule==='number'&&Number.isFinite(rule))return Math.max(0,Math.floor(rule))+add;
+  if(Array.isArray(rule)&&rule.length){
+    const lvl=Math.max(1,Math.floor(Number(vlevel)||1));
+    const pick=rule[Math.min(lvl,rule.length)-1];
+    if(!Number.isFinite(+pick))return Infinity;
+    return Math.max(0,Math.floor(+pick))+add;
+  }
+  return Infinity;
+}
+export function buildingCount(world,type) {
+  return (world?.buildings||[]).filter(b=>b&&b.type===type&&b.hp>0).length;
 }
 export function inBounds(world, data, type, x, y) {
   const size = data.buildings[type].size, b = world.bounds || {w:data.world.width,h:data.world.height};
@@ -416,6 +489,8 @@ export function proximityArmor(unit, world, data) {
 }
 // Bellcote mercy (Act VII): the fallen rise at the best finished revive
 // rate in the village — 30% on the cold ground, 50% under the bell.
+// Rations (war chest, Phase 6) raise the field hospitals while the chest
+// is open; the 80% ceiling keeps the ledger honest.
 export function reviveFraction(world, data) {
   let f = 0.3;
   for (const b of world.buildings) {
@@ -423,7 +498,8 @@ export function reviveFraction(world, data) {
     const r = data.buildings[b.type]?.reviveMult;
     if (Number.isFinite(r)) f = Math.max(f, r);
   }
-  return f;
+  try { f += warChestBonus(world, data, 'revive'); } catch {}
+  return Math.min(0.8, f);
 }
 // Siege-craft (Act VII): every living hand whose gear speaks `trapDamage`
 // sharpens every defense in the village — the tongs teach the towers.

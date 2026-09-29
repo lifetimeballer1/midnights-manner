@@ -3,8 +3,11 @@ import {builderBonuses,center,unlockedAbilities,stats,auras,gatherBonus} from '.
 import {hasTrait, jobLevelMult} from './villagers.js';
 import {move} from './pathfinding.js';
 import {sfx} from './audio.js';
+import {depositCentral,flushPending} from './storage.js';
 // Open resource maps: new keys (frostwood onward) ride without a schema
 // change, and pre-frostwood saves (no frostwood key yet) haul without NaN-ing.
+// Low-level primitive that skips central storage caps — central inflow goes
+// through depositCentral (systems/storage.js) instead.
 export function addResource(world,resource,amount) {if(!resource)return;world.resources[resource]=(world.resources[resource]||0)+amount;world.gathered[resource]=(world.gathered[resource]||0)+amount;}
 // Clash-style reserves: production piles up on the building (capped by data
 // `harvest.capacity` + `harvest.perTier`, see resources.js) and only lands
@@ -64,6 +67,9 @@ function sourceFor(world, data, spec, unit, aliveByProd, postOf) {
 }
 export function tickEconomy(world,data,dt) {
  if(!Number.isFinite(dt)||dt<=0)return;
+ // Held reward overflow banks first as room opens (Phase 1 storage caps):
+ // quest caches, gifts and salvage wait here while the stores are full.
+ flushPending(world,data);
  // Perf: one aura per tick shared with builderBonuses (was two full passes).
  const aura=auras(world,data);
  const bonus=builderBonuses(world,data,aura);
@@ -137,7 +143,14 @@ export function tickEconomy(world,data,dt) {
   const target=u.phase==='return'?hall:source;
   const speed = stats(u,data).speed;
   if(move(world,data,u,center(target,data),speed,dt,1.6,false,true)) {
-   if(u.phase==='return'){addResource(world,spec.gatherResource,u.carry);const cp=center(hall,data);floatText(world,cp.x,cp.y,resourceLabel(spec.gatherResource,u.carry),'#ffe9a8');sparkle(world,cp.x,cp.y);u.carry=0;u.phase='gather';}
+   if(u.phase==='return'){
+    // Central storage caps (Phase 1): a full store never voids carried
+    // goods — the collector keeps the load and tries again next tick.
+    const {banked,leftover}=depositCentral(world,data,spec.gatherResource,u.carry);
+    if(banked>0){const cp=center(hall,data);floatText(world,cp.x,cp.y,resourceLabel(spec.gatherResource,banked),'#ffe9a8');sparkle(world,cp.x,cp.y);}
+    u.carry=leftover;
+    if(leftover<=0)u.phase='gather';
+   }
    else {
     const bonus=unlockedAbilities(u,data).filter(a=>a.effect==='gather').reduce((n,a)=>n+a.value,1);
     const midC = midgameRate(world.elapsed, 0.85);

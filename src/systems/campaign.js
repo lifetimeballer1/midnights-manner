@@ -1,6 +1,9 @@
 import {createWorld} from '../model.js';
 import {spawnRaid} from './combat.js';
 import {isRegionClaimed} from './expansion.js';
+import {grantCentral} from './storage.js';
+import {spawnBoss,bossSpec,fillLine} from './endgame.js';
+import {recordPreliminary,recordAssault} from './conquest.js';
 // Campaign gates are data-driven: `requires` is an AND-gate, `requiresAny`
 // is an OR-gate, and optional `destination.region` requires that named home
 // frontier region to be claimed before the first departure. No chapter or
@@ -94,7 +97,17 @@ export function tickMission(game,data) {
  if(!m||!w)return;
  game.mission.fired=game.mission.fired||[];
  if(!Number.isFinite(w.elapsed)||w.elapsed<0)w.elapsed=0;
- for(const [i,raid] of m.raids.entries())if(w.elapsed>=raid.at&&!game.mission.fired.includes(i)){spawnRaid(w,raid.count,m.scaling||raid.scaling||null,game.data);game.mission.fired.push(i);}
+ for(const [i,raid] of m.raids.entries())if(w.elapsed>=raid.at&&!game.mission.fired.includes(i)){
+  spawnRaid(w,raid.count,m.scaling||raid.scaling||null,data);
+  // Tribal leaders (Phase 8): a raid may name a crown from data/conquest
+  // `leaders` — the same boss machinery, no new combat code. The herald
+  // waits on the mission for the Game tick to speak (state has no notify).
+  if(raid.boss){
+   const spec=bossSpec(data,raid.boss);
+   if(spec){spawnBoss(w,data,spec,w.wave);game.mission.herald=raid.herald?fillLine(raid.herald,{wave:w.wave}):`${spec.name} takes the field!`;}
+  }
+  game.mission.fired.push(i);
+ }
  const hall=w.buildings.find(b=>b.type==='hall');
  if(!hall||hall.hp<=0){game.mission.status='lost';return;}
  if(missionObjectivesComplete(m,w,data)&&game.mission.fired.length===m.raids.length&&w.enemies.length===0)game.mission.status='won';
@@ -115,7 +128,11 @@ export function finishMission(game,data) {
  // stretches in between. Data flag, never a building id.
  if(won&&game.world.buildings.some(b=>b.hp>0&&b.remaining<=0&&data.buildings[b.type]?.serviceArmor))
   for(const u of game.world.troops)u.armorWear=0;
- if(first){game.completed.push(mission.id);for(const [k,v] of Object.entries(mission.rewards))game.world.resources[k]+=v;game.unlocks=[...new Set([...game.unlocks,...mission.unlocks])];
+ if(first){game.completed.push(mission.id);for(const [k,v] of Object.entries(mission.rewards))grantCentral(game.world,data,k,v);game.unlocks=[...new Set([...game.unlocks,...mission.unlocks])];
+  // Tribal conquest (Phase 8): first-clears write the ledger — outer
+  // works broken, or the stronghold itself fallen (the annex gate).
+  if(mission.conquest==='preliminary')recordPreliminary(game.world,mission.id);
+  if(mission.conquest==='assault')recordAssault(game.world);
   // Crowning (Act VIII finale): the mission names the eldest of the roster
   // — data `crowning`, oldest by roster order, unnamed hands only.
   if(mission.crowning&&game.world.troops.length){const eldest=game.world.troops[0];if(eldest&&!eldest.name)eldest.name=mission.crowning;}}

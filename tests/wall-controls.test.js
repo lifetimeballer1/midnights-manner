@@ -14,8 +14,11 @@ test('raids cover all four sides, rotate small waves and stay on the navigation 
  const w=createWorld(data);w.bounds={w:12,h:10};
  spawnRaid(w,8,null,data);
  assert.equal(w.enemies.length,8);
- for(const e of w.enemies)assert.ok(e.x>=0&&e.x<12&&e.y>=0&&e.y<10);
- for(const side of ['west','north','east','south'])assert.equal(w.enemies.filter(e=>side==='west'?e.x===.5:side==='east'?e.x===11.5:side==='north'?e.y===.5:e.y===9.5).length,2);
+ // Spawn protection (Phase 8): a built-up edge ring pushes its muster
+ // outward into the wild, so "on the grid" now means the navigation grid,
+ // and a side's party holds its edge or beyond it.
+ for(const e of w.enemies)assert.ok(e.x>=0&&e.x<data.world.width&&e.y>=0&&e.y<data.world.height,'on the navigation grid');
+ for(const side of ['west','north','east','south'])assert.equal(w.enemies.filter(e=>side==='west'?e.x<=.5:side==='east'?e.x>=11.5:side==='north'?e.y<=.5:e.y>=9.5).length,2);
  const points=new Set(w.enemies.map(e=>`${e.x},${e.y}`));assert.equal(points.size,8);
  assert.deepEqual([1,2,3,4].map(wave=>raidSides(wave,1)[0]),['west','north','east','south']);
 });

@@ -130,6 +130,16 @@ export function spawnBoss(world, data, boss, wave) {
   return foe;
 }
 
+// Boss lookup, generalized (Phase 8): the home ladder lives in
+// data/endgame.json `bosses`; conquest leaders live in data/conquest.json
+// `leaders`. Same machinery, two shelves — no content ids in code.
+export function bossSpec(data, id) {
+  const own = (endgameConfig(data).bosses || []).find(b => b.id === id);
+  if (own) return own;
+  const extra = data?.conquest?.leaders;
+  return Array.isArray(extra) ? extra.find(b => b?.id === id) || null : null;
+}
+
 // Distinct boss mechanics, ticked from combat for every living boss:
 //  - war-slam: periodic AoE against nearby buildings (walls included)
 //  - muster: summons capped adds on a timer
@@ -137,7 +147,7 @@ export function spawnBoss(world, data, boss, wave) {
 //  - dread aura: allies inside the radius hit harder
 // Returns an events list for heralds ({kind:'slam'|'summon'|'enrage'}).
 export function bossTick(world, data, boss, dt) {
-  const spec = (endgameConfig(data).bosses || []).find(b => b.id === boss.bossId);
+  const spec = bossSpec(data, boss.bossId);
   if (!spec || boss.hp <= 0) return [];
   const events = [];
   const mech = spec.mechanics || {};
@@ -195,7 +205,7 @@ export function bossAuraMult(world, data, enemy) {
   let mult = 1;
   for (const b of world.enemies) {
     if (b.hp <= 0 || b.role !== 'boss' || b.id === enemy.id) continue;
-    const spec = (endgameConfig(data).bosses || []).find(s => s.id === b.bossId);
+    const spec = bossSpec(data, b.bossId);
     const aura = spec?.mechanics?.aura;
     if (!aura) continue;
     if (distance(enemy, b) <= (aura.radius || 4)) mult *= aura.dmgMult || 1.3;
@@ -233,6 +243,45 @@ export function renownAvailable(state, data) {
   const cfg = endgameConfig(data).renown || {};
   return (state.vlevel || 1) >= (cfg.minLevel || 9)
     && state.world.buildings.some(b => b.type === 'hall' && b.hp > 0 && b.remaining <= 0);
+}
+
+// ---- Renown rewards (Phase 5): the milestone table ----
+// Data-driven and read live from world.renown — no new save fields, so old
+// saves heal their milestones on the next read/purchase. Every entry is a
+// title, a cosmetic, an unlock or a cap bump; never a production multiplier
+// (the surplus cure must not seed a new surplus). Great Works and Town
+// Projects can join this table as data once their phases land.
+function renownRewardList(data) {
+  const list = endgameConfig(data).renown?.rewards;
+  return Array.isArray(list) ? list : [];
+}
+export function renownRewardsUpTo(world, data, level = renownLevel(world)) {
+  return renownRewardList(data).filter(r => r && Number.isFinite(+r.level) && +r.level <= level);
+}
+export function renownTitle(world, data) {
+  const earned = renownRewardsUpTo(world, data).filter(r => r.title);
+  return earned.length ? earned[earned.length - 1].title : null;
+}
+function renownRewardSum(world, data, key) {
+  let n = 0;
+  for (const r of renownRewardsUpTo(world, data)) if (Number.isFinite(+r[key])) n += +r[key];
+  return n;
+}
+// Building-limit bumps: added on top of the data `maxCount` (finite caps
+// only — uncapped lines stay uncapped).
+export function renownLimitBonus(world, data) {
+  return renownRewardSum(world, data, 'limitBonus');
+}
+// Muster room: extra troop slots beyond the hall beds, home villages only.
+export function renownTroopBonus(world, data) {
+  return renownRewardSum(world, data, 'troopCap');
+}
+export function renownUnlocksFor(data, level) {
+  const out = [];
+  for (const r of renownRewardsUpTo({ renown: level }, data)) {
+    if (Array.isArray(r.unlocks)) out.push(...r.unlocks);
+  }
+  return [...new Set(out)];
 }
 
 // Paragon reinforcement: max-tier fortifications improve forever. Each

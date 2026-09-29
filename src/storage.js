@@ -2,7 +2,7 @@ import {ensureIdentity} from './systems/villagers.js';
 import {buildTiles} from './systems/biomes.js';
 const KEY='midnights-manner-v2';
 const OLD_KEY='midnights-manner-v1';
-export const VERSION = 13;
+export const VERSION = 14;
 // In-memory fallback when localStorage is missing (private mode, SSR, tests)
 // or full (quota). Saves still work for the session; persist() warns.
 const memFallback = new Map();
@@ -307,7 +307,22 @@ function migrateV12toV13(value, data) {
   value.version = 13;
   return value;
 }
-const MIGRATIONS = {1: migrateV1toV2, 2: migrateV2toV3, 3: migrateV3toV4, 4: migrateV4toV5, 5: migrateV5toV6, 6: migrateV6toV7, 7: migrateV7toV8, 8: migrateV8toV9, 9: migrateV9toV10, 10: migrateV10toV11, 11: migrateV11toV12, 12: migrateV12toV13};
+// v13 -> v14: central storage caps (Late-Game Economy Plan Phase 1).
+// Purely additive: every existing resource is grandfathered exactly as
+// saved (over-cap balances keep every unit and only block new inflow),
+// and each world gains an empty pendingRewards shelf for grant overflow.
+// Buildings, troops, gear and progress pass through untouched. Never wipes.
+function migrateV13toV14(value, data) {
+  if (!value || typeof value !== 'object') return null;
+  for (const key of ['world', 'home']) {
+    const w = value[key];
+    if (!w || typeof w !== 'object') continue;
+    if (!w.pendingRewards || typeof w.pendingRewards !== 'object' || Array.isArray(w.pendingRewards)) w.pendingRewards = {};
+  }
+  value.version = 14;
+  return value;
+}
+const MIGRATIONS = {1: migrateV1toV2, 2: migrateV2toV3, 3: migrateV3toV4, 4: migrateV4toV5, 5: migrateV5toV6, 6: migrateV6toV7, 7: migrateV7toV8, 8: migrateV8toV9, 9: migrateV9toV10, 10: migrateV10toV11, 11: migrateV11toV12, 12: migrateV12toV13, 13: migrateV13toV14};
 export function migrate(value, data) {
   return migrateToLatest(value, data);
 }

@@ -10,6 +10,7 @@
 // here, so this module must import nothing from them (no cycles).
 import {hasTrait, jobLevelMult} from './villagers.js';
 import {RARITY_COLORS} from '../rarity.js';
+import {centralRoom} from './storage.js';
 
 // Weapon/armor tiers ARE the rarity ladder: common → uncommon → rare →
 // epic → legendary, one crafted step per tier. Old gear without a rarity
@@ -89,6 +90,14 @@ export function tickRefine(world, data, dt) {
       for (const [k, v] of Object.entries(r.in || {})) {
         if (!Number.isFinite(v) || v <= 0) { capped = 0; break; }
         capped = Math.min(capped, (world.resources[k] || 0) / v);
+      }
+      if (capped <= 0) continue;
+      // Central storage caps (Phase 1): never make what the stores cannot
+      // take — the run scales down so the raw input waits for room.
+      for (const [k, v] of Object.entries(r.out || {})) {
+        if (!Number.isFinite(v) || v <= 0) continue;
+        const room = centralRoom(world, data, k);
+        if (Number.isFinite(room)) capped = Math.min(capped, room / v);
       }
       if (capped <= 0) continue;
       for (const [k, v] of Object.entries(r.in || {})) world.resources[k] = (world.resources[k] || 0) - v * capped;

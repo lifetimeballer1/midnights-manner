@@ -1,5 +1,6 @@
 // Guided opening: place → collect → recruit → raid → survive.
 // Stored OUTSIDE the game save (separate localStorage key) so save schema never changes.
+import {grantCentral} from './storage.js';
 const KEY = 'midnights-manner-guide-v1';
 export const STEPS = [
   { id: 'build', text: 'Raise a building — open BUILD, pick a card, tap an empty tile. A Watchtower or extra Farm is a fine start.' },
@@ -33,7 +34,7 @@ export function updateGuide(g, game) {
   else if (g.step === 4 && !w.enemies.length && !w.raidPending && w.wave > 0) {
     g.done = true; g.step = STEPS.length; store(g);
     const bonus = { wood: 50, food: 60, gold: 60 };
-    for (const [k, v] of Object.entries(bonus)) { w.resources[k] += v; }
+    for (const [k, v] of Object.entries(bonus)) grantCentral(w, game.data, k, v);
     game.notify('First raid survived! The frontier sends supplies (+50 wood, +60 food, +60 gold). Chapter 1 of the STORY awaits.');
     return null;
   }

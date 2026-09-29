@@ -6,6 +6,9 @@ import {sfx} from './audio.js';
 import {ensureIdentity} from './villagers.js';
 import {edibleFood, BREAD_FOOD_VALUE} from './crafting.js';
 import {claimRect} from './expansion.js';
+import {depositCentral, grantCentral} from './storage.js';
+import {wellFedBonus} from './food.js';
+import {festivalBonus} from './festivals.js';
 
 export const CHILD_SECONDS = 75;      // surplus + free bed grows a villager this fast
 const UPKEEP_EACH = 0.03;      // food per second per villager
@@ -57,7 +60,7 @@ export function currentQuest(state, data) {
 function completeQuest(state, data, quest, notify) {
   state.questsCompleted.push(quest.id);
   gainXp(state, quest.xp);
-  for (const [k, v] of Object.entries(quest.rewards || {})) state.world.resources[k] = (state.world.resources[k] || 0) + v;
+  for (const [k, v] of Object.entries(quest.rewards || {})) grantCentral(state.world, data, k, v);
   // Quest-gated unlocks (data/quests.json `unlocks`, mirroring missions):
   // earned, never bought — old saves with the quest already done keep
   // their state; only a fresh completion grants.
@@ -134,7 +137,9 @@ function tickPopulation(state, data, dt, notify) {
     return;
   }
   if (edibleFood(w) < 20) return; // keep a pantry before growing
-  w.childTimer += dt;
+  // Well Fed (Phase 3) and live festivals (Phase 6): a warm town quickens
+  // the cradle — data bonuses, zero whenever neither is running.
+  w.childTimer += dt * (1 + wellFedBonus(w, data, 'growth') + festivalBonus(w, data, 'growth'));
   if (w.childTimer >= CHILD_SECONDS) {
     w.childTimer = 0;
     const type = START_CHILD_TYPES[w.troops.length % START_CHILD_TYPES.length];
@@ -170,8 +175,9 @@ export function tickVillage(state, data, dt, notify) {
     // pour-house pours plate). Future shop-resources ride this list.
     for (const key of ['food', 'plate']) {
       if ((aura[key] || 0) > 0) {
-        w.resources[key] = (w.resources[key] || 0) + aura[key] * dt;
-        w.gathered[key] = (w.gathered[key] || 0) + aura[key] * dt;
+        // A trickle, not a haul: it banks what fits and simply holds when
+        // the stores are full (Phase 1 central storage caps).
+        depositCentral(w, data, key, aura[key] * dt);
       }
     }
     if (aura.xp > 0) gainXp(state, aura.xp * dt);
@@ -196,7 +202,7 @@ export function tickVillage(state, data, dt, notify) {
       gainXp(state, aura.survey * 0.05 * dt);
       if (w.survey >= SURVEY_FIND) {
         w.survey -= SURVEY_FIND;
-        w.resources.food += WILD_HARVEST; w.gathered.food += WILD_HARVEST;
+        grantCentral(w, data, 'food', WILD_HARVEST, true);
         const post = w.buildings.find(b => b.type === 'scout_post' && b.hp > 0);
         const at = post ? center(post, data) : {x:10, y:8};
         push(w, {x:at.x, y:at.y, tx:at.x, ty:at.y - 1.1, kind:'float', text:`Wild harvest +${WILD_HARVEST} food`, color:'#bfe3a8', life:.9});
@@ -221,7 +227,7 @@ export function tickVillage(state, data, dt, notify) {
     for (let lvl = before + 1; lvl <= now; lvl++) {
       const entry = (data.levels || []).find(l => l.level === lvl);
       const rewards = entry?.rewards || {};
-      for (const [k, v] of Object.entries(rewards)) w.resources[k] = (w.resources[k] || 0) + v;
+      for (const [k, v] of Object.entries(rewards)) grantCentral(w, data, k, v);
       const text = Object.entries(rewards).map(([k, v]) => `+${v} ${k}`).join(', ');
       if (text) notes.push(`Lvl ${lvl} (${text})`);
     }

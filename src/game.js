@@ -5,12 +5,14 @@ import {ensureDirector,directorConfig,directorParty,scheduleRecovery} from './sy
 import {resourceLabel,resourceInfo} from './resources.js';
 import {wallRowQuote,wallLine,isWall} from './systems/walls.js';
 import {nextStep,blocked} from './systems/pathfinding.js';
-import {createWorld,makeBuilding,makeUnit,canPlace,inBounds,pay,afford,stats,buildingCost,center,assignmentValid,promotionOptions,housing} from './model.js';
+import {createWorld,makeBuilding,makeUnit,canPlace,inBounds,pay,afford,stats,buildingCost,center,assignmentValid,promotionOptions,housing,buildingLimit,buildingCount} from './model.js';
 import {buildTiles} from './systems/biomes.js';
 import {claimCheck,setClaimed,claimRect,claimRegion,claimPreclaimed,regionFor} from './systems/expansion.js';
 import {tickVillage,gainXp} from './systems/village.js';
+import {tickTownMeal} from './systems/food.js';
 import {ensureIdentity, tickVillagerJobs, autoAssign as autoAssignJobs, idleWithoutPosts, autoFillTick, scorePost} from './systems/villagers.js';
 import {tickEconomy} from './systems/economy.js';
+import {depositCentral} from './systems/storage.js';
 import {tickRefine, tickCraft, startCraftOrder} from './systems/crafting.js';
 import {tickExpeditions,startExpedition} from './systems/expeditions.js';
 import {tickFrontierEvents,resolveFrontierEvent} from './systems/frontier-events.js';
@@ -20,7 +22,10 @@ import {load,save} from './storage.js';
 import {ensureMultiplayer,validateUsername,randomCode,addFriend,removeFriend,giftReason,makeGift,speedupReason,makeSpeedup,applyInbox,pushActivity,publicSnapshot,stampCloud} from './multiplayer.js';
 import {dayKey,seasonFor,modifierFor,calendarEffects,performTrade,marketOpen,describeDeal} from './systems/calendar.js';
 import {phaseAt,weatherAt,clockConfig} from './systems/daynight.js';
-import {bossFor,spawnBoss,endgameSpawnOpts,renownCost,renownAvailable,paragonEligible,paragonCost,buildingMaxHp} from './systems/endgame.js';
+import {bossFor,spawnBoss,endgameSpawnOpts,renownCost,renownAvailable,paragonEligible,paragonCost,buildingMaxHp,renownLimitBonus,renownTroopBonus,renownRewardsUpTo,renownUnlocksFor} from './systems/endgame.js';
+import {warChestById,warChestLevel,warChestMax,warChestTotal,warChestOpenable,warChestArmed,warChestMinLevel,warChestRecovery,spendWarChest} from './systems/warchest.js';
+import {beginFestival} from './systems/festivals.js';
+import {beginScout,scoutReason,assaultReason,applyAnnex,conquestLimitBonus} from './systems/conquest.js';
 import {sfx} from './systems/audio.js';
 // Scheduled home raids: all timing and ceremony lines come from
 // data.world.homeRaids so balance and voice stay in JSON, not logic.
@@ -58,7 +63,7 @@ export class Game {
  this.paused=false;this.message='Welcome home. Build a farm, equip your people, and prepare for the night.';this.dirty=true;this.saveTimer=0;
  // Multiplayer shelf (v12): old saves backfill quietly; any help waiting
  // in the inbox lands on arrival — gifts in storage, hands on scaffolds.
- try{ensureMultiplayer(this.state);applyInbox(this.state);}catch{}}
+  try{ensureMultiplayer(this.state);applyInbox(this.state,this.data);}catch{}}
  get world(){return this.state.world;}
  notify(message){this.message=message;this.dirty=true;}
  locked(id){return this.data.world.locked.includes(id)&&!this.state.unlocks.includes(id);}
@@ -89,6 +94,14 @@ export class Game {
   // Wonders stand alone (data `maxPerVillage: 1`): one Moon Dial, one Dawn
   // Gate per village — the sky gets one vote, dawn gets one door.
   if(spec&&spec.maxPerVillage&&this.world.buildings.some(b=>b.type===type&&b.hp>0))return this.notify(`The village holds only one ${spec.name}. It stands already.`);
+  // Building limits (Phase 2, data `maxCount`): a number or a per-village-
+  // level array. Over-limit villages keep every building — only new work
+  // waits. Ruins do not count, so a wrecked shop can be repaired in place.
+  const limit=buildingLimit(type,this.state.vlevel||1,this.data,renownLimitBonus(this.world,this.data)+conquestLimitBonus(this.world,this.data));
+  if(Number.isFinite(limit)){
+    const built=buildingCount(this.world,type);
+    if(built>=limit)return this.notify(`The village supports ${limit} ${spec.name}${limit>1?'s':''}. Raise the village level for more room.`);
+  }
   if(!inBounds(this.world,this.data,type,x,y))return this.notify('That land is still wild. Earn village XP (quests, scholars, surveys) to open new rows.');
   if(!canPlace(this.world,this.data,type,x,y))return this.notify('Too close — roomy buildings need a one-tile gap. Villages breathe; clutter burns.');
   if(!pay(this.world.resources,buildingCost(type,1,this.world,this.data)))return this.notify('Not enough resources. Let your village gather more.');
@@ -157,8 +170,18 @@ export class Game {
   const level=Math.max(0,this.world.renown||0),cost=renownCost(this.data,level);
   if(!pay(this.world.resources,cost))return this.notify(`Renown level ${level+1} needs ${Object.entries(cost).map(([k,v])=>`${v} ${k}`).join(' + ')}. The manner must overflow first.`);
   this.world.renown=level+1;
+  // Milestone rewards (Phase 5): the data table grants titles, cap bumps
+  // and unlocks — never production. Unlocks for every earned level merge
+  // here, so old saves heal their reward unlocks on the next purchase.
+  const newly=[];
+  for(const id of renownUnlocksFor(this.data,this.world.renown))if(!this.state.unlocks.includes(id)){this.state.unlocks.push(id);newly.push(id);}
+  const reward=renownRewardsUpTo(this.world,this.data,this.world.renown).find(r=>+r.level===this.world.renown);
+  const bits=[];
+  if(reward?.title)bits.push(`🏅 ${reward.title}.`);
+  if(reward?.text)bits.push(reward.text);
+  if(newly.length)bits.push(`Unlocks: ${newly.map(id=>this.data.buildings[id]?.name||this.data.items[id]?.name||this.data.troops[id]?.name||id).join(', ')}.`);
   sfx.win();
-  this.notify(`📜 Manner Renown ${level+1}! Every defense strikes harder (+${Math.round((level+1)*(this.data.endgame?.renown?.damagePerLevel||0.03)*100)}% damage) and salvage runs richer (+${Math.round((level+1)*(this.data.endgame?.renown?.lootPerLevel||0.05)*100)}% loot). The frontier will remember this.`);
+  this.notify(`📜 Manner Renown ${level+1}! Every defense strikes harder (+${Math.round((level+1)*(this.data.endgame?.renown?.damagePerLevel||0.03)*100)}% damage) and salvage runs richer (+${Math.round((level+1)*(this.data.endgame?.renown?.lootPerLevel||0.05)*100)}% loot).${bits.length?' '+bits.join(' '):''} The frontier will remember this.`);
   this.persist();return true;
  }
  // Paragon reinforcement (Phase 12): max-tier fortifications improve
@@ -175,6 +198,61 @@ export class Game {
   b.hp=Math.min(buildingMaxHp(b,this.data),b.hp+(buildingMaxHp(b,this.data)-before));
   sfx.upgrade();
   this.notify(`🛡 ${this.data.buildings[b.type].name} reinforced to paragon ${b.paragon}! +${Math.round((this.data.endgame?.paragon?.hpPerLevel||0.12)*100)}% walls, +${Math.round((this.data.endgame?.paragon?.damagePerLevel||0.1)*100)}% shot — without end.`);
+  this.persist();return true;
+ }
+ // War Chest (Phase 6): stock before the horn. Nothing burns unopened —
+ // the chest is spent when a raid ends, win or lose, so easy raids cost
+ // nothing and crown waves are worth the stores. Combat multipliers only.
+ prepareWarChest(id){
+  if(this.state.mission)return this.notify('The war chest waits at home.');
+  const inv=warChestById(this.data,id);
+  if(!inv)return this.notify('That is not a war-chest line.');
+  if((this.state.vlevel||1)<warChestMinLevel(this.data))return this.notify(`The war chest opens at village level ${warChestMinLevel(this.data)}.`);
+  const level=warChestLevel(this.world,id),max=warChestMax(inv);
+  if(level>=max)return this.notify(`${inv.name} is fully stocked.`);
+  const cost=inv.cost||{};
+  if(!pay(this.world.resources,cost))return this.notify(`Stocking ${inv.name} needs ${Object.entries(cost).map(([k,v])=>`${v} ${k}`).join(' + ')}.`);
+  this.world.warChest=this.world.warChest||{};this.world.warChest[id]=level+1;
+  sfx.upgrade();
+  this.notify(`${inv.icon||'📦'} ${inv.name} stocked ${level+1}/${max}. Open the chest when the horn sounds — it burns when the raid ends.`);
+  this.persist();return true;
+ }
+ openWarChest(){
+  if(this.state.mission)return this.notify('The war chest waits at home.');
+  if(warChestArmed(this.world))return this.notify('The chest is already open.');
+  if(!warChestOpenable(this.world,this.data))return this.notify('The chest is empty — stock it before the horn.');
+  if(!this.world.raidPending&&!this.world.enemies.length)return this.notify('The chest opens when raiders are on the road.');
+  this.world.warChestArmed=true;
+  sfx.horn();
+  this.notify(`🛡 The War Chest is open — ${warChestTotal(this.world,this.data)} stores go to the walls for this raid.`);
+  this.persist();return true;
+ }
+ // Festivals (Phase 6): pay once, the whole town celebrates — timed auras,
+ // growth and training warmth, and Founder's glory in village XP.
+ holdFestival(id){
+  const r=beginFestival(this.state,this.data,id);
+  if(!r.ok)return this.notify(r.error);
+  if(r.xp>0)gainXp(this.state,r.xp);
+  const hall=this.world.buildings.find(b=>b.type==='hall'&&b.hp>0),at=hall?center(hall,this.data):{x:10,y:8};
+  this.world.effects.push({x:at.x,y:at.y,tx:at.x,ty:at.y,kind:'fanfare',life:1});
+  sfx.win();
+  const secs=Math.max(0,Math.ceil(r.until-(this.world.elapsed||0)));
+  this.notify(`🎉 The ${r.festival.name} begins! ${r.festival.text}${r.xp?` +${r.xp} village XP.`:''} It runs ${secs}s; the town rests ${r.festival.cooldown||0}s after.`);
+  this.persist();return true;
+ }
+ // Tribal conquest (Phase 8): scout the frontier, then judge the fallen keep.
+ scoutTribe(){
+  const reason=scoutReason(this.state,this.data);
+  if(reason)return this.notify(reason);
+  const r=beginScout(this.state,this.data);
+  if(r.ok){sfx.unlock();this.notify(`🔭 Scouts slip toward the ${r.tribe.name} line and return with charts — ${r.tribe.intel?.leader||'a shield-lord'} holds the stronghold. Adventure → Home carries the campaign.`);this.persist();}
+  return r;
+ }
+ annex(id){
+  const r=applyAnnex(this.state,this.data,id);
+  if(!r.ok)return this.notify(r.error);
+  sfx.win();
+  this.notify(`🏳 ${r.annex.name}. ${r.annex.text||''}`);
   this.persist();return true;
  }
  relocate(id,x,y){const b=this.world.buildings.find(b=>b.id===id);if(!b||this.world.enemies.length||this.world.raidPending)return this.notify('Buildings cannot move during a raid.');if(!inBounds(this.world,this.data,b.type,x,y))return this.notify('That land is still wild. Earn village XP to open new rows.');if(!canPlace(this.world,this.data,b.type,x,y,b.id))return this.notify('Too close — roomy buildings need a one-tile gap.');b.x=x;b.y=y;this.notify('Building moved.');return true;}
@@ -221,7 +299,7 @@ export class Game {
   if(!this.data.troops[type])return this.notify('Unknown calling.');
   if(this.locked(type))return this.notify('That calling is not yet earned — quests and campaign chapters unlock new people.');
   if(!this.world.buildings.some(b=>b.type==='barracks'&&b.hp>0&&b.remaining<=0))return this.notify('Build a barracks first.');
-  const mission=this.data.missions.find(m=>m.id===this.state.mission?.id),limit=mission?mission.troopLimit||16:Math.max(16,housing(this.world,this.data).beds);
+  const mission=this.data.missions.find(m=>m.id===this.state.mission?.id),limit=mission?mission.troopLimit||16:Math.max(16,housing(this.world,this.data).beds+renownTroopBonus(this.world,this.data));
   if(this.world.troops.length>=limit)return this.notify(`Your troop limit is ${limit}${mission?'':' — build homes to raise it'}.`);
   const unit=makeUnit(type,this.data,this.world.troops.length%5);
   // Phase 7: every hire arrives named and tempered, and finds the post
@@ -351,7 +429,13 @@ export class Game {
  clearOrder(id){const u=this.world.troops.find(t=>t.id===id);if(!u)return false;u.order=null;this.notify(`${this.data.troops[u.type].name} resuming duties.`);return true;}
  raid(count){if(this.state.mission)return this.notify('Campaign raids follow the mission timeline.');if(this.world.enemies.length||this.world.raidPending)return this.notify('A raid is already underway.');if(!this.world.buildings.some(b=>b.type==='hall'&&b.hp>0))return this.notify('Repair the manor before another raid.');
   const party=count??(this.world.wave===0?3:4+this.world.wave);this.world.raidPending={timer:3,count:party};this.world.raidKills=0;this.world.raidLoot=0;this.world.raidResult=null;sfx.horn();this.notify(`Scouts report ${party} raiders from ${raidSides(this.world.wave+1,party).join(" / ")} — 3 seconds to positions!`);return true;}
- mission(id){const m=this.data.missions.find(m=>m.id===id);const reason=missionLockReason(m,this.state.completed||[],this.state.world,this.data);if(reason)return this.notify(reason);if(startMission(this.state,this.data,id))this.notify(`${m?.ceremony?.warning||'Expedition begun.'} Your home village is safely paused.`);else this.notify('Finish the current raid before another expedition.');}
+ mission(id){const m=this.data.missions.find(m=>m.id===id);const reason=missionLockReason(m,this.state.completed||[],this.state.world,this.data);if(reason)return this.notify(reason);
+  // Tribal conquest (Phase 8): the stronghold asks the muster to be ready,
+  // and the Campaign War Chest is paid only when the march actually starts.
+  if(m?.conquest==='assault'){const short=assaultReason(this.state,this.data);if(short)return this.notify(short);}
+  const muster=m?.launchCost&&Object.keys(m.launchCost).length?m.launchCost:null,home=this.world;
+  if(muster&&!afford(home.resources,muster))return this.notify(`The campaign needs ${Object.entries(muster).map(([k,v])=>`${v} ${k}`).join(' + ')} before it marches.`);
+  if(startMission(this.state,this.data,id)){if(muster)pay(home.resources,muster);this.notify(`${m?.ceremony?.warning||'Expedition begun.'} Your home village is safely paused.`);}else this.notify('Finish the current raid before another expedition.');}
  returnHome(){const m=this.data.missions.find(m=>m.id===this.state.mission?.id);const result=finishMission(this.state,this.data);if(result?.first)this.notify(`${m?.ceremony?.victory||'Victory!'} Rewards and unlocks delivered to your village.`);else if(result?.won)this.notify('Returned home. First-clear rewards can only be claimed once.');else this.notify(`${m?.ceremony?.defeat||'Expedition lost.'} Your home is safe.`);this.persist();}
  frontierChoice(id){const r=resolveFrontierEvent(this.state,this.data,id);this.notify(r.ok?r.message:r.error);if(r.ok)this.persist();return r;}
  research(id){if(this.paused)return false;const reason=researchReason(this.state,this.data,id);if(reason){this.notify(reason);return false;}const ok=startResearch(this.state,this.data,id);if(ok){this.notify('Research begun. Your scholars are at work.');this.persist();}return ok;}
@@ -406,10 +490,10 @@ export class Game {
   if(w.lastPhase!==phase.id){w.lastPhase=phase.id;const line=cfg.lines[phase.id];if(line)this.notify(line);}
   if(w.lastWeather!==weather.id){w.lastWeather=weather.id;const line=cfg.lines[weather.id];if(line)this.notify(line);}
  }
- harvest(id){const b=this.world.buildings.find(b=>b.id===id),spec=b&&this.data.buildings[b.type];if(this.paused||!b||!spec.production||b.hp<=0||b.remaining>0)return false;const amount=Math.floor(b.harvestBonus||0);if(amount<1)return false;b.harvestBonus-=amount;this.world.resources[spec.production]=(this.world.resources[spec.production]||0)+amount;this.world.gathered[spec.production]=(this.world.gathered[spec.production]||0)+amount;const at=center(b,this.data);this.world.effects.push({x:at.x,y:at.y,tx:at.x,ty:at.y,kind:'float',text:resourceLabel(spec.production,amount),color:resourceInfo(spec.production).color,life:.9});sfx.collect();this.notify(`Collected ${amount} ${spec.production}.`);return amount;}
+ harvest(id){const b=this.world.buildings.find(b=>b.id===id),spec=b&&this.data.buildings[b.type];if(this.paused||!b||!spec.production||b.hp<=0||b.remaining>0)return false;const amount=Math.floor(b.harvestBonus||0);if(amount<1)return false;const {banked,leftover}=depositCentral(this.world,this.data,spec.production,amount);if(banked<1){this.notify(`The ${resourceInfo(spec.production).label.toLowerCase()} stores are full — spend a little or raise a Storehouse, then collect again.`);return false;}b.harvestBonus-=banked;const at=center(b,this.data);this.world.effects.push({x:at.x,y:at.y,tx:at.x,ty:at.y,kind:'float',text:resourceLabel(spec.production,banked),color:resourceInfo(spec.production).color,life:.9});sfx.collect();this.notify(`Collected ${banked} ${spec.production}${leftover>=1?` — ${Math.floor(leftover)} still on-site (stores full)`:''}.`);return banked;}
  // One tap gathers every finished producer with a whole unit stored on-site.
  // Same guards as harvest; a single summary notice instead of one per site.
- collectAll(){if(this.paused)return {};const totals={};let sites=0;for(const b of this.world.buildings){const spec=b&&this.data.buildings[b.type];if(!b||!spec?.production||b.hp<=0||b.remaining>0)continue;const amount=Math.floor(b.harvestBonus||0);if(amount<1)continue;b.harvestBonus-=amount;this.world.resources[spec.production]=(this.world.resources[spec.production]||0)+amount;this.world.gathered[spec.production]=(this.world.gathered[spec.production]||0)+amount;totals[spec.production]=(totals[spec.production]||0)+amount;sites++;const at=center(b,this.data);this.world.effects.push({x:at.x,y:at.y,tx:at.x,ty:at.y,kind:'float',text:resourceLabel(spec.production,amount),color:resourceInfo(spec.production).color,life:.9});}if(!sites){this.notify('Nothing ready to collect — production buildings store output on-site as they work.');return totals;}sfx.collect();this.persist();this.notify(`Collected ${Object.entries(totals).map(([k,v])=>`${v} ${k}`).join(', ')} from ${sites} building${sites>1?'s':''}.`);return totals;}
+ collectAll(){if(this.paused)return {};const totals={};let sites=0,full=0;for(const b of this.world.buildings){const spec=b&&this.data.buildings[b.type];if(!b||!spec?.production||b.hp<=0||b.remaining>0)continue;const amount=Math.floor(b.harvestBonus||0);if(amount<1)continue;const {banked}=depositCentral(this.world,this.data,spec.production,amount);if(banked<1){full++;continue;}b.harvestBonus-=banked;totals[spec.production]=(totals[spec.production]||0)+banked;sites++;const at=center(b,this.data);this.world.effects.push({x:at.x,y:at.y,tx:at.x,ty:at.y,kind:'float',text:resourceLabel(spec.production,banked),color:resourceInfo(spec.production).color,life:.9});}if(!sites){this.notify(full?'The stores are full — spend or build a Storehouse before collecting more.':'Nothing ready to collect — production buildings store output on-site as they work.');return totals;}sfx.collect();this.persist();this.notify(`Collected ${Object.entries(totals).map(([k,v])=>`${v} ${k}`).join(', ')} from ${sites} building${sites>1?'s':''}.${full?` ${full} more hold full reserves (stores full).`:''}`);return totals;}
  persist(){const ok=save(this.state);if(!ok)this.notify('Browser storage is unavailable. Progress cannot be saved here.');return ok;}
  // Async multiplayer (visits + helping): all local-first. Cloud sync is
  // best-effort and never blocks play — without Supabase configured the
@@ -422,7 +506,7 @@ export class Game {
  sendHelp(friendName,buildingId){const mp=this.mp();const reason=speedupReason(mp,this.world,friendName,buildingId);if(reason){this.notify(reason);return {ok:false,error:reason};}const help=makeSpeedup(mp,mp.username||'A neighbor',friendName,buildingId);mp.outbox.push(help);pushActivity(mp,`Lent hands to ${friendName} (−${help.seconds}s on a build).`);this.persist();this.notify(`Your crew's echo travels to ${friendName} — a build finishes sooner.`);return {ok:true,help};}
  // Apply queued help waiting in the inbox (runs at boot and after sync).
  // Gifts pour into storage, speedups shorten rising scaffolds.
- collectHelp(){const landed=applyInbox(this.state);if(landed.length){this.persist();this.notify(landed.map(l=>l.text).join(' '));}return landed;}
+ collectHelp(){const landed=applyInbox(this.state,this.data);if(landed.length){this.persist();this.notify(landed.map(l=>l.text).join(' '));}return landed;}
  visitSnapshot(){return publicSnapshot(this.state);}
  // Best-effort cloud push: stamps + saves locally first, then tries the
  // shelf. Failures whisper — local play is never interrupted.
@@ -484,8 +568,8 @@ export class Game {
   // Phase 7 identity backfill: old saves and mission rosters gain names,
   // traits and job ledgers lazily — additive defaults, never a wipe.
   for(const w of [this.world,this.state.home]){if(!w)continue;for(const u of w.troops||[])ensureIdentity(u,this.data,w.troops);}
-  this.world.elapsed+=dt;this.tickClock();if(!this.state.mission)tickFrontierEvents(this.state,this.data,m=>this.notify(m));tickResearch(this.state,this.data,dt,m=>this.notify(m));tickEmergency(this.world,this.data,dt);tickVillagerJobs(this.world,this.data,dt);const filled=autoFillTick(this.world,this.data,dt);if(filled&&(this.world.elapsed-(this.world.lastAutoFillNote||0)>60)){this.world.lastAutoFillNote=this.world.elapsed;this.notify(`${filled} jobless worker${filled>1?'s':''} took ${filled>1?'open posts':'an open post'} on their own — traits matched, locks respected.`);}tickEconomy(this.world,this.data,dt);tickRefine(this.world,this.data,dt);for(const c of tickCraft(this.world,this.data,dt)){const name=this.data.items[c.item]?.name||c.item;this.notify(`${name} finished — fit it from the People panel.`);}tickExpeditions(this.world,this.data,dt,Math.random,{state:this.state,notify:m=>this.notify(m)});tickCombat(this.world,this.data,dt);tickVillage(this.state,this.data,dt,m=>this.notify(m));const before=this.state.mission?.status;tickMission(this.state,this.data);
-  if(raided&&!this.world.enemies.length&&!this.world.raidPending&&this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)){const kills=this.world.raidKills??0,loot=this.world.raidLoot??0;
+  this.world.elapsed+=dt;this.tickClock();if(!this.state.mission)tickTownMeal(this.world,this.data,m=>this.notify(m));if(!this.state.mission)tickFrontierEvents(this.state,this.data,m=>this.notify(m));tickResearch(this.state,this.data,dt,m=>this.notify(m));tickEmergency(this.world,this.data,dt);tickVillagerJobs(this.world,this.data,dt);const filled=autoFillTick(this.world,this.data,dt);if(filled&&(this.world.elapsed-(this.world.lastAutoFillNote||0)>60)){this.world.lastAutoFillNote=this.world.elapsed;this.notify(`${filled} jobless worker${filled>1?'s':''} took ${filled>1?'open posts':'an open post'} on their own — traits matched, locks respected.`);}tickEconomy(this.world,this.data,dt);tickRefine(this.world,this.data,dt);for(const c of tickCraft(this.world,this.data,dt)){const name=this.data.items[c.item]?.name||c.item;this.notify(`${name} finished — fit it from the People panel.`);}tickExpeditions(this.world,this.data,dt,Math.random,{state:this.state,notify:m=>this.notify(m)});tickCombat(this.world,this.data,dt);tickVillage(this.state,this.data,dt,m=>this.notify(m));const before=this.state.mission?.status;tickMission(this.state,this.data);if(this.state.mission?.herald){this.notify(this.state.mission.herald);this.state.mission.herald=null;}
+  if(raided&&!this.world.enemies.length&&!this.world.raidPending&&this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)){const recovered=warChestRecovery(this.world,this.data);spendWarChest(this.world);const kills=this.world.raidKills??0,loot=this.world.raidLoot??0;
    const damaged=this.world.buildings.filter(b=>b.hp<buildingMaxHp(b,this.data));
    const repairWood=damaged.reduce((n,b)=>n+Math.ceil((buildingMaxHp(b,this.data)-b.hp)/15),0);
    this.world.raidResult={won:true,kills,loot,damaged:damaged.length,repairWood};sfx.win();
@@ -505,9 +589,9 @@ export class Game {
     }
    }
    this.world.bossSlain=null;this.world.raidFled=false;
-   this.notify(`${crownLine}${fillLine(pickLine(cfg.victoryLines,this.world.wave),{kills,loot,wave:this.world.wave})}${damaged.length?` ${damaged.length} buildings need repair (${repairWood} wood).`:' All buildings stand strong.'}`);this.persist();}
+   this.notify(`${crownLine}${fillLine(pickLine(cfg.victoryLines,this.world.wave),{kills,loot,wave:this.world.wave})}${recovered?` ${recovered} restored by the repair wagons.`:''}${damaged.length?` ${damaged.length} buildings need repair (${repairWood} wood).`:' All buildings stand strong.'}`);this.persist();}
   if(before!==this.state.mission?.status){const m=this.data.missions.find(m=>m.id===this.state.mission.id);this.notify(this.state.mission.status==='won'?`${m?.ceremony?.victory||'Mission complete!'} Return home to claim your rewards.`:`${m?.ceremony?.defeat||'Expedition lost.'} Return home and try a different layout.`);this.persist();}
-  if(!this.state.mission&&!this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)&&this.world.enemies.length){const kills=this.world.raidKills??0,loot=this.world.raidLoot??0;this.world.enemies=[];this.world.inRaid=false;this.world.raidLosses=0;this.world.resources.wood=Math.max(80,this.world.resources.wood);this.world.raidResult={won:false,kills,loot,damaged:this.world.buildings.filter(b=>b.hp<=0).length,repairWood:0};sfx.lose();scheduleRecovery(this.state,this.data,false);if(this.world.lastBoss&&this.world.lastBoss.won==null)this.world.lastBoss.won=false;this.notify(fillLine(pickLine(cfg.defeatLines,this.world.wave),{kills,loot,wave:this.world.wave}));}
+  if(!this.state.mission&&!this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)&&this.world.enemies.length){const recovered=warChestRecovery(this.world,this.data);spendWarChest(this.world);const kills=this.world.raidKills??0,loot=this.world.raidLoot??0;this.world.enemies=[];this.world.inRaid=false;this.world.raidLosses=0;this.world.resources.wood=Math.max(80,this.world.resources.wood);this.world.raidResult={won:false,kills,loot,damaged:this.world.buildings.filter(b=>b.hp<=0).length,repairWood:0};sfx.lose();scheduleRecovery(this.state,this.data,false);if(this.world.lastBoss&&this.world.lastBoss.won==null)this.world.lastBoss.won=false;this.notify(fillLine(pickLine(cfg.defeatLines,this.world.wave),{kills,loot,wave:this.world.wave})+(recovered?` ${recovered} restored by the repair wagons.`:''));}
   this.saveTimer+=dt;if(this.saveTimer>5){this.saveTimer=0;this.persist();}
  }
 }

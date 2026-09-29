@@ -1,4 +1,6 @@
 [
+  {"flavor": "A column of road crews will pay in coin for whatever the granary can spare — goads and bills, no haggling twice.", "give": {"food": 12000, "bread": 3000}, "id": "provender-run", "minLevel": 7, "cap": 1, "take": {"gold": 1400}, "trader": "Marto's Provisioners"},
+  {"flavor": "Cold-road traders weigh frostwood against a wagon of sawn stock and plate. They know what winter costs, and so do you.", "give": {"lumber": 7500, "plate": 2000}, "id": "northern-caravan", "minLevel": 8, "cap": 1, "take": {"frostwood": 650}, "trader": "The Northern Caravan"},
   {"flavor": "Down from the Lantern Towns, two axles lost to the mud \u2014 Sarella says the timber must go before it warps, and the road forgets late payers.", "give": {"wood": 60}, "id": "lantern-timber", "minLevel": 2, "take": {"gold": 25}, "trader": "Sarella of the Lantern Towns"},
   {"flavor": "Smoked and salted at Stillwater. Tomm Waterwise would rest the pond; the carter eats the profits otherwise, so the price stays honest.", "give": {"food": 50}, "id": "stillwater-smoke", "minLevel": 2, "take": {"wood": 35}, "trader": "Carter Pell"},
   {"flavor": "Mine scrip spends poorly on an empty belly. The factor knows it, and prices accordingly.", "give": {"gold": 40}, "id": "factors-breakfast", "minLevel": 2, "take": {"food": 70}, "trader": "Factor Ilya"},

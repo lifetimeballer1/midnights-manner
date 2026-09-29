@@ -1,0 +1,40 @@
+[
+  {
+    "id": "harvest-feast",
+    "name": "Harvest Feast",
+    "icon": "🌾",
+    "minLevel": 4,
+    "seconds": 300,
+    "cooldown": 600,
+    "cost": { "food": 1500, "bread": 200, "gold": 100 },
+    "text": "Full tables and lanterns down every lane — the village works with a song in it.",
+    "effects": { "gather": 0.1, "xp": 0.08 },
+    "growth": 0.25,
+    "jobXp": 0.25
+  },
+  {
+    "id": "war-feast",
+    "name": "War Feast",
+    "icon": "🔥",
+    "minLevel": 6,
+    "seconds": 240,
+    "cooldown": 480,
+    "cost": { "bread": 300, "food": 800, "gold": 150 },
+    "text": "The yard drinks to the watch — blades feel lighter until the next horn.",
+    "effects": { "damage": 0.06, "heal": 0.15 }
+  },
+  {
+    "id": "founders-festival",
+    "name": "Founder's Festival",
+    "icon": "🎆",
+    "minLevel": 8,
+    "seconds": 420,
+    "cooldown": 900,
+    "cost": { "food": 4000, "bread": 800, "gold": 1500, "frostwood": 100 },
+    "text": "The manner remembers its first stone — and pays its people in glory.",
+    "effects": { "xp": 0.15, "gather": 0.12, "heal": 0.3 },
+    "growth": 0.5,
+    "jobXp": 0.5,
+    "rewardXp": 400
+  }
+]

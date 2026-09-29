@@ -257,6 +257,9 @@ test('renown buys at a standing hall and compounds', () => {
   g.world.resources.gold = 100000;
   g.world.resources.food = 100000;
   g.world.resources.plate = 1000;
+  g.world.resources.lumber = 1000;
+  g.world.resources.bread = 1000;
+  g.world.resources.frostwood = 1000;
   assert.equal(g.raiseRenown(), true);
   assert.equal(g.world.renown, 1);
   const again = renownCost(data, 1);
@@ -284,6 +287,8 @@ test('reinforce crowns finished work; upgrades rebuild it', () => {
   const g = game(11);
   g.world.resources.wood = 100000;
   g.world.resources.gold = 100000;
+  g.world.resources.plate = 1000;
+  g.world.resources.lumber = 1000;
   const wall = g.world.buildings.find(b => b.type === 'wall');
   wall.level = 3; wall.hp = 690; wall.remaining = 0;
   assert.equal(g.reinforce(wall.id), true);

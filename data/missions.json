@@ -1349,5 +1349,147 @@
       "region": "dawnfields",
       "name": "Dawnfields"
     }
+  },
+  {
+    "id": "ironshield-patrol",
+    "name": "Break the Border Patrol",
+    "chapter": "15",
+    "act": "IX",
+    "conquest": "preliminary",
+    "beat": "First blood of the conquest: scatter the shield-pairs on the west road.",
+    "giver": "Sorrel the watcher",
+    "description": "The Ironshield patrol the west road in pairs, and every survivor carries a horn. Break them before the keep learns your name.",
+    "timeLimit": 240,
+    "troopLimit": 8,
+    "objectives": [
+      { "kind": "defeat", "amount": 12 },
+      { "resource": "gold", "amount": 200 }
+    ],
+    "startingResources": { "wood": 300, "food": 200, "gold": 140 },
+    "map": {
+      "biome": "hills",
+      "seed": 1511,
+      "tiles": [ { "x": 15, "y": 12, "biome": "hills", "landmark": "Ironshield Road", "claimed": true } ],
+      "buildings": [
+        { "type": "hall", "x": 9, "y": 7 },
+        { "type": "tower", "x": 6, "y": 6 },
+        { "type": "stonewall", "x": 5, "y": 7 },
+        { "type": "stonewall", "x": 5, "y": 8 },
+        { "type": "barracks", "x": 7, "y": 4 }
+      ],
+      "troops": [ "warrior", "pikewoman", "archer", "builder", "miner" ]
+    },
+    "raids": [
+      { "at": 40, "count": 5 },
+      { "at": 140, "count": 7 }
+    ],
+    "scaling": { "hp": 20, "damage": 3.5 },
+    "rewards": { "gold": 400, "wood": 300, "food": 250 },
+    "unlocks": [],
+    "ceremony": {
+      "warning": "Sorrel marks the road on the chart: two waves of shield-pairs, one banner on the ridge. Break the patrol before the horn answers.",
+      "victory": "The shield-pairs fall back past the ridge, horns silent. The road to the keep lies open.",
+      "defeat": "The patrol held the road. The horns carried, and the keep is warned — walk it again."
+    },
+    "requires": [ "dawn" ]
+  },
+  {
+    "id": "ironshield-watch",
+    "name": "Silence the Watch Post",
+    "chapter": "16",
+    "act": "IX",
+    "conquest": "preliminary",
+    "beat": "Three waves under a stone watch — blind the horn before the keep answers.",
+    "giver": "Sorrel the watcher",
+    "description": "A stone watch above the valley answers every horn the Ironshield sound. Hold the ascent and silence it — or fight the whole keep awake.",
+    "timeLimit": 300,
+    "troopLimit": 9,
+    "objectives": [
+      { "kind": "defeat", "amount": 18 },
+      { "kind": "survive", "seconds": 240 }
+    ],
+    "startingResources": { "wood": 340, "food": 220, "gold": 160 },
+    "map": {
+      "biome": "hills",
+      "seed": 1611,
+      "tiles": [ { "x": 3, "y": 4, "biome": "hills", "landmark": "Ironshield Watch", "claimed": true } ],
+      "buildings": [
+        { "type": "hall", "x": 9, "y": 7 },
+        { "type": "tower", "x": 6, "y": 6 },
+        { "type": "archer_tower", "x": 6, "y": 9 },
+        { "type": "stonewall", "x": 5, "y": 7 },
+        { "type": "stonewall", "x": 5, "y": 8 },
+        { "type": "stonewall", "x": 5, "y": 9 },
+        { "type": "barracks", "x": 8, "y": 4 }
+      ],
+      "troops": [ "warrior", "pikewoman", "halberdier", "archer", "builder", "miner" ]
+    },
+    "raids": [
+      { "at": 40, "count": 6 },
+      { "at": 150, "count": 8 },
+      { "at": 240, "count": 9 }
+    ],
+    "scaling": { "hp": 22, "damage": 4 },
+    "rewards": { "gold": 500, "plate": 60, "food": 300 },
+    "unlocks": [],
+    "ceremony": {
+      "warning": "Three waves climb toward the watch. Hold the ascent for four minutes and the horn dies with the tower.",
+      "victory": "The watch burns quiet. Below, the Ironshield keep stands blind and half-asleep.",
+      "defeat": "The watch answered every wave with a horn. The keep is awake now — climb again."
+    },
+    "requires": [ "ironshield-patrol" ]
+  },
+  {
+    "id": "ironshield-keep",
+    "name": "The Ironshield Keep",
+    "chapter": "17",
+    "act": "IX",
+    "conquest": "assault",
+    "beat": "The conquest finale: four waves and the Warden-Captain himself in the keep yard.",
+    "giver": "Sorrel the watcher",
+    "log": "The shields broke at the fourth horn. Brannoc fought from the gate to the yard and did not ask for quarter, and when it was over the valley belonged to the Manner — road, stores and stone.",
+    "description": "The keep waits at the valley's heart behind stone and shield-lines. Carry the campaign stores, weather four waves, and put the Warden-Captain down where the kept stone stands.",
+    "timeLimit": 420,
+    "troopLimit": 10,
+    "launchCost": { "food": 4000, "bread": 800, "lumber": 3000, "plate": 300, "gold": 2500 },
+    "objectives": [
+      { "kind": "defeat", "amount": 30 },
+      { "kind": "protect", "type": "oathstone", "count": 1 },
+      { "kind": "survive", "seconds": 300 }
+    ],
+    "startingResources": { "wood": 380, "food": 240, "gold": 180 },
+    "map": {
+      "biome": "hills",
+      "seed": 1711,
+      "tiles": [ { "x": 12, "y": 5, "biome": "hills", "landmark": "Ironshield Keep", "claimed": true } ],
+      "buildings": [
+        { "type": "hall", "x": 9, "y": 7 },
+        { "type": "tower", "x": 6, "y": 6 },
+        { "type": "archer_tower", "x": 6, "y": 9 },
+        { "type": "ballista", "x": 8, "y": 10 },
+        { "type": "stonewall", "x": 5, "y": 6 },
+        { "type": "stonewall", "x": 5, "y": 7 },
+        { "type": "stonewall", "x": 5, "y": 8 },
+        { "type": "stonewall", "x": 5, "y": 9 },
+        { "type": "oathstone", "x": 8, "y": 5 },
+        { "type": "barracks", "x": 8, "y": 2 }
+      ],
+      "troops": [ "oathsworn", "halberdier", "pikewoman", "longbowman", "archer", "builder", "miner" ]
+    },
+    "raids": [
+      { "at": 60, "count": 7 },
+      { "at": 150, "count": 9 },
+      { "at": 230, "count": 10 },
+      { "at": 300, "count": 12, "boss": "ironshield-warden", "herald": "🛡 The keep gates grind open — WARDEN-CAPTAIN BRANNOC takes the yard at wave {wave}! Shields to the front!" }
+    ],
+    "scaling": { "hp": 26, "damage": 4.5 },
+    "rewards": { "gold": 2500, "lumber": 1500, "plate": 400, "frostwood": 200 },
+    "unlocks": [],
+    "ceremony": {
+      "warning": "Sorrel rolls the last chart tight: four horns, thirty shields, and the Warden-Captain at the end of them. The muster and the campaign stores march together — or not at all.",
+      "victory": "The fourth horn breaks. Brannoc falls in his own yard, the shields stack at the gate, and the valley — road, stores and stone — belongs to the Manner.",
+      "defeat": "The keep held. The shields are still standing and the valley is still theirs — carry a fuller chest and a harder muster next time."
+    },
+    "requires": [ "ironshield-watch" ]
   }
 ]

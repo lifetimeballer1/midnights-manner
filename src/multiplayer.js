@@ -2,6 +2,7 @@
 // no network, no localStorage. Safe to import from node tests and the
 // browser alike. Privacy law (Jesce): identity is username + village only.
 // Email / login tokens never enter these structures, ever.
+import {grantCentral} from './systems/storage.js';
 export const USERNAME_RE = /^[A-Za-z0-9_-]{3,16}$/;
 export const FRIEND_CODE_RE = /^[A-Z0-9]{4}-?[A-Z0-9]{4}$/;
 export const GIFTABLE = ['wood', 'food', 'gold', 'lumber', 'flour', 'bread'];
@@ -169,7 +170,9 @@ export function makeSpeedup(mp, from, to, buildingId) {
 // Inbox pickup (runs on load + after sync): gifts pour into storage,
 // speedups shorten the first still-rising build. Returns a report of what
 // landed. Offline this still works for locally-queued help — no network.
-export function applyInbox(state) {
+// `data` is optional for old callers: without it, caps fall back to the
+// world storage floor and gifts still bank.
+export function applyInbox(state, data) {
   const mp = ensureMultiplayer(state);
   const report = [];
   const world = state.world;
@@ -178,7 +181,8 @@ export function applyInbox(state) {
     if (item.kind === 'gift' && GIFTABLE.includes(item.resource)) {
       const n = Math.max(0, Math.min(GIFT_MAX, Math.floor(item.amount) || 0));
       if (n > 0 && world?.resources) {
-        world.resources[item.resource] = (world.resources[item.resource] || 0) + n;
+        // Central storage caps (Phase 1): overflow waits on the ledgers.
+        grantCentral(world, data, item.resource, n);
         report.push({ id: item.id, kind: 'gift', text: `${item.from} sent +${n} ${item.resource}.` });
         pushActivity(mp, `${item.from} sent +${n} ${item.resource}.`);
       }

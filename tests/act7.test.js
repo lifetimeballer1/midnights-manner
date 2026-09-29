@@ -19,7 +19,7 @@ const data = Object.fromEntries(await Promise.all(
 const noop = () => {};
 function richState(d) {
   const g = new Game(d);
-  g.world.resources = {wood: 100000, food: 100000, gold: 100000, frostwood: 100000, plate: 100000};
+  g.world.resources = {wood: 100000, food: 100000, gold: 100000, frostwood: 100000, plate: 100000, lumber: 100000};
   return g;
 }
 
@@ -152,7 +152,9 @@ test('ph11: the Pale Host debuts wave-scaling with Sorrel holding the line', () 
   assert.ok(m.map.buildings.some(b => b.type === 'oathstone'), 'the stone stands on the map');
   for (const key of ['warning', 'victory', 'defeat'])
     assert.ok(m.ceremony?.[key]?.includes('Sorrel'), `ceremony.${key} names Sorrel`);
-  assert.equal(data.missions.length, 15);
+  // 15 chapters crowned Act VIII; the Ironshield conquest arc (Phase 8)
+  // adds chapters 15-17 on top — a deliberate pin update.
+  assert.equal(data.missions.length, 18);
 });
 
 test('ph11: wave-scaling steepens spawns; home raids ride the classic curve', () => {
@@ -198,7 +200,7 @@ test('ph12: lit raiders smolder each second', () => {
   assert.ok(Math.abs(e.hp - (hp - 4)) < 0.001, `burn ticks 4/s, got ${hp - e.hp}`);
 });
 
-test('ph12: tower tier 4 doubles its price and waits on level 8', async () => {
+test('ph12/phase2: tower tier 4 rides the endgame curve and waits on level 8', async () => {
   const t = data.buildings.tower;
   assert.equal(t.tiers.length, 4);
   assert.deepEqual([t.tiers[3].damage, t.tiers[3].range], [65, 5.2]);
@@ -209,8 +211,10 @@ test('ph12: tower tier 4 doubles its price and waits on level 8', async () => {
   const base = d.buildings.tower.cost;
   // A bare world (no crew discount) isolates the tier curve itself.
   const c4 = bc('tower', 4, {...w, troops: []}, d);
-  assert.equal(c4.wood, base.wood * 4 * 2, 'tier-4 doubles the level curve');
-  assert.equal(c4.gold, base.gold * 4 * 2, 'on both coin and timber');
+  assert.equal(c4.wood, base.wood * 16, 'tier-4 rides the Phase 2 endgame curve');
+  assert.equal(c4.gold, base.gold * 16, 'on both coin and timber');
+  assert.equal(c4.plate, 20, 'the high tower asks for forged plate');
+  assert.equal(c4.lumber, 30, 'and sawn lumber');
   const g = richState(d);
   g.state.vlevel = 7;
   const tw = makeBuilding('tower', 3, 3, d);
@@ -783,9 +787,9 @@ test('ph15: twin banners — both roads open, the mirror recruitable either way'
 });
 
 // Act VII cross-cutting: totals, chains, conditionals, saves.
-test('viii: the legend counts — 35 people, 15 chapters, 22 steps, 2640 XP', () => {
+test('viii: the legend counts — 35 people, 18 chapters, 22 steps, 2640 XP', () => {
   assert.equal(Object.keys(data.troops).length, 35);
-  assert.equal(data.missions.length, 15);
+  assert.equal(data.missions.length, 18);
   assert.equal(data.quests.length, 22);
   assert.equal(data.quests.reduce((n, x) => n + x.xp, 0), 2640);
   assert.equal(levelForXp(2640), 11);

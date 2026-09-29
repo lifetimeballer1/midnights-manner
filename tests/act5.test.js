@@ -93,7 +93,7 @@ test('ph1: scriptorium tier 3 waits for village level 7', () => {
   assert.deepEqual(data.buildings.scriptorium.tierGates, {3: 7});
   const d = structuredClone(data);
   const g = new Game(d);
-  g.world.resources = {wood: 100000, food: 100000, gold: 100000};
+  g.world.resources = {wood: 100000, food: 100000, gold: 100000, lumber: 100000};
   const scrip = makeBuilding('scriptorium', 2, 2, d);
   scrip.remaining = 0; scrip.level = 2;
   g.world.buildings.push(scrip);

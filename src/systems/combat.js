@@ -6,9 +6,25 @@ import {enemyDamageMult,enemySpeedMult} from './daynight.js';
 import {isWall} from './walls.js';
 import {bossTick,bossAuraMult,isSiegeRole,eliteLootMult,renownDamageMult,renownLootMult,paragonDamageMult,markElites} from './endgame.js';
 import {sfx} from './audio.js';
+import {grantCentral} from './storage.js';
+import {warChestBonus} from './warchest.js';
 export function raidSides(wave,count) {
  const sides=['west','north','east','south'];
  return Array.from({length:Math.min(4,count)},(_,i)=>sides[(Math.max(0,wave-1)+i)%4]);
+}
+// Spawn protection (Phase 8): the settlement's exclusion footprint — every
+// structure's tile span grown by a buffer (`world.spawnBuffer`, default 2).
+// Enemies never materialize on or beside the built-up town; one Set per
+// raid keeps the check O(1) per candidate.
+export function spawnExclusion(world, data, buffer) {
+ const pad=Number.isFinite(+buffer)?Math.max(0,Math.floor(+buffer)):(Number.isFinite(+data?.world?.spawnBuffer)?Math.max(0,Math.floor(+data.world.spawnBuffer)):2);
+ const out=new Set();
+ for(const b of world?.buildings||[]){
+  if(!b||!Number.isFinite(b.x)||!Number.isFinite(b.y))continue;
+  const size=Number.isFinite(+data?.buildings?.[b.type]?.size)?+data.buildings[b.type].size:1;
+  for(let y=b.y-pad;y<b.y+size+pad;y++)for(let x=b.x-pad;x<b.x+size+pad;x++)out.add(x+','+y);
+ }
+ return out;
 }
 export function spawnRaid(world,count=4,scaling=null,data=null,faction=null,opts=null) {
  world.wave++;world.raidTimer=0;world.raidAge=0;world.raidKills=world.raidKills??0;world.raidLoot=world.raidLoot??0;
@@ -24,6 +40,11 @@ export function spawnRaid(world,count=4,scaling=null,data=null,faction=null,opts
  // Use the settled perimeter, clamped to the configured navigation grid.
  const width=Math.min(world.bounds?.w||data?.world.width||20,data?.world.width||Infinity);
  const height=Math.min(world.bounds?.h||data?.world.height||17,data?.world.height||Infinity);
+ const worldW=Number.isFinite(+data?.world?.width)?+data.world.width:width;
+ const worldH=Number.isFinite(+data?.world?.height)?+data.world.height:height;
+ const exclusion=spawnExclusion(world,data);
+ const taken=new Set();
+ const clear=p=>{const key=Math.floor(p.x)+','+Math.floor(p.y);return !taken.has(key)&&(!data||(!exclusion.has(key)&&!blocked(world,data,Math.floor(p.x),Math.floor(p.y))));};
  const sides=raidSides(world.wave,count);
  for(let i=0;i<count;i++) {
   const side=sides[i%sides.length],vertical=side==='west'||side==='east',length=vertical?height:width;
@@ -31,8 +52,19 @@ export function spawnRaid(world,count=4,scaling=null,data=null,faction=null,opts
    const along=1.5+(n+2+Math.floor(i/4)*3)%(length-2);
    return vertical?{x:side==='west'?.5:width-.5,y:along}:{x:along,y:side==='north'?.5:height-.5};
   });
-  const entry=entries.find(p=>!data||!blocked(world,data,Math.floor(p.x),Math.floor(p.y)));
+  let entry=entries.find(clear);
+  if(!entry){
+   // The ring moves outward: when the near edge is wall-to-wall with the
+   // settlement, raiders muster in the wild beyond it instead.
+   for(let step=1;step<=6&&!entry;step++){
+    const out=entries.map(p=>vertical?{x:side==='west'?p.x-step:p.x+step,y:p.y}:{x:p.x,y:side==='north'?p.y-step:p.y+step})
+     .filter(p=>p.x>=.5&&p.y>=.5&&p.x<=worldW-.5&&p.y<=worldH-.5);
+    entry=out.find(clear);
+   }
+  }
+  if(!entry)entry=entries.find(p=>!data||!blocked(world,data,Math.floor(p.x),Math.floor(p.y)));
   if(entry){const role=faction?.roles[i%faction.roles.length],spec=data?.world.enemyRoles?.[role]||{};
+   taken.add(Math.floor(entry.x)+','+Math.floor(entry.y));
    world.enemies.push({id:crypto.randomUUID(),...entry,hp:hp*(spec.hp||1),maxHp:hp*(spec.hp||1),damage:dmg*(spec.damage||1),role,faction:faction?.id,attackTimer:i*.2,animation:0});}
  }
  // Flawless tracking (Rue's terms): a fresh raid opens the ledger with
@@ -90,7 +122,12 @@ export function tickCombat(world,data,dt) {
  const raidActive=world.enemies.some(e=>e.hp>0);
  // Living sky (Phase 10): raiders hit harder after dark and trudge in
  // fog. Worlds without flags (old saves, direct ticks) read exactly 1.
- const skyDmg=enemyDamageMult(world,data),skySlow=enemySpeedMult(world,data);
+  const skyDmg=enemyDamageMult(world,data),skySlow=enemySpeedMult(world,data);
+  // War Chest (Phase 6): frostwood stakes slow the charge and blunt siege
+  // blows against walls; arrows sharpen every tower. Data, armed-only.
+  const chestSlow=1-Math.min(0.4,Math.max(0,warChestBonus(world,data,'slow')));
+  const chestGuard=1-Math.min(0.5,Math.max(0,warChestBonus(world,data,'wallGuard')));
+  const chestArrows=1+Math.max(0,warChestBonus(world,data,'damage'));
  const postOf=new Map();
  for(const b of world.buildings)postOf.set(b.id,b);
  const tgtCtx={postOf,urgCache:new Map()};
@@ -165,7 +202,7 @@ export function tickCombat(world,data,dt) {
    // damage-over-time from data `burn`/`burnDuration`, first of its kind.
    // Phase 12: renown sharpens every defense, paragon hones the engine,
    // siegebane bites engines and crowns.
-   const mult=(1+siege+towerBonus)*renownDamageMult(world,data)*paragonDamageMult(b,data);
+    const mult=(1+siege+towerBonus)*renownDamageMult(world,data)*paragonDamageMult(b,data)*chestArrows;
    let dealt=(tier.damage||0)*mult;
    if(tier.siegebane&&(enemy.role==='boss'||isSiegeRole(data,enemy.role)))dealt*=(1+tier.siegebane);
    enemy.hp-=dealt;
@@ -220,7 +257,7 @@ export function tickCombat(world,data,dt) {
   const target=targetUnit||enemyBuildingTarget(world,data,enemy);if(!target)continue;
   enemy.targetId=target.id;
   const targetPoint=targetUnit?target:center(target,data),range=targetUnit?(role.range||1.1):data.buildings[target.type].size/2+Math.max(.7,(role.range||1.1)-.4);
-  const arrived=move(world,data,enemy,targetPoint,(role.speed||.95)*skySlow,dt,range);
+  const arrived=move(world,data,enemy,targetPoint,(role.speed||.95)*skySlow*chestSlow,dt,range);
   if(!arrived){
    let barrier=null,barrierD=Infinity;
    for(const b of walls){
@@ -229,7 +266,7 @@ export function tickCombat(world,data,dt) {
     if(d<=1.2&&d<barrierD){barrierD=d;barrier=b;}
    }
    if(barrier&&enemy.attackTimer<=0){
-    barrier.hp=Math.max(0,barrier.hp-enemy.damage*skyDmg*(role.wallDamage||1));enemy.attackTimer=1.3;
+    barrier.hp=Math.max(0,barrier.hp-enemy.damage*skyDmg*(role.wallDamage||1)*chestGuard);enemy.attackTimer=1.3;
     effect(world,enemy,center(barrier,data),'slash');
     if(barrier.hp<=0)world.raidLosses=(world.raidLosses||0)+1;
     continue;
@@ -240,7 +277,7 @@ export function tickCombat(world,data,dt) {
    const bb=target;let adjacent=false;
    const bx0=Math.floor(enemy.x),by0=Math.floor(enemy.y);
    for(let yy=bb.y-1;yy<bb.y+data.buildings[bb.type].size+1&&!adjacent;yy++)for(let xx=bb.x-1;xx<bb.x+data.buildings[bb.type].size+1&&!adjacent;xx++)if(xx===bx0&&yy===by0)adjacent=true;
-   if(adjacent&&enemy.attackTimer<=0){bb.hp=Math.max(0,bb.hp-enemy.damage*skyDmg*(isWall(bb)?role.wallDamage||1:1));if(bb.hp<=0)world.raidLosses=(world.raidLosses||0)+1;enemy.attackTimer=1.3;effect(world,enemy,center(bb,data),'slash');push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y,kind:'hit',life:.18});continue;}
+    if(adjacent&&enemy.attackTimer<=0){bb.hp=Math.max(0,bb.hp-enemy.damage*skyDmg*(isWall(bb)?(role.wallDamage||1)*chestGuard:1));if(bb.hp<=0)world.raidLosses=(world.raidLosses||0)+1;enemy.attackTimer=1.3;effect(world,enemy,center(bb,data),'slash');push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y,kind:'hit',life:.18});continue;}
   }
   if(arrived&&enemy.attackTimer<=0){
    // Armor stacks: sky aura + ability resolve + worn gear (Padded Coat
@@ -257,7 +294,7 @@ export function tickCombat(world,data,dt) {
    // hit harder — the aura reads off every boss still standing.
    let dread=1;
    try{if(enemy.role!=='boss')dread=bossAuraMult(world,data,enemy);}catch{}
-   const raw=enemy.damage*dread*skyDmg*(1-Math.min(.8,reduction))*(!targetUnit&&isWall(target)?role.wallDamage||1:1);
+   const raw=enemy.damage*dread*skyDmg*(1-Math.min(.8,reduction))*(!targetUnit&&isWall(target)?(role.wallDamage||1)*chestGuard:1);
    if(targetUnit&&raw>=target.hp&&!target.unbrokenUsed){try{if(unlockedAbilities(target,data).some(a=>a.effect==='unbroken')){target.hp=1;target.unbrokenUsed=true;enemy.attackTimer=1.3;push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y-1,kind:'float',text:'UNBROKEN!',color:'#ffe9a8',life:.9});effect(world,enemy,targetPoint,'slash');sfx.hit();continue;}}catch{}}
    target.hp=Math.max(0,target.hp-raw);enemy.attackTimer=1.3;effect(world,enemy,targetPoint,role.range>2?'arrow':'slash');push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y,kind:'hit',life:.18});sfx.hit();
    // Rue's ledger: a building that falls while raiders walk counts against
@@ -275,7 +312,7 @@ export function tickCombat(world,data,dt) {
   const rMult=renownLootMult(world,data),eMult=eliteLootMult(data);
   for(const f of fallen){loot+=Math.round(5*(f.role==='boss'?10:f.elite?eMult:1)*rMult);if(f.role==='boss')world.bossSlain=f.bossId;}
  }catch{loot=dead*5;}
- world.raidLoot=(world.raidLoot??0)+loot;world.resources.gold+=loot;
+ world.raidLoot=(world.raidLoot??0)+loot;if(loot>0)grantCentral(world,data,'gold',loot);
  world.enemies=world.enemies.filter(e=>e.hp>0);world.raidAge=(world.raidAge??0)+dt;
  if(world.enemies.length&&world.raidAge>240){
   // Failsafe: a raid dragging past 4 minutes is soft-locked — raiders flee.

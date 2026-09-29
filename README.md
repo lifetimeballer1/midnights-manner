@@ -112,7 +112,7 @@ These are design references only. No screenshots or commercial game assets are b
 
 ### Verification
 
-`npm test` includes 587 simulation/rendering/input/audio/update regression checks. `npm run test:browser` requires a locally installed Chromium (`CHROME_BIN` may point at Chrome or Edge). CI runs real pointer/touch input checks for placement preview/confirm, menus, equipment/training, missions, raids, save/reload, one-finger pan, pinch zoom, audio start/mute/resume, and no document overflow at portrait/landscape sizes. Screenshots are attached to the Actions run. A browser test failure blocks deployment. The update/refresh smoke path now restores the Settings sheet after service-worker controller transitions while separately asserting that no unapproved reload occurred; the same browser pass also requires live frame telemetry and keeps visible/static mesh face counts below a generous 30,000-face runaway guard.
+`npm test` includes 659 simulation/rendering/input/audio/update regression checks. `npm run test:browser` requires a locally installed Chromium (`CHROME_BIN` may point at Chrome or Edge). CI runs real pointer/touch input checks for placement preview/confirm, menus, equipment/training, missions, raids, save/reload, one-finger pan, pinch zoom, audio start/mute/resume, and no document overflow at portrait/landscape sizes. Screenshots are attached to the Actions run. A browser test failure blocks deployment. The update/refresh smoke path now restores the Settings sheet after service-worker controller transitions while separately asserting that no unapproved reload occurred; the same browser pass also requires live frame telemetry and keeps visible/static mesh face counts below a generous 30,000-face runaway guard.
 
 For visual work, `npm run build && npm run capture` writes deterministic look snapshots (dawn/day/dusk/night desktop plus a phone night view — calm motion, clear skies, pinned camera) to `artifacts/look-*.png`. `tests/lighting-baseline.test.js` freezes the current mesh shading and the static-cache invariant until a phase updates them deliberately. The `?perf` badge and `window.midnightsManner.frameReport()` report frame times plus painted and cached face counts.
 
@@ -135,6 +135,9 @@ src/
     pathfinding.js     grid routing and collision
     combat.js          raids, damage, towers, traps, ability handlers
     campaign.js        mission lifecycle, constraints, rewards
+    storage.js         central storage caps, reward ledger, inflow gates
+    conquest.js        tribal conquest state, readiness law, annex ledger
+    dashboard.js       read-only per-day economy ledger
 assets/sprites/        95 original 32×32 transparent PNG placeholders
 assets/favicon.svg
 data/                  editable game configuration JSON (buildings, troops, items, quests, missions, world)
@@ -241,3 +244,77 @@ Ordinary construction pauses during alarms. Carried goods, workplace assignments
 Open **Adventure → Home → Technology tree**. Twelve technologies form six two-step branches: Survival, Construction, Warfare, Industry, Society and Exploration. Each node shows its prerequisite, insight/resource cost, research duration and actual unlocks. The home manor produces 6 insight/minute; each living assigned scholar at a finished Scriptorium adds 9/minute per building tier, capped at 60 total. One technology researches at a time. Insight caps at 1,000. Both insight generation and the research timer pause during raids and campaign expeditions.
 
 Research unlocks existing defenses, tools, professions and production options without requiring campaign victories. Campaign rewards and previously earned unlocks remain intact; village levels still govern existing map expansion and tier gates. Research costs are paid once on start; completion grants unlocks once. The queue, points and discoveries survive saves. Old saves begin with zero insight and no discoveries. The system is an initial progression alternative, not a complete rebalance of every legacy level gate. Technology definitions live in `world.technologies`, and Scriptorium productivity in `buildings.scriptorium.researchRate`.
+
+### Late-game economy — Phase 1: central storage caps
+
+Every central store now has a real capacity: a data floor (`world.storageBase`) plus the Manor Hall and any finished **Storehouse** tiers (new 3-tier building at village level 4), scaled by each tier's `rateMultiplier`, so storage grows with upgrades. On-site building reserves keep their own tier-scaled caps (`harvest.capacity`/`perTier`).
+
+Nothing earned is ever voided by a full store. Taps, collector deliveries and refiner output bank what fits and hold the rest exactly where it was — reserves stay on the building, collectors keep carrying, refiners wait on their raw input. Reward overflow (quest and level caches, mission rewards, salvage, gifts, expedition hauls, the tutorial bonus) waits in `world.pendingRewards` and banks as room opens. Trade deals and frontier-event responses whose goods cannot fit refuse before any cost is paid. Over-cap saves are **grandfathered**: every saved unit stays; only new inflow holds until the village spends below the cap.
+
+The Resources panel shows `stored / capacity`, remaining room, held rewards and a full-stores note, and HUD totals gain a gold **full** state so the hold is always explainable. Tuning lives in `data/world.json` (`storageBase`) and `data/buildings.json` (`storage` per building, per tier). Save v14 migrates additively — nothing but the new reward shelf is added, and over-cap balances pass through exactly as saved.
+
+Posted specialists now work indoors (renderer-only): once a keeper reaches their finished workplace they are hidden from the map while the building's work cues carry the shop; any manual order, emergency duty or expedition brings them back out, and workers still walking to a new post stay visible. Collectors stay visible by design — their gather/deliver walk is the economy's readout.
+
+Review: `npm test` 597 green (10 new storage-cap checks: caps math, grandfathering, partial banking, carried-load and refiner backup, trade refusal, migration, indoors read), `npm run build` 359 precached, browser smoke green (Edge as Chromium) with no console errors.
+
+### Late-game economy — Phase 2: upper-tier curves + building limits
+
+Upgrade prices are now data-driven above tier 2. A building can carry `costCurve` in `data/buildings.json` — the price multiplier for each tier (index = tier − 1). Tier 1 always stands at base cost and tier 2 at double (the friendly opening is a tested invariant); from tier 3 the curve steepens, and `tierCosts` adds flat per-tier extras in the worked goods (sawn **lumber**, forged **plate**) on top — extras are never multiplied by the curve, they already name the endgame price, and the builder discount trims them like coin. Buildings without a curve keep the legacy formula byte-for-byte, so untouched content and pinned balances stay exactly put. Tuning lives entirely in `data/buildings.json`.
+
+Every economy line also has a real building limit: `maxCount` is either a flat number or a per-village-level array (clamped at the last entry, like housing arrays), so the settlement grows its ceiling with village levels and research can extend it later. Limits cover production, storage and workshop lines; walls, gates, ramparts, traps and housing stay uncapped for layout freedom. `Game.build` enforces the limit after the wonder and chain gates, the Build panel shows `built / cap`, tags a capped card **FULL** and explains the reason, and over-limit villages keep every standing building — only new work waits. Ruins never count, so a wrecked shop can be repaired or replaced in place.
+
+Review: `npm test` 606 green (9 new curve/limit checks: friendly-opening invariant, flat extras, legacy fallback, discount on extras, numeric and per-level limits, growth with village level, grandfathering, ruin slots, multi-resource affordability), `npm run build` 359 precached, browser smoke green (Edge as Chromium) with no console errors.
+
+### Late-game economy — Phase 5: renown, the endless multi-resource sink
+
+Manner Renown now asks the whole basket: gold, food, sawn **lumber**, **bread**, forged **plate** and rare **frostwood**, climbing 35% per level forever (`data/endgame.json renown.baseCost`/`costGrowth`). A missing good refuses the purchase before anything is paid, and the purchase is exact. Every level still sharpens defenses (+3% damage) and enriches salvage (+5% loot).
+
+Ten data-driven milestones (`renown.rewards`) add the real rewards — never production multipliers, so the surplus cure never seeds a new surplus: **titles** (shown at the hall inspector), **building-limit bumps** (each finite `maxCount` gains room; uncapped lines stay uncapped), **muster room** (extra troop slots above the hall beds) and **unlocks** (the grey banner cloak, the keeper's ring, the dawn regalia). The table is read live from `world.renown` — no new save fields — and earned unlocks merge once on purchase, so old renown saves heal their milestones on their next level. Great Works and Town Projects can join the same table as data once their phases land.
+
+Review: `npm test` 614 green (8 new renown checks: basket ladder, refusal without payment, exact payment plus spoken milestone, once-only unlock merge, cap/cosmetic-only table guard, title ladder, no-production-aura guard, muster integration), `npm run build` 359 precached, browser smoke green (Edge as Chromium) with no console errors.
+
+### Late-game economy — Phase 3: the town table and Well Fed
+
+Once per game-day (`world.townMeal.secondsPerDay`, 180s of active village time) the town sits down to eat: every mouth costs food **and** bread (`foodPerVillager` 5, `breadPerVillager` 1, both data). A full table draws the basket exactly and earns **Well Fed** until the next meal; a short pantry is never punished — no partial draw, no debt, no starvation, the bonus simply lapses and returns the moment the stores can cover the board. The loss is announced once, and a village that never built the bread chain is never nagged.
+
+Well Fed merges into the existing systems through data: aura effects (`+8% gather`, `+5% village XP`, `+0.2/s recovery`), `+25%` child growth in the cradle timer, and `+25%` job training for posted crews. Bread is now the daily reader of the mill chain — the finished product the stores actually demand. Rations and feast supplies arrive in Phase 6 as the War Chest's Rations line and the festival baskets, so food and bread feed three systems instead of piling up as dead inventory.
+
+`world.wellFed` / `world.lastMealDay` are optional saved fields with safe defaults: fresh worlds start on a quiet day zero, and old saves eat on their first new day. The Build strip shows a `🍲 Well Fed` chip, and the Resources panel reports the table, the basket and the next meal countdown.
+
+Review: `npm test` 623 green (9 new meal checks: basket cost, day cadence, no-partial shortfalls, loss-only messaging, aura merge, cradle and job-training bonuses, no-death guard, old-save grace, data fallbacks), `npm run build` 360 precached, browser smoke green (Edge as Chromium) with no console errors.
+
+### Late-game economy — Phase 6: war chest, festivals and the bulk market
+
+Three repeatable valves turn surplus into decisions, all data-driven and combat-only:
+
+**War Chest** (`data/world.json warChest`, village level 5+): five investments — Rations, Arrow Stockpile, Repair Wagons, Reinforced Armor, Frostwood Stakes — stockpiled any time with real resources from the Adventure → Home board. The chest only helps while it is **open**, and it opens only when raiders are on the road (the battle HUD grows a 🛡 button during the warning). Whatever is inside is spent when the raid ends, win or lose: arrows sharpen towers and bows through the aura table, plate shrugs off blows, rations mend mid-raid and raise more of the fallen (revive up to the 80% ceiling), stakes slow the charge and blunt siege blows against walls, and wagons mend the worst-hit buildings — ruins included — before the victory tally is read. Easy raid, save the stores; crown wave, open everything.
+
+**Festivals** (`data/festivals.json`): Harvest Feast, War Feast and Founder's Festival are held from the same board — pay once, the town glows for its full duration (timed aura effects, growth and job-training warmth, and Founder's glory in village XP), then a per-festival cooldown keeps the calendar readable. One festival at a time; the warmth fades on its own clock.
+
+**Bulk market** (`data/traders.json`): the Grey Market now moves every real good — sawn lumber, plate, frostwood, flour and bread join the original three — and two late-game valves (level 7–8, one run a day) trade bulk surplus for a single prize at intentionally lossy rates, riding the existing rotation, daily caps and the Phase 1 room check.
+
+Additive save fields (`world.warChest`, `world.warChestArmed`, `world.festival`) with safe defaults; old saves read an empty chest and no festival.
+
+Review: `npm test` 636 green (13 new valve checks: chest data/caps/level gates, exact stocking, open-only-for-raids, combat-only auras, revive/wall/slow/recovery math, burn-at-raid-end integration, festival gates/exact payment/expiry/sim bonuses, deliberate trader-table widening, bulk conversion with daily caps and frostwood payouts), `npm run build` 363 precached, browser smoke green (Edge as Chromium) with no console errors.
+
+### Late-game economy — Phase 4: Town Projects
+
+Four grand staged works now stand beside the ordinary shop list — **Grand Market Square** (3×3), **Grand Granary**, **Manor Gardens** and the **Monument of the Manner** — data-driven buildings with a `project` flag, their own tier-staged art (clearing → stalls → stonework), multi-resource stage prices (`costCurve` [1, 2, 6] with the friendly opening intact), village-level gates (6/5/5/8 to raise, higher tiers gated by `tierGates`), and one per village. They appear under a new **Projects** filter in the Build panel and stage up through the normal inspector.
+
+Each finished stage blesses the settlement through data: a generic `flatAuras` map (scaled by tier, merged into the existing aura table, caps hold) gives the Market Square trade/carry/study warmth, the Granary extends central storage through the Phase 1 cap system, the Gardens add beds and a small mend/gather hand, and the Monument improves revival and village study. Ruins and scaffolds bless nothing. More projects (Royal Forge Quarter, City Wall Project, Stone Road Network…) are data + sprite additions on this same pipeline.
+
+Review: `npm test` 643 green (7 new project checks: data shape and distinct stage art, staged multi-resource prices, level gates and one-per-village, tier-gated stage-ups, flatAuras scaling and ruin/scaffold suppression, granary/gardens/monument payoffs, save validation and round-trip), `npm run build` 375 precached, browser smoke green (Edge as Chromium) with no console errors — including the four-sides/finite-faces orbit sweep across every new building and tier, which caught two undefined palette names in the new meshes before they shipped.
+
+### Late-game economy — Phase 7: the economy dashboard
+
+The Resources panel now reads the whole ledger. A per-game-day card (one day = 180s of active village time) lists each resource's passive output, hearth trickles and worked recipes on the plus side, and the town table's meal draw on the minus side, with the net per day — full reserves pause their drip exactly like the sim, and collectors are honestly excluded rather than guessed. Below it, **Where wealth goes** lists the open repeatable sinks with live prices (next Renown, festivals, war-chest stocks, unbuilt or next-stage Town Projects), and **The wagons** lists today's Grey Market deals with remaining daily caps and one-tap strike buttons. Read-only: `src/systems/dashboard.js` is pure math, and the panel writes nothing to the save.
+
+Review: `npm test` 649 green (6 new dashboard checks: per-second rates and the mid-game throttle, full-reserve pause, daily meal draw and net, two-sided recipe reporting, trickle merges, empty ledger), `npm run build` 375 precached, browser smoke green (Edge as Chromium) with no console errors.
+
+### Late-game economy — Phase 8: spawn protection and the Ironshield conquest
+
+**Spawn protection.** Raids can no longer materialize on or beside the built-up town: every structure's footprint grown by a buffer (`world.spawnBuffer`, default 2) is an exclusion ring, and raid entries must fall outside it on unblocked ground. When a near edge is wall-to-wall with the settlement, the muster walks outward into the wild (up to six tiles) before any fallback, and every raid dedups its tiles. The roomy contract is unchanged — small waves still rotate sides and stay on the navigation grid.
+
+**The Ironshield conquest (first tribal slice).** A data-driven endgame arm (`data/conquest.json` + chapters 15–17 in `data/missions.json`): scout the tribe from the Adventure → Home frontier card (gated on the muster law — village level 9, Renown 2, tier-3 barracks, 8 fighters), break its outer works in **Break the Border Patrol** and **Silence the Watch Post**, then march on **The Ironshield Keep** with the Campaign War Chest (food, bread, lumber, plate and gold paid only when the march starts). The Warden-Captain rides the final wave through the same boss machinery as the home crowns (`bossSpec` searches conquest leaders beside `endgame.bosses`, rotation untouched), and first-clears write a `world.conquest` ledger. When the keep falls, judge it once: **rebuild as an outpost** (+2 to every finite building limit), **dismantle for materials** (salvage granted through the Phase 1 storage gate, overflow waiting in the ledgers), or raise a **frontier settlement** (gathering and hearth auras on the same aura table). Every effect is data; four more tribes are content additions on this pipeline, not new systems. Saves gain only additive fields — old worlds wake unscouted with an empty ledger.
+
+Review: `npm test` 659 green (10 new conquest checks: exclusion footprint and buffer math, outward-mustering, tribe/mission data shape, leader lookup without rotation bleed, the muster law, first-clear ledgers, war-chest payment and refusal, gated annex with storage overflow, outpost limits and settlement auras, old-save defaults), `npm run build` 378 precached, browser smoke green (Edge as Chromium) with no console errors.

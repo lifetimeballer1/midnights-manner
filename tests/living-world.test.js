@@ -47,7 +47,9 @@ test('living world: trader tables have shape and honest prices', () => {
     for (const basket of [t.give, t.take]) {
       assert.ok(basket && Object.keys(basket).length > 0, `${t.id} has both sides`);
       for (const [k, v] of Object.entries(basket)) {
-        assert.ok(['wood', 'food', 'gold', 'xp'].includes(k), `${t.id} trades real goods (${k})`);
+        // Phase 6 widened the market: every real store may be traded now
+        // (the bulk valves move lumber, plate, frostwood, flour, bread).
+        assert.ok(['wood', 'food', 'gold', 'lumber', 'plate', 'frostwood', 'flour', 'bread', 'xp'].includes(k), `${t.id} trades real goods (${k})`);
         assert.ok(Number.isFinite(v) && v > 0, `${t.id} positive amounts`);
       }
     }

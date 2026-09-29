@@ -4,6 +4,7 @@
 // the frontier feel shared while staying fully local. No RNG, no saves to
 // scum: the date is the seed.
 import {afford, pay, auras} from '../model.js';
+import {centralRoom} from './storage.js';
 
 export const SEASON_LENGTH = 7; // days per season; 4 seasons = a 28-day cycle
 export const CYCLE_DAYS = 28;
@@ -12,7 +13,10 @@ const DAY_MS = 86400000;
 // Aura/stat keys a calendar effect may touch. Matches the keys auras()
 // (model.js) actually consumes — never invent new ones here.
 const VALID_EFFECTS = ['damage', 'armor', 'gather', 'carry', 'build', 'discount', 'heal', 'xp', 'survey', 'food'];
-const RESOURCES = ['wood', 'food', 'gold'];
+// Phase 6 — the market's bulk valves move every real good: sawn lumber,
+// plate, frostwood, flour and bread join the original three, so late-game
+// surplus can be converted (intentionally lossy) instead of piling up.
+const RESOURCES = ['wood', 'food', 'gold', 'lumber', 'plate', 'frostwood', 'flour', 'bread'];
 
 function hash(n) {
   let x = n | 0;
@@ -116,6 +120,12 @@ export function performTrade(state, data, dealId, date = new Date()) {
   const give = {};
   for (const [k, v] of Object.entries(deal.give || {})) give[k] = tradeCut > 0 && Number.isFinite(v) ? Math.max(0, Math.ceil(v * (1 - tradeCut))) : v;
   if (!state.world || !afford(state.world.resources, give)) return {ok: false, error: 'Your stores fall short — gather a little more first.'};
+  // Central storage caps (Phase 1): refuse a deal whose goods cannot fit
+  // before any coin moves — spend first, then the wagons roll.
+  for (const [k, v] of Object.entries(deal.take || {})) {
+    if (!Number.isFinite(v) || v <= 0 || k === 'xp' || !RESOURCES.includes(k)) continue;
+    if (centralRoom(state.world, data, k) < v) return {ok: false, error: 'Your stores are full — spend a little or raise a Storehouse before trading for more.'};
+  }
   pay(state.world.resources, give);
   let xp = 0;
   for (const [k, v] of Object.entries(deal.take || {})) {

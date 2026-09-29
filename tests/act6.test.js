@@ -384,7 +384,7 @@ test('ph7: three armor-slot pieces go wide, plate pays for the best', () => {
   assert.deepEqual(plate.roles, ['warrior', 'archer', 'warden', 'ranger', 'pikewoman']);
   const d = structuredClone(data);
   const g = new Game(d);
-  g.world.resources = {wood: 100000, food: 100000, gold: 100000, frostwood: 100000, plate: 100000};
+  g.world.resources = {wood: 100000, food: 100000, gold: 100000, frostwood: 100000, plate: 100000, lumber: 100000};
   g.state.unlocks.push('iron-cap');
   const u = makeUnit('warrior', d, 0);
   g.world.troops.push(u);
@@ -479,7 +479,7 @@ test('ph8: Weighted Net hauls; Oilskin Coat is the first speed armor', () => {
   assert.ok(!data.world.locked.includes('oilskin-coat'), 'shop armor, cost-gated like the winter coat');
   const d = structuredClone(data);
   const g = new Game(d);
-  g.world.resources = {wood: 100000, food: 100000, gold: 100000, frostwood: 100000, plate: 100000};
+  g.world.resources = {wood: 100000, food: 100000, gold: 100000, frostwood: 100000, plate: 100000, lumber: 100000};
   const u = makeUnit('diver', d, 0);
   g.world.troops.push(u);
   const bare = stats(u, d);
@@ -506,7 +506,7 @@ test('ph8: down-dark-water is a real pond-3 gate; Quest 15 lands 1550', () => {
   g.state.xp = 1420; g.state.vlevel = levelForXp(1420);
   assert.ok(g.locked('diver') && g.locked('net'), 'both quest-gated on arrival');
   assert.ok(!g.locked('deephole'), 'the hole itself waits on the pond, not the quest');
-  g.world.resources = {wood: 100000, food: 100000, gold: 100000, frostwood: 100000, plate: 100000};
+  g.world.resources = {wood: 100000, food: 100000, gold: 100000, frostwood: 100000, plate: 100000, lumber: 100000};
   const pond = makeBuilding('pond', 7, 9, d);
   pond.remaining = 0;
   g.world.buildings.push(pond);
@@ -572,7 +572,7 @@ test('ph9: the Emberglass waits on a tier-2 mine (same generic chain gate)', () 
   assert.ok(!data.world.locked.includes('emberglass'), 'chain-gated like the smeltery, never locked');
   const d = structuredClone(data);
   const g = new Game(d);
-  g.world.resources = {wood: 100000, food: 100000, gold: 100000, frostwood: 100000, plate: 100000};
+  g.world.resources = {wood: 100000, food: 100000, gold: 100000, frostwood: 100000, plate: 100000, lumber: 100000};
   g.state.vlevel = 7;
   const messages = [];
   g.notify = m => messages.push(m);
@@ -633,7 +633,7 @@ test('ph9: Glasspick cuts; Ember Ward is the first offensive armor', () => {
   assert.ok(!data.world.locked.includes('ember-ward'), 'shop armor, cost-gated');
   const d = structuredClone(data);
   const g = new Game(d);
-  g.world.resources = {wood: 100000, food: 100000, gold: 100000, frostwood: 100000, plate: 100000};
+  g.world.resources = {wood: 100000, food: 100000, gold: 100000, frostwood: 100000, plate: 100000, lumber: 100000};
   const u = makeUnit('sapper', d, 0);
   g.world.troops.push(u);
   const bare = stats(u, d).damage;
@@ -660,7 +660,7 @@ test('ph9: glass-under-stone is a real mine-3 gate; Quest 16 lands 1690', () => 
   g.state.xp = 1550; g.state.vlevel = levelForXp(1550);
   assert.ok(g.locked('sapper') && g.locked('glasspick'), 'both quest-gated on arrival');
   assert.ok(!g.locked('emberglass'), 'the shaft itself waits on the mine, not the quest');
-  g.world.resources = {wood: 100000, food: 100000, gold: 100000, frostwood: 100000, plate: 100000};
+  g.world.resources = {wood: 100000, food: 100000, gold: 100000, frostwood: 100000, plate: 100000, lumber: 100000};
   const mine = makeBuilding('mine', 7, 9, d);
   mine.remaining = 0;
   g.world.buildings.push(mine);
@@ -843,7 +843,7 @@ test('ph10: Coinmail is shop-open armor with the first discount stat', () => {
   assert.ok(!c.roles.includes('warrior') && !c.roles.includes('miner'), 'fighters and delvers look elsewhere');
   const d = structuredClone(data);
   const g = new Game(d);
-  g.world.resources = {wood: 100000, food: 100000, gold: 100000, frostwood: 100000, plate: 100000};
+  g.world.resources = {wood: 100000, food: 100000, gold: 100000, frostwood: 100000, plate: 100000, lumber: 100000};
   const hand = makeUnit('builder', d, 0);
   hand.gear = 'tome'; hand.owned = ['tome']; // a borrowed tool with no price voice
   g.world.troops.length = 0; // send the starting roster home: its hammer already speaks 0.05

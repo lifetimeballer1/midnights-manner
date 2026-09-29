@@ -7,7 +7,8 @@
 // world.resources. All timing rides dt; rng is injectable for tests.
 import {move} from './pathfinding.js';
 import {stats, center, makeUnit, housing} from '../model.js';
-import {addResource, floatText} from './economy.js';
+import {floatText} from './economy.js';
+import {grantCentral} from './storage.js';
 import {ensureIdentity} from './villagers.js';
 import {factionFor} from './tactics.js';
 import {sfx} from './audio.js';
@@ -154,7 +155,9 @@ export function applyReturn(world, state, data, unit, manifest, notify = () => {
     let amount = Math.max(0, Math.floor(v));
     if (manifest.mishap) amount = Math.floor(amount / 2);
     if (amount > 0) {
-      addResource(world, k, amount);
+      // Central storage caps (Phase 1): the haul banks what fits; the
+      // rest waits on the ledgers (grants queue their overflow).
+      grantCentral(world, data, k, amount, true);
       floatText(world, at.x, at.y, `+${amount} ${k}${manifest.mishap ? ' (mishap)' : ''}`, manifest.mishap ? '#e08a8a' : '#ffe9a8');
     }
   }
@@ -179,7 +182,7 @@ export function applyReturn(world, state, data, unit, manifest, notify = () => {
       try { sfx.birth(); } catch {}
       lines.push(`${saved.name} was rescued and joins as a ${spec.name}`);
     } else {
-      addResource(world, 'food', 10);
+      grantCentral(world, data, 'food', 10, true);
       floatText(world, at.x, at.y, '+10 food (travelers\u2019 gifts)', '#ffe9a8');
       lines.push('a rescued traveler found no free bed and moved on, leaving supplies (+10 food)');
     }

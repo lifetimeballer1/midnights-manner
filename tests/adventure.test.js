@@ -51,7 +51,9 @@ test('questCards: first quest active, rest upcoming, progress always shaped', ()
 test('campaignCards: gates mirror missionLocked, incl. requiresAny branches', () => {
   const {data: d, state} = freshState();
   const cards = campaignCards(d, state);
-  assert.equal(cards.length, 15);
+  // 15 chapters through Act VIII; the Ironshield conquest arc (Phase 8)
+  // adds chapters 15-17 — deliberate pin.
+  assert.equal(cards.length, 18);
   assert.equal(cards[0].state, 'available', 'first chapter open');
   assert.ok(cards.slice(1).every(c => c.state === 'locked'));
   // Classic AND gate.
@@ -161,7 +163,7 @@ test('homeSummary snapshots home without mutating state or saves', () => {
   assert.equal(JSON.stringify(state), before, 'read-only: no new save keys, no drift');
   assert.equal(s.questsDone, 0);
   assert.equal(s.questsTotal, 22);
-  assert.equal(s.chaptersTotal, 15);
+  assert.equal(s.chaptersTotal, 18);
   assert.equal(s.chaptersDone, 0);
   assert.equal(s.lvl, 1);
   assert.equal(s.nextLevel.level, 2);

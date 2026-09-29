@@ -1,0 +1,64 @@
+{
+  "tribe": {
+    "id": "ironshield",
+    "name": "Ironshield Tribe",
+    "color": "#8a93a8",
+    "text": "West of the ridge, the Ironshield have walled a cold valley and crowned a warden-captain. They do not raid for hunger — they raid for ground, and they keep what they take.",
+    "require": { "vlevel": 9, "renown": 2, "barracksTier": 3, "troops": 8 },
+    "preliminaries": [
+      { "id": "ironshield-patrol", "name": "Break the Border Patrol", "text": "Their shield-lines walk the west road in pairs. Break them before they warn the keep." },
+      { "id": "ironshield-watch", "name": "Silence the Watch Post", "text": "A stone watch answers every horn. Blind it, and the stronghold fights half-asleep." }
+    ],
+    "assault": "ironshield-keep",
+    "intel": {
+      "leader": "Warden-Captain Brannoc",
+      "army": "Shield infantry, wall-breakers, and a muster that answers every horn",
+      "tactics": "Holds the yard behind stone; summons breakers when pressed",
+      "weakness": "Slow to turn — siege craft and armor-piercing steel pay double",
+      "reward": "Break the keep and its valley, road and stores join the Manner."
+    }
+  },
+  "leaders": [
+    {
+      "id": "ironshield-warden",
+      "name": "Warden-Captain Brannoc",
+      "title": "Shield-lord of the Ironshield",
+      "hpBase": 1500,
+      "hpPerWave": 90,
+      "dmgBase": 55,
+      "dmgPerWave": 3,
+      "speed": 0.6,
+      "range": 1.4,
+      "wallDamage": 3,
+      "mechanics": {
+        "slam": { "damage": 45, "radius": 1.7, "everySec": 7 },
+        "summon": { "role": "breaker", "count": 2, "everySec": 20, "cap": 6 },
+        "enrage": { "hpFrac": 0.3, "dmgMult": 1.5 }
+      }
+    }
+  ],
+  "annex": [
+    {
+      "id": "outpost",
+      "name": "Rebuild as an Outpost",
+      "icon": "🏰",
+      "text": "A fortified regional base: two more of every building line may stand.",
+      "limitBonus": 2
+    },
+    {
+      "id": "dismantle",
+      "name": "Dismantle for Materials",
+      "icon": "⚒",
+      "text": "Strip the keep stone by stone — timber, plate and cold coin for the Manner.",
+      "resources": { "lumber": 4000, "plate": 500, "gold": 3000, "frostwood": 250 }
+    },
+    {
+      "id": "settlement",
+      "name": "Frontier Settlement",
+      "icon": "🌾",
+      "text": "The valley feeds the Manner: quicker gathering hands and one more of every line.",
+      "limitBonus": 1,
+      "flatAuras": { "gather": 0.03, "food": 0.4 }
+    }
+  ]
+}

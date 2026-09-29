@@ -84,6 +84,77 @@
     "flour": 0,
     "bread": 0
   },
+  "storageBase": {
+    "wood": 4000,
+    "food": 4000,
+    "gold": 3000,
+    "lumber": 800,
+    "flour": 800,
+    "bread": 800,
+    "frostwood": 600,
+    "plate": 600
+  },
+  "spawnBuffer": 2,
+  "townMeal": {
+    "secondsPerDay": 180,
+    "foodPerVillager": 5,
+    "breadPerVillager": 1,
+    "wellFed": {
+      "effects": { "gather": 0.08, "xp": 0.05, "heal": 0.2 },
+      "growth": 0.25,
+      "jobXp": 0.25
+    }
+  },
+  "warChest": {
+    "minLevel": 5,
+    "investments": [
+      {
+        "id": "rations",
+        "name": "Rations",
+        "icon": "🍞",
+        "text": "Hot meals before the horn — the wounded mend mid-raid and more of the fallen rise.",
+        "cost": { "food": 600, "bread": 120 },
+        "max": 3,
+        "perLevel": { "heal": 0.25, "revive": 0.1 }
+      },
+      {
+        "id": "arrows",
+        "name": "Arrow Stockpile",
+        "icon": "🏹",
+        "text": "Bundled shafts for every bow — and better shot for every tower.",
+        "cost": { "lumber": 300, "plate": 20 },
+        "max": 3,
+        "perLevel": { "damage": 0.03 }
+      },
+      {
+        "id": "wagons",
+        "name": "Repair Wagons",
+        "icon": "🛠",
+        "text": "Crews roll out at dawn — damaged buildings are mended free after the raid.",
+        "cost": { "wood": 400, "lumber": 120 },
+        "max": 2,
+        "perLevel": { "repairBuildings": 2 }
+      },
+      {
+        "id": "armor",
+        "name": "Reinforced Armor",
+        "icon": "🛡",
+        "text": "Fresh plate for the line — every defender shrugs off more.",
+        "cost": { "plate": 40 },
+        "max": 3,
+        "perLevel": { "armor": 0.03 }
+      },
+      {
+        "id": "stakes",
+        "name": "Frostwood Stakes",
+        "icon": "❄",
+        "text": "Cold-hardened stakes slow the charge and blunt siege blows against walls.",
+        "cost": { "frostwood": 150 },
+        "max": 3,
+        "perLevel": { "wallGuard": 0.12, "slow": 0.05 }
+      }
+    ]
+  },
   "buildings": [
     {
       "type": "hall",

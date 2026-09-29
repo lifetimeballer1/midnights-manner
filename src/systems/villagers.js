@@ -9,6 +9,10 @@
 // import nothing from them (no cycles). All functions take plain
 // (unit, world, data) args and read only data/names.json pools plus the
 // FALLBACK pools below (tests and old saves may lack names.json).
+// food.js is the one import allowed: it is pure math with no imports of
+// its own, so the no-cycle law holds. festivals.js follows the same law.
+import {wellFedBonus} from './food.js';
+import {festivalBonus} from './festivals.js';
 export const FALLBACK_GIVEN = ['Bram', 'Wren', 'Fen', 'Issa', 'Pella', 'Maro', 'Sella', 'Tomm', 'Hob', 'Kess', 'Dren', 'Berra', 'Colm', 'Essie', 'Lark', 'Rill'];
 export const FALLBACK_TRADE = ['Ash', 'Salt', 'Bell', 'Cutler', 'the mason', 'the smith', 'the thatcher', 'the tinker', 'the miller', 'the drover'];
 
@@ -33,6 +37,24 @@ export const JOB_LEVEL_BONUS = 0.08;
 
 export function hasTrait(unit, id) {
   return Array.isArray(unit?.traits) && unit.traits.includes(id);
+}
+// Working indoors (Phase 1 storage pass): a living, posted specialist whose
+// feet have reached the shop is drawn hidden while the shift runs — the
+// building's own work cues (building-activity.js) tell the story instead.
+// Collectors stay visible on purpose: their gather/deliver walk is the
+// economy's readout. Any manual order, emergency duty or expedition brings
+// the worker back out; rangers en route to a new post stay visible until
+// they arrive. Renderer-only — no simulation or save state reads this.
+export function insideWorkplace(world, data, unit) {
+  if (!unit || unit.hp <= 0 || unit.emergency || unit.expedition || unit.order) return false;
+  if (!unit.workplace) return false;
+  if (data?.troops?.[unit.type]?.role === 'collector') return false;
+  if (!Number.isFinite(unit.x) || !Number.isFinite(unit.y)) return false;
+  const b = (world?.buildings || []).find(x => x.id === unit.workplace);
+  if (!b || b.hp <= 0 || b.remaining > 0) return false;
+  const size = Number.isFinite(data?.buildings?.[b.type]?.size) ? data.buildings[b.type].size : 1;
+  const cx = b.x + size / 2, cy = b.y + size / 2;
+  return Math.hypot(unit.x - cx, unit.y - cy) <= size / 2 + 0.9;
 }
 // Cowardly and Brave never share a heart — re-roll the clash.
 export function rollTraits(rand = Math.random) {
@@ -90,19 +112,21 @@ export function traitOutputMult(unit, buildingType) {
   if (hasTrait(unit, 'craftsman') && CRAFT_SHOPS.includes(buildingType)) m *= 1.25;
   return m;
 }
-// Posted crews train on the job. Quick Learners train 50% faster.
-// Returns the list of villagers who leveled up (for notify/floaters).
+// Posted crews train on the job. Quick Learners train 50% faster; a
+// Well-Fed town (Phase 3) and live festivals (Phase 6) train faster
+// still — data bonuses, zero whenever neither is running.
 export function tickVillagerJobs(world, data, dt) {
   if (!Number.isFinite(dt) || dt <= 0) return [];
   // Perf: one id map per tick instead of a buildings.find per posted troop.
   const postOf = new Map();
   for (const b of world.buildings || []) postOf.set(b.id, b);
+  const fed = 1 + wellFedBonus(world, data, 'jobXp') + festivalBonus(world, data, 'jobXp');
   const leveled = [];
   for (const u of world.troops || []) {
     if (!u || u.hp <= 0 || !u.workplace) continue;
     const b = postOf.get(u.workplace);
     if (!b || b.hp <= 0 || b.remaining > 0) continue;
-    const rate = JOB_XP_RATE * (hasTrait(u, 'quick_learner') ? 1.5 : 1);
+    const rate = JOB_XP_RATE * (hasTrait(u, 'quick_learner') ? 1.5 : 1) * fed;
     const before = u.jobLevel || 1;
     u.jobXp = Math.min(JOB_XP_LEVELS[JOB_XP_LEVELS.length - 1], (Number.isFinite(u.jobXp) ? u.jobXp : 0) + rate * dt);
     u.jobLevel = jobLevelForXp(u.jobXp);

@@ -10,6 +10,9 @@ test('unlock chain: all chapters grant something real, nothing dead or doubled',
   assert.ok(data.missions.length >= 9, 'nine chapters shipped; Act VII grows the campaign');
   const granted = [];
   for (const m of data.missions) {
+    // Conquest missions (Phase 8) pay in territory — the annex ledger and
+    // rewards, deliberately no unlock.
+    if (m.conquest) continue;
     assert.ok(Array.isArray(m.unlocks) && m.unlocks.length > 0, `${m.id} grants an unlock`);
     for (const id of m.unlocks) {
       assert.ok(data.buildings[id] || data.items[id] || data.troops[id], `${m.id} unlock ${id} resolves`);
@@ -99,7 +102,7 @@ test('test-button raids still work and also reschedule the horns', ()=>{
 });
 
 test('migration v3->latest: fresh raid clock, earned unlocks healed, stores untouched', ()=>{
-  assert.equal(VERSION, 13);
+  assert.equal(VERSION, 14);
   const w = createWorld(data);
   delete w.nextRaidAt;
   w.elapsed = 900; // a veteran village, long past the first horn

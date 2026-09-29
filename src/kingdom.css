@@ -9,6 +9,8 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .crest>span{background:#d4ae68;color:#19283d;border-color:#ffdfa0;text-shadow:none}
 .chief-xp{background:#0b1729;border-color:#627994}.chief-xp i{background:linear-gradient(90deg,#4a9eb8,#a1efef)}
 .resource{background:linear-gradient(135deg,#2a3e58f5,#101c30f5);border-color:#8299b575;box-shadow:inset 0 1px #ffffff15,0 3px #091323,0 8px 20px #07112240;border-radius:14px}
+.resource.full{border-color:#f2c96ec0;box-shadow:inset 0 1px #ffffff15,0 3px #091323,0 0 0 2px #f2c96e66,0 8px 20px #07112240}
+.resource.full b{color:#f2c96e}
 .resource small{color:#c5d3e3}.resource b{text-shadow:0 2px #071122}.resource img{filter:drop-shadow(0 3px 2px #07112288)}
 .quest-chip{background:linear-gradient(120deg,#293d58f5,#14233bf5);border-color:#d8b87980;border-left:3px solid #e5c27f;box-shadow:0 4px #09132366,0 8px 24px #07112240}
 .quest-chip small{color:#e7c88c}.quest-chip #quest-progress{color:#c3d5e5}.quest-icon{background:#eac98017;width:36px;height:36px;display:grid;place-items:center;border:1px solid #eac98044;border-radius:10px}
@@ -35,6 +37,8 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .build-card strong{color:#263b50;font-size:15px}.build-card .blurb{color:#5c6c75}.build-card .tiers{color:#687581}.build-card .tag{background:#dde5e5;color:#4e6374;padding:3px 7px;border-radius:6px;font-size:9px}.build-card .cost{background:#e2e8db;color:#405b40;border-color:#c6d3bd;border-radius:9px}.build-card .cost.short{background:#f2e1d7;color:#8b4939;border-color:#dec0b0}.build-card:disabled .tag{background:#dcd8cb;color:#6e6d67}
 .village-strip{background:linear-gradient(125deg,#dce5e5,#eeeee1);border-color:#b6c6cb}.vlevel{color:#344f63}.vstats{color:#536879}.vstats>span{background:#fbfaf1}.levelbar>div,.progress>div{background:linear-gradient(90deg,#438398,#88c7c9)}
 .person-card,.adv-card,.mission-card,.quest,.resource-detail,.worker-row{border-color:#ccc6b4;box-shadow:0 3px 10px #253c4d0b}.person-head h3,.adv-card h3,.mission-card h3,.quest>b,.resource-detail-head h3{color:#2c4156}.person-head img{background:linear-gradient(#dce6e6,#baccd6);border:1px solid #b3c4ca}.statline{background:#e7eae3;color:#506371}.role,.section-label{color:#6a7781}.job select{color-scheme:light}
+.resource-cap{background:#e6ece7;color:#526d77;border-radius:10px;padding:8px 10px;font-size:13px;margin-top:8px}
+.resource-cap.full{background:#f3e6cf;color:#7c5a2e}
 .adv-hero{background:radial-gradient(ellipse at top right,#425c7c,#192c46);border-color:#bb9e69;box-shadow:inset 0 1px #ffffff20,0 4px 12px #152c4920}.adv-hero p{color:#c9d9e6}.adv-hero h3{font-size:24px;color:#fff0cf}.adv-eyebrow{color:#7c6540}.adv-hero .adv-eyebrow{color:#ebc986}.qpill-active{background:#2c4663;color:#ffe4a8}.quest.qactive{background:#e0e9e5;border-color:#98b5b9;box-shadow:inset 3px 0 #478d9d}.tech-branch>h3{color:#405b70;border-bottom-color:#bca172}
 .inspector,.placement,.modal-card,.raid-card{background:radial-gradient(ellipse at top left,#334c6b,#14243e 85%);border-color:#c4a66f;box-shadow:inset 0 1px #ffffff16,0 12px 40px #060e2080;color:#fff1d4}
 .inspector p,.modal-card p{color:#c7d6e5}.inspector .inspector-head img{background:#8ca9c626;border-color:#98b0c655}.inspector .eyebrow,.modal-card .eyebrow{color:#e8c989}.inspector .close-selection{color:#dbe5f1}.inspector .actions button:not(.gold-button):not(.primary){background:#344e6e;border-color:#839dbc88}.placement small{color:#a7d7df}.placement span{color:#e6d6b3}

@@ -104,9 +104,21 @@
   },
   "renown": {
     "minLevel": 9,
-    "baseCost": { "gold": 400, "food": 300, "plate": 5 },
-    "costGrowth": 1.6,
+    "baseCost": { "gold": 500, "food": 400, "lumber": 30, "bread": 20, "plate": 6, "frostwood": 3 },
+    "costGrowth": 1.35,
     "damagePerLevel": 0.03,
-    "lootPerLevel": 0.05
+    "lootPerLevel": 0.05,
+    "rewards": [
+      { "level": 1, "title": "Keeper of the Manner", "text": "The frontier speaks your name — every district may raise one more building.", "limitBonus": 1 },
+      { "level": 2, "title": "Warden of the Marches", "text": "Two more hands may take the oath under your banner.", "troopCap": 2 },
+      { "level": 3, "title": "The Lantern-Kept", "text": "Every road in the manner is lit, and another district opens.", "limitBonus": 1 },
+      { "level": 4, "title": "Banner of the Manner", "text": "A grey banner is woven for your house — the cloak of the long roads is yours.", "unlocks": ["banner-cloak-grey"] },
+      { "level": 5, "title": "Unbroken Walls", "text": "Stonemasons take the oath for life. Another district opens.", "limitBonus": 1 },
+      { "level": 6, "title": "The Long Watch", "text": "The watch never blinks — two more may stand in the muster.", "troopCap": 2 },
+      { "level": 7, "title": "Master of the Manner", "text": "Your seal carries weight. The keeper's ring is yours to wear.", "unlocks": ["masters-ring"] },
+      { "level": 8, "title": "Gilded Roofs", "text": "Gold leaf on every gable — and a little more room to build.", "limitBonus": 1 },
+      { "level": 9, "title": "The Ages' Witness", "text": "Three more may take the field under your banner.", "troopCap": 3 },
+      { "level": 10, "title": "The Everlasting", "text": "Regalia of the first dawn is laid at your hall — the manner endures.", "unlocks": ["regalia"] }
+    ]
   }
 }

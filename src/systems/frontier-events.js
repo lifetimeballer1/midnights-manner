@@ -1,5 +1,6 @@
 import {hash2} from './biomes.js';
 import {isRegionClaimed,regionById} from './expansion.js';
+import {centralRoom} from './storage.js';
 
 const resources = value => value && typeof value==='object' ? value : {};
 
@@ -74,6 +75,9 @@ export function resolveFrontierEvent(state,data,choiceId){
  if(!choice)return {ok:false,error:'Choose one of the available responses.'};
  const cost=resources(choice.cost),reward=resources(choice.reward);
  for(const [key,value] of Object.entries(cost))if((world.resources?.[key]||0)<value)return {ok:false,error:`Need ${value} ${key} for that response.`};
+ // Central storage caps (Phase 1): a reward with nowhere to land is
+ // refused up front — the cost is never paid for goods that would spill.
+ for(const [key,value] of Object.entries(reward))if(Number.isFinite(value)&&value>0&&centralRoom(world,data,key)<value)return {ok:false,error:'Your stores are full — spend a little before answering the road.'};
  for(const [key,value] of Object.entries(cost))world.resources[key]-=value;
  for(const [key,value] of Object.entries(reward))world.resources[key]=(world.resources[key]||0)+value;
  world.lastFrontierEventId=event.id;

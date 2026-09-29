@@ -8,6 +8,7 @@ import {isWall} from './building-art.js';
 import {drawVillage3D,pointInPolygon} from './scene3d.js';
 import {weatherAt,skyLightAt} from './systems/daynight.js';
 import {drawAtmosphere} from './atmosphere-art.js';
+import {insideWorkplace} from './systems/villagers.js';
 export class Renderer {
  constructor(canvas,data,images){this.canvas=canvas;this.ctx=canvas.getContext('2d');this.data=data;this.images=images;this.grid=false;this.hover=null;this.selection=null;this.placing=null;this.moving=null;this.tw=43;this.th=22;this.ox=510;this.oy=97;this.shake=0;this.cam={x:10,y:8,zoom:1,yaw:DEFAULT_YAW,pitch:DEFAULT_PITCH};this.orbitMode=false;this.cx=550;this.cy=370;this.width=1100;this.height=740;this.dpr=1;this.hitAreas=[];this.staticLayer=null;this.staticKey='';this.frameTimes=[];this._pendingStaticKey=null;this._noCache=false;this._lastFrame=null;try{this.calm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch{this.calm=false;}this.seen=new Map();this.flash=new Map();this.deadAt=new Map();this.tints=new Map();}
  base(x,y){return {x:this.ox+(x-y)*this.tw/2,y:this.oy+(x+y)*this.th/2};}
@@ -93,7 +94,7 @@ export class Renderer {
    c.fillStyle=`rgba(18,24,16,${alpha})`;
    for(const b of world.buildings){const spec=this.data.buildings[b.type];if(!spec)continue;const n=spec.size;
     c.beginPath();[[b.x,b.y],[b.x+n,b.y],[b.x+n,b.y+n],[b.x,b.y+n]].forEach(([x,y],i)=>{const p=this.project(x+ox,y+oy,.01);i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y);});c.closePath();c.fill();}
-   for(const u of [...world.troops,...world.enemies]){if(u.hp<=0)continue;const p=this.project(u.x+ox,u.y+oy,.01),rz=13*this.cam.zoom;c.beginPath();c.ellipse(p.x,p.y,rz,rz*.42,0,0,Math.PI*2);c.fill();}}
+   for(const u of [...world.troops.filter(u=>!insideWorkplace(world,this.data,u)),...world.enemies]){if(u.hp<=0)continue;const p=this.project(u.x+ox,u.y+oy,.01),rz=13*this.cam.zoom;c.beginPath();c.ellipse(p.x,p.y,rz,rz*.42,0,0,Math.PI*2);c.fill();}}
   if(this.placing&&this.hover){const cells=placementCells(this),valid=cells.every(p=>canPlace(world,this.data,this.placing,p.x,p.y,this.moving));const size=this.data.buildings[this.placing].size;for(const p of cells)for(let y=0;y<size;y++)for(let x=0;x<size;x++)this.diamond(p.x+x,p.y+y,valid?'#69a06bcc':'#c05a4ecc',valid?'#fff6d8':'#ffe3dc');}
   else if(this.hover&&this.grid)this.diamond(this.hover.x,this.hover.y,'#f2ecb988','#fff3c0');
   const ring=(x,y,radius)=>{c.beginPath();for(let i=0;i<=64;i++){const a=i*Math.PI/32,p=this.project(x+Math.cos(a)*radius,y+Math.sin(a)*radius,.02);if(i)c.lineTo(p.x,p.y);else c.moveTo(p.x,p.y);}c.stroke();};
@@ -101,7 +102,7 @@ export class Renderer {
   const tier=defense?.tiers[(selected?.level||1)-1];if(tier?.damage&&(selected||this.hover)){const pos=selected?center(selected,this.data):{x:this.hover.x+defense.size/2,y:this.hover.y+defense.size/2};c.save();c.strokeStyle='#f2e2a8';c.lineWidth=1.5;c.setLineDash([6,4]);ring(pos.x,pos.y,tier.range);c.restore();}
   drawAtmosphere(this,world,time,weather);
   drawVillage3D(this,world,time,sky);
-  const drawables=[...world.buildings.map(b=>({kind:'building',value:b,depth:this.depth(b.x+this.data.buildings[b.type].size/2,b.y+this.data.buildings[b.type].size/2)})),...world.troops.map(t=>({kind:'unit',value:t,depth:this.depth(t.x,t.y)})),...world.enemies.map(e=>({kind:'enemy',value:e,depth:this.depth(e.x,e.y)}))].sort((a,b)=>a.depth-b.depth);
+  const drawables=[...world.buildings.map(b=>({kind:'building',value:b,depth:this.depth(b.x+this.data.buildings[b.type].size/2,b.y+this.data.buildings[b.type].size/2)})),...world.troops.filter(t=>!insideWorkplace(world,this.data,t)).map(t=>({kind:'unit',value:t,depth:this.depth(t.x,t.y)})),...world.enemies.map(e=>({kind:'enemy',value:e,depth:this.depth(e.x,e.y)}))].sort((a,b)=>a.depth-b.depth);
   for(const {kind,value:b} of drawables){
    if(kind==='building'){
     const spec=this.data.buildings[b.type],cp=center(b,this.data),baseSize=spec.size===2?79:51,size=baseSize*this.cam.zoom;
