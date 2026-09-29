@@ -7,6 +7,13 @@
 - Prioritized building cards above village statistics on small screens.
 - No gameplay, economy, progression or save changes.
 
+## Detail/world/story expansion — Phase 3: Working villagers (2026-09-28)
+
+- Held tools now move when the villager is actually working: posted noncombat trades animate at their workplace, assigned collectors animate during the gather phase once they are carrying output, and builders hammer during repair emergencies. Existing combat animation still takes priority.
+- Carried loads now identify the resource at a glance: warm timber or pale frostwood bundles, moonstone ore crates, grain sacks, and fish creels. Unknown resource types keep the old generic pack fallback.
+- Work motion is renderer-derived only, adds no save fields, stops for explicit orders/expeditions and inappropriate emergencies, and freezes under Calm/reduced-motion.
+- Added `tests/working-villagers.test.js` with four regressions for work-state gating, Calm/combat priority, resource cargo identity, and fisher creels. Test target: 517 → 521.
+
 ## Detail/world/story expansion — Phase 2: Active workplaces (2026-09-28)
 
 - Added lightweight renderer-only activity cues that come from actual building state: forge/smeltery/workshop sparks and smoke, lumber/sawmill saw strokes, mine/emberglass rail glints, pond/deephole ripples, a turning gristmill wheel, field/grove work sweeps, plus small work glints/dust for armory, fletcher, shieldwall, tannery, school/scriptorium, scout and masonry posts.
