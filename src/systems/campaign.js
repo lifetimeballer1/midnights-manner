@@ -19,6 +19,9 @@ export function missionRegionClaimed(mission,world,data) {
 }
 export function missionLockReason(mission,completed,world=null,data=null) {
  if(!mission)return 'Chapter not found.';
+ // A chapter cleared before destination gates existed stays replayable.
+ // New geography can gate future progress, never revoke old victories.
+ if(completed.includes(mission.id))return null;
  const missing=(mission.requires||[]).filter(id=>!completed.includes(id));
  if(missing.length)return 'Complete the previous chapter first.';
  const orList=mission.requiresAny||[];
