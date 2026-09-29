@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createWorld, makeUnit} from '../src/model.js';
 import {startExpedition} from '../src/systems/expeditions.js';
+import {claimRegion,regionById} from '../src/systems/expansion.js';
 import {
   ADVENTURE_SECTIONS, campaignCards, computeNextAction, expeditionRoster,
   homeSummary, questCards, taskHint,
@@ -67,6 +68,28 @@ test('campaignCards: gates mirror missionLocked, incl. requiresAny branches', ()
   const again = campaignCards(d, state);
   assert.equal(again.find(c => c.id === 'coin-and-cinder').state, 'current');
   assert.equal(again.find(c => c.id === 'first-harvest').state, 'completed');
+});
+
+test('campaign destination gates become the obvious frontier action', () => {
+  const {data:d,state}=freshState();
+  state.questsCompleted=d.quests.map(q=>q.id);
+  state.completed=d.missions.filter(m=>!['the-pale-court','the-longest-night','dawn'].includes(m.id)).map(m=>m.id);
+  let card=campaignCards(d,state).find(c=>c.id==='the-pale-court');
+  assert.equal(card.prerequisitesMet,true,'banner prerequisites are already satisfied');
+  assert.deepEqual(card.destination,{id:'southreach',name:'Southreach Crossing',claimed:false});
+  assert.equal(card.state,'locked','wild destination holds the chapter shut');
+  let next=computeNextAction(state,d);
+  assert.equal(next.kind,'frontier');
+  assert.equal(next.label,'Claim Southreach Crossing');
+  assert.equal(next.missionId,'the-pale-court');
+  claimRegion(state.world,regionById(d.expansion,'southreach'));
+  card=campaignCards(d,state).find(c=>c.id==='the-pale-court');
+  assert.equal(card.destination.claimed,true);
+  assert.equal(card.state,'available');
+  next=computeNextAction(state,d);
+  assert.equal(next.kind,'chapter');
+  assert.equal(next.missionId,'the-pale-court');
+  assert.match(next.detail,/Southreach Crossing/);
 });
 
 test('expeditionRoster: capable idle hands listed, warriors excluded, out tracked', () => {
