@@ -154,6 +154,54 @@ function equipment(s,gear,item,x,y,lift,detail){
   ||weaponEquipment(s,gear,item,x,y,z,lift,steel,detail)||workshopEquipment(s,gear,x,y,z,steel)||relicEquipment(s,gear,x,y,z,steel))return;
  if(gear&&gear!=='apron')shaft(s,x,y,z,.48);
 }
+
+export function workMotionFor(u,troop,time,calm=false){
+ if(calm||!u||u.hp<=0||u.expedition||u.order)return 0;
+ if((u.animation||0)>0)return Math.sin(u.animation*14)*.12;
+ const repair=u.emergency?.kind==='repair';
+ const posted=!!u.workplace&&troop?.role!=='combat'&&!u.emergency;
+ const collecting=posted&&troop?.role==='collector'&&u.phase==='gather'&&(u.carry||0)>0;
+ const stationed=posted&&troop?.role!=='collector';
+ if(!repair&&!collecting&&!stationed)return 0;
+ const gear=u.gear||troop?.defaultGear||'';
+ let amp=.08,speed=.007;
+ if(/pick|axe|hammer|cleaver|sickle|scythe|trowel|tongs/.test(gear)){amp=.18;speed=.011;}
+ else if(/rod|crook|net|bow/.test(gear)){amp=.1;speed=.006;}
+ else if(/tome|hymnal|primer|orrery|scales|chalice|compass/.test(gear)){amp=.055;speed=.0045;}
+ const seed=phaseSeed(u.id)*.013;
+ return Math.max(0,Math.sin(time*speed+seed))*amp;
+}
+function carriedLoad(s,u,troop,x,y,detail){
+ if(!(u.carry>0))return;
+ const res=troop?.gatherResource;
+ if(res==='wood'||res==='frostwood'){
+  const a=res==='frostwood'?'#91b5bd':'#9d744a',b=res==='frostwood'?'#c5e0e4':'#c79a62';
+  for(const dz of [0,.11,.22])s.box(x-.19,y-.29,.28+dz,.38,.1,.085,dz===.11?b:a);
+  s.box(x-.205,y-.305,.27,.035,.13,.36,leather);
+  s.box(x+.17,y-.305,.27,.035,.13,.36,leather);
+  return;
+ }
+ if(res==='gold'){
+  s.box(x-.16,y-.29,.29,.32,.18,.22,'#7d6547');
+  s.box(x-.14,y-.275,.48,.28,.15,.04,'#ad8a57');
+  for(const [dx,dz,color]of[[-.09,.5,'#d2bb73'],[.01,.53,'#958b7d'],[.09,.49,'#e2c878']])s.box(x+dx,y-.27,dz,.07,.09,.07,color);
+  return;
+ }
+ if(res==='food'){
+  if(['fisherman','diver'].includes(u.type)){
+   s.box(x-.16,y-.29,.29,.32,.18,.2,'#8c704e');
+   s.box(x-.14,y-.31,.47,.28,.03,.035,leather);
+   if(detail){s.box(x-.08,y-.315,.44,.12,.02,.035,'#8bc7d0');s.box(x+.04,y-.315,.39,.13,.02,.035,'#6fa7b4');}
+  }else{
+   s.box(x-.15,y-.28,.3,.3,.16,.25,'#c9b37d');
+   s.box(x-.06,y-.29,.53,.12,.18,.045,'#8d7654');
+   if(detail)s.box(x-.1,y-.292,.47,.2,.02,.035,'#e0cb8a');
+  }
+  return;
+ }
+ s.box(x-.14,y-.27,.32,.28,.14,.26,'#b69260');
+ if(detail)s.box(x-.14,y-.275,.41,.28,.15,.035,leather);
+}
 export function characterModel(s,u,data,time,enemy=false){
  if(u.hp<=0)return;
  // Include the longest pike and all gear in this conservative screen margin.
@@ -169,7 +217,7 @@ export function characterModel(s,u,data,time,enemy=false){
  const skin=['#dbb38c','#b98c64','#936a50'][Math.floor(seed*100)%3];
  const hair=['#594532','#a47d4b','#6e6353'][Math.floor(seed*71)%3];
  const bob=s.r.calm?0:Math.sin(time/350+seed)*.012,x=u.x,y=u.y;
- const lift=s.r.calm?0:u.animation>0?Math.sin(u.animation*14)*.12:0;
+ const lift=workMotionFor(u,troop,time,s.r.calm);
  for(const dx of [-.115,.04]){
   s.box(x+dx,y-.075,.055,.085,.15,.2,leather);
   if(detail)s.box(x+dx-.01,y-.06,.02,.105,.2,.08,'#41453d');
@@ -227,6 +275,6 @@ export function characterModel(s,u,data,time,enemy=false){
   }
   if(u.armor==='regalia')for(const dx of [-.1,0,.1])s.box(x+dx-.025,y+.05,.82+bob,.05,.05,.13,'#e8c673');
  }
- if(u.carry>0){s.box(x-.14,y-.27,.32,.28,.14,.26,'#b69260');if(detail)s.box(x-.14,y-.275,.41,.28,.15,.035,leather);}
+ carriedLoad(s,u,troop,x,y,detail);
  if(u.emergency)s.box(x-.07,y-.06,1.14,.14,.12,.08,u.emergency.kind==='heal'?'#8ad2ad':u.emergency.kind==='repair'?'#bcd4e8':'#e2c578');
 }
