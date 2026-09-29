@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {isMuted,sfx,toggleMute} from '../src/systems/audio.js';
+import {ambience,isMuted,sfx,toggleMute} from '../src/systems/audio.js';
 
 class FakeParam{
  constructor(value=0){this.value=value;}
@@ -176,7 +176,7 @@ test('sound effects share a master output that the sound setting can mute',()=>{
 
 test('multi-theme music resolves four original ambient scores',async()=>{
  const {engine,themes}=await loadMusic();
- assert.ok(themes.length>=4,'four theme songs are available');
+ assert.ok(themes.length>=10,'ten theme songs are available');
  const ids=themes.map(t=>t.id);
  assert.ok(ids.includes('ember')&&ids.includes('grove')&&ids.includes('haze')&&ids.includes('lattice'),'ember, grove, haze, and lattice themes present');
  for(const theme of themes){
@@ -192,12 +192,25 @@ test('MusicPlayer picks a random theme on start and can re-roll',async()=>{
  delete globalThis.window;
  try{
   const player=new engine.MusicPlayer(data);
-  assert.equal(player.themes.length,4,'player loads all four themes');
+  assert.ok(player.themes.length>=10,'player loads the expanded soundtrack');
   player.start({calm:true});
   assert.ok(player.score&&player.score.id,'start selects a score');
   const first=player.themeIndex;
-  player.pickTheme((first+1)%4);
+  player.pickTheme((first+1)%player.themes.length);
   assert.notEqual(player.themeIndex,first,'pickTheme can change the active song');
   player.stop();
+ }finally{if(previousWindow!==undefined)globalThis.window=previousWindow;}
+});
+
+test('procedural ambience is node-safe and exposes quiet workplace layers',()=>{
+ const previousWindow=globalThis.window;
+ delete globalThis.window;
+ try{
+  assert.doesNotThrow(()=>ambience.update({night:false,weather:'clear',buildings:[]}));
+  assert.equal(typeof sfx.workChop,'function');
+  assert.equal(typeof sfx.workPick,'function');
+  assert.equal(typeof sfx.workHammer,'function');
+  assert.equal(typeof sfx.bow,'function');
+  assert.equal(typeof sfx.blade,'function');
  }finally{if(previousWindow!==undefined)globalThis.window=previousWindow;}
 });
