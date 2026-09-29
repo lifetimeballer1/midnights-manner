@@ -7,6 +7,14 @@
 - Prioritized building cards above village statistics on small screens.
 - No gameplay, economy, progression or save changes.
 
+## Detail/world/story expansion — Phase 11: Sparse frontier events (2026-09-28)
+
+- Added seven claimed-region encounter definitions under `data/world.json.frontierEvents`: Southreach, Starwatch Ridge, Whisperwood, Blackwater Mouth, Ashfall March, Dawnfields and Pale Coast each receive a two-choice event using only existing wood/food/gold resources.
+- Added a generic deterministic scheduler/resolver in `src/systems/frontier-events.js`. Old saves lazily receive their first event clock; normal delays are 300–479 seconds, with a short retry only when no eligible claimed region exists. The picker avoids immediately repeating the last event when alternatives exist.
+- Events only open at the home village, while no raid is active/pending, and not within 60 seconds of scheduled horns. Active events persist until answered; campaign expeditions do not advance or reroll them.
+- Adventure → Home renders the active event with its two choices. Resource choices are atomic and reject cleanly when unaffordable; free decline choices always remain available. Resolution clears the card, applies existing-resource rewards, saves, and schedules the next event.
+- Added six `tests/frontier-events.test.js` regressions for data shape, claimed-region/level eligibility, deterministic sparse clocks, calm-time triggering, atomic spend/reward/reschedule, and unaffordable/free-choice behavior. Optional world fields require no save-version bump. Test target: 549 → 555.
+
 ## Detail/world/story expansion — Phase 10: Environmental story hotspots (2026-09-28)
 
 - Added original lore entries for all ten named persistent-home landmarks: Stillwater, Timber Line, Moonwell, Starwatch Ridge, Whisperwood, Ashfall March, Blackwater Mouth, Southreach Crossing, Dawnfields and Pale Coast. Content lives under `data/world.json.hotspots` and adds no saved state.
