@@ -9,9 +9,9 @@
 
 ## Detail/world/story expansion — Phase 2: Active workplaces (2026-09-28)
 
-- Added lightweight renderer-only activity cues that come from actual building state: forge/smeltery/workshop sparks and smoke, lumber/sawmill saw strokes, mine/emberglass rail glints, pond/deephole ripples, a turning gristmill wheel, and field/grove work sweeps.
+- Added lightweight renderer-only activity cues that come from actual building state: forge/smeltery/workshop sparks and smoke, lumber/sawmill saw strokes, mine/emberglass rail glints, pond/deephole ripples, a turning gristmill wheel, field/grove work sweeps, plus small work glints/dust for armory, fletcher, shieldwall, tannery, school/scriptorium, scout and masonry posts.
 - Passive producers animate only while their on-site reserve still has room. Staffed workshops animate only while a living posted worker is available (not ordered away, on expedition, or serving an emergency). Fletcher-style autonomous stocking is recognized by the shared state resolver.
-- Activity is drawn outside the static mesh cache, disappears below 1.05× zoom, and freezes/removes motion under Calm/reduced-motion. No production rates, worker rules, save fields, or gameplay state changed.
+- Activity is drawn outside the static mesh cache, builds one available-crew index per frame (rather than rescanning villagers per building), disappears below 1.05× zoom, and freezes/removes motion under Calm/reduced-motion. No production rates, worker rules, save fields, or gameplay state changed.
 - Added `tests/building-activity.test.js` with four state regressions. Test target: 513 → 517.
 
 ## Detail/world/story expansion — Phase 1: Workplace detail (2026-09-28)
