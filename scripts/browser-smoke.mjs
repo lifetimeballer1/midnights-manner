@@ -233,7 +233,11 @@ try{
  await waitFor('document.querySelector("#opt-update")?.getClientRects().length>0 && !document.querySelector("#opt-update").disabled');
  await click('#opt-update');await waitFor('!document.querySelector("#update-notice").hidden');
  assert.notEqual(await evaluate('document.querySelector("meta[name=game-build]").content'),'browser-update-fixture','update waits for a click');
- await screenshot('update-ready');await click('#opt-update');
+ await screenshot('update-ready');
+ assert.equal(await evaluate('document.querySelector("#title").hidden'),true,'ready update still waits for player approval');
+ if(await evaluate('document.querySelector("#pause-overlay").hidden')){await click('#pause');await waitFor('!document.querySelector("#pause-overlay").hidden');}
+ await waitFor('document.querySelector("#opt-update")?.getClientRects().length>0 && !document.querySelector("#opt-update").disabled');
+ await click('#opt-update');
  await waitFor('document.querySelector("meta[name=game-build]")?.content==="browser-update-fixture" && !!window.midnightsManner');
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[0].id'),savedUnit,'update preserves village');
  await click('#begin');await click('#pause');await click('#opt-refresh');
