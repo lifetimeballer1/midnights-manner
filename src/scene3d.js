@@ -161,17 +161,31 @@ function homeDetails(s,b,n,l){
 }
 
 function longhouseShape(s,b,n){
- const x=b.x,y=b.y,h=.62,rise=.51,stone='#b4beb2';
- hut(s,x+.58,y+.32,n-1.15,n-.64,h,'#977851',2,false);
+ const x=b.x,y=b.y,l=b.level||1,h=.62+(l-1)*.08,rise=.51,stone='#b4beb2';
+ hut(s,x+.58,y+.32,n-1.15,n-.64,h,'#977851',Math.min(3,l+1),false);
  // Ridge beam down the long axis ties the big roof together.
  const rx=x+.58+(n-1.15)/2;
  s.box(rx-.038,y+.34,h+.1+rise,.076,n-.68,.06,'#6b543a');
  // Twin stacks at both ends of the ridge: one would read cottage, two read hall.
  for(const cy of [y+.72,y+n-.82]){s.box(rx-.08,cy,h+.1,.16,.16,rise+.42,stone);s.box(rx-.11,cy-.03,h+.1+rise+.42,.22,.22,.06,'#786d5b');}
  // Banner over the door, then the veranda rail across the front gable.
- s.box(x+n*.5,y+n-.14,.1,.055,.055,.85,timber);s.box(x+n*.5+.05,y+n-.14,.62,.2,.025,.32,'#5e8c9b');
- for(let i=0;i<4;i++)s.box(x+.62+i*(n-1.2)/3,y+n-.16,.1,.05,.05,.4,timber);
- s.roof(x+.55,y+n-.66,.48,n-1.15,.6,.17,'#7d6142');
+ s.box(x+n*.5,y+n-.14,.1,.055,.055,.85+(l-1)*.08,timber);s.box(x+n*.5+.05,y+n-.14,.62+(l-1)*.08,.2,.025,.32,l>=3?'#d3b45d':'#5e8c9b');
+ for(let i=0;i<4;i++)s.box(x+.62+i*(n-1.2)/3,y+n-.16,.1,.05,.05,.4+(l-1)*.05,timber);
+ s.roof(x+.55,y+n-.66,.48+(l-1)*.05,n-1.15,.6,.17,'#7d6142');
+ if(l>=2){
+  // Tier 2: stone veranda footings and side dormers make the hall broader and sturdier.
+  for(const px of [x+.52,x+n-.58]){s.box(px,y+n-.28,.1,.16,.18,.42,stone);s.box(px-.035,y+n-.31,.52,.23,.24,.06,'#786d5b');}
+  for(const cy of [y+1.05,y+n-1.18]){s.box(x+.46,cy,h+.18,.18,.34,.22,'#8c704f');s.roof(x+.4,cy-.04,h+.42,.3,.42,.12,'#6b543a');}
+ }
+ if(l>=3){
+  // Tier 3: a central warden loft and gold ridge caps turn the meadhall into a civic landmark.
+  s.box(rx-.28,y+n*.46,h+.22,.56,.62,.52,stone);
+  s.roof(rx-.34,y+n*.4,h+.78,.68,.74,.24,'#684f39');
+  // The loft window glows visually but does not register another live light
+  // source; one extra source would relight thousands of visible faces every frame.
+  s.emissive=1;s.box(rx-.08,y+n*.75,h+.48,.16,.025,.14,'#ffe6ab');s.emissive=0;
+  for(const cy of [y+.5,y+n-.58])s.box(rx-.06,cy,h+rise+.48,.12,.12,.18,gold);
+ }
 }
 
 function workplaceDetails(s,b,n){
@@ -271,6 +285,7 @@ function buildingDetailLayer(s,b,spec){
   detailRack(s,x+.18,front,.13,.5);detailTool(s,x+.27,front+.015,.18,'axe');
   detailSack(s,x+n-.42,y+.28,.13,.9);if(l>=2)detailSack(s,x+n-.22,y+.42,.13,.82);
   if(l>=3)detailBarrel(s,x+.2,y+.25,.13,.95);
+  if(l>=4){s.box(x+n-.55,y+n-.55,.13,.36,.36,.62,'#8d6844');s.roof(x+n-.61,y+n-.61,.76,.48,.48,.2,'#9a765a');s.box(x+n-.39,y+n-.57,.4,.055,.055,.54,timber);}
  }
  if(t==='pasture'){
   s.box(x+.28,front-.3,.13,.7,.24,.18,'#7f6445');s.box(x+.32,front-.26,.29,.62,.16,.035,'#b18b59');
@@ -281,6 +296,7 @@ function buildingDetailLayer(s,b,spec){
   for(const dx of [.22,.58]){s.box(x+dx,y+n-.48,.13,.06,.3,.42,timber);s.box(x+dx-.08,y+n-.31,.35,.22,.06,.06,timber);}
   s.box(x+n-.38,y+.24,.13,.27,.27,.14,'#76593d');detailTool(s,x+n-.31,y+.3,.26,'axe');
   if(l>=2)detailCrate(s,x+.18,y+.24,.12,.9);
+  if(l>=4){s.box(x+.12,y+.12,.13,.055,.055,.95,timber);s.box(x+.12,y+.12,1.02,.72,.055,.07,timber);s.box(x+.76,y+.12,.48,.035,.035,.54,'#d3b45d');s.box(x+.56,y+.18,.22,.38,.12,.11,'#9b744b');}
  }
  if(['mine','emberglass'].includes(t)){
   // Short rails and a loaded cart extend the mine entrance into the yard.
@@ -289,6 +305,7 @@ function buildingDetailLayer(s,b,spec){
   s.box(x+.42,y+.34,.18,.38,.3,.24,'#6f6253');s.box(x+.46,y+.38,.41,.3,.22,.055,t==='emberglass'?'#8ecac7':'#8e846f');
   for(const wx of [x+.45,x+.7])s.box(wx,y+.62,.13,.08,.08,.12,'#414845');
   if(l>=2)detailCrate(s,x+n-.42,y+.2,.12,.82);
+  if(l>=4){for(const px of [x+.2,x+n-.27])s.box(px,y+.18,.13,.07,.07,1.08,timber);s.box(x+.2,y+.18,1.16,n-.4,.07,.08,timber);s.box(x+n*.5-.08,y+.2,.88,.16,.16,.16,gold);s.box(x+n*.5-.018,y+.27,.34,.036,.036,.54,'#d3b45d');}
  }
  if(t==='tannery'){
   s.box(x+n-.54,y+.24,.12,.38,.38,.22,'#846646');s.box(x+n-.5,y+.28,.31,.3,.3,.035,'#70584b');

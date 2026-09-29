@@ -199,11 +199,13 @@ test('ph3: welcoming hands raise cottage beds, capped at +3', () => {
   assert.equal(housing(g.world, d).beds, beds0, 'unassigned hands warm no beds');
 });
 
-test('ph3: cottage tier 3 houses 16; the Longhouse waits for level 5', () => {
+test('ph3: cottage tier 3 houses 16; Longhouse grows through three late housing tiers', () => {
   assert.deepEqual(data.buildings.cottage.housing, [6, 10, 16]);
   assert.equal(data.buildings.cottage.tiers.length, 3);
   assert.equal(data.buildings.cottage.tiers[2].hp, 640);
-  assert.deepEqual(data.buildings.longhouse.housing, [14]);
+  assert.deepEqual(data.buildings.longhouse.housing, [14, 22, 32]);
+  assert.equal(data.buildings.longhouse.tiers.length, 3);
+  assert.deepEqual(data.buildings.longhouse.tierGates, {2: 6, 3: 8});
   assert.equal(data.buildings.longhouse.minLevel, 5);
   const d = structuredClone(data);
   const g = new Game(d);
@@ -216,7 +218,20 @@ test('ph3: cottage tier 3 houses 16; the Longhouse waits for level 5', () => {
   assert.ok(messages.some(m => m.includes('level 5')), 'plain-word level reason');
   g.state.vlevel = 5;
   const b = g.build('longhouse', 2, 2);
-  assert.ok(b && b.type === 'longhouse', 'level 5 retroactively pays out');
+  assert.ok(b && b.type === 'longhouse', 'level 5 builds the first hall');
+  b.remaining = 0;
+  g.upgrade(b.id);
+  assert.equal(b.level, 1, 'tier 2 waits for village level 6');
+  g.state.vlevel = 6;
+  g.upgrade(b.id);
+  assert.equal(b.level, 2, 'tier 2 opens at level 6');
+  b.remaining = 0;
+  g.state.vlevel = 7;
+  g.upgrade(b.id);
+  assert.equal(b.level, 2, 'tier 3 waits for village level 8');
+  g.state.vlevel = 8;
+  g.upgrade(b.id);
+  assert.equal(b.level, 3, 'tier 3 opens at level 8');
 });
 
 test('ph3: open-doors unlocks apprentice recruits at population 10', () => {

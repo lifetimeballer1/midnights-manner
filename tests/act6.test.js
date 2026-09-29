@@ -591,12 +591,14 @@ test('ph9: the Emberglass waits on a tier-2 mine (same generic chain gate)', () 
   assert.equal(cut.maxReserve, 500);
 });
 
-test('ph9: Mine Tier 3 already stands — the quest only demands the climb', () => {
-  const tiers = data.buildings.mine.tiers;
-  assert.equal(tiers.length, 3, 'the old mine always had the third tier');
+test('ph9: Mine Tier 3 still stands — the old quest demand stays valid before the late tier', () => {
+  const spec = data.buildings.mine, tiers = spec.tiers;
+  assert.equal(tiers.length, 4, 'the mine gains one late tier without moving the Act VI target');
   assert.equal(tiers[2].sprite, 'mine-3.png');
   assert.equal(tiers[2].rateMultiplier, 3);
-  assert.equal(new Set(tiers.map(t => t.sprite)).size, 3, 'tiers stay visually distinct');
+  assert.equal(tiers[3].rateMultiplier, 4);
+  assert.equal(spec.tierGates['4'], 8, 'the new tier waits until later progression');
+  assert.equal(new Set(tiers.map(t => t.sprite)).size, 4, 'tiers stay visually distinct');
 });
 
 test('ph9: the Sapper shares the G1 collector track — zero new abilities', () => {
