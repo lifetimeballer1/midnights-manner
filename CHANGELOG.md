@@ -7,6 +7,13 @@
 - Prioritized building cards above village statistics on small screens.
 - No gameplay, economy, progression or save changes.
 
+## Detail/world/story expansion — Phase 5: Biome scenery (2026-09-28)
+
+- Added data-driven scenery profiles under `data/biomes.json`: plains, forest, water, hills and unclaimed fringe now choose sparse deterministic 3D props (grass, stones/rocks, shrubs, stumps/logs, pines, reeds and cairns) from their own density/prop tables.
+- Wild tiles deliberately render denser than claimed territory; named landmark tiles always get a raised marker. Decorative scenery is suppressed under building footprints and never participates in collision, pathfinding, yields or resource simulation.
+- Scenery depth-sorts with the village mesh, culls offscreen, drops ordinary clutter at far zoom and hard-caps visible prop groups (50/85/130 by LOD). The existing terrain claim count is exposed to the mesh cache so claiming a region refreshes scenery without a saved revision field.
+- Added `tests/environment-art.test.js` with five regressions for determinism/landmarks, claimed-vs-wild density, footprint suppression/purity, bounded paintable geometry and claim-cache invalidation. Test target: 524 → 529.
+
 ## Detail/world/story expansion — Phase 4: Source lighting identity (2026-09-28)
 
 - Tagged luminous scene geometry with explicit renderer profiles: window, lantern, torch, open fire, and fire trap. Each profile has its own projected reach, falloff, spill shape and warm palette instead of sharing one generic amber pool.
