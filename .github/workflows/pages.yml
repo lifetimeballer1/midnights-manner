@@ -20,8 +20,8 @@ jobs:
           node-version: '22'
       - run: npm test
       - run: npm run build
-      - name: Browser gameplay and mobile smoke test
-        run: npm run test:browser
+      - name: Max-upgrade phone benchmark
+        run: npm run test:upgrades
       - uses: actions/upload-artifact@v4
         if: always()
         with:
