@@ -1052,6 +1052,17 @@
         "warrior",
         "builder",
         "miner"
+      ],
+      "biome": "plains",
+      "seed": 1201,
+      "tiles": [
+        {
+          "x": 3,
+          "y": 4,
+          "biome": "plains",
+          "landmark": "Southreach Crossing",
+          "claimed": true
+        }
       ]
     },
     "raids": [
@@ -1155,6 +1166,17 @@
         "warrior",
         "builder",
         "miner"
+      ],
+      "biome": "hills",
+      "seed": 1307,
+      "tiles": [
+        {
+          "x": 15,
+          "y": 3,
+          "biome": "hills",
+          "landmark": "Starwatch Ridge",
+          "claimed": true
+        }
       ]
     },
     "raids": [
@@ -1275,6 +1297,17 @@
         "warrior",
         "builder",
         "miner"
+      ],
+      "biome": "plains",
+      "seed": 1411,
+      "tiles": [
+        {
+          "x": 15,
+          "y": 12,
+          "biome": "plains",
+          "landmark": "Dawnfields",
+          "claimed": true
+        }
       ]
     },
     "raids": [

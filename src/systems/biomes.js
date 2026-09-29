@@ -29,6 +29,11 @@ export function seedFor(dataWorld) {
   return Number.isFinite(dataWorld?.seed) ? dataWorld.seed : 0;
 }
 
+function baseBiome(dataWorld,x,y) {
+  const forced=dataWorld?.defaultBiome;
+  return BIOME_IDS.includes(forced)?forced:biomeFor(x,y,seedFor(dataWorld));
+}
+
 export function landmarkAt(dataWorld, x, y) {
   const tiles = dataWorld?.tiles;
   if (!Array.isArray(tiles)) return null;
@@ -40,7 +45,7 @@ export function landmarkAt(dataWorld, x, y) {
 export function tileFor(dataWorld, x, y) {
   const marked = landmarkAt(dataWorld, x, y);
   if (marked) return {x, y, biome: marked.biome, landmark: marked.landmark, claimed: marked.claimed !== false};
-  return {x, y, biome: biomeFor(x, y, seedFor(dataWorld)), landmark: null, claimed: true};
+  return {x, y, biome: baseBiome(dataWorld,x,y), landmark: null, claimed: true};
 }
 
 // Full grid build (w*h tiles). Landmarks preserved by construction.
@@ -59,7 +64,7 @@ export function buildTiles(dataWorld, bounds = null) {
       const claimed = bounds
         ? (x >= 1 && y >= 1 && x <= bounds.w - 2 && y <= bounds.h - 2)
         : true;
-      out.push({x, y, biome: biomeFor(x, y, seedFor(dataWorld)), landmark: null, claimed});
+      out.push({x, y, biome: baseBiome(dataWorld,x,y), landmark: null, claimed});
     }
   }
   return out;

@@ -7,6 +7,14 @@
 - Prioritized building cards above village statistics on small screens.
 - No gameplay, economy, progression or save changes.
 
+## Detail/world/story expansion — Phase 9: Destination expedition themes (2026-09-28)
+
+- Campaign mission worlds now build their own visual tile sheet instead of inheriting the persistent home's landmark list. Expedition grids remain the intended **20×17 homestead scale**, avoiding a hidden 52×44 visual tile load after the home frontier expansion.
+- Mission map data can generically declare `map.biome`, `map.seed`, and `map.tiles`. Unmarked mission tiles use the declared base biome; marked tiles remain deterministic landmarks.
+- The three frontier-linked finales now look like the places the player claimed: **The Pale Court** is Southreach plains with Southreach Crossing, **The Longest Night** is Starwatch hills with Starwatch Ridge, and **Dawn** is Dawnfields plains with the Dawnfields landmark.
+- Environment scenery now prefers the live world's `biomeSeed`, so two mission maps with the same biome can still place rocks/grass/stumps differently. Home worlds retain the world-data seed and complete 52×44 landmark sheet.
+- Added four `tests/mission-map-themes.test.js` regressions for mission grid size/home-landmark isolation, destination biome/landmark/seed identity, home-frontier preservation, and per-world scenery variation. No gameplay or save-format changes. Test target: 541 → 545.
+
 ## Detail/world/story expansion — Phase 8: Mission objective variety (2026-09-28)
 
 - Replaced the gather-only mission completion check with a generic objective evaluator. Existing `{resource, amount}` data remains a backward-compatible gather objective; new mission data can declare `protect`, `survive`, `defeat`, or `build`.
