@@ -366,6 +366,9 @@ function supplyDefaults(value, data) {
       w.wellSupplied = false;
     }
     if (w.conquest && typeof w.conquest === 'object' && typeof w.conquest.supplied !== 'boolean') w.conquest.supplied = false;
+    for (const entry of Object.values(w.conquest?.tribes || {})) {
+      if (entry && typeof entry === 'object' && typeof entry.supplied !== 'boolean') entry.supplied = false;
+    }
   }
   return value;
 }

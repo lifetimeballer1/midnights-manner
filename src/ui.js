@@ -16,7 +16,7 @@ import {expeditionStatus} from './systems/expeditions.js';
 import {renownCost,renownAvailable,paragonEligible,paragonCost,buildingMaxHp,renownLimitBonus,renownTitle} from './systems/endgame.js';
 import {warChestList,warChestLevel,warChestMax,warChestTotal,warChestArmed,warChestOpenable,warChestMinLevel} from './systems/warchest.js';
 import {festivalList,festivalActive,festivalCooldownLeft,festivalReason,festivalCost} from './systems/festivals.js';
-import {conquestData,conquestState,scoutReason,assaultReason,readinessChecks,preliminaryList,annexList,conquestLimitBonus} from './systems/conquest.js';
+import {tribeList,conquestState,scoutReason,assaultReason,readinessChecks,preliminaryList,annexList,conquestLimitBonus} from './systems/conquest.js';
 import {TRAITS, isIdle, idleWorkers, scorePost} from './systems/villagers.js';
 import {itemRarity, RARITY_INFO, stockCount} from './systems/crafting.js';
 import {ADVENTURE_LABELS, campaignCards, expeditionRoster, homeSummary, questCards, taskHint} from './adventure.js';
@@ -122,8 +122,8 @@ export class UI {
    if(b.dataset.warChest){this.game.prepareWarChest(b.dataset.warChest);this.lastPanel='';this.refresh();return;}
    if(b.dataset.openChest){this.game.openWarChest();this.lastPanel='';this.refresh();return;}
    if(b.dataset.festival){this.game.holdFestival(b.dataset.festival);this.lastPanel='';this.refresh();return;}
-   if(b.dataset.scoutTribe){this.game.scoutTribe();this.lastPanel='';this.refresh();return;}
-   if(b.dataset.annex){this.game.annex(b.dataset.annex);this.lastPanel='';this.refresh();return;}
+   if(b.dataset.scoutTribe){this.game.scoutTribe(b.dataset.scoutTribe);this.lastPanel='';this.refresh();return;}
+   if(b.dataset.annex){this.game.annex(b.dataset.annex,b.dataset.tribe);this.lastPanel='';this.refresh();return;}
    if(b.dataset.friendName){const inp=$('#friend-username');const name=(inp?.value||'').trim();if(name){this.game.setUsername(name);}this.lastPanel='';this.refresh();return;}
    if(b.dataset.friendAdd){const u=$('#friend-add-name')?.value||'',c=$('#friend-add-code')?.value||'';this.game.addFriend(u,c);this.lastPanel='';this.refresh();return;}
    if(b.dataset.friendDrop){this.game.dropFriend(b.dataset.friendDrop);this.lastPanel='';this.refresh();return;}
@@ -335,20 +335,19 @@ export class UI {
   // Tribal conquest (Phase 8): the frontier card appears at the muster's
   // level, carries the scout's intel, the readiness law, the outer-work
   // missions and — once the stronghold falls — the one-time annex choice.
-  const tribe=conquestData(g.data)?.tribe||null,cst=conquestState(g.world);
-  const conquestHtml=tribe&&!s.away&&((g.state.vlevel||1)>=((tribe.require||{}).vlevel||9)||cst.scouted||cst.assaultWon)?(()=>{
-   const checks=readinessChecks(g.state,g.data);
+  const conquestHtml=tribeList(g.data).map(tribe=>{const cst=conquestState(g.world,tribe.id);return tribe&&!s.away&&((g.state.vlevel||1)>=((tribe.require||{}).vlevel||9)||cst.scouted||cst.assaultWon)?(()=>{
+   const checks=readinessChecks(g.state,g.data,tribe.id);
    const checkRows=checks.map(c=>`<div class="adv-row"><span>${c.ok?'✅':'⬜'} ${c.label}</span><b>${c.ok?'READY':'NEEDED'}</b></div>`).join('');
-   if(!cst.scouted){const reason=scoutReason(g.state,g.data);return `<div class="panel-heading"><span>THE FRONTIER</span><span>a tribe stirs</span></div><article class="adv-card"><p>${tribe.text}</p>${checkRows}<button class="gold-button" data-scout-tribe="1" ${reason?'disabled':''}>${reason||'🔭 Scout the frontier →'}</button></article>`;}
-   const intel=tribe.intel||{},annexDone=cst.annexed,aReason=assaultReason(g.state,g.data);
+   if(!cst.scouted){const reason=scoutReason(g.state,g.data,tribe.id);return `<div class="panel-heading"><span>THE FRONTIER</span><span>a tribe stirs</span></div><article class="adv-card"><p>${tribe.text}</p>${checkRows}<button class="gold-button" data-scout-tribe="${tribe.id}" ${reason?'disabled':''}>${reason||'🔭 Scout the frontier →'}</button></article>`;}
+   const intel=tribe.intel||{},annexDone=cst.annexed,aReason=assaultReason(g.state,g.data,tribe.id);
    return `<div class="panel-heading"><span>THE ${tribe.name.toUpperCase()}</span><span>${cst.assaultWon?(annexDone?'annexed':'stronghold broken'):'at war'}</span></div>
    <article class="adv-card"><div class="adv-row"><span>Leader</span><b>${intel.leader||'unknown'}</b></div><div class="adv-row"><span>Army</span><b>${intel.army||'unknown'}</b></div><div class="adv-row"><span>Tactics</span><b>${intel.tactics||'unknown'}</b></div><div class="adv-row"><span>Weakness</span><b>${intel.weakness||'unknown'}</b></div>${intel.reward?`<p class="adv-note">${intel.reward}</p>`:''}${checks.some(c=>!c.ok)?checkRows:''}
-   ${preliminaryList(g.data).map(p=>{const done=cst.preliminaries.includes(p.id);return `<div class="adv-row"><span>${done?'✅':'⚔'} ${p.name}<small>${p.text}</small></span>${done?'<b>BROKEN</b>':`<button data-mission="${p.id}">March →</button>`}</div>`;}).join('')}
+   ${preliminaryList(g.data,tribe.id).map(p=>{const done=cst.preliminaries.includes(p.id);return `<div class="adv-row"><span>${done?'✅':'⚔'} ${p.name}<small>${p.text}</small></span>${done?'<b>BROKEN</b>':`<button data-mission="${p.id}">March →</button>`}</div>`;}).join('')}
    ${cst.assaultWon?'':`<button class="gold-button" data-mission="${tribe.assault}" ${aReason?'disabled':''}>${aReason||'⚔ March on the stronghold'}</button>`}
-   ${cst.assaultWon&&!annexDone?`<p class="adv-note">The keep is yours to judge — choose once.</p>${annexList(g.data).map(a=>`<button data-annex="${a.id}" title="${a.text||''}">${a.icon||'🏳'} ${a.name}</button>`).join('')}`:''}
+   ${cst.assaultWon&&!annexDone?`<p class="adv-note">The keep is yours to judge — choose once.</p>${annexList(g.data,tribe.id).map(a=>`<button data-annex="${a.id}" data-tribe="${tribe.id}" title="${a.text||''}">${a.icon||'🏳'} ${a.name}</button>`).join('')}`:''}
    ${annexDone?`<p class="adv-note">The captured land serves the Manner now. The frontier remembers.</p>`:''}
    </article>`;
-  })():'';
+  })():'';}).join('');
   return `<div class="panel-heading"><span>ADVENTURE · HOME</span><span>${s.chaptersDone}/${s.chaptersTotal} chapters</span></div>
   <article class="adv-hero"><div class="adv-eyebrow">NEXT ACTION</div><h3>${n.label}</h3><p>${n.detail}</p>${nextBtn}</article>
   ${objective}

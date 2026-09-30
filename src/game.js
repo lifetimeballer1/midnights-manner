@@ -242,15 +242,15 @@ export class Game {
   this.persist();return true;
  }
  // Tribal conquest (Phase 8): scout the frontier, then judge the fallen keep.
- scoutTribe(){
-  const reason=scoutReason(this.state,this.data);
+ scoutTribe(tribeId = 'ironshield'){
+  const reason=scoutReason(this.state,this.data,tribeId);
   if(reason)return this.notify(reason);
-  const r=beginScout(this.state,this.data);
+  const r=beginScout(this.state,this.data,tribeId);
   if(r.ok){sfx.unlock();this.notify(`🔭 Scouts slip toward the ${r.tribe.name} line and return with charts — ${r.tribe.intel?.leader||'a shield-lord'} holds the stronghold. Adventure → Home carries the campaign.`);this.persist();}
   return r;
  }
- annex(id){
-  const r=applyAnnex(this.state,this.data,id);
+ annex(id,tribeId = 'ironshield'){
+  const r=applyAnnex(this.state,this.data,id,tribeId);
   if(!r.ok)return this.notify(r.error);
   sfx.win();
   this.notify(`🏳 ${r.annex.name}. ${r.annex.text||''}`);
@@ -448,7 +448,7 @@ export class Game {
  mission(id){const m=this.data.missions.find(m=>m.id===id);const reason=missionLockReason(m,this.state.completed||[],this.state.world,this.data);if(reason)return this.notify(reason);
   // Tribal conquest (Phase 8): the stronghold asks the muster to be ready,
   // and the Campaign War Chest is paid only when the march actually starts.
-  if(m?.conquest==='assault'){const short=assaultReason(this.state,this.data);if(short)return this.notify(short);}
+  if(m?.conquest==='assault'){const short=assaultReason(this.state,this.data,m.tribe);if(short)return this.notify(short);}
   const muster=m?.launchCost&&Object.keys(m.launchCost).length?m.launchCost:null,home=this.world;
   if(muster&&!afford(home.resources,muster))return this.notify(`The campaign needs ${Object.entries(muster).map(([k,v])=>`${v} ${k}`).join(' + ')} before it marches.`);
   if(startMission(this.state,this.data,id)){if(muster)pay(home.resources,muster);this.notify(`${m?.ceremony?.warning||'Expedition begun.'} Your home village is safely paused.`);}else this.notify('Finish the current raid before another expedition.');}

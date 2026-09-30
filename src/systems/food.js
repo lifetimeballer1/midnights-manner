@@ -134,13 +134,25 @@ export function supplyBonus(world, data, key) {
 export function supplyAuraEffects(world, data) {
   return world?.wellSupplied === true ? data?.world?.townMeal?.supply?.wellSupplied?.effects || {} : {};
 }
-export function territorySupplyCost(world, data) {
-  const entries = data?.conquest?.annex;
-  const annex = (Array.isArray(entries) ? entries : []).find(a => a?.id === world?.conquest?.annexed);
+function territoryLedger(world, tribeId) {
+  return tribeId === 'ironshield' ? world?.conquest : world?.conquest?.tribes?.[tribeId];
+}
+function territoryIds(data) {
+  return ['ironshield', ...(Array.isArray(data?.conquest?.tribes) ? data.conquest.tribes : []).map(t => t.id)];
+}
+function tribeSupplyCost(world, data, tribeId) {
+  const entries = tribeId === 'ironshield' ? data?.conquest?.annex : data?.conquest?.tribes?.find(t => t.id === tribeId)?.annex;
+  const annex = (Array.isArray(entries) ? entries : []).find(a => a?.id === territoryLedger(world, tribeId)?.annexed);
   return basket(annex?.supply?.cost);
 }
-export function territorySupplied(world, data) {
-  return Object.keys(territorySupplyCost(world, data)).length === 0 || world?.conquest?.supplied === true;
+export function territorySupplyCost(world, data) {
+  const total = {};
+  for (const id of territoryIds(data)) for (const [key, value] of Object.entries(tribeSupplyCost(world, data, id))) total[key] = (total[key] || 0) + value;
+  return total;
+}
+export function territorySupplied(world, data, tribeId = null) {
+  const ids = tribeId ? [tribeId] : territoryIds(data);
+  return ids.every(id => Object.keys(tribeSupplyCost(world, data, id)).length === 0 || territoryLedger(world, id)?.supplied === true);
 }
 export function supplyStatus(world, data) {
   const day = mealDay(world, data), seconds = mealConfig(data).secondsPerDay;
@@ -169,10 +181,12 @@ export function tickTownSupply(world, data, notify = () => {}) {
   world.wellSupplied = drawSupply(world, cost);
   if (wasSupplied && !world.wellSupplied) notify('Well Supplied lapses: the daily basket is short. Nothing was drawn; supply resumes when a full basket is available at the next daily check.');
   const territoryCost = territorySupplyCost(world, data);
-  if (Object.keys(territoryCost).length && world.conquest) {
-    const wasCovered = world.conquest.supplied === true;
-    world.conquest.supplied = drawSupply(world, territoryCost);
-    if (wasCovered && !world.conquest.supplied) notify('Frontier supply is short. Regional bonuses pause; your territory remains yours.');
+  for (const id of territoryIds(data)) {
+    const ledger = territoryLedger(world, id), cost = tribeSupplyCost(world, data, id);
+    if (!ledger || !Object.keys(cost).length) continue;
+    const wasCovered = ledger.supplied === true;
+    ledger.supplied = drawSupply(world, cost);
+    if (wasCovered && !ledger.supplied) notify('Frontier supply is short. Regional bonuses pause; your territory remains yours.');
   }
   return {supplied: world.wellSupplied, cost, territoryCost};
 }

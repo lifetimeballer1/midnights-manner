@@ -35,6 +35,35 @@
         "summon": { "role": "breaker", "count": 2, "everySec": 20, "cap": 6 },
         "enrage": { "hpFrac": 0.3, "dmgMult": 1.5 }
       }
+    },
+    {
+      "id": "thornband-vex",
+      "name": "Briar-Captain Vex",
+      "title": "Briar-lord of Whisperwood",
+      "hpBase": 1700,
+      "hpPerWave": 100,
+      "dmgBase": 60,
+      "dmgPerWave": 3.5,
+      "speed": 0.7,
+      "range": 1.4,
+      "wallDamage": 3,
+      "mechanics": {
+        "slam": {
+          "damage": 50,
+          "radius": 1.7,
+          "everySec": 7
+        },
+        "summon": {
+          "role": "raider",
+          "count": 2,
+          "everySec": 20,
+          "cap": 6
+        },
+        "enrage": {
+          "hpFrac": 0.3,
+          "dmgMult": 1.5
+        }
+      }
     }
   ],
   "annex": [
@@ -62,6 +91,91 @@
       "supply": {"cost": {"food": 1000, "lumber": 80, "gold": 100}},
       "limitBonus": 1,
       "flatAuras": { "gather": 0.03, "food": 0.4 }
+    }
+  ],
+  "tribes": [
+    {
+      "id": "thornband",
+      "name": "Thornband",
+      "color": "#6a8a5a",
+      "text": "In Whisperwood, the Thornband lace forest paths with snares. Raiders and fast scouts strike from the briars, then vanish beneath the trees.",
+      "require": {
+        "vlevel": 10,
+        "renown": 3,
+        "barracksTier": 3,
+        "troops": 10
+      },
+      "preliminaries": [
+        {
+          "id": "thornband-snares",
+          "name": "Cut the Snare Lines",
+          "text": "Clear the snared paths before the scouts carry your approach to the hold."
+        },
+        {
+          "id": "thornband-camp",
+          "name": "Burn the Briar Camp",
+          "text": "Break the raiders at their forest camp and silence the warning fires."
+        }
+      ],
+      "assault": "thornband-hold",
+      "intel": {
+        "leader": "Briar-Captain Vex",
+        "army": "Forest raiders and fast scouts slipping between the briars",
+        "tactics": "Rushes the yard and summons raiders when pressed",
+        "weakness": "Hold narrow paths with pikes and overlapping tower fire",
+        "reward": "The Whisperwood paths, timber and stores join the Manner."
+      },
+      "annex": [
+        {
+          "id": "outpost",
+          "name": "Rebuild as an Outpost",
+          "icon": "\ud83c\udff0",
+          "text": "A fortified forest base: two more of every building line may stand.",
+          "supply": {
+            "cost": {
+              "food": 900,
+              "bread": 50,
+              "plate": 10,
+              "gold": 120
+            }
+          },
+          "flatAuras": {
+            "damage": 0.03,
+            "heal": 0.1
+          },
+          "limitBonus": 2
+        },
+        {
+          "id": "dismantle",
+          "name": "Dismantle for Materials",
+          "icon": "\u2692",
+          "text": "Strip the briar hold for seasoned timber, plate and cold coin.",
+          "resources": {
+            "lumber": 5000,
+            "plate": 600,
+            "gold": 4000,
+            "frostwood": 350
+          }
+        },
+        {
+          "id": "settlement",
+          "name": "Frontier Settlement",
+          "icon": "\ud83c\udf3e",
+          "text": "Forest homesteads feed the Manner and open one more of every building line.",
+          "supply": {
+            "cost": {
+              "food": 1100,
+              "lumber": 100,
+              "gold": 120
+            }
+          },
+          "limitBonus": 1,
+          "flatAuras": {
+            "gather": 0.04,
+            "food": 0.4
+          }
+        }
+      ]
     }
   ]
 }

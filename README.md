@@ -359,3 +359,13 @@ Two size-2 Town Projects extend the Phase 4/H2 pipeline, each limited to one per
 ### Grey Dawn H4
 
 People now has an **Auto-train: on/off** toggle, saved as additive `world.autoTrain` and defaulting off for fresh and older saves. Every five seconds of active home-village time, it silently attempts one level per eligible troop in roster order through the existing `Game.level()` payment path. Manual prices, the level curve and positional tutoring apply exactly; there is no automation discount. Unaffordable troops are skipped while later troops can still train. Only central stores pay; pending rewards, collector cargo and on-site reserves remain untouched. Pauses, hidden tabs and campaign expeditions do not advance the training interval.
+
+### Grey Dawn H5
+
+Thornband conquest follows the Ironshield pipeline in Whisperwood: **Cut the Snare Lines** (18, requires Ironshield Keep), **Burn the Briar Camp** (19), then **The Briar Hold** (20). Scouting and the assault use village level 10, Renown 3, tier-3 barracks and 10 living fighters. The hold pays its campaign war chest only on departure; Briar-Captain Vex uses the existing slam, raider summon and enrage machinery. First-clear rewards escalate to 3,500 gold, 2,000 lumber, 500 plate and 300 frostwood. Each captured tribe receives its own one-time outpost, dismantle or settlement judgement through existing storage, building-limit and aura systems.
+
+Ironshield retains its original top-level `world.conquest` fields and default calls. Thornband progress lives additively under `world.conquest.tribes.thornband`, created only when written; absent progress reads unscouted with an empty ledger. Daily upkeep charges each annexed territory separately, pauses only that territory's auras on shortfall, and retains its building room. Local loads and imports default missing per-tribe supply coverage off. No save version or combat mechanics changed.
+
+Chapter plan: H5 uses 18-20; H6 is reserved for 21-23, H7 for 24-26, H8 for 27-29. The story finale (H9-H12) moves to 30-33 plus the final boss. Chapters are display labels; mission `requires` chains gate progress. H6 and the finale are not implemented by H5.
+
+Verification: `npm test` passed all 740 checks, including 12 H5 checks and the unchanged Phase 8 Ironshield checks. Browser interaction smoke was not run.

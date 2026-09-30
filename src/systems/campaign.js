@@ -131,8 +131,8 @@ export function finishMission(game,data) {
  if(first){game.completed.push(mission.id);for(const [k,v] of Object.entries(mission.rewards))grantCentral(game.world,data,k,v);game.unlocks=[...new Set([...game.unlocks,...mission.unlocks])];
   // Tribal conquest (Phase 8): first-clears write the ledger — outer
   // works broken, or the stronghold itself fallen (the annex gate).
-  if(mission.conquest==='preliminary')recordPreliminary(game.world,mission.id);
-  if(mission.conquest==='assault')recordAssault(game.world);
+  if(mission.conquest==='preliminary')recordPreliminary(game.world,mission.id,mission.tribe);
+  if(mission.conquest==='assault')recordAssault(game.world,mission.tribe);
   // Crowning (Act VIII finale): the mission names the eldest of the roster
   // — data `crowning`, oldest by roster order, unnamed hands only.
   if(mission.crowning&&game.world.troops.length){const eldest=game.world.troops[0];if(eldest&&!eldest.name)eldest.name=mission.crowning;}}

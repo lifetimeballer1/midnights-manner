@@ -1491,5 +1491,381 @@
       "defeat": "The keep held. The shields are still standing and the valley is still theirs — carry a fuller chest and a harder muster next time."
     },
     "requires": [ "ironshield-watch" ]
+  },
+  {
+    "id": "thornband-snares",
+    "name": "Cut the Snare Lines",
+    "chapter": "18",
+    "act": "X",
+    "conquest": "preliminary",
+    "beat": "Cut the snared paths through Whisperwood. Break two waves of raiders before their scouts can warn the briar camp.",
+    "giver": "Sorrel the watcher",
+    "description": "Cut the snared paths through Whisperwood. Break two waves of raiders before their scouts can warn the briar camp.",
+    "timeLimit": 240,
+    "troopLimit": 8,
+    "objectives": [
+      {
+        "kind": "defeat",
+        "amount": 12
+      },
+      {
+        "resource": "gold",
+        "amount": 200
+      }
+    ],
+    "startingResources": {
+      "wood": 300,
+      "food": 200,
+      "gold": 140
+    },
+    "map": {
+      "biome": "forest",
+      "seed": 1811,
+      "tiles": [
+        {
+          "x": 15,
+          "y": 12,
+          "biome": "forest",
+          "landmark": "Whisperwood Snare Lines",
+          "claimed": true
+        }
+      ],
+      "buildings": [
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "tower",
+          "x": 6,
+          "y": 6
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 7
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 8
+        },
+        {
+          "type": "barracks",
+          "x": 7,
+          "y": 4
+        }
+      ],
+      "troops": [
+        "warrior",
+        "pikewoman",
+        "archer",
+        "builder",
+        "miner"
+      ]
+    },
+    "raids": [
+      {
+        "at": 40,
+        "count": 5
+      },
+      {
+        "at": 140,
+        "count": 7
+      }
+    ],
+    "scaling": {
+      "hp": 20,
+      "damage": 3.5
+    },
+    "rewards": {
+      "gold": 1500,
+      "lumber": 800,
+      "plate": 150
+    },
+    "unlocks": [],
+    "ceremony": {
+      "warning": "Cut the snared paths through Whisperwood. Break two waves of raiders before their scouts can warn the briar camp.",
+      "victory": "The snares are cut. The road to the briar camp lies open.",
+      "defeat": "The Thornband still hold the forest paths. Gather your stores and march again."
+    },
+    "requires": [
+      "ironshield-keep"
+    ],
+    "tribe": "thornband"
+  },
+  {
+    "id": "thornband-camp",
+    "name": "Burn the Briar Camp",
+    "chapter": "19",
+    "act": "X",
+    "conquest": "preliminary",
+    "beat": "The Thornband camp shelters raiders beneath the forest canopy. Hold the paths through three waves and burn their warning fires.",
+    "giver": "Sorrel the watcher",
+    "description": "The Thornband camp shelters raiders beneath the forest canopy. Hold the paths through three waves and burn their warning fires.",
+    "timeLimit": 300,
+    "troopLimit": 9,
+    "objectives": [
+      {
+        "kind": "defeat",
+        "amount": 18
+      },
+      {
+        "kind": "survive",
+        "seconds": 240
+      }
+    ],
+    "startingResources": {
+      "wood": 340,
+      "food": 220,
+      "gold": 160
+    },
+    "map": {
+      "biome": "forest",
+      "seed": 1911,
+      "tiles": [
+        {
+          "x": 3,
+          "y": 4,
+          "biome": "forest",
+          "landmark": "Briar Camp",
+          "claimed": true
+        }
+      ],
+      "buildings": [
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "tower",
+          "x": 6,
+          "y": 6
+        },
+        {
+          "type": "archer_tower",
+          "x": 6,
+          "y": 9
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 7
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 8
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 9
+        },
+        {
+          "type": "barracks",
+          "x": 8,
+          "y": 4
+        }
+      ],
+      "troops": [
+        "warrior",
+        "pikewoman",
+        "halberdier",
+        "archer",
+        "builder",
+        "miner"
+      ]
+    },
+    "raids": [
+      {
+        "at": 40,
+        "count": 6
+      },
+      {
+        "at": 150,
+        "count": 8
+      },
+      {
+        "at": 240,
+        "count": 9
+      }
+    ],
+    "scaling": {
+      "hp": 22,
+      "damage": 4
+    },
+    "rewards": {
+      "gold": 2500,
+      "lumber": 1500,
+      "plate": 300,
+      "frostwood": 150
+    },
+    "unlocks": [],
+    "ceremony": {
+      "warning": "The Thornband camp shelters raiders beneath the forest canopy. Hold the paths through three waves and burn their warning fires.",
+      "victory": "The camp burns quiet. Vex waits within the hold.",
+      "defeat": "The Thornband still hold the forest paths. Gather your stores and march again."
+    },
+    "requires": [
+      "thornband-snares"
+    ],
+    "tribe": "thornband"
+  },
+  {
+    "id": "thornband-hold",
+    "name": "The Briar Hold",
+    "chapter": "20",
+    "act": "X",
+    "conquest": "assault",
+    "beat": "Carry the campaign stores into Whisperwood, hold the briar yard through four waves, and defeat Briar-Captain Vex.",
+    "giver": "Sorrel the watcher",
+    "log": "Vex fell at the fourth horn, and the raiders scattered beneath the trees. The briar paths, timber and stores passed to the Manner.",
+    "description": "Carry the campaign stores into Whisperwood, hold the briar yard through four waves, and defeat Briar-Captain Vex.",
+    "timeLimit": 420,
+    "troopLimit": 10,
+    "launchCost": {
+      "food": 5000,
+      "bread": 1000,
+      "lumber": 3500,
+      "plate": 400,
+      "gold": 3000
+    },
+    "objectives": [
+      {
+        "kind": "defeat",
+        "amount": 30
+      },
+      {
+        "kind": "protect",
+        "type": "oathstone",
+        "count": 1
+      },
+      {
+        "kind": "survive",
+        "seconds": 300
+      }
+    ],
+    "startingResources": {
+      "wood": 380,
+      "food": 240,
+      "gold": 180
+    },
+    "map": {
+      "biome": "forest",
+      "seed": 2011,
+      "tiles": [
+        {
+          "x": 12,
+          "y": 5,
+          "biome": "forest",
+          "landmark": "Briar Hold",
+          "claimed": true
+        }
+      ],
+      "buildings": [
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "tower",
+          "x": 6,
+          "y": 6
+        },
+        {
+          "type": "archer_tower",
+          "x": 6,
+          "y": 9
+        },
+        {
+          "type": "ballista",
+          "x": 8,
+          "y": 10
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 6
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 7
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 8
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 9
+        },
+        {
+          "type": "oathstone",
+          "x": 8,
+          "y": 5
+        },
+        {
+          "type": "barracks",
+          "x": 8,
+          "y": 2
+        }
+      ],
+      "troops": [
+        "oathsworn",
+        "halberdier",
+        "pikewoman",
+        "longbowman",
+        "archer",
+        "builder",
+        "miner"
+      ]
+    },
+    "raids": [
+      {
+        "at": 60,
+        "count": 7
+      },
+      {
+        "at": 150,
+        "count": 9
+      },
+      {
+        "at": 230,
+        "count": 10
+      },
+      {
+        "at": 300,
+        "count": 12,
+        "boss": "thornband-vex",
+        "herald": "\ud83c\udf3f The briar gates open - BRIAR-CAPTAIN VEX takes the yard at wave {wave}! Hold the forest paths!"
+      }
+    ],
+    "scaling": {
+      "hp": 26,
+      "damage": 4.5
+    },
+    "rewards": {
+      "gold": 3500,
+      "lumber": 2000,
+      "plate": 500,
+      "frostwood": 300
+    },
+    "unlocks": [],
+    "ceremony": {
+      "warning": "Carry the campaign stores into Whisperwood, hold the briar yard through four waves, and defeat Briar-Captain Vex.",
+      "victory": "Vex falls in the briar yard. Whisperwood belongs to the Manner.",
+      "defeat": "The Thornband still hold the forest paths. Gather your stores and march again."
+    },
+    "requires": [
+      "thornband-camp"
+    ],
+    "tribe": "thornband"
   }
 ]
