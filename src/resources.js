@@ -7,7 +7,9 @@ export const RESOURCES={
  plate:{label:'Plate',sprite:'resource-plate.svg',color:'#b7c7dc',paper:'#edf0fa',description:'Forged metal for advanced armor and equipment.'},
  lumber:{label:'Lumber',sprite:'resource-lumber.svg',color:'#d8a05e',paper:'#fff0d7',description:'Sawn planks from the Sawmill — master craftwork and fine blades are hungry for it.'},
  flour:{label:'Flour',sprite:'resource-flour.svg',color:'#f0e0b0',paper:'#fbf6e6',description:'Milled grain from the Gristmill — bake it into bread.'},
- bread:{label:'Bread',sprite:'resource-bread.svg',color:'#e8b34e',paper:'#fff2cf',description:'Hearty loaves. Each loaf feeds as 3 food when the pantry runs bare.'}
+ bread:{label:'Bread',sprite:'resource-bread.svg',color:'#e8b34e',paper:'#fff2cf',description:'Hearty loaves. Each loaf feeds as 3 food when the pantry runs bare.'},
+ rations:{label:'Rations',sprite:'resource-rations.svg',color:'#c9a35e',paper:'#f5ecd4',description:'Trail packs from the Bakery — food and flour bound for marches and war feasts.'},
+ 'feast-supplies':{label:'Feast Supplies',sprite:'resource-feast.svg',color:'#e08a5e',paper:'#fbe8d4',description:'Festival stores from the Bakery — bread and coin bound for great celebrations.'}
 };
 export const resourceInfo=key=>RESOURCES[key]||{label:String(key||'Resource'),sprite:'resource-gold.svg',color:'#f3cf66',paper:'#fff6cc',description:'Gathered by your village.'};
 export const resourceLabel=(key,amount)=>`+${Math.floor(amount)} ${resourceInfo(key).label}`;

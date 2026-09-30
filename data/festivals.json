@@ -19,8 +19,8 @@
     "minLevel": 6,
     "seconds": 240,
     "cooldown": 480,
-    "cost": { "bread": 300, "food": 800, "gold": 150 },
-    "text": "The yard drinks to the watch — blades feel lighter until the next horn.",
+    "cost": { "bread": 300, "food": 800, "gold": 150, "rations": 100 },
+    "text": "The yard drinks to the watch — trail packs for the march, blades lighter until the next horn.",
     "effects": { "damage": 0.06, "heal": 0.15 }
   },
   {
@@ -30,7 +30,7 @@
     "minLevel": 8,
     "seconds": 420,
     "cooldown": 900,
-    "cost": { "food": 4000, "wood": 1500, "flour": 800, "bread": 800, "gold": 1500, "frostwood": 100 },
+    "cost": { "food": 4000, "wood": 1500, "flour": 800, "bread": 800, "gold": 1500, "frostwood": 100, "feast-supplies": 100 },
     "text": "The manner remembers its first stone — and pays its people in glory.",
     "effects": { "xp": 0.15, "gather": 0.12, "heal": 0.3 },
     "growth": 0.5,

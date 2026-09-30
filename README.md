@@ -459,3 +459,9 @@ Cap reference: tier-3 Hall, six tier-3 Storehouses (base level-11 limit), and ti
 No runtime changes, new mechanics, currencies, aura keys, save fields or version bump were added. Conquest/muster laws, missions, Renown data and its future-project hook remain pinned, as do all earlier building entries including the one-tier Dawn Gate. Great Works add no upkeep or decay.
 
 Verification: `npm.cmd test` passed all 831 checks, including eight GW1 checks. `npm.cmd run build` passed with 408 precached files. Stage sprite artwork was visually inspected; browser interaction smoke was not run.
+
+### Grey Dawn GAP1
+
+The food chain gains its missing middle: a level-6 **Bakery** (one per village tier pace, miller crew via hosting) bakes bread faster than the Gristmill and binds two new capped goods — **Rations** (food + flour, 800 cap) for the march and **Feast Supplies** (bread + gold, 400 cap) for great celebrations. The War Feast now costs 100 rations; the Founder's Festival costs 100 feast supplies. The Gristmill keeps its original two-step chain byte-identical. No runtime code, mechanics, save fields or version bump changed.
+
+Verification: six new GAP1 checks; related resource, festival and Great Work pins updated to the ten-good economy. Browser interaction smoke was not run.

@@ -16,7 +16,7 @@ const data=Object.fromEntries(await Promise.all(
  ['world','troops','items','abilities','buildings','missions','quests','levels','calendar','traders','endgame','festivals']
   .map(async n=>[n,JSON.parse(await readFile(new URL(`../data/${n}.json`,import.meta.url)))])));
 const quiet=()=>{};
-const rich=g=>{g.world.resources={wood:99999,food:99999,gold:99999,lumber:9999,plate:9999,frostwood:9999,flour:9999,bread:9999};return g;};
+const rich=g=>{g.world.resources={wood:99999,food:99999,gold:99999,lumber:9999,plate:9999,frostwood:9999,flour:9999,bread:9999,rations:9999,'feast-supplies':9999};return g;};
 // Commands persist; the save fallback is shared across tests in one process,
 // so every test starts from an explicit fresh world (the phase12 pattern).
 const fresh=()=>{const g=new Game(data);g.state={...g.state,world:createWorld(data),home:null,mission:null};return g;};

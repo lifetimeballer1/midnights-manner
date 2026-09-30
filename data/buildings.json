@@ -2514,6 +2514,82 @@
    }
   ]
  },
+ "bakery": {
+  "maxCount": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   1,
+   2,
+   2,
+   2,
+   3
+  ],
+  "name": "Bakery",
+  "size": 2,
+  "cost": {
+   "wood": 150,
+   "food": 60
+  },
+  "minLevel": 6,
+  "buildSeconds": 8,
+  "production": null,
+  "rate": 0,
+  "workplace": "miller",
+  "hosts": [
+   "miller"
+  ],
+  "refine": [
+   {
+    "in": {
+     "flour": 2
+    },
+    "out": {
+     "bread": 1
+    },
+    "perSec": 0.5
+   },
+   {
+    "in": {
+     "food": 2,
+     "flour": 2
+    },
+    "out": {
+     "rations": 2
+    },
+    "perSec": 0.4
+   },
+   {
+    "in": {
+     "bread": 2,
+     "gold": 20
+    },
+    "out": {
+     "feast-supplies": 1
+    },
+    "perSec": 0.3
+   }
+  ],
+  "tiers": [
+   {
+    "sprite": "bakery-1.png",
+    "hp": 220,
+    "rateMultiplier": 1,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "bakery-2.png",
+    "hp": 450,
+    "rateMultiplier": 2,
+    "damage": 0,
+    "range": 0.75
+   }
+  ]
+ },
  "market-square": {
   "name": "Grand Market Square",
   "project": true,

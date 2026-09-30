@@ -43,7 +43,7 @@ const hash=value=>createHash('sha256').update(value).digest('hex');
 
 test('GW1: exactly two additive projects preserve earlier buildings and campaign fingerprints',async()=>{
  const earlier=Object.fromEntries(Object.entries(data.buildings).filter(([id])=>!ids.includes(id)));
-  assert.equal(hash(JSON.stringify(earlier)),'a1c130a289344cb03d11b5f133cf8c93c0a36bf6a85670758f66b4be5d6e51a8');
+  assert.equal(hash(JSON.stringify(earlier)),'5ad0bcc1b8ea143ebad3ff6307c22051d7b7fffd29e6f2b0f6502b25b4a22b11');
  assert.equal(hash(JSON.stringify(data.buildings['dawn-gate'])),'00d6157bcb7d5e00372e02318c3f8ee8626e85584e6e263c38cdb179626ce0f0');
   // Raw-file pins normalize line endings: Windows checkouts use CRLF, CI uses LF.
   const raw=async url=>(await readFile(url,'utf8')).replace(/\r\n?/g,'\n');
@@ -85,7 +85,7 @@ test('GW1: all seven stages resolve to distinct original transparent 32px PNGs',
 test('GW1: exact undiscounted baskets and totals fit data-derived developed central caps',()=>{
  const w=developed();
  const caps=Object.fromEntries(capKeys.map(k=>[k,storageCap(w,data,k)]));
-  assert.deepEqual(caps,{wood:232000,food:241000,gold:156000,lumber:75200,flour:81200,bread:81200,frostwood:45600,plate:45600});
+  assert.deepEqual(caps,{wood:232000,food:241000,gold:156000,lumber:75200,flour:81200,bread:81200,frostwood:45600,plate:45600,rations:800,'feast-supplies':400});
  for(const id of ids){
   const totals={};
   baskets[id].forEach((basket,i)=>{
