@@ -1,6 +1,62 @@
 {
   "defaultTrack": "peace_day",
   "tracks": {
+    "money_right": {
+      "title": "Money Right (Frontier Tribute)",
+      "tempo": 50,
+      "style": "felt-piano",
+      "filterCutoff": 1250,
+      "restInterval": [6, 10],
+      "phrases": [
+        {
+          "bars": 4,
+          "bass": "B1",
+          "pad": ["B2", "F#3", "D4"],
+          "melody": [
+            { "beat": 1.5, "note": "F#4", "dur": 0.8, "vel": 0.65 },
+            { "beat": 2.2, "note": "F#4", "dur": 0.8, "vel": 0.65 },
+            { "beat": 3.0, "note": "F#4", "dur": 1.2, "vel": 0.70 },
+            { "beat": 4.5, "note": "E4", "dur": 0.8, "vel": 0.60 },
+            { "beat": 5.2, "note": "D4", "dur": 0.8, "vel": 0.60 },
+            { "beat": 6.0, "note": "B3", "dur": 2.5, "vel": 0.75 }
+          ]
+        },
+        {
+          "bars": 4,
+          "bass": "G1",
+          "pad": ["G2", "D3", "B3"],
+          "melody": [
+            { "beat": 2.0, "note": "D4", "dur": 1.5, "vel": 0.60 },
+            { "beat": 3.5, "note": "E4", "dur": 1.2, "vel": 0.60 },
+            { "beat": 5.0, "note": "F#4", "dur": 2.5, "vel": 0.70 },
+            { "beat": 7.5, "note": "B4", "dur": 3.0, "vel": 0.65 }
+          ]
+        },
+        {
+          "bars": 4,
+          "bass": "E2",
+          "pad": ["E3", "B3", "G4"],
+          "melody": [
+            { "beat": 1.5, "note": "F#4", "dur": 0.8, "vel": 0.65 },
+            { "beat": 2.2, "note": "F#4", "dur": 0.8, "vel": 0.65 },
+            { "beat": 3.0, "note": "A4", "dur": 1.5, "vel": 0.75 },
+            { "beat": 4.8, "note": "F#4", "dur": 1.0, "vel": 0.65 },
+            { "beat": 6.0, "note": "E4", "dur": 1.2, "vel": 0.60 },
+            { "beat": 7.5, "note": "D4", "dur": 2.5, "vel": 0.70 }
+          ]
+        },
+        {
+          "bars": 4,
+          "bass": "F#2",
+          "pad": ["F#3", "C#4", "A#3"],
+          "melody": [
+            { "beat": 1.0, "note": "C#4", "dur": 1.5, "vel": 0.55 },
+            { "beat": 3.0, "note": "D4", "dur": 1.5, "vel": 0.60 },
+            { "beat": 5.0, "note": "B3", "dur": 4.5, "vel": 0.75 }
+          ]
+        }
+      ]
+    },
     "peace_day": {
       "title": "Sunlight on the Timber",
       "tempo": 48,

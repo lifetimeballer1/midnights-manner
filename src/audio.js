@@ -3,6 +3,7 @@ import {isMuted, sharedAudioContext, sharedAudioOutput} from './systems/audio.js
 /**
  * Context-reactive Minecraft/C418-style ambient score engine.
  * Switches tracks by game state (peace, night, raid, victory/dawn).
+ * Includes a rare "money_right" tribute easter egg during calm play.
  * Routes through the shared audio bus so the global mute control works.
  */
 export class AmbientScoreEngine {
@@ -20,6 +21,11 @@ export class AmbientScoreEngine {
     this.timer = null;
     this.isPlaying = false;
     this.started = false;
+
+    // Easter egg: 25% roll after 5 minutes of calm, then every 2 minutes
+    this.easterEggActive = false;
+    this.rollTimer = null;
+    this.firstRollTimer = null;
   }
 
   _ensureGraph() {
@@ -27,7 +33,6 @@ export class AmbientScoreEngine {
     const output = sharedAudioOutput();
     if (!ctx || !output) return false;
 
-    // Rebuild if context changed (rare) or first time.
     if (this.ctx === ctx && this.masterGain) return true;
 
     this.ctx = ctx;
@@ -82,20 +87,56 @@ export class AmbientScoreEngine {
     }
   }
 
+  initTimerRolls() {
+    this.clearRollTimers();
+
+    // First check at exactly 5 minutes
+    this.firstRollTimer = setTimeout(() => {
+      this.attemptEasterEggRoll();
+      // Recurring check every 2 minutes after that
+      this.rollTimer = setInterval(() => this.attemptEasterEggRoll(), 120000);
+    }, 300000);
+  }
+
+  clearRollTimers() {
+    if (this.firstRollTimer) {
+      clearTimeout(this.firstRollTimer);
+      this.firstRollTimer = null;
+    }
+    if (this.rollTimer) {
+      clearInterval(this.rollTimer);
+      this.rollTimer = null;
+    }
+  }
+
+  attemptEasterEggRoll() {
+    // Only during calm base-building; never interrupt event tracks
+    if (this.currentTrackKey !== 'peace_day' || this.easterEggActive) return;
+    if (!this.data?.tracks?.money_right) return;
+    if (Math.random() <= 0.25) {
+      this.easterEggActive = true;
+      this.setTrack('money_right');
+    }
+  }
+
   /**
    * Map live game flags to a score track.
-   * @param {{inRaid?:boolean,raidPending?:boolean,isNight?:boolean,isVictory?:boolean,isDawn?:boolean}} state
+   * Preserves money_right easter egg until it finishes or an event interrupts.
    */
   updateGameState(state = {}) {
     if (state.inRaid || state.raidPending) {
+      this.easterEggActive = false;
       this.setTrack('raid_siege');
     } else if (state.isVictory || state.isDawn) {
+      this.easterEggActive = false;
       this.setTrack('victory_dawn');
     } else if (state.isNight) {
+      this.easterEggActive = false;
       this.setTrack('exploration_night');
-    } else {
+    } else if (!this.easterEggActive) {
       this.setTrack('peace_day');
     }
+    // else: stay on money_right until the cycle completes
   }
 
   noteToFreq(note) {
@@ -142,7 +183,6 @@ export class AmbientScoreEngine {
     if (!this.isPlaying || !this.data?.tracks) return;
     if (!this._ensureGraph()) return;
 
-    // Keep master gain in sync with global mute.
     const target = isMuted() ? 0.0001 : 0.32;
     try {
       this.masterGain.gain.setTargetAtTime(target, this.ctx.currentTime, 0.05);
@@ -178,6 +218,13 @@ export class AmbientScoreEngine {
     const restSec = restBars * 4 * beatSec;
 
     this.phraseIndex = (this.phraseIndex + 1) % track.phrases.length;
+
+    // After one full cycle of the tribute, return to peace
+    if (this.currentTrackKey === 'money_right' && this.phraseIndex === 0) {
+      this.easterEggActive = false;
+      this.setTrack('peace_day');
+    }
+
     this.timer = setTimeout(() => this.tick(), (totalPhraseSec + restSec) * 1000);
   }
 
@@ -196,15 +243,18 @@ export class AmbientScoreEngine {
 
     if (this.isPlaying) return;
     this.isPlaying = true;
+    this.initTimerRolls();
     this.tick();
   }
 
-  /** Resume after unmute if the session already started. */
   setEnabled(enabled) {
     if (!this.started) return;
     if (enabled && !isMuted()) {
-      if (!this.isPlaying) this.start();
-      else if (this.masterGain && this.ctx) {
+      if (!this.isPlaying) {
+        this.isPlaying = true;
+        this.initTimerRolls();
+        this.tick();
+      } else if (this.masterGain && this.ctx) {
         this.masterGain.gain.setTargetAtTime(0.32, this.ctx.currentTime, 0.05);
       }
     } else {
@@ -212,20 +262,21 @@ export class AmbientScoreEngine {
     }
   }
 
-  /**
-   * @param {boolean} fullStop - when false, keep started flag so unmute can resume
-   */
   stop(fullStop = true) {
     this.isPlaying = false;
     if (this.timer) {
       clearTimeout(this.timer);
       this.timer = null;
     }
+    this.clearRollTimers();
     if (this.masterGain && this.ctx) {
       try {
         this.masterGain.gain.setTargetAtTime(0.0001, this.ctx.currentTime, 0.2);
       } catch {}
     }
-    if (fullStop) this.started = false;
+    if (fullStop) {
+      this.started = false;
+      this.easterEggActive = false;
+    }
   }
 }
