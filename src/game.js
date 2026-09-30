@@ -1,7 +1,7 @@
 import {startResearch,tickResearch,researchReason} from './systems/research.js';
 import {tickEmergency} from './systems/emergency.js';
 import {factionFor} from './systems/tactics.js';
-import {ensureDirector,directorConfig,directorParty,scheduleRecovery} from './systems/raid-director.js';
+import {ensureDirector,directorConfig,directorParty,directorPatrol,territoryPatrol,scheduleRecovery} from './systems/raid-director.js';
 import {resourceLabel,resourceInfo} from './resources.js';
 import {wallRowQuote,wallLine,isWall} from './systems/walls.js';
 import {nextStep,blocked} from './systems/pathfinding.js';
@@ -25,7 +25,7 @@ import {phaseAt,weatherAt,clockConfig} from './systems/daynight.js';
 import {bossFor,spawnBoss,endgameSpawnOpts,renownCost,renownAvailable,paragonEligible,paragonCost,buildingMaxHp,renownLimitBonus,renownTroopBonus,renownRewardsUpTo,renownUnlocksFor} from './systems/endgame.js';
 import {warChestById,warChestLevel,warChestMax,warChestTotal,warChestOpenable,warChestArmed,warChestMinLevel,warChestRecovery,spendWarChest} from './systems/warchest.js';
 import {beginFestival} from './systems/festivals.js';
-import {beginScout,scoutReason,assaultReason,applyAnnex,conquestLimitBonus} from './systems/conquest.js';
+import {beginScout,scoutReason,assaultReason,applyAnnex,conquestLimitBonus,tribeOf} from './systems/conquest.js';
 import {sfx} from './systems/audio.js';
 // Scheduled home raids: all timing and ceremony lines come from
 // data.world.homeRaids so balance and voice stay in JSON, not logic.
@@ -266,6 +266,7 @@ export class Game {
   if(this.state.mission)return this.notify('Expeditions hold no land — claim at home.'),false;
   const check=claimCheck(this.world,this.data.expansion,this.data.world,x,y);
   if(!check.ok){
+   if(check.reason==='tribe')return this.notify(`Defeat the ${tribeOf(this.data,check.tribe)?.name||check.tribe} before claiming this land. Their stronghold still stands.`),false;
    if(check.reason==='claimed')return this.notify('That land is already claimed.'),false;
    if(check.reason==='adjacent')return this.notify('Claims must border your claimed land — push out from the edge.'),false;
    return this.notify('That land lies beyond the frontier.'),false;
@@ -585,7 +586,7 @@ export class Game {
    // raid (a scouting pair) so new villages get five quiet minutes; the
    // test button still works for the impatient. Never during a mission.
    if(this.world.elapsed>=this.world.nextRaidAt&&this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)){
-    const count=directorParty(this.state,this.data);
+    let count=directorParty(this.state,this.data);
     cfg.warning=directorConfig(this.data).warning;
     const scout=Math.min(15,this.world.scoutBonus||0);this.world.scoutBonus=0;
     // Crowns of the late war (Phase 12): boss waves are telegraphed — a
@@ -593,28 +594,37 @@ export class Game {
     // surprise. The pin for the Chronicle goes up at muster, not at victory.
     let boss=null;
     try{boss=bossFor(this.data,this.state.vlevel||1,this.world.wave+1);}catch{}
+    const patrol=boss?null:directorPatrol(this.state,this.data);
+    if(patrol)count=Math.max(2,Math.min(4,count));
     const warning=cfg.warning+scout+(boss?(this.data.endgame?.bossRule?.warningBonus||20):0);
     this.world.raidPending={timer:warning,count,scheduled:true,boss:boss?.id||null};this.world.raidKills=0;this.world.raidLoot=0;this.world.raidResult=null;sfx.horn();
+    if(patrol)this.world.raidPending.patrol=patrol.tribe;
     if(boss){
      this.world.lastBoss={id:boss.id,name:boss.name,title:boss.title,wave:this.world.wave+1,won:null,elapsed:this.world.elapsed};
      this.notify(fillLine(boss.herald,{count,seconds:Math.ceil(warning),wave:this.world.wave+1}));
     }
+    else if(patrol)this.notify(`Scouts report ${count} ${patrol.name} patrol fighters from ${patrol.region} — ${Math.ceil(warning)} seconds to positions!`);
     else this.notify(fillLine(pickLine(cfg.warningLines,this.world.wave),{count,seconds:Math.ceil(warning),wave:this.world.wave+1})+(scout>0?` Ranger word bought us +${scout}s.`:''));
    }
   }
   if(this.world.raidPending&&!this.state.mission){this.world.raidPending.timer-=dt;
-   if(this.world.raidPending.timer<=0){const {count,scheduled,boss:bossId}=this.world.raidPending;this.world.raidPending=null;
+   if(this.world.raidPending.timer<=0){const {count,scheduled,boss:bossId,patrol:patrolId}=this.world.raidPending;this.world.raidPending=null;
+    const patrol=patrolId?territoryPatrol(this.world,this.data,patrolId,this.state.vlevel||1):null;
+    // A saved warning cannot revive pressure from a defeated tribe.
+    if(patrolId&&!patrol){this.world.nextRaidAt=this.world.elapsed+directorConfig(this.data).minQuiet;this.notify('The frontier patrol has withdrawn.');}
+    else {
     let egOpts=null;
     try{egOpts=endgameSpawnOpts(this.state,this.data);}catch{}
-    const faction=factionFor(this.data,this.world.wave+1,this.state.vlevel||1);
-    spawnRaid(this.world,count,null,this.data,faction,egOpts);
+    const faction=patrol?.faction||factionFor(this.data,this.world.wave+1,this.state.vlevel||1);
+    spawnRaid(this.world,count,null,this.data,faction,patrol?{strictExclusion:true}:egOpts);
     let boss=null;
     if(bossId){try{
      boss=(this.data.endgame?.bosses||[]).find(b=>b.id===bossId)||null;
      if(boss)spawnBoss(this.world,this.data,boss,this.world.wave);
     }catch{}}
     if(boss)this.notify(fillLine(boss.attack,{count,wave:this.world.wave}));
-    else this.notify(scheduled?fillLine(pickLine(cfg.attackLines,this.world.wave),{count,wave:this.world.wave}):`Wave ${this.world.wave} — ${count} raiders! Defend the manor!`);}}
+    else if(patrol)this.notify(`${patrol.name} patrol from ${patrol.region} — defend the manor!`);
+    else this.notify(scheduled?fillLine(pickLine(cfg.attackLines,this.world.wave),{count,wave:this.world.wave}):`Wave ${this.world.wave} — ${count} raiders! Defend the manor!`);}}}
   const raided=!this.state.mission&&(this.world.enemies.length>0||this.world.raidPending);
   // Phase 7 identity backfill: old saves and mission rosters gain names,
   // traits and job ledgers lazily — additive defaults, never a wipe.

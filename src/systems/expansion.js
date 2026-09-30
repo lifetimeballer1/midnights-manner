@@ -5,6 +5,8 @@
 // only — no per-region or troop conditionals.
 // Legacy ring table (rings/homestead) is kept as a fallback for saves and
 // maps without regions.
+import {conquestState} from './conquest.js';
+
 export function homesteadOf(dataExpansion, dataWorld) {
   const h = dataExpansion?.homestead;
   return {
@@ -89,6 +91,7 @@ export function regionClaimCheck(world, dataExpansion, dataWorld, x, y) {
   const region = regionFor(dataExpansion, x, y);
   if (!region) return {ok: false, reason: 'edge'};
   if (region.preclaimed || isRegionClaimed(world, region)) return {ok: false, reason: 'claimed'};
+  if (region.tribe && !conquestState(world, region.tribe).assaultWon) return {ok: false, reason: 'tribe', tribe: region.tribe};
   if (!regionAdjacent(world, region)) return {ok: false, reason: 'adjacent'};
   return {ok: true, region, cost: regionCost(region)};
 }
