@@ -34,7 +34,7 @@ export function recordTravel(world,data,x0,y0,x1,y1){
   const x=Math.floor((x0+dx*(a+b)/2)*SCALE),y=Math.floor((y0+dy*(a+b)/2)*SCALE);
   if(x<0||y<0||x>=data.world.width*SCALE||y>=data.world.height*SCALE)continue;
   const key=`${x},${y}`,old=strength(world.trails[key],now),wear=Math.min(TRAIL_MAX,old+d*(b-a)*GAIN);
-  world.trails[key]=[wear,now];if(trailStage(old)!==trailStage(wear))changed(world);
+  world.trails[key]=[wear,now];if(!world.roads?.[key]&&trailStage(old)!==trailStage(wear))changed(world);
  }
  return d;
 }
@@ -50,6 +50,7 @@ export function tickTrails(world){
 export function addTrailGeometry(s,world){
  const old=s.owner;s.owner=null;
  for(const [key,e] of Object.entries(world.trails||{})){
+  if(world.roads?.[key])continue; // Formal surface replaces the covered natural mesh.
   const stage=trailStage(strength(e,world.elapsed||0));if(!stage)continue;
   const [ix,iy]=key.split(',').map(Number),x=(ix+.5)/SCALE,y=(iy+.5)/SCALE,p=s.r.project(x,y);
   if(p.x<-40||p.y<-40||p.x>s.r.width+40||p.y>s.r.height+40)continue;

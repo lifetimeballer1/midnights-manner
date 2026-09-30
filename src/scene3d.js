@@ -40,14 +40,14 @@ export function shade(hex,n,light,emissive=0,depth01=0,ao=1,local=0){
  return '#'+[value>>16,(value>>8)&255,value&255].map((v,i)=>{let c=Math.min(255,Math.round(v*(lit[i]+local*[1,.57,.22][i])*dim));if(fog>0)c=Math.round(c+(light.fogRGB[i]*255-c)*fog);return c.toString(16).padStart(2,'0');}).join('');
 }
 export class MeshScene {
- constructor(r){this.r=r;this.faces=[];this.sources=[];this.chimneys=[];this.doors=[];this.owner=null;this.alpha=1;this.depthBias=0;this.light=FALLBACK_LIGHT;this.emissive=0;this.fixture=false;this.basis=cameraBasis(r);}
+ constructor(r){this.r=r;this.faces=[];this.sources=[];this.chimneys=[];this.doors=[];this.owner=null;this.alpha=1;this.depthBias=0;this.light=FALLBACK_LIGHT;this.emissive=0;this.fixture=false;this.subdivision=.4;this.basis=cameraBasis(r);}
  source(position,direction=null,radius=1.25,power=.7,profile='generic'){
   if(this.alpha===1){const source={position,direction,radius,power,profile,owner:this.owner};source.phase=sourcePhase(source);this.sources.push(source);}
  }
  face(vertices,color,split=true){
   // Split broad roof/wall planes so chimneys and neighboring meshes occlude
   // correctly even at low camera angles (painter ordering uses face centers).
-  if(split&&vertices.length===4){const [a,b,c,d]=vertices,dist=(u,v)=>Math.hypot(...u.map((n,i)=>n-v[i])),nx=Math.ceil(dist(a,b)/.4),ny=Math.ceil(dist(a,d)/.4);if(nx*ny>1){const point=(u,v)=>a.map((n,i)=>(1-v)*((1-u)*n+u*b[i])+v*((1-u)*d[i]+u*c[i]));for(let i=0;i<nx;i++)for(let j=0;j<ny;j++)this.face([point(i/nx,j/ny),point((i+1)/nx,j/ny),point((i+1)/nx,(j+1)/ny),point(i/nx,(j+1)/ny)],color,false);return;}}
+  if(split&&vertices.length===4){const [a,b,c,d]=vertices,dist=(u,v)=>Math.hypot(...u.map((n,i)=>n-v[i])),nx=Math.ceil(dist(a,b)/this.subdivision),ny=Math.ceil(dist(a,d)/this.subdivision);if(nx*ny>1){const point=(u,v)=>a.map((n,i)=>(1-v)*((1-u)*n+u*b[i])+v*((1-u)*d[i]+u*c[i]));for(let i=0;i<nx;i++)for(let j=0;j<ny;j++)this.face([point(i/nx,j/ny),point((i+1)/nx,j/ny),point((i+1)/nx,(j+1)/ny),point(i/nx,(j+1)/ny)],color,false);return;}}
 
   const a=vertices[0],b=vertices[1],c=vertices[2],u=b.map((v,i)=>v-a[i]),v=c.map((v,i)=>v-a[i]);let n=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];const len=Math.hypot(...n);if(len<1e-8)return;n=n.map(x=>x/len);
   const B=this.basis;if(n[0]*B.s*B.v+n[1]*B.c*B.v+n[2]*B.p<=.00001)return;
@@ -861,11 +861,14 @@ export function drawVillage3D(r,world,time,light){const s=new MeshScene(r),W=r.d
  s.light=light||skyLightAt(world.elapsed,r.data,{calm:r.calm});
  // Large settlements keep outfit/weapon silhouettes but omit tiny face/trim meshes.
  s.characterDetail=world.troops.length+world.enemies.length<=64;
+ // Dense phone overviews retain silhouettes while coarsening only coplanar
+ // occlusion subdivisions. Close-up mechanisms/outfits stay unchanged.
+ s.subdivision=r.width<600&&world.troops.length+world.enemies.length>=96&&r.cam.zoom<1.6?.8:.4;
  s.dynamicDoors=true;
   // Project static meshes only when the camera, footprint, building state or
   // visible defense/production stage changes; moving gates quantize to four
   // steps and traps key only their armed state, never every cooldown tick.
-  const key=JSON.stringify([r.width,r.height,r.cx,r.cy,r.cam,W,H,r.claimedTileCount??-1,trailRevision(world),roadRevision(world),world.wave||0,world.buildings.map(b=>{const spec=r.data.buildings[b.type];return [b.id,b.type,b.x,b.y,b.level,b.hp<=0,b.remaining>0,productionStage(b,spec),spec?.production&&reserveReady(b,spec)?1:0,b.type==='gate'?gateLiftStage(r,b,world,time):0,b.type.includes('trap')?(trapArmed(b)?1:0):0];})]);
+  const key=JSON.stringify([r.width,r.height,r.cx,r.cy,r.cam,W,H,s.subdivision,r.claimedTileCount??-1,trailRevision(world),roadRevision(world),world.wave||0,world.buildings.map(b=>{const spec=r.data.buildings[b.type];return [b.id,b.type,b.x,b.y,b.level,b.hp<=0,b.remaining>0,productionStage(b,spec),spec?.production&&reserveReady(b,spec)?1:0,b.type==='gate'?gateLiftStage(r,b,world,time):0,b.type.includes('trap')?(trapArmed(b)?1:0):0];})]);
  if(r._meshStatic?.key===key){s.faces=r._meshStatic.faces.slice();s.sources=r._meshStatic.sources;s.chimneys=r._meshStatic.chimneys;s.doors=r._meshStatic.doors||[];}else{
  // Border trees share depth sorting with the village, including reverse views.
  for(let i=-1;i<W+2;i++){s.owner=null;if(i%2)pine(s,i,-1.5,1.4+(i%3)*.22);if(i%3===0)pine(s,-1.5,((i%H)+H)%H,1.5);if(i%3===1)pine(s,W+1,i%H,1.6);if(i%4===0)pine(s,i,H+3,1.5);}
@@ -874,6 +877,7 @@ export function drawVillage3D(r,world,time,light){const s=new MeshScene(r),W=r.d
   for(const b of world.buildings)buildingModel(s,b,r.data.buildings[b.type],world,time);
  prepareSourceLighting(s);
  prepareNearbyLight(s,world);
+ s.faces.sort((a,b)=>a.depth-b.depth);
  r._meshStatic={key,faces:s.faces.slice(),sources:s.sources,chimneys:s.chimneys,doors:s.doors};
  }
 
