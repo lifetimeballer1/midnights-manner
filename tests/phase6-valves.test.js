@@ -6,6 +6,7 @@ import {createWorld,makeBuilding,makeUnit,auras,reviveFraction} from '../src/mod
 import {tickVillage} from '../src/systems/village.js';
 import {tickVillagerJobs} from '../src/systems/villagers.js';
 import {performTrade,dealsFor} from '../src/systems/calendar.js';
+import {storageCap} from '../src/systems/storage.js';
 import {
  warChestList,warChestLevel,warChestMax,warChestTotal,warChestArmed,warChestBonus,
  warChestRecovery,warChestOpenable,warChestMinLevel,
@@ -224,4 +225,96 @@ test('phase6: the northern caravan pays in frostwood now that all goods trade',(
  assert.equal(w.resources.frostwood,650,'cold coin lands');
  assert.equal(w.resources.lumber,1500);
  assert.equal(w.resources.plate,1000);
+});
+
+// ---- Grey Dawn H1: data-only bulk commissions ----
+const commissions=[
+ {id:'armory-contract',minLevel:8,give:{plate:2500,gold:500},take:{gold:900}},
+ {id:'harvest-shipment',minLevel:7,give:{food:18000,bread:1000},take:{gold:1600}},
+ {id:'frostwood-commission',minLevel:9,give:{frostwood:1800,plate:3000},take:{gold:1800}},
+];
+
+test('H1: three lossy bulk commissions use gold payouts and daily level gates',()=>{
+ for(const spec of commissions){
+  const matches=data.traders.filter(t=>t.id===spec.id);
+  assert.equal(matches.length,1,`${spec.id} has a unique entry`);
+  const deal=matches[0];
+  assert.ok(deal.trader&&deal.flavor,`${spec.id} names its trader and purpose`);
+  assert.equal(deal.cap,1);
+  assert.equal(deal.minLevel,spec.minLevel);
+  assert.deepEqual(deal.give,spec.give);
+  assert.deepEqual(deal.take,spec.take,'only the supported gold payout');
+  assert.ok(Object.values(deal.give).reduce((a,b)=>a+b,0)>deal.take.gold,'bulk in, modest out');
+  if(deal.give.gold)assert.ok(deal.take.gold>deal.give.gold,'armory pays a positive net coin return');
+  const day=dayWith(spec.id,spec.minLevel);
+  assert.ok(day,`${spec.id} joins the existing rotation`);
+  const state=tradeState(createWorld(data));state.vlevel=spec.minLevel-1;
+  const before=structuredClone(state.world.resources);
+  assert.equal(performTrade(state,data,spec.id,day).ok,false,'below the level gate');
+  assert.deepEqual(state.world.resources,before,'gate spends nothing');
+ }
+ const harvest=data.traders.find(t=>t.id==='harvest-shipment'),provender=data.traders.find(t=>t.id==='provender-run');
+ assert.ok(harvest.give.food>provender.give.food&&harvest.give.bread>provender.give.bread,'larger food and bread shipment');
+});
+
+test('H1: commissions pay exactly, cap at one run and reopen on a later day',()=>{
+ for(const spec of commissions){
+  const day=dayWith(spec.id,spec.minLevel),w=createWorld(data);
+  w.resources={wood:0,food:0,gold:0,lumber:0,plate:0,frostwood:0,flour:0,bread:0};
+  for(const [k,v] of Object.entries(spec.give))w.resources[k]=v;
+  const state=tradeState(w);state.vlevel=spec.minLevel;
+  const before=structuredClone(w.resources),gathered=w.gathered.gold||0;
+  const result=performTrade(state,data,spec.id,day);
+  assert.equal(result.ok,true,spec.id);
+  assert.equal(result.xp,0,'gold payout grants no training progress');
+  assert.equal(result.left,0);
+  for(const k of Object.keys(before))assert.equal(w.resources[k],before[k]-(spec.give[k]||0)+(spec.take[k]||0),`${spec.id}: exact ${k}`);
+  assert.equal(w.gathered.gold,gathered+spec.take.gold,'payout accounted once');
+  const paid=structuredClone(w.resources);
+  const again=performTrade(state,data,spec.id,day);
+  assert.equal(again.ok,false);
+  assert.match(again.error,/done until tomorrow/);
+  assert.deepEqual(w.resources,paid,'daily refusal spends nothing');
+  let next=null;
+  for(let i=1;i<=60;i++){
+   const candidate=new Date(day.getTime()+i*86400000);
+   if(dealsFor(data.traders,data.calendar,candidate,spec.minLevel).some(t=>t.id===spec.id)){next=candidate;break;}
+  }
+  assert.ok(next,'commission rotates back on a later day');
+  w.resources=structuredClone(before);
+  assert.equal(performTrade(state,data,spec.id,next).ok,true,'daily cap resets');
+ }
+});
+
+test('H1: insufficient commission baskets refuse without partial payment',()=>{
+ for(const spec of commissions){
+  for(const missing of Object.keys(spec.give)){
+   const w=createWorld(data);w.resources.gold=0;
+   Object.assign(w.resources,spec.give);w.resources[missing]-=1;
+   const state=tradeState(w);state.vlevel=spec.minLevel;
+   const before=structuredClone(w.resources),gathered=structuredClone(w.gathered);
+   const result=performTrade(state,data,spec.id,dayWith(spec.id,spec.minLevel));
+   assert.equal(result.ok,false,`${spec.id}: short ${missing}`);
+   assert.match(result.error,/stores fall short/);
+   assert.deepEqual(w.resources,before);
+   assert.deepEqual(w.gathered,gathered);
+   assert.equal(state.tradesUsed[spec.id],undefined,'refusal consumes no daily run');
+  }
+ }
+});
+
+test('H1: commission room checks refuse before any basket moves',()=>{
+ for(const spec of commissions){
+  const w=createWorld(data);Object.assign(w.resources,spec.give);
+  w.resources.gold=storageCap(w,data,'gold')-spec.take.gold+1;
+  assert.ok(w.resources.gold>=(spec.give.gold||0),'cost is affordable before checking room');
+  const state=tradeState(w);state.vlevel=spec.minLevel;
+  const before=structuredClone(w.resources),gathered=structuredClone(w.gathered);
+  const result=performTrade(state,data,spec.id,dayWith(spec.id,spec.minLevel));
+  assert.equal(result.ok,false,spec.id);
+  assert.match(result.error,/stores are full/);
+  assert.deepEqual(w.resources,before,'even armory cartage remains untouched');
+  assert.deepEqual(w.gathered,gathered);
+  assert.equal(state.tradesUsed[spec.id],undefined,'refusal consumes no daily run');
+ }
 });
