@@ -7,9 +7,6 @@ import {UI} from '../src/ui.js';
 import {createWorld, makeUnit, buildingLimit} from '../src/model.js';
 import {finishMission, tickMission, missionLockReason} from '../src/systems/campaign.js';
 import {bossSpec, bossFor, bossTick} from '../src/systems/endgame.js';
-import {spawnBoss} from '../src/systems/endgame.js';
-import {tickCombat} from '../src/systems/combat.js';
-import {enemyRole} from '../src/systems/tactics.js';
 import {tickTownSupply, territorySupplyCost, territorySupplied} from '../src/systems/food.js';
 import {conquestState, readinessReason, assaultReason, recordPreliminary, recordAssault,
   applyAnnex, conquestLimitBonus, conquestAuraEffects} from '../src/systems/conquest.js';
@@ -18,54 +15,34 @@ import {save, load, exportSave, importSaveBlob, VERSION} from '../src/storage.js
 const data = Object.fromEntries(await Promise.all(
   ['world','troops','items','abilities','buildings','missions','quests','levels','calendar','traders','endgame','festivals','conquest']
     .map(async n => [n, JSON.parse(await readFile(new URL(`../data/${n}.json`, import.meta.url)))])));
-const tribe = 'palehost';
+const tribe = 'ember';
 const mission = id => data.missions.find(m => m.id === id);
 const baseline = {conquest: {...data.conquest,
-    tribes:data.conquest.tribes.filter(t => ![tribe,'ember'].includes(t.id)),
-    leaders:data.conquest.leaders.filter(l => !['palehost-herald','ember-cindral'].includes(l.id))},
-  missions:data.missions.filter(m => ![tribe,'ember'].includes(m.tribe))};
-test('H7: H6 git-show fingerprints preserve every earlier tribe, leader and mission entry', () => {
-  // JSON fingerprints taken from git show e0e2764:data/{conquest,missions}.json.
+    tribes:data.conquest.tribes.filter(t => t.id !== tribe),
+    leaders:data.conquest.leaders.filter(l => l.id !== 'ember-cindral')},
+  missions:data.missions.filter(m => m.tribe !== tribe)};
+test('H8: H7 git-show fingerprints preserve every earlier tribe, leader and mission entry', () => {
+  // JSON fingerprints taken from git show 2af7e95:data/{conquest,missions}.json.
   // Pins keep this proof runnable in shallow CI checkouts without Git history.
   const fingerprint = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
-  assert.equal(fingerprint(baseline.conquest), '4e1e9372b430dce1ac8aa7eb6d3e1efe677329a1b5bc1217d21542c59edc7426');
-  assert.equal(fingerprint(baseline.missions), '3b00bd2f0c296ae1f73c3634f42c111726655bf5dbddfb4baaef6cab236ea68c');
+  assert.equal(fingerprint(baseline.conquest), 'a87f1676e36a5888f90ab058f1cc01060f4e7b118c4ade70614853150e25f483');
+  assert.equal(fingerprint(baseline.missions), '8cabff5b7ee5fc59404dd8439a728da1278162935c235b70509d270a0838d7e9');
   assert.equal(data.conquest.tribes.length + 1, 5, 'Ironshield plus four additive tribes');
-});
-test('H7: Herald fires repeated ranged arrows through existing combat; earlier boss roles remain unchanged', () => {
-  const w = createWorld(data);
-  w.troops = [];
-  w.buildings = w.buildings.filter(b => b.type === 'hall');
-  const hall = w.buildings[0];
-  const boss = spawnBoss(w, data, bossSpec(data, 'palehost-herald'), 1);
-  boss.x = hall.x - 1.7; boss.y = hall.y + 1;
-  assert.equal(enemyRole(data, boss).range, 3.6);
-  const hp = hall.hp, x = boss.x;
-  tickCombat(w, data, 0.1);
-  assert.equal(boss.x, x);
-  assert.ok(hall.hp < hp);
-  assert.ok(w.effects.some(e => e.kind === 'arrow'));
-  const after = hall.hp;
-  tickCombat(w, data, 1.4);
-  assert.ok(hall.hp < after, 'the next arrow volley uses normal attack cooldown');
-  for (const spec of [...data.endgame.bosses, ...data.conquest.leaders.filter(l => l.id !== boss.bossId)]) {
-    assert.deepEqual(enemyRole(data, {role:'boss',bossId:spec.id}), data.world.enemyRoles?.boss || {});
-  }
 });
 function ready() {
   const g = new Game(data);
-  g.state = {...g.state, world: createWorld(data), home: null, mission: null, vlevel: 11, completed: ['cinder-citadel']};
-  g.world.renown = 5;
+  g.state = {...g.state, world: createWorld(data), home: null, mission: null, vlevel: 11, completed: ['palehost-court']};
+  g.world.renown = 6;
   const b = g.world.buildings.find(b => b.type === 'barracks');
   b.level = 3; b.hp = data.buildings.barracks.tiers[2].hp; b.remaining = 0;
-  g.world.troops = Array.from({length: 12}, () => makeUnit('warrior', data));
+  g.world.troops = Array.from({length: 14}, () => makeUnit('warrior', data));
   g.world.resources = Object.fromEntries(['wood','food','gold','lumber','plate','frostwood','flour','bread'].map(k => [k, 99999]));
   return g;
 }
 function marchReady() {
   const g = ready();
   g.scoutTribe(tribe);
-  for (const id of ['palehost-tide','palehost-mist']) {
+  for (const id of ['ember-vanguard','ember-redoubt']) {
     recordPreliminary(g.world, id, tribe); g.state.completed.push(id);
   }
   return g;
@@ -76,29 +53,29 @@ function annexBoth(g, choice = 'outpost') {
   assert.equal(applyAnnex(g.state, data, choice, tribe).ok, true);
 }
 
-test('H7: chapters 24-26 chain from Cinder, use water maps and escalating baskets', () => {
+test('H8: chapters 27-29 chain from Pale Host, use hills maps and escalating baskets', () => {
   assert.equal(Math.max(...data.missions.map(m => Number(m.chapter))), 29, 'H8 ends at chapter 29; H9 has not started');
-  const t = data.conquest.tribes[2];
-  assert.equal(t.id, tribe); assert.equal(t.color, '#b8c8d8');
-  assert.deepEqual(t.require, {vlevel: 11, renown: 5, barracksTier: 3, troops: 12});
+  const t = data.conquest.tribes[3];
+  assert.equal(t.id, tribe); assert.equal(t.color, '#d8793c');
+  assert.deepEqual(t.require, {vlevel: 11, renown: 6, barracksTier: 3, troops: 14});
   assert.equal(data.missions.length, 30);
-  let previous = 'cinder-citadel', rewards = {};
+  let previous = 'palehost-court', rewards = {};
   for (const [i, id] of [...t.preliminaries.map(p => p.id), t.assault].entries()) {
     const m = mission(id);
-    assert.equal(m.chapter, String(24 + i)); assert.equal(m.tribe, tribe);
+    assert.equal(m.chapter, String(27 + i)); assert.equal(m.tribe, tribe);
     assert.deepEqual(m.requires, [previous]);
     assert.equal(m.conquest, i === 2 ? 'assault' : 'preliminary');
-    assert.equal(m.map.biome, 'water');
-    assert.ok(m.map.tiles.every(tile => tile.biome === 'water'));
+    assert.equal(m.map.biome, 'hills');
+    assert.ok(m.map.tiles.every(tile => tile.biome === 'hills'));
     for (const [key, value] of Object.entries(m.rewards)) assert.ok(value > (rewards[key] || 0), key);
     assert.ok(missionLockReason(m, [], createWorld(data), data));
     assert.equal(missionLockReason(m, [previous], createWorld(data), data), null);
     previous = id; rewards = m.rewards;
   }
-  assert.deepEqual(mission('palehost-court').rewards, {gold:5500,lumber:3000,plate:800,frostwood:500});
-  const thorn = data.conquest.tribes[1];
+  assert.deepEqual(mission('ember-throne').rewards, {gold:6500,lumber:3500,plate:1000,frostwood:650});
+  const pale = data.conquest.tribes[2];
   for (const option of t.annex) {
-    const prior = thorn.annex.find(a => a.id === option.id);
+    const prior = pale.annex.find(a => a.id === option.id);
     assert.equal(option.limitBonus, prior.limitBonus);
     for (const field of ['resources','flatAuras']) for (const [key, value] of Object.entries(prior[field] || {})) {
       assert.ok(option[field][key] >= value, `${option.id} ${key}`);
@@ -107,8 +84,8 @@ test('H7: chapters 24-26 chain from Cinder, use water maps and escalating basket
   }
 });
 
-test('H7: Pale Host muster law checks each gate, Ironshield remains at its original law', () => {
-  for (const fail of [g => g.state.vlevel = 10, g => g.world.renown = 4,
+test('H8: Ember Legion muster law checks each gate, Ironshield remains at its original law', () => {
+  for (const fail of [g => g.state.vlevel = 10, g => g.world.renown = 5,
     g => g.world.buildings.find(b => b.type === 'barracks').level = 2,
     g => g.world.troops[0].hp = 0]) {
     const g = ready(); fail(g);
@@ -123,7 +100,7 @@ test('H7: Pale Host muster law checks each gate, Ironshield remains at its origi
   assert.equal(conquestState(g.world, tribe).scouted, false);
 });
 
-test('H7: scout and outer-work ledgers are independent and reads never create a shelf', () => {
+test('H8: scout and outer-work ledgers are independent and reads never create a shelf', () => {
   const g = ready(), before = JSON.stringify(g.world);
   assert.deepEqual(conquestState(g.world, tribe), {scouted:false,preliminaries:[],assaultWon:false,annexed:null});
   assert.equal(JSON.stringify(g.world), before);
@@ -132,72 +109,72 @@ test('H7: scout and outer-work ledgers are independent and reads never create a 
   assert.equal(g.scoutTribe(tribe), undefined);
   recordPreliminary(g.world, 'ironshield-patrol'); recordPreliminary(g.world, 'ironshield-watch');
   assert.match(assaultReason(g.state, data, tribe), /outer works/);
-  for (const id of ['palehost-tide','palehost-mist']) {
+  for (const id of ['ember-vanguard','ember-redoubt']) {
     recordPreliminary(g.world, id, tribe); recordPreliminary(g.world, id, tribe);
   }
-  assert.deepEqual(conquestState(g.world, tribe).preliminaries, ['palehost-tide','palehost-mist']);
+  assert.deepEqual(conquestState(g.world, tribe).preliminaries, ['ember-vanguard','ember-redoubt']);
   assert.deepEqual(conquestState(g.world).preliminaries, ['ironshield-patrol','ironshield-watch']);
   assert.equal(assaultReason(g.state, data, tribe), null);
 });
 
-test('H7: real first-clears route to Pale Host; replay and defeat leave rewards and ledger alone', () => {
+test('H8: real first-clears route to Ember Legion; replay and defeat leave rewards and ledger alone', () => {
   const g = ready(); g.scoutTribe(tribe);
-  for (const id of ['palehost-tide','palehost-mist']) {
+  for (const id of ['ember-vanguard','ember-redoubt']) {
     g.mission(id); assert.ok(g.state.mission);
     g.state.mission.status = 'won'; assert.equal(finishMission(g.state, data).first, true);
   }
   assert.deepEqual(conquestState(g.world).preliminaries, []);
-  assert.deepEqual(conquestState(g.world, tribe).preliminaries, ['palehost-tide','palehost-mist']);
+  assert.deepEqual(conquestState(g.world, tribe).preliminaries, ['ember-vanguard','ember-redoubt']);
   const before = JSON.stringify(g.world);
-  g.mission('palehost-mist'); g.state.mission.status = 'won';
+  g.mission('ember-redoubt'); g.state.mission.status = 'won';
   assert.equal(finishMission(g.state, data).first, false);
   assert.equal(JSON.stringify(g.world), before);
-  const loser = ready(); loser.mission('palehost-tide'); loser.state.mission.status = 'lost';
+  const loser = ready(); loser.mission('ember-vanguard'); loser.state.mission.status = 'lost';
   finishMission(loser.state, data);
   assert.equal(loser.world.conquest, undefined);
 });
 
-test('H7: assault charges only a successful departure, spawns The Grey Herald, records only Pale Host', () => {
+test('H8: assault charges only a successful departure, spawns Legion-Marshal Cindral, records only Ember Legion', () => {
   const g = marchReady(), before = {...g.world.resources};
-  g.mission('palehost-court'); assert.ok(g.state.mission);
-  for (const [key, value] of Object.entries(mission('palehost-court').launchCost)) {
+  g.mission('ember-throne'); assert.ok(g.state.mission);
+  for (const [key, value] of Object.entries(mission('ember-throne').launchCost)) {
     assert.equal(g.state.home.resources[key], before[key] - value);
   }
   g.world.elapsed = 300; tickMission(g.state, data);
-  assert.ok(g.world.enemies.some(e => e.bossId === 'palehost-herald'));
-  assert.match(g.state.mission.herald, /GREY HERALD/);
+  assert.ok(g.world.enemies.some(e => e.bossId === 'ember-cindral'));
+  assert.match(g.state.mission.herald, /CINDRAL/);
   g.state.mission.status = 'won'; finishMission(g.state, data);
   assert.equal(conquestState(g.world, tribe).assaultWon, true);
   assert.equal(conquestState(g.world).assaultWon, false);
   for (const block of ['short','raid','chain','unscouted','outer works','law']) {
     const h = marchReady();
-    if (block === 'short') h.world.resources.bread = 1399;
+    if (block === 'short') h.world.resources.bread = 1599;
     if (block === 'raid') h.world.enemies.push({hp: 10});
     if (block === 'chain') h.state.completed = [];
-    if (block === 'unscouted') h.world.conquest.tribes.palehost.scouted = false;
-    if (block === 'outer works') h.world.conquest.tribes.palehost.preliminaries = [];
-    if (block === 'law') h.world.renown = 4;
+    if (block === 'unscouted') h.world.conquest.tribes.ember.scouted = false;
+    if (block === 'outer works') h.world.conquest.tribes.ember.preliminaries = [];
+    if (block === 'law') h.world.renown = 5;
     const stores = {...h.world.resources};
-    h.mission('palehost-court');
+    h.mission('ember-throne');
     assert.equal(h.state.mission, null, block); assert.equal(h.state.home, null, block);
     assert.deepEqual(h.world.resources, stores, block);
   }
 });
 
-test('H7: The Grey Herald uses ranged arrows, bowman summons and enrage without joining home crown rotation', () => {
-  const spec = bossSpec(data, 'palehost-herald');
-  assert.equal(spec.name, 'The Grey Herald'); assert.equal(spec.hpBase, 2100); assert.equal(spec.dmgBase, 76);
+test('H8: Cindral uses slam, breaker summons and enrage without joining home crown rotation', () => {
+  const spec = bossSpec(data, 'ember-cindral');
+  assert.equal(spec.name, 'Legion-Marshal Cindral'); assert.equal(spec.hpBase, 2400); assert.equal(spec.dmgBase, 84);
   const legacy = {...data, conquest: {...data.conquest, leaders: data.conquest.leaders.filter(l => l.id !== spec.id)}};
   for (let wave = 1; wave <= 100; wave++) assert.deepEqual(bossFor(data, 10, wave), bossFor(legacy, 10, wave));
   const w = createWorld(data);
-  const foe = {id:'herald',x:7.5,y:5.5,hp:250,maxHp:1000,damage:76,role:'boss',bossId:spec.id,attackTimer:0,animation:0,summonTimer:99,slamTimer:99};
+  const foe = {id:'cindral',x:7.5,y:5.5,hp:250,maxHp:1000,damage:84,role:'boss',bossId:spec.id,attackTimer:0,animation:0,summonTimer:99,slamTimer:99};
   w.enemies.push(foe);
   const events = bossTick(w, data, foe, 0.1);
-  for (const kind of ['summon','enrage']) assert.ok(events.some(e => e.kind === kind), kind);
-  assert.ok(w.enemies.some(e => e.role === 'bowman')); assert.equal(foe.damage, 114);
+  for (const kind of ['slam','summon','enrage']) assert.ok(events.some(e => e.kind === kind), kind);
+  assert.ok(w.enemies.some(e => e.role === 'breaker')); assert.equal(foe.damage, 126);
 });
 
-test('H7: each tribe has one annex judgement, salvage uses storage caps and pending rewards', () => {
+test('H8: each tribe has one annex judgement, salvage uses storage caps and pending rewards', () => {
   const g = ready(); recordAssault(g.world);
   assert.equal(applyAnnex(g.state, data, 'outpost', tribe).ok, false);
   assert.equal(g.annex('outpost'), true);
@@ -213,7 +190,7 @@ test('H7: each tribe has one annex judgement, salvage uses storage caps and pend
   assert.equal(JSON.stringify(conquestState(g.world)), iron);
 });
 
-test('H7: both outposts stack limits, pay independent upkeep and suppress only unpaid auras', () => {
+test('H8: both outposts stack limits, pay independent upkeep and suppress only unpaid auras', () => {
   const g = ready(); annexBoth(g);
   assert.equal(conquestLimitBonus(g.world, data), 4);
   assert.equal(buildingLimit('farm', 10, data, 4), buildingLimit('farm', 10, data) + 4);
@@ -232,19 +209,19 @@ test('H7: both outposts stack limits, pay independent upkeep and suppress only u
   const notes = []; tickTownSupply(g.world, data, n => notes.push(n));
   assert.equal(g.world.resources.plate, 0);
   assert.equal(g.world.conquest.supplied, true);
-  assert.equal(g.world.conquest.tribes.palehost.supplied, false);
+  assert.equal(g.world.conquest.tribes.ember.supplied, false);
   assert.equal(territorySupplied(g.world, data, 'ironshield'), true);
   assert.equal(territorySupplied(g.world, data), false);
   assert.deepEqual(conquestAuraEffects(g.world, data), {armor:0.03,heal:0.1});
   assert.equal(conquestLimitBonus(g.world, data), 4);
   assert.equal(notes.length, 1);
   g.world.elapsed = 540; tickTownSupply(g.world, data, n => notes.push(n));
-  assert.equal(notes.length, 2, 'Ironshield loses coverage once, Pale Host does not repeat');
+  assert.equal(notes.length, 2, 'Ironshield loses coverage once, Ember Legion does not repeat');
   g.world.resources.plate = 100; g.world.elapsed = 720; tickTownSupply(g.world, data);
   assert.equal(territorySupplied(g.world, data), true);
 });
 
-test('H7: both settlements use their own supply baskets and existing aura keys', () => {
+test('H8: both settlements use their own supply baskets and existing aura keys', () => {
   const g = ready(); annexBoth(g, 'settlement');
   assert.equal(conquestLimitBonus(g.world, data), 2);
   assert.deepEqual(territorySupplyCost(g.world, data), {food:2200,gold:240,lumber:200});
@@ -254,7 +231,7 @@ test('H7: both settlements use their own supply baskets and existing aura keys',
   assert.deepEqual(conquestAuraEffects(g.world, data), {gather:0.05,food:0.4});
 });
 
-test('H7: Ironshield-only ledgers and daily outcomes remain byte-identical with added content', () => {
+test('H8: Ironshield-only ledgers and daily outcomes remain byte-identical with added content', () => {
   const legacy = {...data, conquest: {...data.conquest, tribes: []}};
   for (const choice of ['outpost','settlement','dismantle']) {
     const g = ready(); g.state.vlevel = 9; g.world.renown = 2;
@@ -274,7 +251,7 @@ test('H7: Ironshield-only ledgers and daily outcomes remain byte-identical with 
   }
 });
 
-test('H7: local saves and imports round-trip both shelves; absent Pale Host stays absent', () => {
+test('H8: local saves and imports round-trip both shelves; absent Ember Legion stays absent', () => {
   const g = marchReady(); annexBoth(g);
   g.world.elapsed = 180; tickTownSupply(g.world, data);
   assert.equal(save(g.state), true);
@@ -282,9 +259,9 @@ test('H7: local saves and imports round-trip both shelves; absent Pale Host stay
   const blob = exportSave(g.state), imported = importSaveBlob(blob, data);
   assert.equal(imported.ok, true); assert.equal(imported.state.version, VERSION);
   assert.deepEqual(imported.state.world.conquest, g.world.conquest);
-  delete g.world.conquest.tribes.palehost.supplied;
-  assert.equal(importSaveBlob(exportSave(g.state), data).state.world.conquest.tribes.palehost.supplied, false);
-  assert.equal(save(g.state), true); assert.equal(load(data).world.conquest.tribes.palehost.supplied, false);
+  delete g.world.conquest.tribes.ember.supplied;
+  assert.equal(importSaveBlob(exportSave(g.state), data).state.world.conquest.tribes.ember.supplied, false);
+  assert.equal(save(g.state), true); assert.equal(load(data).world.conquest.tribes.ember.supplied, false);
   const old = ready(); old.scoutTribe(); old.world.conquest.supplied = false;
   const before = JSON.stringify(old.world.conquest);
   assert.equal(JSON.stringify(importSaveBlob(exportSave(old.state), data).state.world.conquest), before);
@@ -292,22 +269,22 @@ test('H7: local saves and imports round-trip both shelves; absent Pale Host stay
   assert.equal(old.world.conquest.tribes, undefined);
 });
 
-test('H7: Adventure exposes separate scouting, mission and annex controls for both tribes', () => {
+test('H8: Adventure exposes separate scouting, mission and annex controls for both tribes', () => {
   const g = ready(), ui = Object.create(UI.prototype);
   let html = ui.homeBlock(g);
-  assert.match(html, /data-scout-tribe="ironshield"/); assert.match(html, /data-scout-tribe="palehost"/);
+  assert.match(html, /data-scout-tribe="ironshield"/); assert.match(html, /data-scout-tribe="ember"/);
   g.scoutTribe(); g.scoutTribe(tribe);
   html = ui.homeBlock(g);
-  assert.match(html, /data-mission="palehost-tide"/); assert.match(html, /The Grey Herald/);
+  assert.match(html, /data-mission="ember-vanguard"/); assert.match(html, /Legion-Marshal Cindral/);
   recordAssault(g.world); recordAssault(g.world, tribe);
   html = ui.homeBlock(g);
   assert.match(html, /data-annex="outpost" data-tribe="ironshield"/);
-  assert.match(html, /data-annex="outpost" data-tribe="palehost"/);
+  assert.match(html, /data-annex="outpost" data-tribe="ember"/);
 });
 
-test('H7: earlier tribes outcomes stay byte-identical to H6 data', () => {
+test('H8: earlier tribes outcomes stay byte-identical to H7 data', () => {
   const legacy = {...data, ...baseline};
-  for (const id of ['ironshield','thornband','cinder']) for (const choice of ['outpost','settlement','dismantle']) {
+  for (const id of ['ironshield','thornband','cinder','palehost']) for (const choice of ['outpost','settlement','dismantle']) {
     const modern = ready(), old = new Game(legacy);
     old.state = structuredClone(modern.state);
     assert.deepEqual(modern.scoutTribe(id), old.scoutTribe(id));
@@ -325,34 +302,34 @@ test('H7: earlier tribes outcomes stay byte-identical to H6 data', () => {
       assert.equal(JSON.stringify(modern.world), JSON.stringify(old.world)); assert.deepEqual(a,b);
       assert.deepEqual(conquestAuraEffects(modern.world, data), conquestAuraEffects(old.world, legacy));
       assert.equal(conquestLimitBonus(modern.world, data), conquestLimitBonus(old.world, legacy));
-      assert.equal(modern.world.conquest.tribes?.palehost, undefined);
+      assert.equal(modern.world.conquest.tribes?.ember, undefined);
     }
   }
 });
 
-test('H7: four territories pay separately, only Pale Host loses coverage, and all shelves persist', () => {
+test('H8: five territories pay separately, only Ember Legion loses coverage, and all shelves persist', () => {
   const g = ready();
-  for (const id of ['ironshield','thornband','cinder',tribe]) {
+  for (const id of ['ironshield','thornband','cinder','palehost',tribe]) {
     g.scoutTribe(id); recordAssault(g.world,id);
     assert.equal(applyAnnex(g.state,data,'outpost',id).ok,true);
   }
-  assert.equal(conquestLimitBonus(g.world,data),8);
-  assert.deepEqual(territorySupplyCost(g.world,data),{food:3700,bread:210,gold:500,plate:42});
+  assert.equal(conquestLimitBonus(g.world,data),10);
+  assert.deepEqual(territorySupplyCost(g.world,data),{food:4700,bread:270,gold:640,plate:54});
   g.world.elapsed=180; tickTownSupply(g.world,data);
-  assert.deepEqual(conquestAuraEffects(g.world,data),{armor:0.03,heal:0.4,damage:0.11000000000000001});
-  const older = JSON.stringify([conquestState(g.world),conquestState(g.world,'thornband'),conquestState(g.world,'cinder')]);
-  g.world.elapsed=360; g.world.resources.plate=30;
+  assert.deepEqual(conquestAuraEffects(g.world,data),{armor:0.03,heal:0.5,damage:0.15000000000000002});
+  const older = JSON.stringify([conquestState(g.world),conquestState(g.world,'thornband'),conquestState(g.world,'cinder'),conquestState(g.world,'palehost')]);
+  g.world.elapsed=360; g.world.resources.plate=42;
   const notes=[]; tickTownSupply(g.world,data,n=>notes.push(n));
   assert.equal(g.world.resources.plate,0);
   assert.equal(territorySupplied(g.world,data,'ironshield'),true);
   assert.equal(territorySupplied(g.world,data,'thornband'),true);
   assert.equal(territorySupplied(g.world,data,tribe),false);
-  assert.equal(JSON.stringify([conquestState(g.world),conquestState(g.world,'thornband'),conquestState(g.world,'cinder')]),older);
-  assert.deepEqual(conquestAuraEffects(g.world,data),{armor:0.03,heal:0.30000000000000004,damage:0.07});
-  assert.equal(conquestLimitBonus(g.world,data),8); assert.equal(notes.length,1);
+  assert.equal(JSON.stringify([conquestState(g.world),conquestState(g.world,'thornband'),conquestState(g.world,'cinder'),conquestState(g.world,'palehost')]),older);
+  assert.deepEqual(conquestAuraEffects(g.world,data),{armor:0.03,heal:0.4,damage:0.11000000000000001});
+  assert.equal(conquestLimitBonus(g.world,data),10); assert.equal(notes.length,1);
   assert.equal(save(g.state),true);
   assert.deepEqual(load(data).world.conquest,g.world.conquest);
   assert.deepEqual(importSaveBlob(exportSave(g.state),data).state.world.conquest,g.world.conquest);
-  g.world.elapsed=540; g.world.resources.plate=42; tickTownSupply(g.world,data);
+  g.world.elapsed=540; g.world.resources.plate=54; tickTownSupply(g.world,data);
   assert.equal(territorySupplied(g.world,data),true);
 });

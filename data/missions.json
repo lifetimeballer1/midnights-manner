@@ -2621,5 +2621,382 @@
       "palehost-mist"
     ],
     "tribe": "palehost"
+  },
+  {
+    "id": "ember-vanguard",
+    "name": "Break the Vanguard",
+    "chapter": "27",
+    "act": "X",
+    "conquest": "preliminary",
+    "beat": "Break the veteran vanguard on Starwatch Ridge. Hold the hill road through two waves before the disciplined lines close the pass.",
+    "giver": "Sorrel the watcher",
+    "description": "Break the veteran vanguard on Starwatch Ridge. Hold the hill road through two waves before the disciplined lines close the pass.",
+    "timeLimit": 240,
+    "troopLimit": 8,
+    "objectives": [
+      {
+        "kind": "defeat",
+        "amount": 12
+      },
+      {
+        "resource": "gold",
+        "amount": 200
+      }
+    ],
+    "startingResources": {
+      "wood": 300,
+      "food": 200,
+      "gold": 140
+    },
+    "map": {
+      "biome": "hills",
+      "seed": 2711,
+      "tiles": [
+        {
+          "x": 15,
+          "y": 12,
+          "biome": "hills",
+          "landmark": "Break the Vanguard",
+          "claimed": true
+        }
+      ],
+      "buildings": [
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "tower",
+          "x": 6,
+          "y": 6
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 7
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 8
+        },
+        {
+          "type": "barracks",
+          "x": 7,
+          "y": 4
+        }
+      ],
+      "troops": [
+        "warrior",
+        "pikewoman",
+        "archer",
+        "builder",
+        "miner"
+      ]
+    },
+    "raids": [
+      {
+        "at": 40,
+        "count": 5
+      },
+      {
+        "at": 140,
+        "count": 7
+      }
+    ],
+    "scaling": {
+      "hp": 22,
+      "damage": 4
+    },
+    "rewards": {
+      "gold": 3500,
+      "lumber": 1900,
+      "plate": 450,
+      "frostwood": 250
+    },
+    "unlocks": [],
+    "ceremony": {
+      "warning": "Break the veteran vanguard on Starwatch Ridge. Hold the hill road through two waves before the disciplined lines close the pass.",
+      "victory": "The vanguard breaks. The siege redoubt lies open.",
+      "defeat": "The Ember Legion still hold the ridge. Gather your stores and march again."
+    },
+    "requires": [
+      "palehost-court"
+    ],
+    "tribe": "ember"
+  },
+  {
+    "id": "ember-redoubt",
+    "name": "Storm the Redoubt",
+    "chapter": "28",
+    "act": "X",
+    "conquest": "preliminary",
+    "beat": "Storm the siege redoubt on Starwatch Ridge. Hold the heights through three waves and cut the engines off from the throne.",
+    "giver": "Sorrel the watcher",
+    "description": "Storm the siege redoubt on Starwatch Ridge. Hold the heights through three waves and cut the engines off from the throne.",
+    "timeLimit": 300,
+    "troopLimit": 9,
+    "objectives": [
+      {
+        "kind": "defeat",
+        "amount": 18
+      },
+      {
+        "kind": "survive",
+        "seconds": 240
+      }
+    ],
+    "startingResources": {
+      "wood": 340,
+      "food": 220,
+      "gold": 160
+    },
+    "map": {
+      "biome": "hills",
+      "seed": 2811,
+      "tiles": [
+        {
+          "x": 3,
+          "y": 4,
+          "biome": "hills",
+          "landmark": "Storm the Redoubt",
+          "claimed": true
+        }
+      ],
+      "buildings": [
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "tower",
+          "x": 6,
+          "y": 6
+        },
+        {
+          "type": "archer_tower",
+          "x": 6,
+          "y": 9
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 7
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 8
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 9
+        },
+        {
+          "type": "barracks",
+          "x": 8,
+          "y": 4
+        }
+      ],
+      "troops": [
+        "warrior",
+        "pikewoman",
+        "halberdier",
+        "archer",
+        "builder",
+        "miner"
+      ]
+    },
+    "raids": [
+      {
+        "at": 40,
+        "count": 6
+      },
+      {
+        "at": 150,
+        "count": 8
+      },
+      {
+        "at": 240,
+        "count": 9
+      }
+    ],
+    "scaling": {
+      "hp": 24,
+      "damage": 4.5
+    },
+    "rewards": {
+      "gold": 5000,
+      "lumber": 2700,
+      "plate": 700,
+      "frostwood": 450
+    },
+    "unlocks": [],
+    "ceremony": {
+      "warning": "Storm the siege redoubt on Starwatch Ridge. Hold the heights through three waves and cut the engines off from the throne.",
+      "victory": "The redoubt falls. Legion-Marshal Cindral waits at the throne.",
+      "defeat": "The Ember Legion still hold the ridge. Gather your stores and march again."
+    },
+    "requires": [
+      "ember-vanguard"
+    ],
+    "tribe": "ember"
+  },
+  {
+    "id": "ember-throne",
+    "name": "The Ember Throne",
+    "chapter": "29",
+    "act": "X",
+    "conquest": "assault",
+    "beat": "Carry the campaign stores to Starwatch Ridge, hold the throne through four waves, and defeat Legion-Marshal Cindral amid veteran infantry and siege pressure.",
+    "giver": "Sorrel the watcher",
+    "log": "Legion-Marshal Cindral fell at the fourth horn, and the disciplined lines broke. The ridge passes and throne stores passed to the Manner.",
+    "description": "Carry the campaign stores to Starwatch Ridge, hold the throne through four waves, and defeat Legion-Marshal Cindral amid veteran infantry and siege pressure.",
+    "timeLimit": 420,
+    "troopLimit": 10,
+    "launchCost": {
+      "food": 8000,
+      "bread": 1600,
+      "lumber": 5000,
+      "plate": 750,
+      "gold": 4500
+    },
+    "objectives": [
+      {
+        "kind": "defeat",
+        "amount": 30
+      },
+      {
+        "kind": "protect",
+        "type": "oathstone",
+        "count": 1
+      },
+      {
+        "kind": "survive",
+        "seconds": 300
+      }
+    ],
+    "startingResources": {
+      "wood": 380,
+      "food": 240,
+      "gold": 180
+    },
+    "map": {
+      "biome": "hills",
+      "seed": 2911,
+      "tiles": [
+        {
+          "x": 12,
+          "y": 5,
+          "biome": "hills",
+          "landmark": "The Ember Throne",
+          "claimed": true
+        }
+      ],
+      "buildings": [
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "tower",
+          "x": 6,
+          "y": 6
+        },
+        {
+          "type": "archer_tower",
+          "x": 6,
+          "y": 9
+        },
+        {
+          "type": "ballista",
+          "x": 8,
+          "y": 10
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 6
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 7
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 8
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 9
+        },
+        {
+          "type": "oathstone",
+          "x": 8,
+          "y": 5
+        },
+        {
+          "type": "barracks",
+          "x": 8,
+          "y": 2
+        }
+      ],
+      "troops": [
+        "oathsworn",
+        "halberdier",
+        "pikewoman",
+        "longbowman",
+        "archer",
+        "builder",
+        "miner"
+      ]
+    },
+    "raids": [
+      {
+        "at": 60,
+        "count": 7
+      },
+      {
+        "at": 150,
+        "count": 9
+      },
+      {
+        "at": 230,
+        "count": 10
+      },
+      {
+        "at": 300,
+        "count": 12,
+        "boss": "ember-cindral",
+        "herald": "The ridge burns - LEGION-MARSHAL CINDRAL marches at wave {wave}! Hold Starwatch Ridge!"
+      }
+    ],
+    "scaling": {
+      "hp": 28,
+      "damage": 5
+    },
+    "rewards": {
+      "gold": 6500,
+      "lumber": 3500,
+      "plate": 1000,
+      "frostwood": 650
+    },
+    "unlocks": [],
+    "ceremony": {
+      "warning": "Carry the campaign stores to Starwatch Ridge, hold the throne through four waves, and defeat Legion-Marshal Cindral amid veteran infantry and siege pressure.",
+      "victory": "Cindral falls. Starwatch Ridge belongs to the Manner.",
+      "defeat": "The Ember Legion still hold the ridge. Gather your stores and march again."
+    },
+    "requires": [
+      "ember-redoubt"
+    ],
+    "tribe": "ember"
   }
 ]

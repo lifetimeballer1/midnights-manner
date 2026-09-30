@@ -387,3 +387,13 @@ The Grey Herald uses existing ranged arrow attacks, bowman summons and enrage, w
 Pale Host progress lives under `world.conquest.tribes.palehost`, created only when written. Its one-time outpost, dismantle or settlement judgement reuses storage overflow, building limits, existing aura keys and separate daily territory upkeep, with values matching Cinder. No currencies or save version changed. H7 ends at chapter 26 with 27 missions; H8 remains unstarted.
 
 Verification: `npm test` passed all 770 checks, including 16 H7 checks for content, muster, ledgers, paid departure, ranged combat, leader mechanics, home rotation, annex choices, independent upkeep, saves and Adventure controls. Fingerprints from `git show e0e2764` prove earlier conquest and mission entries unchanged; legacy comparisons cover all three earlier tribes. `npm run build` passed. Both commands used `npm.cmd` on Windows. Browser interaction smoke was not run.
+
+### Grey Dawn H8
+
+Ember Legion conquest follows the H5/H6/H7 per-tribe ledger on Starwatch Ridge: **Break the Vanguard** (27, requires Pale Host Court), **Storm the Redoubt** (28), then **The Ember Throne** (29). All three expedition maps use the hills biome. The hardest muster law requires village level 11, Renown 6, a tier-3 barracks and 14 living fighters. The throne charges its campaign war chest only on successful departure; first-clear rewards rise to 6,500 gold, 3,500 lumber, 1,000 plate and 650 frostwood.
+
+Legion-Marshal Cindral has 2,400 base HP and 84 base damage, reusing slam, breaker summons and enrage. The existing summon entry accepts one role, so breakers supply the siege pressure. He stays outside the home crown rotation. Ember progress lives additively under `world.conquest.tribes.ember`, created only when written. Its one-time outpost, dismantle or settlement judgement reuses storage overflow, building limits, existing aura keys and separate daily territory upkeep, with values matching Pale Host. Earlier tribe and mission data are pinned by H7 Git fingerprints and earlier outcomes by legacy comparisons.
+
+No runtime code, mechanics, currencies, aura keys or save version changed. H8 ends at chapter 29 with 30 missions and five tribes, including legacy Ironshield. H9 remains unstarted.
+
+Verification: `npm test` passed all 785 checks, including 15 H8 checks covering the chain, hardest muster law, ledgers, paid departure, leader mechanics and home rotation, annex choices, independent upkeep, saves, Adventure controls and all four earlier tribes. `npm run build` passed with 400 precached files. Both commands used `npm.cmd` on Windows. Browser interaction smoke was not run.

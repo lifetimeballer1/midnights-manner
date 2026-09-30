@@ -118,6 +118,35 @@
           "dmgMult": 1.5
         }
       }
+    },
+    {
+      "id": "ember-cindral",
+      "name": "Legion-Marshal Cindral",
+      "title": "Marshal of Starwatch Ridge",
+      "hpBase": 2400,
+      "hpPerWave": 130,
+      "dmgBase": 84,
+      "dmgPerWave": 5,
+      "speed": 0.6,
+      "range": 1.4,
+      "wallDamage": 4,
+      "mechanics": {
+        "slam": {
+          "damage": 66,
+          "radius": 1.7,
+          "everySec": 7
+        },
+        "summon": {
+          "role": "breaker",
+          "count": 2,
+          "everySec": 20,
+          "cap": 6
+        },
+        "enrage": {
+          "hpFrac": 0.3,
+          "dmgMult": 1.5
+        }
+      }
     }
   ],
   "annex": [
@@ -382,6 +411,89 @@
           "name": "Frontier Settlement",
           "icon": "🌾",
           "text": "Coastal homesteads feed the Manner and open one more of every building line.",
+          "supply": {
+            "cost": {
+              "food": 1200,
+              "lumber": 120,
+              "gold": 140
+            }
+          },
+          "limitBonus": 1,
+          "flatAuras": {
+            "gather": 0.05,
+            "food": 0.4
+          }
+        }
+      ]
+    },
+    {
+      "id": "ember",
+      "name": "Ember Legion",
+      "color": "#d8793c",
+      "text": "On Starwatch Ridge, the Ember Legion drill veteran infantry and siege engines into disciplined lines. Their marshal commands the highest passes, and every redoubt answers his horn.",
+      "require": {
+        "vlevel": 11,
+        "renown": 6,
+        "barracksTier": 3,
+        "troops": 14
+      },
+      "preliminaries": [
+        {
+          "id": "ember-vanguard",
+          "name": "Break the Vanguard",
+          "text": "Break the veteran vanguard before its disciplined lines close the ridge road."
+        },
+        {
+          "id": "ember-redoubt",
+          "name": "Storm the Redoubt",
+          "text": "Storm the siege redoubt and cut its engines off from the throne."
+        }
+      ],
+      "assault": "ember-throne",
+      "intel": {
+        "leader": "Legion-Marshal Cindral",
+        "army": "Veteran infantry, ranged guards and siege engines in disciplined lines",
+        "tactics": "Slams the yard, summons wall-breakers and enrages when his line breaks",
+        "weakness": "Layer pikes and tower fire while repair crews answer the siege pressure",
+        "reward": "The Starwatch Ridge passes, throne stores and heights join the Manner."
+      },
+      "annex": [
+        {
+          "id": "outpost",
+          "name": "Rebuild as an Outpost",
+          "icon": "🏰",
+          "text": "A fortified ridge base: two more of every building line may stand.",
+          "supply": {
+            "cost": {
+              "food": 1000,
+              "bread": 60,
+              "plate": 12,
+              "gold": 140
+            }
+          },
+          "flatAuras": {
+            "damage": 0.04,
+            "heal": 0.1
+          },
+          "limitBonus": 2
+        },
+        {
+          "id": "dismantle",
+          "name": "Dismantle for Materials",
+          "icon": "⚒",
+          "text": "Strip the throne for siege timber, plate and cold coin.",
+          "resources": {
+            "lumber": 6000,
+            "plate": 750,
+            "gold": 5000,
+            "frostwood": 450
+          }
+        },
+        {
+          "id": "settlement",
+          "name": "Frontier Settlement",
+          "icon": "🌾",
+          "text": "Ridge homesteads feed the Manner and open one more of every building line.",
           "supply": {
             "cost": {
               "food": 1200,
