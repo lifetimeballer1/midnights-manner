@@ -69,7 +69,7 @@ function wallEnds(neighbors){
  return WALL_DIRECTIONS.filter(([dx,dy])=>(dx?x:y)&&!neighbors.some(([nx,ny])=>nx===dx&&ny===dy));
 }
 function gateAxis(neighbors){let x=0,y=0;for(const [dx,dy]of neighbors){if(dx)x++;if(dy)y++;}return x>=y?'x':'y';}
-function gateLiftStage(r,b,world,time){
+export function gateLiftStage(r,b,world,time){
  let threatened=false;if(b.hp>0&&!(b.remaining>0))for(const e of world.enemies||[])if(e.hp>0&&Math.hypot(e.x-b.x-.5,e.y-b.y-.5)<=1.4){threatened=true;break;}
  const target=threatened?0:GATE_STAGES;
  if(b.id==null)return target;
@@ -77,14 +77,19 @@ function gateLiftStage(r,b,world,time){
  let motions=r._gateMotion,motion=motions?.get(b.id);
  if(r.calm){if(motion){motion.stage=motion.from=motion.to=target;motion.started=now;}return target;}
  if(!motions)motions=r._gateMotion=new Map();
- motion=motions.get(b.id);
- if(!motion){motion={stage:target,from:target,to:target,started:now};motions.set(b.id,motion);}
- else if(motion.to!==target){motion.from=motion.stage;motion.to=target;motion.started=now;}
+  motion=motions.get(b.id);
+  if(!motion){motion={stage:target,from:target,to:target,started:now,settled:target};motions.set(b.id,motion);}
+  else if(motion.to!==target){motion.from=motion.stage;motion.to=target;motion.started=now;motion.settled=null;}
   const progress=Math.max(0,Math.min(1,(now-motion.started)/GATE_MOVE_MS));
   motion.stage=Math.round(motion.from+(motion.to-motion.from)*progress);
   // The gate creaks while it travels (throttled in sfx) and falls silent
   // once seated. Calm snaps above, so no sound path reaches frozen digests.
-  if(motion.from!==motion.to&&progress<1)try{sfx.gate();}catch{}
+  // Arrival lands: a heavy thud when the gate slams shut for a raid, a
+  // softer settle when it swings back open.
+  try{
+   if(motion.from!==motion.to&&progress<1)sfx.gate();
+   else if(motion.from!==motion.to&&progress>=1&&motion.settled!==motion.to){motion.settled=motion.to;sfx.gateThud(motion.to===0?{}:{vol:0.55});}
+  }catch{}
   return motion.stage;
 }
 function trapArmed(b){return b.hp>0&&!(b.remaining>0)&&!(Number.isFinite(+b.cooldown)&&+b.cooldown>0);}

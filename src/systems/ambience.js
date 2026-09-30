@@ -1,4 +1,4 @@
-import {isMuted,sharedAudioContext,sharedAudioOutput,sfx} from './audio.js';
+import {isMuted,sharedAudioContext,sharedAudioOutput,sfx,pumpScheduled} from './audio.js';
 import {phaseAt,weatherAt} from './daynight.js';
 
 // Sparse procedural ambience for the living village. Everything is synthesized
@@ -114,8 +114,10 @@ export class AmbiencePlayer{
  }
  setEnabled(enabled){this.enabled=Boolean(enabled);if(!this.enabled)this.reset();}
  reset(){this.nextNatureAt=0;this.nextWorkAt=0;this.lastProfile=null;}
- tick(){
-  if(!this.enabled||isMuted())return;
+  tick(){
+   // Scheduled release/impact pairs drain first; muting drops them.
+   pumpScheduled();
+   if(!this.enabled||isMuted())return;
   const context=sharedAudioContext(),output=sharedAudioOutput();
   if(!context||!output)return;
   const profile=ambienceProfile(this.game?.world,this.game?.data);
