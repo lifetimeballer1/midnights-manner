@@ -95,6 +95,37 @@ function nightCall(context,output){
  note(context,output,root,.28,{volume:.006,type:'sine',slide:-48});
  note(context,output,root*.87,.31,{delay:.32,volume:.005,type:'sine',slide:-38});
 }
+// Rare voices: sparse on purpose — silence between sounds matters more.
+function raven(context,output){
+ const root=random(520,640);
+ note(context,output,root,.14,{volume:.008,type:'sawtooth',slide:-160});
+ note(context,output,root*.92,.12,{delay:.17,volume:.007,type:'sawtooth',slide:-140});
+}
+function owl(context,output){
+ const root=random(210,260);
+ note(context,output,root,.32,{volume:.007,type:'sine',slide:-25});
+ note(context,output,root*1.12,.4,{delay:.42,volume:.006,type:'sine',slide:-30});
+}
+function rooster(context,output){
+ const root=random(620,720);
+ note(context,output,root,.12,{volume:.009,type:'triangle',slide:120});
+ note(context,output,root*1.25,.12,{delay:.14,volume:.009,type:'triangle',slide:140});
+ note(context,output,root*1.5,.22,{delay:.28,volume:.008,type:'triangle',slide:-80});
+}
+function dog(context,output){
+ const root=random(280,340);
+ note(context,output,root,.09,{volume:.009,type:'square',slide:-120});
+ note(context,output,root*.94,.09,{delay:.14,volume:.008,type:'square',slide:-110});
+}
+function livestock(context,output){
+ const root=random(140,180);
+ note(context,output,root,.5,{volume:.007,type:'sine',slide:35});
+ note(context,output,root*.75,.4,{delay:.3,volume:.005,type:'sine',slide:-15});
+}
+function gust(context,output){
+ note(context,output,random(150,190),1.6,{volume:.008,type:'sine',slide:random(-30,-14)});
+ note(context,output,random(95,120),1.9,{delay:.3,volume:.006,type:'sine',slide:random(-18,-8)});
+}
 
 function playWork(kind,context,output){
  if(kind==='chop')sfx.workChop();
@@ -123,31 +154,47 @@ export class AmbiencePlayer{
   const profile=ambienceProfile(this.game?.world,this.game?.data);
   this.lastProfile=profile;
 
-  if(context.currentTime>=this.nextNatureAt){
-   if(profile.raid){
-    wind(context,output);
-    this.nextNatureAt=context.currentTime+random(5.5,9);
-   }else if(profile.weather==='rain'){
-    rain(context,output);
-    this.nextNatureAt=context.currentTime+random(.9,1.8);
-   }else if(profile.weather==='fog'){
-    fog(context,output);
-    this.nextNatureAt=context.currentTime+random(3.8,6.5);
-   }else if(profile.night){
-    if(Math.random()<.84)insects(context,output);else nightCall(context,output);
-    this.nextNatureAt=context.currentTime+random(2.7,5.6);
-   }else{
-    if(Math.random()<.18)wind(context,output);else bird(context,output);
-    this.nextNatureAt=context.currentTime+random(3.2,6.8);
+   if(context.currentTime>=this.nextNatureAt){
+    if(profile.raid){
+     wind(context,output);
+     this.nextNatureAt=context.currentTime+random(5.5,9);
+    }else if(profile.weather==='rain'){
+     rain(context,output);
+     // Occasional far thunder rolling behind the rain, never a crack.
+     if(Math.random()<.1)try{sfx.gateThud({vol:.5,pitch:.45});}catch{}
+     this.nextNatureAt=context.currentTime+random(.9,1.8);
+    }else if(profile.weather==='fog'){
+     if(Math.random()<.14)gust(context,output);else fog(context,output);
+     this.nextNatureAt=context.currentTime+random(3.8,6.5);
+    }else if(profile.night){
+     const roll=Math.random();
+     if(roll<.07)owl(context,output);
+     else if(roll<.15&&profile.settlement>=3)dog(context,output);
+     else if(roll<.86)insects(context,output);else nightCall(context,output);
+     this.nextNatureAt=context.currentTime+random(2.7,5.6);
+    }else if(profile.phase==='dawn'){
+     if(Math.random()<.3)rooster(context,output);else bird(context,output);
+     this.nextNatureAt=context.currentTime+random(3.4,6.4);
+    }else{
+     const roll=Math.random();
+     if(roll<.05)raven(context,output);
+     else if(roll<.1&&profile.settlement>=3)dog(context,output);
+     else if(roll<.24)wind(context,output);else bird(context,output);
+     this.nextNatureAt=context.currentTime+random(3.2,6.8);
+    }
    }
-  }
 
-  if(context.currentTime>=this.nextWorkAt){
-   if(!profile.raid&&!profile.warning&&profile.settlement>=2){
-    const kinds=profile.work;
-    if(kinds.length)playWork(kinds[Math.floor(Math.random()*kinds.length)],context,output);
-    else if(profile.settlement>=5)settlement(context,output);
-   }
+   if(context.currentTime>=this.nextWorkAt){
+    if(!profile.raid&&!profile.warning&&profile.settlement>=2){
+     const kinds=profile.work,roll=Math.random();
+     // Rare living-settlement voices between the work ticks: livestock
+     // where herds graze, a far-off bark, an old timber settling.
+     if(roll<.04&&kinds.includes('farm'))livestock(context,output);
+     else if(roll<.06&&profile.settlement>=4)dog(context,output);
+     else if(roll<.08&&profile.settlement>=5)try{sfx.creak({vol:.4,pitch:.7});}catch{}
+     else if(kinds.length)playWork(kinds[Math.floor(Math.random()*kinds.length)],context,output);
+     else if(profile.settlement>=5)settlement(context,output);
+    }
    const density=clamp(profile.settlement/24,0,1);
    this.nextWorkAt=context.currentTime+random(3.8-density*.7,7.4-density*1.4);
   }
