@@ -23,7 +23,7 @@ const mission = id => data.missions.find(m => m.id === id);
 const baseline = {conquest: {...data.conquest,
     tribes:data.conquest.tribes.filter(t => ![tribe,'ember'].includes(t.id)),
     leaders:data.conquest.leaders.filter(l => !['palehost-herald','ember-cindral'].includes(l.id))},
-  missions:data.missions.filter(m => ![tribe,'ember'].includes(m.tribe) && m.id !== 'grey-dawn-gathers')};
+  missions:data.missions.filter(m => ![tribe,'ember'].includes(m.tribe) && !['grey-dawn-gathers','grey-dawn-muster'].includes(m.id))};
 test('H7: H6 git-show fingerprints preserve every earlier tribe, leader and mission entry', () => {
   // JSON fingerprints taken from git show e0e2764:data/{conquest,missions}.json.
   // Pins keep this proof runnable in shallow CI checkouts without Git history.
@@ -77,11 +77,11 @@ function annexBoth(g, choice = 'outpost') {
 }
 
 test('H7: chapters 24-26 chain from Cinder, use water maps and escalating baskets', () => {
-  assert.equal(Math.max(...data.missions.map(m => Number(m.chapter))), 30, 'H9 ends at chapter 30; H10 has not started');
+  assert.equal(Math.max(...data.missions.map(m => Number(m.chapter))), 31, 'H10 ends at chapter 31; H11 has not started');
   const t = data.conquest.tribes[2];
   assert.equal(t.id, tribe); assert.equal(t.color, '#b8c8d8');
   assert.deepEqual(t.require, {vlevel: 11, renown: 5, barracksTier: 3, troops: 12});
-  assert.equal(data.missions.length, 31);
+  assert.equal(data.missions.length, 32);
   let previous = 'cinder-citadel', rewards = {};
   for (const [i, id] of [...t.preliminaries.map(p => p.id), t.assault].entries()) {
     const m = mission(id);

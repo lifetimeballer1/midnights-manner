@@ -409,3 +409,11 @@ Verification: `npm.cmd test` passed all 792 checks, including seven new H9 check
 ### Grey Dawn U1
 
 Resources, the army rail, camera tools and the current quest default to compact summaries. Tap the resource summary to expand/collapse the full grid; Stores also expands it and retains complete resource detail. Army shows the fighter count and selected level: tap it for People, or use its arrow to expand/collapse quick troop cards. Camera tools sit behind ⋯ with settings always visible. Dismiss the quest to a ✦ dot and tap to reopen; detail remains in Adventure → Quests. These HUD preferences persist separately in `mm.hud`, with an in-memory fallback when storage is unavailable; village saves are unchanged.
+
+### Grey Dawn H10
+
+**Muster of the Five Banners** (chapter 31) follows The Grey Dawn Gathers. Sorrel drills the five fallen territories' banners on the plains **Banner Field** while three Grey Dawn outrider waves probe the lines at 40, 150 and 240 seconds. The Ironshield watch yard, six starting professions, nine troop slots and 300-second limit reuse the existing watch shape: defeat 18 raiders and hold for 240 seconds, with every scheduled wave defeated and the hall standing. The first-clear basket is 5,000 gold, 2,700 lumber, 700 plate and 450 frostwood; replay pays nothing new. This story chapter has no war chest, conquest ledger, destination gate, boss or unlocks.
+
+All 31 earlier missions and complete conquest data retain their HEAD fingerprints; all five tribes retain byte-identical scout, first-clear, annex and daily supply outcomes. Only affected mission/chapter totals, historical fingerprint filters and the rewards-only story expectation were updated in earlier tests. No runtime code, mechanics, save fields or conquest data changed. H10 ends at 32 missions and chapter 31; H11 remains unstarted.
+
+Verification: `npm.cmd test` passed all 808 checks, including seven new H10 checks. `npm.cmd run build` passed with 401 precached files. Browser interaction smoke was not run.

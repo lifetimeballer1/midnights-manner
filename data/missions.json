@@ -3100,5 +3100,122 @@
     "requires": [
       "ember-throne"
     ]
+  },
+  {
+    "id": "grey-dawn-muster",
+    "name": "Muster of the Five Banners",
+    "chapter": "31",
+    "act": "X",
+    "beat": "Five fallen territories drill together on the Banner Field; three probing waves test the mustered lines.",
+    "giver": "Sorrel the watcher",
+    "description": "Grey Dawn outriders probe the five banners in three waves. Hold the Banner Field and keep the oathstone standing.",
+    "timeLimit": 300,
+    "troopLimit": 9,
+    "objectives": [
+      {
+        "kind": "defeat",
+        "amount": 18
+      },
+      {
+        "kind": "survive",
+        "seconds": 240
+      }
+    ],
+    "startingResources": {
+      "wood": 340,
+      "food": 220,
+      "gold": 160
+    },
+    "map": {
+      "biome": "plains",
+      "seed": 3111,
+      "tiles": [
+        {
+          "x": 15,
+          "y": 12,
+          "biome": "plains",
+          "landmark": "Banner Field",
+          "claimed": true
+        }
+      ],
+      "buildings": [
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "tower",
+          "x": 6,
+          "y": 6
+        },
+        {
+          "type": "archer_tower",
+          "x": 6,
+          "y": 9
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 7
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 8
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 9
+        },
+        {
+          "type": "barracks",
+          "x": 8,
+          "y": 4
+        }
+      ],
+      "troops": [
+        "warrior",
+        "pikewoman",
+        "halberdier",
+        "archer",
+        "builder",
+        "miner"
+      ]
+    },
+    "raids": [
+      {
+        "at": 40,
+        "count": 6
+      },
+      {
+        "at": 150,
+        "count": 8
+      },
+      {
+        "at": 240,
+        "count": 9
+      }
+    ],
+    "scaling": {
+      "hp": 32,
+      "damage": 6
+    },
+    "rewards": {
+      "gold": 5000,
+      "lumber": 2700,
+      "plate": 700,
+      "frostwood": 450
+    },
+    "unlocks": [],
+    "ceremony": {
+      "warning": "Sorrel calls the five banners to drill on the Banner Field. Three waves probe the lines; hold the field and keep the oathstone standing.",
+      "victory": "The outriders fall back. The five banners hold the Banner Field together, and Sorrel watches the grey horizon.",
+      "defeat": "The outriders break the muster. Sorrel gathers the fallen banners; form the line again before the Grey Dawn comes."
+    },
+    "requires": [
+      "grey-dawn-gathers"
+    ]
   }
 ]
