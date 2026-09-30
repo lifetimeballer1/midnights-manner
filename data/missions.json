@@ -2998,5 +2998,107 @@
       "ember-redoubt"
     ],
     "tribe": "ember"
+  },
+  {
+    "id": "grey-dawn-gathers",
+    "name": "The Grey Dawn Gathers",
+    "chapter": "30",
+    "act": "X",
+    "beat": "Five fallen territories muster their banners at the Manner; two scout waves test the home fields before the true Grey Dawn assault.",
+    "giver": "Sorrel the watcher",
+    "description": "The five territories have fallen. Muster their banners on the home fields and turn back two waves of Grey Dawn scouts before the true assault.",
+    "timeLimit": 240,
+    "troopLimit": 8,
+    "objectives": [
+      {
+        "kind": "defeat",
+        "amount": 12
+      },
+      {
+        "resource": "gold",
+        "amount": 200
+      }
+    ],
+    "startingResources": {
+      "wood": 300,
+      "food": 200,
+      "gold": 140
+    },
+    "map": {
+      "biome": "plains",
+      "seed": 3011,
+      "tiles": [
+        {
+          "x": 15,
+          "y": 12,
+          "biome": "plains",
+          "landmark": "Muster Fields",
+          "claimed": true
+        }
+      ],
+      "buildings": [
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "tower",
+          "x": 6,
+          "y": 6
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 7
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 8
+        },
+        {
+          "type": "barracks",
+          "x": 7,
+          "y": 4
+        }
+      ],
+      "troops": [
+        "warrior",
+        "pikewoman",
+        "archer",
+        "builder",
+        "miner"
+      ]
+    },
+    "raids": [
+      {
+        "at": 40,
+        "count": 5
+      },
+      {
+        "at": 140,
+        "count": 7
+      }
+    ],
+    "scaling": {
+      "hp": 30,
+      "damage": 5.5
+    },
+    "rewards": {
+      "gold": 4000,
+      "lumber": 2200,
+      "plate": 550,
+      "frostwood": 350
+    },
+    "unlocks": [],
+    "ceremony": {
+      "warning": "Sorrel calls the five banners to the Muster Fields. Grey Dawn scouts come in two waves; hold the home ground before the true assault.",
+      "victory": "The scouts fall back. Five banners stand together at the Manner, and Sorrel watches the grey horizon.",
+      "defeat": "The scouts scatter the muster. Sorrel gathers the fallen banners; form the line again before the Grey Dawn comes."
+    },
+    "requires": [
+      "ember-throne"
+    ]
   }
 ]

@@ -20,7 +20,7 @@ const mission = id => data.missions.find(m => m.id === id);
 const baseline = {conquest: {...data.conquest,
     tribes:data.conquest.tribes.filter(t => t.id !== tribe),
     leaders:data.conquest.leaders.filter(l => l.id !== 'ember-cindral')},
-  missions:data.missions.filter(m => m.tribe !== tribe)};
+  missions:data.missions.filter(m => m.tribe !== tribe && m.id !== 'grey-dawn-gathers')};
 test('H8: H7 git-show fingerprints preserve every earlier tribe, leader and mission entry', () => {
   // JSON fingerprints taken from git show 2af7e95:data/{conquest,missions}.json.
   // Pins keep this proof runnable in shallow CI checkouts without Git history.
@@ -54,11 +54,11 @@ function annexBoth(g, choice = 'outpost') {
 }
 
 test('H8: chapters 27-29 chain from Pale Host, use hills maps and escalating baskets', () => {
-  assert.equal(Math.max(...data.missions.map(m => Number(m.chapter))), 29, 'H8 ends at chapter 29; H9 has not started');
+  assert.equal(Math.max(...data.missions.map(m => Number(m.chapter))), 30, 'H9 ends at chapter 30; H10 has not started');
   const t = data.conquest.tribes[3];
   assert.equal(t.id, tribe); assert.equal(t.color, '#d8793c');
   assert.deepEqual(t.require, {vlevel: 11, renown: 6, barracksTier: 3, troops: 14});
-  assert.equal(data.missions.length, 30);
+  assert.equal(data.missions.length, 31);
   let previous = 'palehost-court', rewards = {};
   for (const [i, id] of [...t.preliminaries.map(p => p.id), t.assault].entries()) {
     const m = mission(id);

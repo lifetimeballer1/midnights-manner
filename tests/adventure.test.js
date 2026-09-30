@@ -53,7 +53,7 @@ test('campaignCards: gates mirror missionLocked, incl. requiresAny branches', ()
   const cards = campaignCards(d, state);
   // 15 chapters through Act VIII; the Ironshield conquest arc (Phase 8)
   // adds chapters 15-17; H5 adds Thornband 18-20; H6 adds Cinder 21-23; H7 adds Pale Host 24-26 — deliberate pin.
-  assert.equal(cards.length, 30);
+  assert.equal(cards.length, 31);
   assert.equal(cards[0].state, 'available', 'first chapter open');
   assert.ok(cards.slice(1).every(c => c.state === 'locked'));
   // Classic AND gate.
@@ -163,7 +163,7 @@ test('homeSummary snapshots home without mutating state or saves', () => {
   assert.equal(JSON.stringify(state), before, 'read-only: no new save keys, no drift');
   assert.equal(s.questsDone, 0);
   assert.equal(s.questsTotal, 24);
-  assert.equal(s.chaptersTotal, 30);
+  assert.equal(s.chaptersTotal, 31);
   assert.equal(s.chaptersDone, 0);
   assert.equal(s.lvl, 1);
   assert.equal(s.nextLevel.level, 2);

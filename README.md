@@ -397,3 +397,11 @@ Legion-Marshal Cindral has 2,400 base HP and 84 base damage, reusing slam, break
 No runtime code, mechanics, currencies, aura keys or save version changed. H8 ends at chapter 29 with 30 missions and five tribes, including legacy Ironshield. H9 remains unstarted.
 
 Verification: `npm test` passed all 785 checks, including 15 H8 checks covering the chain, hardest muster law, ledgers, paid departure, leader mechanics and home rotation, annex choices, independent upkeep, saves, Adventure controls and all four earlier tribes. `npm run build` passed with 400 precached files. Both commands used `npm.cmd` on Windows. Browser interaction smoke was not run.
+
+### Grey Dawn H9
+
+**The Grey Dawn Gathers** (chapter 30) follows Ember Throne as the first story muster of the finale. Sorrel gathers the five fallen territories' banners at the Manner's **Muster Fields**, a plains expedition with two scout waves at 40 and 140 seconds. Eight troop slots, a 240-second limit, 12 defeated raiders and 200 gathered gold reuse the existing preliminary mission shape. The first-clear basket is 4,000 gold, 2,200 lumber, 550 plate and 350 frostwood; replay pays no new reward. This story chapter has no war chest, conquest ledger, destination gate, boss or unlocks.
+
+The exact Muse-locked basket takes precedence over the brief's conflicting request that rewards exceed Ember Redoubt: the existing Redoubt basket is 5,000 gold, 2,700 lumber, 700 plate and 450 frostwood. H9 rewards sit above Ember Vanguard and below Redoubt and Throne. All 30 earlier missions and complete conquest data retain their HEAD fingerprints; all five tribes retain byte-identical scout, first-clear, annex and daily supply outcomes. Only affected campaign totals, historical fingerprint filters and the rewards-only story expectation were updated in earlier tests. No runtime code, mechanics, save fields or conquest data changed. H9 ends at 31 missions and chapter 30; H10 remains unstarted.
+
+Verification: `npm.cmd test` passed all 792 checks, including seven new H9 checks. `npm.cmd run build` passed with 400 precached files. Browser interaction smoke was not run.
