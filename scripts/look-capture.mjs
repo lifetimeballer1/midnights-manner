@@ -172,7 +172,9 @@ try{
    await evaluate(`document.querySelector('[data-tab="${tab}"]').click()`);
    assert.equal(await evaluate('document.querySelector("#collect-ready").hidden'),true,'menus hide collect');
    await evaluate(`document.querySelector('[data-category="${category}"]').click()`);
-   assert.ok(await evaluate(`(()=>{const e=document.querySelector('[data-category="${category}"]'),p=e.parentElement,r=e.getBoundingClientRect(),b=p.getBoundingClientRect();return r.left>=b.left-1&&r.right<=b.right+1;})()`),'active overflow tab fully visible');
+   await new Promise(r=>setTimeout(r,150));
+   const tabBounds=await evaluate(`(()=>{const e=document.querySelector('[data-category="${category}"]'),p=e.parentElement,r=e.getBoundingClientRect(),b=p.getBoundingClientRect();return {left:r.left,right:r.right,railLeft:b.left,railRight:b.right};})()`);
+   assert.ok(tabBounds.left>=tabBounds.railLeft-1&&tabBounds.right<=tabBounds.railRight+1,'active overflow tab fully visible: '+JSON.stringify(tabBounds));
    await shot('look-narrow-'+category);await evaluate('document.querySelector("#close-panel").click()');
   }
   summary.mature={troops:150,overview,close,narrowPhone:true,collection:true,tabOverflow:true,reducedMotion:true};

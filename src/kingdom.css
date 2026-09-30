@@ -129,7 +129,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .panel button:disabled{opacity:.7;box-shadow:none}.panel .progress,.panel .levelbar{overflow:hidden;border-radius:8px;background:#b9a585}
 .panel .role-collector,.panel .role-builder{color:#335637;background:#dae5cf}
 .panel-filters{display:flex;overflow-x:auto;overflow-y:hidden;flex-shrink:0;min-width:0;scroll-snap-type:x proximity;scroll-padding-inline:14px;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;padding-bottom:10px}
-.panel-filters button{flex:0 0 auto;white-space:nowrap;scroll-snap-align:start;min-height:40px}
+.panel-filters button{flex:0 0 auto;white-space:nowrap;scroll-snap-align:center;min-height:40px}
 .panel-search input{min-width:0}.panel-search input::placeholder{color:#efcfa3}
 .settings-label,#controls-recap{color:#50371f}.setting-rows :is(#opt-update,#opt-refresh){color:#fff1d4}
 #game #camera-buttons{padding:4px;border-radius:12px;background:#493323ed;border:1px solid #b58d59;gap:4px}
