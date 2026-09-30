@@ -127,6 +127,7 @@ export function addEnvironmentScenery(scene,world,data){
  if(!scene?.r||!Array.isArray(world?.tiles))return 0;
  const r=scene.r,zoom=r.cam.zoom,seed=Number.isFinite(world?.biomeSeed)?world.biomeSeed:Number.isFinite(data?.world?.seed)?data.world.seed:0;
  const plan=sceneryPlan(world,data),oldOwner=scene.owner,oldAlpha=scene.alpha;
+ r._livingScenery=plan;
  scene.owner=null;scene.alpha=1;
  let drawn=0,max=zoom<.75?50:zoom<1.2?85:130;
  for(const item of plan){

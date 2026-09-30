@@ -1,3 +1,6 @@
+import {gaitFor} from './character-motion.js';
+import {pivotMesh,wheelMesh,beam} from './mechanical-art.js';
+import {workPhase,strikeLift} from './work-motion.js';
 // Original low-poly outfits and equipment. All choices are renderer-only;
 // no generated appearance is written into a villager or player save.
 import {phaseSeed} from './camera.js';
@@ -65,7 +68,9 @@ function weaponEquipment(s,gear,item,x,y,z,lift,steel,detail){
   s.box(x+inner,y-.025,z+height*.18,.05,.05,height*.34,wood);
   s.box(x+inner,y-.025,z+height*.48,.05,.05,height*.34,wood);
   s.box(x+outer,y-.025,z+height*.78,.05,.05,height*.22,wood);
-  s.box(x+outer+.03,y-.08,z+.02,.018,.018,height-.04,'#ddcfac');
+  const draw=item?.draw||0;
+  if(draw){const grip=[x+outer+.03+draw*.11,y-.08,z+height*.5];beam(s,[x+outer+.03,y-.08,z+.02],grip,.014,'#ddcfac');beam(s,grip,[x+outer+.03,y-.08,z+height-.02],.014,'#ddcfac');}
+  else s.box(x+outer+.03,y-.08,z+.02,.018,.018,height-.04,'#ddcfac');
   s.box(x+inner-.02,y-.055,z+height*.45,.13,.1,.05,leather);
   if(detail)s.box(x+inner-.015,y-.06,z+height*.42,.04,.11,.07,brass);return true;
  }
@@ -82,7 +87,7 @@ function weaponEquipment(s,gear,item,x,y,z,lift,steel,detail){
  }
  return false;
 }
-function fieldEquipment(s,gear,x,y,z,steel,detail){
+function fieldEquipment(s,gear,x,y,z,steel,detail,wheelAngle=0){
  if(gear.includes('fellingaxe')){
   shaft(s,x,y,z,.78);s.box(x+.19,y-.07,z+.67,.26,.12,.13,steel);s.box(x+.13,y-.075,z+.63,.08,.13,.2,steel);return true;
  }
@@ -108,7 +113,7 @@ function fieldEquipment(s,gear,x,y,z,steel,detail){
  }
  if(gear.includes('cart')){
   s.box(x+.17,y-.1,z+.12,.34,.21,.18,wood);s.box(x+.14,y-.13,z+.08,.39,.04,.04,leather);
-  s.box(x+.16,y-.17,z+.04,.08,.04,.1,metal);s.box(x+.42,y-.17,z+.04,.08,.04,.1,metal);return true;
+  for(const px of [x+.19,x+.44])wheelMesh(s,px,y-.13,z+.08,.065,wheelAngle);beam(s,[x+.16,y-.13,z+.08],[x+.47,y-.13,z+.08],.022,metal);return true;
  }
  if(gear.includes('basket')){
   s.box(x+.2,y-.1,z+.14,.27,.23,.18,wood);s.box(x+.18,y-.11,z+.31,.31,.25,.04,leather);
@@ -152,7 +157,7 @@ function workshopEquipment(s,gear,x,y,z,steel){
 }
 function equipment(s,gear,item,x,y,lift,detail){
  const steel=rarityColor(item?.rarity),z=.3+lift;
- if(bookEquipment(s,gear,x,y,z,detail)||fieldEquipment(s,gear,x,y,z,steel,detail)
+ if(bookEquipment(s,gear,x,y,z,detail)||fieldEquipment(s,gear,x,y,z,steel,detail,item?.wheelAngle||0)
   ||weaponEquipment(s,gear,item,x,y,z,lift,steel,detail)||workshopEquipment(s,gear,x,y,z,steel)||relicEquipment(s,gear,x,y,z,steel))return;
  if(gear&&gear!=='apron')shaft(s,x,y,z,.48);
 }
@@ -277,17 +282,23 @@ export function characterModel(s,u,data,time,enemy=false){
  const detail=s.characterDetail!==false&&s.r.cam.zoom>=1.8,seed=phaseSeed(u.id);
  const skin=['#dbb38c','#b98c64','#936a50'][Math.floor(seed*100)%3];
  const hair=['#594532','#a47d4b','#6e6353'][Math.floor(seed*71)%3];
- const bob=s.r.calm?0:Math.sin(time/350+seed)*.012,x=u.x,y=u.y;
- const lift=workMotionFor(u,troop,time,s.r.calm);
+ const gait=gaitFor(s.r,u,time),bob=s.r.calm?0:gait.bob+Math.sin(time/350+seed)*.012,x=u.x,y=u.y;
+ let lift=gait.moving?0:workMotionFor(u,troop,time,s.r.calm);
+ const post=s.r._motionWorld?.buildings?.find(b=>b.id===u.workplace);
+ if(post&&lift&&Math.hypot(u.x-post.x-data.buildings[post.type].size/2,u.y-post.y-data.buildings[post.type].size/2)<data.buildings[post.type].size/2+.7){
+  const channel=/pick/.test(u.gear)?'pick':/axe/.test(u.gear)?'chop':/hammer|tongs/.test(u.gear)?'hammer':/sickle|scythe/.test(u.gear)?'rustle':null;
+  if(channel)lift=strikeLift(workPhase(post,channel,time))*.18;
+ }
  for(const dx of [-.115,.04]){
-  s.box(x+dx,y-.075,.055,.085,.15,.2,leather);
-  if(detail)s.box(x+dx-.01,y-.06,.02,.105,.2,.08,'#41453d');
+  const stride=gait.swing*(dx<0?1:-1),px=x+dx+gait.dx*stride,py=y+gait.dy*stride;
+  if(gait.moving)beam(s,[x+dx+.043,y,.26],[px+.043,py,.07],.085,leather);else s.box(x+dx,y-.075,.055,.085,.15,.2,leather);
+  if(detail||gait.moving)s.box(px-.01,py-.06,.02,.105,.2,.08,'#41453d');
  }
  s.box(x-.15,y-.11,.25,.3,.22,.31,coat);
  if(hat==='robe')s.box(x-.17,y-.13,.13,.34,.26,.2,coat);
  if(hat==='apron')s.box(x-.1,y+.115,.24,.2,.02,.3,'#d3b58b');
  if(detail){s.box(x-.154,y-.114,.29,.308,.228,.045,leather);s.box(x-.035,y+.117,.29,.07,.018,.046,'#d8bd79');}
- for(const dx of [-.22,.15])s.box(x+dx,y-.075,.29,.07,.13,.23,dx===.15&&professionColor?professionColor:coat);
+ for(const dx of [-.22,.15]){const swing=-gait.swing*(dx<0?1:-1);if(gait.moving||lift)beam(s,[x+dx+.035,y,.52],[x+dx+.035+gait.dx*swing,y+gait.dy*swing,.29+(dx>0?lift:0)],.07,dx===.15&&professionColor?professionColor:coat);else s.box(x+dx,y-.075,.29,.07,.13,.23,dx===.15&&professionColor?professionColor:coat);}
  if(detail){s.box(x-.22,y-.076,.27,.075,.14,.075,skin);s.box(x+.15,y-.076,.27+lift,.075,.14,.075,skin);}
  s.box(x-.1,y-.09,.57+bob,.2,.18,.19,skin);
  if(detail)s.box(x-.105,y-.105,.66+bob,.21,.04,.13,hair);
@@ -313,7 +324,10 @@ export function characterModel(s,u,data,time,enemy=false){
    s.box(x-.02,y+.097,.613+bob,.045,.025,.035,skin);
   }
  const gear=enemy?enemyGearFor(u):(u.gear||'');
- equipment(s,gear,data.items[gear],x,y,lift,detail);
+ const attack=(u.animation||0)>0,bow=/bow/.test(gear);
+ const toolAngle=s.r.calm||bow?0:attack?-1.1*Math.min(1,u.animation/.4):lift*4.2;
+ const item=/cart/.test(gear)&&!s.r.calm?{...data.items[gear],wheelAngle:-gait.distance/.065}:bow&&!s.r.calm&&u.attackTimer>0&&u.attackTimer<.18?{...data.items[gear],draw:1-u.attackTimer/.18}:data.items[gear];
+ equipment(pivotMesh(s,[x+.24,y,.34],toolAngle),gear,item,x,y,0,detail);
  if(enemy)enemyRoleSilhouette(s,u,x,y,bob,detail,coat);
  if(/bow/.test(gear)){
   s.box(x-.12,y-.2,.32,.13,.09,.32,leather);
@@ -337,6 +351,6 @@ export function characterModel(s,u,data,time,enemy=false){
   }
   if(u.armor==='regalia')for(const dx of [-.1,0,.1])s.box(x+dx-.025,y+.05,.82+bob,.05,.05,.13,'#e8c673');
  }
- carriedLoad(s,u,troop,x,y,detail);
+ carriedLoad(s,u,troop,x,y+gait.swing*.12,detail);
  if(u.emergency)s.box(x-.07,y-.06,1.14,.14,.12,.08,u.emergency.kind==='heal'?'#8ad2ad':u.emergency.kind==='repair'?'#bcd4e8':'#e2c578');
 }
