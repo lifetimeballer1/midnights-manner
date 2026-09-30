@@ -26,7 +26,7 @@ let i=0;for(const type of Object.keys(data.buildings)){
  const x=2+(i%10)*4,y=2+Math.floor(i/10)*4,b=makeBuilding(type,x,y,data,Math.min(6,data.buildings[type].tiers.length));b.id='stress-'+i;b.remaining=0;world.buildings.push(b);const troop=data.buildings[type].workplace;
  if(troop&&data.troops[troop]){const u=makeUnit(troop,data,i);u.id='stress-unit-'+i;u.x=x+data.buildings[type].size/2;u.y=y+data.buildings[type].size;u.workplace=b.id;world.troops.push(u);}i++;
 }
-for(let i=0;i<300;i++){recordTravel(world,data,4.25,4.25,28.25,4.25);recordTravel(world,data,10.25,4.25,10.25,24.25);}
+for(let i=0;i<600;i++){recordTravel(world,data,4.25,4.25,28.25,4.25);recordTravel(world,data,10.25,4.25,10.25,24.25);}
 await writeFile('/tmp/living-review-world.json',JSON.stringify(world));
 for(const [w,h,yaw,zoom,tag,calm,raid] of [[1280,900,Math.PI/4,1.65,'desktop',false,false],[390,844,Math.PI/4,1.65,'phone',false,false],[1280,900,Math.PI*1.25,2.4,'reverse-close',false,false],[1280,900,Math.PI/2,.65,'far',false,false],[390,844,Math.PI/4,1.65,'calm',true,false],[1280,900,Math.PI/4,1.65,'raid',false,true]]){
  const canvas=createCanvas(w,h),r=new Renderer(canvas,data,{});r.resize(w,h,1);r.cam={x:16,y:12,zoom,yaw,pitch:.8};r.calm=calm;world.enemies=raid?Array.from({length:16},(_,i)=>({id:'raider-'+i,hp:100,maxHp:100,x:8+i*.3,y:8,type:'enemy',role:i%2?'archer':'raider',animation:.2})):[];

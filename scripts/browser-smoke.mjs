@@ -234,7 +234,7 @@ try{
   const [{Renderer},{createWorld,makeBuilding,makeUnit},{recordTravel,trailMultiplier},{move},{exportSave,importSaveBlob}]=await Promise.all(['renderer.js','model.js','systems/trails.js','systems/pathfinding.js','storage.js'].map(n=>import(root+'src/'+n)));
   const world=createWorld(data);world.elapsed=400;world.buildings=[];world.troops=[];
   Object.keys(data.buildings).forEach((type,i)=>{const x=2+(i%10)*4,y=2+Math.floor(i/10)*4,b=makeBuilding(type,x,y,data,Math.min(6,data.buildings[type].tiers.length));b.id='living-'+i;b.remaining=0;world.buildings.push(b);const typeOf=data.buildings[type].workplace;if(typeOf&&data.troops[typeOf]){const u=makeUnit(typeOf,data,i);u.workplace=b.id;u.x=x+data.buildings[type].size/2;u.y=y+data.buildings[type].size;world.troops.push(u);}});
-  for(let i=0;i<300;i++){recordTravel(world,data,4.25,4.25,28.25,4.25);recordTravel(world,data,10.25,4.25,10.25,24.25);}
+  for(let i=0;i<600;i++){recordTravel(world,data,4.25,4.25,28.25,4.25);recordTravel(world,data,10.25,4.25,10.25,24.25);}
   const state={...window.midnightsManner.snapshot(),world,home:null,mission:null},loaded=importSaveBlob(exportSave(state),data);
   if(!loaded.ok||JSON.stringify(loaded.state.world.trails)!==JSON.stringify(world.trails))throw Error('Living trail save roundtrip failed');
   const speed=trailMultiplier(world,4.25,4.25),actor={id:'path-walker',hp:100,x:4.25,y:4.25};
