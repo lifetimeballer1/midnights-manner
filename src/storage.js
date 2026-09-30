@@ -359,6 +359,7 @@ export function validateSave(value, data) {
 function supplyDefaults(value, data) {
   for (const w of [value.world, value.home]) {
     if (!w) continue;
+    if (typeof w.autoTrain !== 'boolean') w.autoTrain = false;
     if (typeof w.wellSupplied !== 'boolean') w.wellSupplied = false;
     if (!Number.isInteger(w.lastSupplyDay) || w.lastSupplyDay < 0) {
       w.lastSupplyDay = mealDay(w, data);

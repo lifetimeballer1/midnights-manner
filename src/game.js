@@ -55,6 +55,7 @@ export class Game {
  try{
   for(const w of [this.state.world,this.state.home]){
    if(!w)continue;
+   if(typeof w.autoTrain!=='boolean')w.autoTrain=false;
    if(!Array.isArray(w.tiles)||!w.tiles.length)w.tiles=buildTiles(this.data.world,w.bounds);
    else claimRect(w,w.bounds?.w||this.data.world.width,w.bounds?.h||this.data.world.height);
    try{claimPreclaimed(w,this.data.expansion);}catch{}
@@ -325,12 +326,27 @@ export class Game {
   else this.notify('No jobless workers are waiting. Workers are assigned or busy with orders.');
   return placed;
  }
- level(id){const u=this.world.troops.find(t=>t.id===id);if(!u||u.level>=this.data.troops[u.type].maxLevel)return;const curve=u.level>=5?1.5:1;
+ toggleAutoTrain(){
+  if(this.state.mission)return;
+  this.world.autoTrain=!this.world.autoTrain;this.autoTrainTimer=0;this.dirty=true;this.persist();
+ }
+ tickAutoTrain(dt){
+  if(this.paused||this.state.mission)return;
+  if(!this.world.autoTrain){this.autoTrainTimer=0;return;}
+  this.autoTrainTimer=(this.autoTrainTimer||0)+dt;
+  while(this.autoTrainTimer>=5-1e-9){
+   this.autoTrainTimer=Math.max(0,this.autoTrainTimer-5);
+   for(const u of this.world.troops){
+    if(u.level<this.data.troops[u.type].maxLevel)this.level(u.id,{silent:true});
+   }
+  }
+ }
+ level(id,{silent=false}={}){const u=this.world.troops.find(t=>t.id===id);if(!u||u.level>=this.data.troops[u.type].maxLevel)return;const curve=u.level>=5?1.5:1;
   // Tam's tutoring (Act VII): hands posted at a teaching workplace train
   // cheaper — data `tutorDiscount` on the building spec, generic.
   let tutor=0;const post=u.workplace&&this.world.buildings.find(b=>b.id===u.workplace);
   if(post&&post.hp>0&&post.remaining<=0)tutor=this.data.buildings[post.type]?.tutorDiscount||0;
-  const cost=Object.fromEntries(Object.entries(this.data.troops[u.type].levelCost).map(([k,v])=>[k,Math.ceil(v*u.level*curve*(1-tutor))]));if(!pay(this.world.resources,cost))return this.notify('Not enough food or gold to train.');u.level++;u.hp=stats(u,this.data).hp;this.notify(`Level ${u.level} reached${u.level%5===0?' — new ability unlocked!':'.'}`);}
+  const cost=Object.fromEntries(Object.entries(this.data.troops[u.type].levelCost).map(([k,v])=>[k,Math.ceil(v*u.level*curve*(1-tutor))]));if(!pay(this.world.resources,cost)){if(!silent)this.notify('Not enough food or gold to train.');return;}u.level++;u.hp=stats(u,this.data).hp;this.dirty=true;if(!silent)this.notify(`Level ${u.level} reached${u.level%5===0?' — new ability unlocked!':'.'}`);}
  promote(id,targetType){
   const u=this.world.troops.find(t=>t.id===id);if(!u)return this.notify('That villager is gone.');
   const opts=promotionOptions(this.world,this.data,u);
@@ -542,13 +558,14 @@ export class Game {
  // Best-effort cloud push: stamps + saves locally first, then tries the
  // shelf. Failures whisper — local play is never interrupted.
  async syncCloud(){stampCloud(this.state);this.persist();let cloud=null;try{cloud=await import('./cloud.js');}catch{return {ok:false,offline:true,local:true};}if(!cloud.configured())return {ok:false,offline:true,local:true};const session=cloud.getSession();if(!session?.user&&!session?.user?.id){return {ok:false,error:'Sign in first — then the village can travel to the cloud.'};}const userId=session.user?.id||session.user_id||session.sub;const snap=publicSnapshot(this.state);const r=await cloud.pushVillage(userId,{username:this.mp().username,friend_code:this.mp().friendCode,save:this.state,public:snap});if(!r.ok&&r.offline)return {ok:false,offline:true,local:true};return r;}
- importState(state){this.state=state;
+ importState(state){this.state=state;this.autoTrainTimer=0;
  // Imported blobs predate tile grids the same way old saves do — build
  // from settled bounds so imports never gift the wilderness.
  // Region center is ensured on top; migration only adds claims.
  try{
   for(const w of [this.state.world,this.state.home]){
    if(!w)continue;
+   if(typeof w.autoTrain!=='boolean')w.autoTrain=false;
    if(!Array.isArray(w.tiles)||!w.tiles.length)w.tiles=buildTiles(this.data.world,w.bounds);
    else claimRect(w,w.bounds?.w||this.data.world.width,w.bounds?.h||this.data.world.height);
    try{claimPreclaimed(w,this.data.expansion);}catch{}
@@ -556,6 +573,7 @@ export class Game {
  }catch{}
  this.paused=false;this.saveTimer=0;this.dirty=true;this.notify('Save restored. Welcome back to the village.');}
  tick(dt){if(this.paused||this.state.mission?.status&&this.state.mission.status!=='active')return;
+  this.tickAutoTrain(dt);
   this.checkCalendar();
   const cfg=raidConfig(this.data);
   if(!this.state.mission)ensureDirector(this.world,this.data);

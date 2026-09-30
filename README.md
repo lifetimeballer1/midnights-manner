@@ -355,3 +355,7 @@ Two size-2 Town Projects reuse the Phase 4 pipeline, each limited to one per vil
 ### Grey Dawn H3
 
 Two size-2 Town Projects extend the Phase 4/H2 pipeline, each limited to one per village with three distinct original 32x32 sprites and stage prices at 1x, 2x and 8x base. **Royal Forge Quarter** opens at level 7 (stage 3 at 10): open smithy yard, covered workshop, then a twin-chimney quarter. It spends lumber, plate and gold, with an extra 240 plate at stage 3; each finished tier grants +2% damage and +1% construction discount. **Lantern Rows** opens at level 6 (stage 3 at 9): posts, torch rows, then paved rows with cold lanterns. It spends wood and gold, adding 80 frostwood at stage 3; each finished tier grants +0.05 survey and +2% village XP. Ruins and unfinished stages grant no aura. No new systems, aura keys or save fields were added. H4 remains outside this task.
+
+### Grey Dawn H4
+
+People now has an **Auto-train: on/off** toggle, saved as additive `world.autoTrain` and defaulting off for fresh and older saves. Every five seconds of active home-village time, it silently attempts one level per eligible troop in roster order through the existing `Game.level()` payment path. Manual prices, the level curve and positional tutoring apply exactly; there is no automation discount. Unaffordable troops are skipped while later troops can still train. Only central stores pay; pending rewards, collector cargo and on-site reserves remain untouched. Pauses, hidden tabs and campaign expeditions do not advance the training interval.
