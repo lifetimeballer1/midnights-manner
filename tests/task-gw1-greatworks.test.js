@@ -49,8 +49,10 @@ test('GW1: exactly two additive projects preserve earlier buildings and campaign
   assert.equal(hash(await readFile(new URL(`../data/${file}.json`,import.meta.url))),pin);
  }
  // Renown stays optional; the future project hook stays an unwired comment.
- assert.equal(hash(await readFile(new URL('../data/endgame.json',import.meta.url))),'c9db1c9298a30ef4bd30d6ee847bbbb3cab85bea8c4d1eff5afd12f777fee0fd');
- assert.equal(hash(await readFile(new URL('../src/systems/endgame.js',import.meta.url))),'35fb426e60e64440efaa4b90e082910e5cc89623e739bd34966abdf609e9a48f');
+ // Raw-file pins normalize line endings: Windows checkouts use CRLF, CI uses LF.
+ const raw=async url=>(await readFile(url,'utf8')).replace(/\r\n?/g,'\n');
+ assert.equal(hash(await raw(new URL('../data/endgame.json',import.meta.url))),'f5a1930d87089b12db594991a6c947fc6b6da8ccf338f7ce7225e739f24d7f1d');
+ assert.equal(hash(await raw(new URL('../src/systems/endgame.js',import.meta.url))),'b6903b3e72a29ab66f719fa92aaf38d72b243cb22d44a07713876e287746adfd');
 });
 
 test('GW1: stages, gates and aura keys reuse the Town Projects contract',()=>{
