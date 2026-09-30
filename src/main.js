@@ -32,38 +32,30 @@ async function boot(){
  const ambience=new AmbiencePlayer(game),moodMemory={};
  music.setMood(soundtrackMood(game.world,data,{memory:moodMemory,vlevel:game.state.vlevel}));
 
+ // Prefer the ambient score as the session soundtrack when available.
+ // Hook MusicPlayer.start (called from UI Begin) so we don't depend on DOM order.
+ if(ambientScore){
+  const origStart=music.start.bind(music);
+  music.start=function(opts){
+   // Start ambient instead of the theme player to avoid double-music.
+   ambient.start(ambientScore);
+   ambient.updateGameState(stateFromWorld(game, data));
+   // Keep MusicPlayer marked as entered/enabled for UI, but silent.
+   music.entered=true;
+   music.enabled=!isMuted();
+   music.mood=typeof opts?.mood==='string'?opts.mood:music.mood;
+   music.calm=Boolean(opts?.calm);
+  };
+  const origSetEnabled=music.setEnabled.bind(music);
+  music.setEnabled=function(enabled){
+   origSetEnabled(enabled);
+   ambient.setEnabled(Boolean(enabled) && !isMuted());
+  };
+ }
+
  const ui=new UI(game,renderer,music);new MapInput(canvas,renderer,ui);new GameUpdates(game);new PatchNotes(game,ui);
  new ResizeObserver(resize).observe(canvas);
  try{if(new URLSearchParams(location.search).has('perf')){const badge=document.createElement('div');badge.id='perf';document.body.appendChild(badge);setInterval(()=>{const r=renderer.frameReport();if(r)badge.textContent='frame avg '+r.avg+'ms · p50 '+r.p50+'ms · p95 '+r.p95+'ms · n='+r.n+' · faces '+r.faces+' · '+(renderer.staticLayer?'cached':'uncached');},500);}}catch{}
-
- // When the player hits Begin, start the ambient score and pause the old theme player
- // so the two systems never layer on top of each other.
- let ambientSessionStarted=false;
- const originalBegin=document.querySelector('#begin')?.onclick;
- const beginBtn=document.querySelector('#begin');
- if(beginBtn){
-  const prev=beginBtn.onclick;
-  beginBtn.onclick=function(...args){
-   if(typeof prev==='function') prev.apply(this,args);
-   if(!ambientSessionStarted && ambientScore){
-    ambientSessionStarted=true;
-    // Hand soundtrack duty to the ambient engine.
-    try{music.stop();}catch{}
-    ambient.start(ambientScore);
-    ambient.updateGameState(stateFromWorld(game, data));
-   }
-  };
- }
-
- // Keep mute button in sync for ambient as well (UI already toggles music).
- const soundBtn=document.querySelector('#opt-sound');
- if(soundBtn){
-  const prevSound=soundBtn.onclick;
-  soundBtn.onclick=function(...args){
-   if(typeof prevSound==='function') prevSound.apply(this,args);
-   ambient.setEnabled(!isMuted());
-  };
- }
 
  window.addEventListener('pointerdown',()=>unlock(),{passive:true});window.addEventListener('keydown',()=>unlock());
  let last=performance.now(),accumulator=0;
@@ -77,7 +69,6 @@ async function boot(){
    raidPending: Boolean(profile.warning),
    isNight: Boolean(profile.night),
    isDawn: profile.phase === 'dawn' || mood === 'dawn',
-   // Victory / endgame flags if present on world or state
    isVictory: Boolean(g.world?.victory || g.state?.victory || g.state?.phase === 'victory'),
   };
  }
