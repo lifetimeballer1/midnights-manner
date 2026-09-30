@@ -22,6 +22,9 @@ const TOKENS = {
   '--wood-dark-bg': 'linear-gradient(#8a5a2e,#6b421f)',
   '--wood-edge': '#5a3a22',
   '--wood-deep': '#3a2413',
+  '--wood-card-bg': 'linear-gradient(#e8b96e,#cf9450)',
+  '--wood-ink': '#3a2c18',
+  '--wood-faint': '#6b4e28',
   '--build-bg': 'linear-gradient(#ffd97a,#e8a83c)',
   '--build-edge': '#fff0b5',
   '--build-ink': '#443d24',
@@ -81,6 +84,19 @@ test('the winning theme layer (kingdom.css) paints HUD surfaces from tokens', as
   assert.ok(rule('.build-button{').includes('var(--build-bg)'), 'build stays gold');
   assert.ok(rule('.battle-button{').includes('var(--battle-bg)'), 'defend stays red');
   assert.ok(kingdom.includes('.camera-tools button{border-radius:50%}'), 'camera tools round');
+  const ruleIn = (sel, token) => {
+    const i = kingdom.indexOf(sel);
+    assert.ok(i >= 0, `${sel} styled in kingdom.css`);
+    assert.ok(kingdom.slice(i, kingdom.indexOf('}', i) + 1).includes(token), `${sel} uses ${token}`);
+  };
+  ruleIn('.drawer{', 'var(--wood-bg)');
+  ruleIn('.drawer-header{', 'var(--wood-dark-bg)');
+  ruleIn('.menu-nav button.active{', 'var(--dock-bg)');
+  ruleIn('.panel-filters button.active{', 'var(--dock-bg)');
+  ruleIn('.build-card{', 'var(--wood-card-bg)');
+  ruleIn('.village-strip{', 'var(--wood-dark-bg)');
+  ruleIn('.levelbar>div,.progress>div{', 'var(--bar-xp)');
+  ruleIn('.gear.selected{', '#e8a83c');
 });
 
 test('key surfaces still exist after the token pass', () => {

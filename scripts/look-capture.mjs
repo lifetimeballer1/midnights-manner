@@ -81,6 +81,21 @@ try{
  await new Promise(r=>setTimeout(r,250));await evaluate(camera(1.65));
  const tNight=clearAt(0.8);await setSky(tNight);await shot('look-phone-night');
  summary.views.push({file:'artifacts/look-phone-night.png',phase:phaseAt(tNight,{world}).id,weather:weatherAt(tNight,{world}).id,elapsed:tNight});
+ // GUI proof shots (env-gated, default runs untouched): open the build
+ // drawer on desktop and on phone so reskin phases judge real panels.
+ if(process.env.GUI_CAPTURE==='1'){
+  await call('Emulation.setDeviceMetricsOverride',{width:1280,height:900,deviceScaleFactor:1,mobile:false});
+  await new Promise(r=>setTimeout(r,250));await evaluate(camera(1.8));
+  await evaluate(`document.querySelector('[data-tab=build]').click()`);
+  await new Promise(r=>setTimeout(r,600));await shot('look-gui-drawer');
+  summary.views.push({file:'artifacts/look-gui-drawer.png'});
+  await evaluate(`document.querySelector('#close-panel').click()`);
+  await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:2,mobile:true});
+  await new Promise(r=>setTimeout(r,250));
+  await evaluate(`document.querySelector('[data-tab=build]').click()`);
+  await new Promise(r=>setTimeout(r,600));await shot('look-gui-drawer-phone');
+  summary.views.push({file:'artifacts/look-gui-drawer-phone.png'});
+ }
  if(process.env.FRONTIER_CAPTURE==='1'){
   await evaluate(`window.midnightsManner.setCamera({yaw:${DEFAULT_YAW},pitch:${DEFAULT_PITCH},zoom:1.65,x:4,y:4})`);
   await new Promise(r=>setTimeout(r,300));await shot('look-frontier-phone');
