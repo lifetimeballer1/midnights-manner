@@ -227,6 +227,7 @@
         "wood": 2400
       },
       "id": "starwatch-ridge",
+      "tribe": "ember",
       "landmark": {
         "name": "Starwatch Ridge",
         "x": 45,
@@ -252,6 +253,7 @@
         "wood": 3000
       },
       "id": "whisperwood",
+      "tribe": "thornband",
       "landmark": {
         "name": "Whisperwood",
         "x": 46,
@@ -278,6 +280,7 @@
         "wood": 5000
       },
       "id": "ashfall-march",
+      "tribe": "cinder",
       "landmark": {
         "name": "Ashfall March",
         "x": 45,
@@ -377,6 +380,7 @@
         "wood": 6500
       },
       "id": "pale-coast",
+      "tribe": "palehost",
       "landmark": {
         "name": "Pale Coast",
         "x": 46,

@@ -62,7 +62,7 @@ export function spawnRaid(world,count=4,scaling=null,data=null,faction=null,opts
     entry=out.find(clear);
    }
   }
-  if(!entry)entry=entries.find(p=>!data||!blocked(world,data,Math.floor(p.x),Math.floor(p.y)));
+  if(!entry&&!opts?.strictExclusion)entry=entries.find(p=>!data||!blocked(world,data,Math.floor(p.x),Math.floor(p.y)));
   if(entry){const role=faction?.roles[i%faction.roles.length],spec=data?.world.enemyRoles?.[role]||{};
    taken.add(Math.floor(entry.x)+','+Math.floor(entry.y));
    world.enemies.push({id:crypto.randomUUID(),...entry,hp:hp*(spec.hp||1),maxHp:hp*(spec.hp||1),damage:dmg*(spec.damage||1),role,faction:faction?.id,attackTimer:i*.2,animation:0});}

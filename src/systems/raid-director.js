@@ -1,6 +1,24 @@
 // Home-only survival pacing. Deadlines are rolled once and saved with the world.
 // Campaign timelines and explicit defense tests remain under their own control.
+import {conquestState, tribeOf} from './conquest.js';
 const clamp=(n,lo,hi)=>Math.max(lo,Math.min(hi,n));
+// Core territories use existing faction identities and leader pressure roles.
+const PATROL_ROLES={thornband:['thornband','raider'],cinder:['cinder-clan','breaker'],palehost:['pale-host','bowman'],ember:['ember-legion','breaker']};
+export function territoryPatrol(world,data,tribeId,vlevel=1) {
+ const region=data.expansion?.regions?.find(r=>r.tribe===tribeId),mapping=PATROL_ROLES[tribeId];
+ if(!region||!mapping||conquestState(world,tribeId).assaultWon)return null;
+ const faction=data.world.enemyFactions?.find(f=>f.id===mapping[0]);
+ if(!faction||world.wave+1<(faction.minWave||1)||vlevel<(faction.minLevel||1))return null;
+ return {tribe:tribeId,name:tribeOf(data,tribeId)?.name||faction.name,region:region.name,faction:{...faction,roles:[mapping[1]]}};
+}
+export function directorPatrol(state,data) {
+ const w=state.world;
+ // Every other scheduled horn may be a patrol; first scouts stay gentle.
+ // The caller keeps authored crowns and uses the same single warning slot.
+ if(state.mission||!w.wave||(w.wave+1)%2)return null;
+ const candidates=(data.expansion?.regions||[]).map(r=>territoryPatrol(w,data,r.tribe,state.vlevel||1)).filter(Boolean);
+ return candidates.length?candidates[Math.floor(w.wave/2)%candidates.length]:null;
+}
 export function directorConfig(data) {
  const c=data.world.homeRaids?.director||{};
  return {minQuiet:Math.max(60,c.minQuiet??240),maxQuiet:Math.max(c.minQuiet??240,c.maxQuiet??480),recovery:Math.max(60,c.recovery??180),defeatRecovery:Math.max(120,c.defeatRecovery??360),warning:Math.max(15,c.warning??25)};

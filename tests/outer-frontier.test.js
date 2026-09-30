@@ -6,6 +6,7 @@ import {Game} from '../src/game.js';
 import {regionFor,isRegionClaimed} from '../src/systems/expansion.js';
 import {buildTiles} from '../src/systems/biomes.js';
 import {migrate,VERSION} from '../src/storage.js';
+import {recordAssault} from '../src/systems/conquest.js';
 
 const data=Object.fromEntries(await Promise.all(
  ['world','troops','items','abilities','buildings','missions','quests','expansion','biomes'].map(async n=>[n,JSON.parse(await readFile(new URL(`../data/${n}.json`,import.meta.url)))])
@@ -37,6 +38,7 @@ test('east outer regions unlock from the existing frontier without moving the vi
  g.world.resources={...g.world.resources,wood:50000,food:50000,gold:50000,frostwood:5000,plate:1000};
  assert.equal(g.expandClaim(46,10),false,'Whisperwood is not reachable before Timber Deep');
  assert.equal(g.expandClaim(26,10),true,'Timber Deep still borders the hearthlands');
+ recordAssault(g.world,'thornband');
  assert.equal(g.expandClaim(46,10),true,'Whisperwood opens from Timber Deep');
  assert.equal(isRegionClaimed(g.world,regionFor(data.expansion,46,10)),true);
  const after=g.world.buildings.find(b=>b.id===hall.id);assert.deepEqual(after,hall,'existing building coordinates and state stay untouched');
