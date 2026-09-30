@@ -10,6 +10,7 @@ import {drawVillage3D,pointInPolygon} from './scene3d.js';
 import {weatherAt,skyLightAt} from './systems/daynight.js';
 import {drawAtmosphere} from './atmosphere-art.js';
 import {insideWorkplace} from './systems/villagers.js';
+import {trackStride, footstepFor, surfaceAt} from './systems/footsteps.js';
 export class Renderer {
  constructor(canvas,data,images){this.canvas=canvas;this.ctx=canvas.getContext('2d');this.data=data;this.images=images;this.grid=false;this.hover=null;this.selection=null;this.placing=null;this.moving=null;this.tw=43;this.th=22;this.ox=510;this.oy=97;this.shake=0;this.cam={x:10,y:8,zoom:1,yaw:DEFAULT_YAW,pitch:DEFAULT_PITCH};this.orbitMode=false;this.cx=550;this.cy=370;this.width=1100;this.height=740;this.dpr=1;this.hitAreas=[];this.staticLayer=null;this.staticKey='';this.frameTimes=[];this._pendingStaticKey=null;this._noCache=false;this._lastFrame=null;try{this.calm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch{this.calm=false;}this.seen=new Map();this.flash=new Map();this.deadAt=new Map();this.tints=new Map();}
  base(x,y){return {x:this.ox+(x-y)*this.tw/2,y:this.oy+(x+y)*this.th/2};}
@@ -314,22 +315,31 @@ export class Renderer {
    }
    this.seen.set(key,{hp:b.hp,remaining:b.remaining});
   }
-  for(const u of world.troops){
-   const key='u'+u.id;alive.add(key);
-   const prev=this.seen.get(key);
-   if(prev){
-    if(prev.hp>0&&u.hp<=0){this.deadAt.set(key,time);this.burst(world,u.x,u.y,u.x,u.y,'poof',.4);}
-    else if(u.hp<prev.hp)this.flash.set(key,time+150);
+   for(const u of world.troops){
+    const key='u'+u.id;alive.add(key);
+    const prev=this.seen.get(key);
+    if(prev){
+     if(prev.hp>0&&u.hp<=0){this.deadAt.set(key,time);this.burst(world,u.x,u.y,u.x,u.y,'poof',.4);}
+     else if(u.hp<prev.hp)this.flash.set(key,time+150);
+    }
+    this.seen.set(key,{hp:u.hp});
+    // Footsteps: stride accumulates from real position deltas — hidden
+    // indoor workers and the fallen never earn a step. Save untouched.
+    try{
+     if(u.hp>0&&!u.expedition&&!insideWorkplace(world,this.data,u)){
+      if(!this._strideActors)this._strideActors=new Map();
+      const side=trackStride(this._strideActors,u);
+      if(side)footstepFor(u,side,surfaceAt(world,this.data,u.x,u.y),this.cam.zoom);
+     }else this._strideActors?.delete(key);
+    }catch{}
    }
-   this.seen.set(key,{hp:u.hp});
-  }
   for(const e of world.enemies){
    const key='e'+e.id;alive.add(key);
    const prev=this.seen.get(key);
    if(prev&&e.hp<prev.hp)this.flash.set(key,time+150);
    this.seen.set(key,{hp:e.hp});
   }
-  for(const key of [...this.seen.keys()])if(!alive.has(key)){this.seen.delete(key);this.flash.delete(key);}
+   for(const key of [...this.seen.keys()])if(!alive.has(key)){this.seen.delete(key);this.flash.delete(key);this._strideActors?.delete(key);}
   for(const [key,until] of [...this.flash.entries()])if(time>until+4000)this.flash.delete(key);
   for(const [key,t0] of [...this.deadAt.entries()])if(time-t0>4000)this.deadAt.delete(key);
  }
