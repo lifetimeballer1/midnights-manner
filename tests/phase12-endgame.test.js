@@ -213,12 +213,12 @@ test('dread aura sharpens the court near its queen', () => {
 // ---- Fortifications: new tiers, siegebane answers ----
 
 test('late-game fortification tiers exist and gate off village level', () => {
-  assert.equal(data.buildings.stonewall.tiers.length, 4);
+  assert.equal(data.buildings.stonewall.tiers.length, 6);
   assert.equal(data.buildings.stonewall.tierGates['4'], 10);
-  assert.equal(data.buildings.rampart.tiers.length, 4);
+  assert.equal(data.buildings.rampart.tiers.length, 6);
   assert.equal(data.buildings.rampart.tierGates['4'], 11);
-  assert.equal(data.buildings.gate.tiers.length, 4);
-  assert.equal(data.buildings.ballista.tiers.length, 3);
+  assert.equal(data.buildings.gate.tiers.length, 6);
+  assert.equal(data.buildings.ballista.tiers.length, 6);
   assert.ok(data.buildings.ballista.tiers[2].siegebane > 0);
   const bastion = data.buildings.bastion;
   assert.equal(bastion.minLevel, 10);
@@ -292,10 +292,10 @@ test('reinforce crowns finished work; upgrades rebuild it', () => {
   g.world.resources.plate = 1000;
   g.world.resources.lumber = 1000;
   const wall = g.world.buildings.find(b => b.type === 'wall');
-  wall.level = 3; wall.hp = 690; wall.remaining = 0;
+  wall.level = 6; wall.hp = 1587; wall.remaining = 0;
   assert.equal(g.reinforce(wall.id), true);
   assert.equal(wall.paragon, 1);
-  assert.equal(wall.hp, Math.round(690 * 1.12));
+  assert.equal(wall.hp, Math.round(1587 * 1.12));
   const farm = g.world.buildings.find(b => b.type === 'farm');
   assert.equal(g.reinforce(farm.id), undefined);
   const tower = g.world.buildings.find(b => b.type === 'tower');

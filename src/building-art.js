@@ -22,8 +22,10 @@ export function drawWall(r,b,world){
  if(b.type==='gate'){c.save();c.globalAlpha=b.hp<=0?.3:b.remaining>0?.65:1;
   box(r,b.x+.12,b.y+.12,.76,.76,3,{top:'#8d8973',left:'#645e4c',right:'#494c40',trim:'#b6ae8c'});
   for(const [ox,oy,w,d]of[[.14,.14,.2,.2],[.66,.14,.2,.2],[.14,.66,.2,.2],[.66,.66,.2,.2]])box(r,b.x+ox,b.y+oy,w,d,height+2,p);
-  box(r,b.x+.12,b.y+.12,.76,.76,height+6,{...p,top:p.trim});
-  if(b.level>=3)box(r,b.x+.4,b.y+.4,.2,.2,height+10,{...p,top:p.trim,left:'#b88636',right:'#805b28'});
+   box(r,b.x+.12,b.y+.12,.76,.76,height+6,{...p,top:p.trim});
+   if(b.level>=3)box(r,b.x+.4,b.y+.4,.2,.2,height+10,{...p,top:p.trim,left:'#b88636',right:'#805b28'});
+   if(b.level>=5)for(const f of [.3,.55])box(r,b.x+f,b.y+.14,.06,.72,4,{top:'#45525a',left:'#39434b',right:'#2c343b',trim:'#6a7a86'});
+   if(b.level>=6)box(r,b.x+.3,b.y+.3,.4,.4,height+14,{...p,top:'#c86750',left:'#b88636',right:'#805b28'});
   c.restore();return;}
  c.save();c.globalAlpha=b.hp<=0?.3:b.remaining>0?.65:1;
  box(r,b.x+.12,b.y+.12,.76,.76,3,{top:'#8d8973',left:'#645e4c',right:'#494c40',trim:'#b6ae8c'});
@@ -32,14 +34,16 @@ export function drawWall(r,b,world){
   const x=b.x+.5+Math.min(0,dx*.55)-.13,y=b.y+.5+Math.min(0,dy*.55)-.13;
   box(r,x,y,.26+Math.abs(dx)*.55,.26+Math.abs(dy)*.55,height-4,p);
   if(b.level>=2)box(r,x,y,.26+Math.abs(dx)*.55,.26+Math.abs(dy)*.55,height-7,{...p,top:p.trim});
+  if(b.level>=5)box(r,x+.03,y+.03,.2+Math.abs(dx)*.55,.2+Math.abs(dy)*.55,height-10,{...p,top:'#b88636'});
  };
  neighbors.filter(([x,y])=>x+y<0).forEach(beam);
  box(r,b.x+.27,b.y+.27,.46,.46,height,p);
  if(b.level===1&&b.type!=='stonewall'){box(r,b.x+.34,b.y+.34,.32,.32,height+3,p);}
- else{
-  for(const [dx,dy] of [[.24,.24],[.57,.24],[.24,.57],[.57,.57]])box(r,b.x+dx,b.y+dy,.19,.19,height+4,p);
-  if(b.level>=3)box(r,b.x+.36,b.y+.36,.28,.28,height+6,{...p,top:p.trim,left:'#b88636',right:'#805b28'});
- }
+  else{
+   for(const [dx,dy] of [[.24,.24],[.57,.24],[.24,.57],[.57,.57]])box(r,b.x+dx,b.y+dy,.19,.19,height+4,p);
+   if(b.level>=3)box(r,b.x+.36,b.y+.36,.28,.28,height+6,{...p,top:p.trim,left:'#b88636',right:'#805b28'});
+   if(b.level>=6)box(r,b.x+.44,b.y+.44,.12,.12,height+14,{...p,top:'#c86750',left:'#b88636',right:'#805b28'});
+  }
  neighbors.filter(([x,y])=>x+y>0).forEach(beam);
  c.restore();
 }

@@ -202,9 +202,9 @@ test('ph12: lit raiders smolder each second', () => {
 
 test('ph12/phase2: tower tier 4 rides the endgame curve and waits on level 8', async () => {
   const t = data.buildings.tower;
-  assert.equal(t.tiers.length, 4);
+  assert.equal(t.tiers.length, 6);
   assert.deepEqual([t.tiers[3].damage, t.tiers[3].range], [65, 5.2]);
-  assert.deepEqual(t.tierGates, {4: 8});
+  assert.deepEqual(t.tierGates, {4: 8, 5: 10, 6: 11});
   const {buildingCost: bc} = await import('../src/model.js');
   const d = structuredClone(data);
   const w = createWorld(d);
@@ -232,9 +232,9 @@ test('ph12/phase2: tower tier 4 rides the endgame curve and waits on level 8', a
 
 test('ph12: watchfire tier 3 joins the level-8 sky', () => {
   const f = data.buildings.watchfire;
-  assert.equal(f.tiers.length, 3);
+  assert.equal(f.tiers.length, 6);
   assert.deepEqual([f.tiers[2].damage, f.tiers[2].range], [30, 6.5]);
-  assert.deepEqual(f.tierGates, {3: 8});
+  assert.deepEqual(f.tierGates, {3: 8, 4: 9, 5: 10, 6: 11});
 });
 
 test('ph12: siege tongs teach every tower', () => {

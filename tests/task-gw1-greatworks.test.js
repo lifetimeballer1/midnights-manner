@@ -43,7 +43,7 @@ const hash=value=>createHash('sha256').update(value).digest('hex');
 
 test('GW1: exactly two additive projects preserve earlier buildings and campaign fingerprints',async()=>{
  const earlier=Object.fromEntries(Object.entries(data.buildings).filter(([id])=>!ids.includes(id)));
-  assert.equal(hash(JSON.stringify(earlier)),'56ce93bfb993046d9514c3d50ee20d50001ae9009a3725de13aa2231c7898a82');
+  assert.equal(hash(JSON.stringify(earlier)),'d052847c814979a8f2a8e58bb2dbb062758e9e78727510219b463689f73e33c0');
  assert.equal(hash(JSON.stringify(data.buildings['dawn-gate'])),'00d6157bcb7d5e00372e02318c3f8ee8626e85584e6e263c38cdb179626ce0f0');
   // Raw-file pins normalize line endings: Windows checkouts use CRLF, CI uses LF.
   const raw=async url=>(await readFile(url,'utf8')).replace(/\r\n?/g,'\n');
