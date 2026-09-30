@@ -377,3 +377,13 @@ Cinder Clan conquest follows the H5 per-tribe ledger in the hills of Ashfall Mar
 Cinder progress lives under `world.conquest.tribes.cinder`, created only when written. Its one-time outpost, dismantle or settlement judgement reuses storage overflow, building limits, existing aura keys and separate daily territory upkeep. Ironshield and Thornband retain their earlier behavior. No runtime code, mechanics, currencies or save version changed. H6 ends at chapter 23; H7 is not implemented.
 
 Verification: `npm test` passed all 754 checks, including 14 H6 checks covering the chain, muster, ledgers, rewards, paid departure, boss mechanics and home rotation, annex choices, upkeep, saves, Adventure controls and unchanged earlier-tribe outcomes. `npm run build` passed with 400 precached files. On Windows, both commands used `npm.cmd` because PowerShell blocks `npm.ps1`. Browser interaction smoke was not run.
+
+### Grey Dawn H7
+
+Pale Host conquest follows the H5/H6 per-tribe ledger along the Pale Coast: **Turn the Tide Lines** (24, requires Cinder Citadel), **Scatter the Mist** (25), then **The Pale Court** (26). All three expedition maps use the water biome. Scouting and the assault require village level 11, Renown 5, a tier-3 barracks and 12 living fighters. The court charges its campaign war chest only on successful departure; first-clear rewards rise to 5,500 gold, 3,000 lumber, 800 plate and 500 frostwood.
+
+The Grey Herald uses existing ranged arrow attacks, bowman summons and enrage, with 2,100 base HP and 76 base damage, and stays outside the home crown rotation. A regression test exposed that combat ignored a boss's stored range. A small generic `combatRole` opt-in now lets this leader reuse the bowman combat role and its declared range; earlier leaders keep their original combat behavior. No new attack mechanic was added.
+
+Pale Host progress lives under `world.conquest.tribes.palehost`, created only when written. Its one-time outpost, dismantle or settlement judgement reuses storage overflow, building limits, existing aura keys and separate daily territory upkeep, with values matching Cinder. No currencies or save version changed. H7 ends at chapter 26 with 27 missions; H8 remains unstarted.
+
+Verification: `npm test` passed all 770 checks, including 16 H7 checks for content, muster, ledgers, paid departure, ranged combat, leader mechanics, home rotation, annex choices, independent upkeep, saves and Adventure controls. Fingerprints from `git show e0e2764` prove earlier conquest and mission entries unchanged; legacy comparisons cover all three earlier tribes. `npm run build` passed. Both commands used `npm.cmd` on Windows. Browser interaction smoke was not run.

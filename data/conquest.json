@@ -93,6 +93,31 @@
           "dmgMult": 1.5
         }
       }
+    },
+    {
+      "id": "palehost-herald",
+      "combatRole": "bowman",
+      "name": "The Grey Herald",
+      "title": "Voice of the Pale Coast",
+      "hpBase": 2100,
+      "hpPerWave": 120,
+      "dmgBase": 76,
+      "dmgPerWave": 4.5,
+      "speed": 0.7,
+      "range": 3.6,
+      "wallDamage": 2,
+      "mechanics": {
+        "summon": {
+          "role": "bowman",
+          "count": 2,
+          "everySec": 20,
+          "cap": 6
+        },
+        "enrage": {
+          "hpFrac": 0.3,
+          "dmgMult": 1.5
+        }
+      }
     }
   ],
   "annex": [
@@ -274,6 +299,89 @@
           "name": "Frontier Settlement",
           "icon": "🌾",
           "text": "Hill homesteads feed the Manner and open one more of every building line.",
+          "supply": {
+            "cost": {
+              "food": 1200,
+              "lumber": 120,
+              "gold": 140
+            }
+          },
+          "limitBonus": 1,
+          "flatAuras": {
+            "gather": 0.05,
+            "food": 0.4
+          }
+        }
+      ]
+    },
+    {
+      "id": "palehost",
+      "name": "Pale Host",
+      "color": "#b8c8d8",
+      "text": "Along the Pale Coast, the Pale Host hide bowmen in sea mist. Their tide lines rain arrows on every road that approaches the court.",
+      "require": {
+        "vlevel": 11,
+        "renown": 5,
+        "barracksTier": 3,
+        "troops": 12
+      },
+      "preliminaries": [
+        {
+          "id": "palehost-tide",
+          "name": "Turn the Tide Lines",
+          "text": "Drive the bowmen from the tide lines before they warn the court."
+        },
+        {
+          "id": "palehost-mist",
+          "name": "Scatter the Mist",
+          "text": "Break the mist camp and scatter the bowmen guarding the coast."
+        }
+      ],
+      "assault": "palehost-court",
+      "intel": {
+        "leader": "The Grey Herald",
+        "army": "Enemy bowmen holding the tide lines beneath the sea mist",
+        "tactics": "Ranged arrow volleys, bowmen summons and a desperate final enrage",
+        "weakness": "Use armored defenders and overlapping towers to answer the ranged pressure",
+        "reward": "The Pale Coast roads, court stores and shore join the Manner."
+      },
+      "annex": [
+        {
+          "id": "outpost",
+          "name": "Rebuild as an Outpost",
+          "icon": "🏰",
+          "text": "A fortified coastal base: two more of every building line may stand.",
+          "supply": {
+            "cost": {
+              "food": 1000,
+              "bread": 60,
+              "plate": 12,
+              "gold": 140
+            }
+          },
+          "flatAuras": {
+            "damage": 0.04,
+            "heal": 0.1
+          },
+          "limitBonus": 2
+        },
+        {
+          "id": "dismantle",
+          "name": "Dismantle for Materials",
+          "icon": "⚒",
+          "text": "Strip the court for shore timber, plate and cold coin.",
+          "resources": {
+            "lumber": 6000,
+            "plate": 750,
+            "gold": 5000,
+            "frostwood": 450
+          }
+        },
+        {
+          "id": "settlement",
+          "name": "Frontier Settlement",
+          "icon": "🌾",
+          "text": "Coastal homesteads feed the Manner and open one more of every building line.",
           "supply": {
             "cost": {
               "food": 1200,

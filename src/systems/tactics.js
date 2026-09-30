@@ -1,13 +1,19 @@
 import {distance,center} from '../model.js';
 import {blocked,move} from './pathfinding.js';
 import {isWall} from './walls.js';
+import {bossSpec} from './endgame.js';
 export function factionFor(data,wave,vlevel=1) {
  // Endgame courts only answer seasoned villages: a minLevel gate keeps
  // siege engines and pale courts out of mid-game raids entirely.
  const factions=(data.world.enemyFactions||[]).filter(f=>wave>=(f.minWave||1)&&(vlevel||1)>=(f.minLevel||1));
  return factions.length?factions[(wave-1)%factions.length]:null;
 }
-export function enemyRole(data,enemy){return data.world.enemyRoles?.[enemy.role]||{};}
+export function enemyRole(data,enemy){
+ const leader=enemy.role==='boss'?bossSpec(data,enemy.bossId):null;
+ // Opt-in leaders reuse an existing combat role; earlier crowns keep their role.
+ if(leader?.combatRole)return {...data.world.enemyRoles?.[leader.combatRole],speed:leader.speed,range:leader.range,wallDamage:leader.wallDamage};
+ return data.world.enemyRoles?.[enemy.role]||{};
+}
 // Respond to breaches and nearby attacks rather than chasing a distant scout.
 // Perf: optional ctx {postOf, urgCache} memoizes the per-enemy urgency
 // (targetIds are static during the troops loop) and skips buildings.find.

@@ -2244,5 +2244,382 @@
       "cinder-forge"
     ],
     "tribe": "cinder"
+  },
+  {
+    "id": "palehost-tide",
+    "name": "Turn the Tide Lines",
+    "chapter": "24",
+    "act": "X",
+    "conquest": "preliminary",
+    "beat": "Turn the tide lines along the Pale Coast. Hold the shore through two waves while enemy bowmen press from the sea mist.",
+    "giver": "Sorrel the watcher",
+    "description": "Turn the tide lines along the Pale Coast. Hold the shore through two waves while enemy bowmen press from the sea mist.",
+    "timeLimit": 240,
+    "troopLimit": 8,
+    "objectives": [
+      {
+        "kind": "defeat",
+        "amount": 12
+      },
+      {
+        "resource": "gold",
+        "amount": 200
+      }
+    ],
+    "startingResources": {
+      "wood": 300,
+      "food": 200,
+      "gold": 140
+    },
+    "map": {
+      "biome": "water",
+      "seed": 2411,
+      "tiles": [
+        {
+          "x": 15,
+          "y": 12,
+          "biome": "water",
+          "landmark": "Turn the Tide Lines",
+          "claimed": true
+        }
+      ],
+      "buildings": [
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "tower",
+          "x": 6,
+          "y": 6
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 7
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 8
+        },
+        {
+          "type": "barracks",
+          "x": 7,
+          "y": 4
+        }
+      ],
+      "troops": [
+        "warrior",
+        "pikewoman",
+        "archer",
+        "builder",
+        "miner"
+      ]
+    },
+    "raids": [
+      {
+        "at": 40,
+        "count": 5
+      },
+      {
+        "at": 140,
+        "count": 7
+      }
+    ],
+    "scaling": {
+      "hp": 20,
+      "damage": 3.5
+    },
+    "rewards": {
+      "gold": 3000,
+      "lumber": 1600,
+      "plate": 350,
+      "frostwood": 180
+    },
+    "unlocks": [],
+    "ceremony": {
+      "warning": "Turn the tide lines along the Pale Coast. Hold the shore through two waves while enemy bowmen press from the sea mist.",
+      "victory": "The tide lines fall quiet. The mist camp lies open.",
+      "defeat": "The Pale Host still hold the shore. Gather your stores and march again."
+    },
+    "requires": [
+      "cinder-citadel"
+    ],
+    "tribe": "palehost"
+  },
+  {
+    "id": "palehost-mist",
+    "name": "Scatter the Mist",
+    "chapter": "25",
+    "act": "X",
+    "conquest": "preliminary",
+    "beat": "Scatter the mist camp on the Pale Coast. Hold the shore through three waves and cut the bowmen off from the court.",
+    "giver": "Sorrel the watcher",
+    "description": "Scatter the mist camp on the Pale Coast. Hold the shore through three waves and cut the bowmen off from the court.",
+    "timeLimit": 300,
+    "troopLimit": 9,
+    "objectives": [
+      {
+        "kind": "defeat",
+        "amount": 18
+      },
+      {
+        "kind": "survive",
+        "seconds": 240
+      }
+    ],
+    "startingResources": {
+      "wood": 340,
+      "food": 220,
+      "gold": 160
+    },
+    "map": {
+      "biome": "water",
+      "seed": 2511,
+      "tiles": [
+        {
+          "x": 3,
+          "y": 4,
+          "biome": "water",
+          "landmark": "Scatter the Mist",
+          "claimed": true
+        }
+      ],
+      "buildings": [
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "tower",
+          "x": 6,
+          "y": 6
+        },
+        {
+          "type": "archer_tower",
+          "x": 6,
+          "y": 9
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 7
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 8
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 9
+        },
+        {
+          "type": "barracks",
+          "x": 8,
+          "y": 4
+        }
+      ],
+      "troops": [
+        "warrior",
+        "pikewoman",
+        "halberdier",
+        "archer",
+        "builder",
+        "miner"
+      ]
+    },
+    "raids": [
+      {
+        "at": 40,
+        "count": 6
+      },
+      {
+        "at": 150,
+        "count": 8
+      },
+      {
+        "at": 240,
+        "count": 9
+      }
+    ],
+    "scaling": {
+      "hp": 22,
+      "damage": 4
+    },
+    "rewards": {
+      "gold": 4200,
+      "lumber": 2300,
+      "plate": 550,
+      "frostwood": 350
+    },
+    "unlocks": [],
+    "ceremony": {
+      "warning": "Scatter the mist camp on the Pale Coast. Hold the shore through three waves and cut the bowmen off from the court.",
+      "victory": "The mist scatters. The Grey Herald waits within the court.",
+      "defeat": "The Pale Host still hold the shore. Gather your stores and march again."
+    },
+    "requires": [
+      "palehost-tide"
+    ],
+    "tribe": "palehost"
+  },
+  {
+    "id": "palehost-court",
+    "name": "The Pale Court",
+    "chapter": "26",
+    "act": "X",
+    "conquest": "assault",
+    "beat": "Carry the campaign stores to the Pale Coast, hold the court through four waves, and defeat The Grey Herald amid ranged arrow volleys.",
+    "giver": "Sorrel the watcher",
+    "log": "The Grey Herald fell at the fourth horn, and the bowmen scattered through the sea mist. The coastal roads and court stores passed to the Manner.",
+    "description": "Carry the campaign stores to the Pale Coast, hold the court through four waves, and defeat The Grey Herald amid ranged arrow volleys.",
+    "timeLimit": 420,
+    "troopLimit": 10,
+    "launchCost": {
+      "food": 7000,
+      "bread": 1400,
+      "lumber": 4500,
+      "plate": 600,
+      "gold": 4000
+    },
+    "objectives": [
+      {
+        "kind": "defeat",
+        "amount": 30
+      },
+      {
+        "kind": "protect",
+        "type": "oathstone",
+        "count": 1
+      },
+      {
+        "kind": "survive",
+        "seconds": 300
+      }
+    ],
+    "startingResources": {
+      "wood": 380,
+      "food": 240,
+      "gold": 180
+    },
+    "map": {
+      "biome": "water",
+      "seed": 2611,
+      "tiles": [
+        {
+          "x": 12,
+          "y": 5,
+          "biome": "water",
+          "landmark": "The Pale Court",
+          "claimed": true
+        }
+      ],
+      "buildings": [
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "tower",
+          "x": 6,
+          "y": 6
+        },
+        {
+          "type": "archer_tower",
+          "x": 6,
+          "y": 9
+        },
+        {
+          "type": "ballista",
+          "x": 8,
+          "y": 10
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 6
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 7
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 8
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 9
+        },
+        {
+          "type": "oathstone",
+          "x": 8,
+          "y": 5
+        },
+        {
+          "type": "barracks",
+          "x": 8,
+          "y": 2
+        }
+      ],
+      "troops": [
+        "oathsworn",
+        "halberdier",
+        "pikewoman",
+        "longbowman",
+        "archer",
+        "builder",
+        "miner"
+      ]
+    },
+    "raids": [
+      {
+        "at": 60,
+        "count": 7
+      },
+      {
+        "at": 150,
+        "count": 9
+      },
+      {
+        "at": 230,
+        "count": 10
+      },
+      {
+        "at": 300,
+        "count": 12,
+        "boss": "palehost-herald",
+        "herald": "The mist parts - THE GREY HERALD takes the shore at wave {wave}! Hold the Pale Coast!"
+      }
+    ],
+    "scaling": {
+      "hp": 26,
+      "damage": 4.5
+    },
+    "rewards": {
+      "gold": 5500,
+      "lumber": 3000,
+      "plate": 800,
+      "frostwood": 500
+    },
+    "unlocks": [],
+    "ceremony": {
+      "warning": "Carry the campaign stores to the Pale Coast, hold the court through four waves, and defeat The Grey Herald amid ranged arrow volleys.",
+      "victory": "The Grey Herald falls. The Pale Coast belongs to the Manner.",
+      "defeat": "The Pale Host still hold the shore. Gather your stores and march again."
+    },
+    "requires": [
+      "palehost-mist"
+    ],
+    "tribe": "palehost"
   }
 ]
