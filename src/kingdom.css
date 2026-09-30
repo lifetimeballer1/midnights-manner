@@ -149,3 +149,5 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .panel .train-action{width:100%;margin-top:14px}.panel .person-head{align-items:flex-start}.panel .person-head>div{min-width:0;flex:1}.panel .statline{background:#e4d4b1;color:#4a3825;border:1px solid #c6ad83;text-shadow:none}
 
 #game .collect-ready span{min-width:0;overflow:hidden;text-overflow:ellipsis}
+
+@media(max-width:359px){#game .dock-button b{font-size:9px}#game .dock-button small{font-size:7px}}

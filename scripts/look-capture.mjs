@@ -167,7 +167,8 @@ try{
   assert.equal(await evaluate('window.__collectDisabled'),true,'zero ready is disabled');
   await call('Emulation.setDeviceMetricsOverride',{width:320,height:740,deviceScaleFactor:2,mobile:true});await new Promise(r=>setTimeout(r,300));
   const bounds=await evaluate(`['#collect-ready','#army-summary','.bottom-hud',...Array.from(document.querySelectorAll('.dock .dock-button')).map(e=>'#'+e.id).filter(s=>s!=='#')].map(s=>{const r=document.querySelector(s).getBoundingClientRect();return {x:r.x,right:r.right,bottom:r.bottom};})`);
-  assert.ok(bounds.every(r=>r.x>=0&&r.right<=320&&r.bottom<=740),'narrow phone HUD fits');await shot('look-narrow-hud');
+  assert.ok(bounds.every(r=>r.x>=0&&r.right<=320&&r.bottom<=740),'narrow phone HUD fits');
+  assert.ok(await evaluate(`Array.from(document.querySelectorAll('.dock-button b')).every(e=>{const t=document.createRange();t.selectNodeContents(e);const r=t.getBoundingClientRect(),p=e.closest('button').getBoundingClientRect();return r.left>=p.left&&r.right<=p.right;})`),'narrow navigation labels fit their buttons');await shot('look-narrow-hud');
   for(const [tab,category] of [['build','projects'],['story','lore']]){
    await evaluate(`document.querySelector('[data-tab="${tab}"]').click()`);
    assert.equal(await evaluate('document.querySelector("#collect-ready").hidden'),true,'menus hide collect');
