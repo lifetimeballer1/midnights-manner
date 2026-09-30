@@ -450,6 +450,8 @@ export class Game {
   // and the Campaign War Chest is paid only when the march actually starts.
   if(m?.conquest==='assault'){const short=assaultReason(this.state,this.data,m.tribe);if(short)return this.notify(short);}
   const muster=m?.launchCost&&Object.keys(m.launchCost).length?m.launchCost:null,home=this.world;
+  if(muster&&home.raidPending)return this.notify('Finish the current raid before another expedition.');
+  if(muster&&!home.buildings.some(b=>b.type==='hall'&&b.hp>0))return this.notify('Repair the manor before another expedition.');
   if(muster&&!afford(home.resources,muster))return this.notify(`The campaign needs ${Object.entries(muster).map(([k,v])=>`${v} ${k}`).join(' + ')} before it marches.`);
   if(startMission(this.state,this.data,id)){if(muster)pay(home.resources,muster);this.notify(`${m?.ceremony?.warning||'Expedition begun.'} Your home village is safely paused.`);}else this.notify('Finish the current raid before another expedition.');}
  returnHome(){const m=this.data.missions.find(m=>m.id===this.state.mission?.id);const result=finishMission(this.state,this.data);if(result?.first)this.notify(`${m?.ceremony?.victory||'Victory!'} Rewards and unlocks delivered to your village.`);else if(result?.won)this.notify('Returned home. First-clear rewards can only be claimed once.');else this.notify(`${m?.ceremony?.defeat||'Expedition lost.'} Your home is safe.`);this.persist();}

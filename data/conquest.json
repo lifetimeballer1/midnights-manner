@@ -147,6 +147,35 @@
           "dmgMult": 1.5
         }
       }
+    },
+    {
+      "id": "grey-sovereign",
+      "name": "The Grey Sovereign",
+      "title": "Crown of the Grey Dawn",
+      "hpBase": 2700,
+      "hpPerWave": 140,
+      "dmgBase": 92,
+      "dmgPerWave": 5.5,
+      "speed": 0.6,
+      "range": 1.4,
+      "wallDamage": 4,
+      "mechanics": {
+        "slam": {
+          "damage": 72,
+          "radius": 1.7,
+          "everySec": 7
+        },
+        "summon": {
+          "role": "breaker",
+          "count": 2,
+          "everySec": 20,
+          "cap": 6
+        },
+        "enrage": {
+          "hpFrac": 0.3,
+          "dmgMult": 1.5
+        }
+      }
     }
   ],
   "annex": [

@@ -11,7 +11,7 @@ test('unlock chain: all chapters grant something real, nothing dead or doubled',
   const granted = [];
   for (const m of data.missions) {
     // Conquest missions (Phase 8) pay in territory — the annex ledger and
-    // rewards, deliberately no unlock. H9-H11 story musters pay resources only.
+    // rewards, deliberately no unlock. H9-H12 story finale chapters pay resources only.
     if (m.conquest) continue;
     if (m.id === 'grey-dawn-gathers') {
       assert.deepEqual(m.unlocks, []);
@@ -26,6 +26,11 @@ test('unlock chain: all chapters grant something real, nothing dead or doubled',
     if (m.id === 'grey-dawn-road') {
       assert.deepEqual(m.unlocks, []);
       assert.deepEqual(m.rewards, {gold:5500,lumber:3000,plate:800,frostwood:500});
+      continue;
+    }
+    if (m.id === 'grey-dawn-crown') {
+      assert.deepEqual(m.unlocks, []);
+      assert.deepEqual(m.rewards, {gold:8000,lumber:4500,plate:1200,frostwood:800});
       continue;
     }
     assert.ok(Array.isArray(m.unlocks) && m.unlocks.length > 0, `${m.id} grants an unlock`);

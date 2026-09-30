@@ -3334,5 +3334,156 @@
     "requires": [
       "grey-dawn-muster"
     ]
+  },
+  {
+    "id": "grey-dawn-crown",
+    "name": "The Grey Dawn Crown",
+    "chapter": "33",
+    "act": "X",
+    "beat": "At first light the true Grey Dawn breaks on the Muster Fields; five banners hold Crown Ridge against their Sovereign.",
+    "giver": "Sorrel the watcher",
+    "description": "The five banners hold one ridge on the Muster Fields at first light. Weather four horns, keep the oathstone standing, and bring down the Grey Sovereign to end the campaign.",
+    "timeLimit": 420,
+    "troopLimit": 10,
+    "launchCost": {
+      "food": 10000,
+      "bread": 2000,
+      "lumber": 6500,
+      "plate": 1000,
+      "gold": 6000
+    },
+    "objectives": [
+      {
+        "kind": "defeat",
+        "amount": 30
+      },
+      {
+        "kind": "protect",
+        "type": "oathstone",
+        "count": 1
+      },
+      {
+        "kind": "survive",
+        "seconds": 360
+      }
+    ],
+    "startingResources": {
+      "wood": 380,
+      "food": 240,
+      "gold": 180
+    },
+    "map": {
+      "biome": "plains",
+      "seed": 3311,
+      "tiles": [
+        {
+          "x": 12,
+          "y": 5,
+          "biome": "plains",
+          "landmark": "Crown Ridge",
+          "claimed": true
+        }
+      ],
+      "buildings": [
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "tower",
+          "x": 6,
+          "y": 6
+        },
+        {
+          "type": "archer_tower",
+          "x": 6,
+          "y": 9
+        },
+        {
+          "type": "ballista",
+          "x": 8,
+          "y": 10
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 6
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 7
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 8
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 9
+        },
+        {
+          "type": "oathstone",
+          "x": 8,
+          "y": 5
+        },
+        {
+          "type": "barracks",
+          "x": 8,
+          "y": 2
+        }
+      ],
+      "troops": [
+        "oathsworn",
+        "halberdier",
+        "pikewoman",
+        "longbowman",
+        "archer",
+        "builder",
+        "miner"
+      ]
+    },
+    "raids": [
+      {
+        "at": 60,
+        "count": 7
+      },
+      {
+        "at": 150,
+        "count": 9
+      },
+      {
+        "at": 230,
+        "count": 10
+      },
+      {
+        "at": 300,
+        "count": 12,
+        "boss": "grey-sovereign",
+        "herald": "The first light breaks on Crown Ridge ? THE GREY SOVEREIGN takes the field at wave {wave}! Five banners, hold the ridge!"
+      }
+    ],
+    "scaling": {
+      "hp": 36,
+      "damage": 7
+    },
+    "rewards": {
+      "gold": 8000,
+      "lumber": 4500,
+      "plate": 1200,
+      "frostwood": 800
+    },
+    "unlocks": [],
+    "ceremony": {
+      "warning": "Sorrel calls the final assault: four horns on the Muster Fields, the oathstone on Crown Ridge, and the Sovereign at first light. Carry the full war chest and hold the five banners together.",
+      "victory": "The Grey Sovereign falls. The five banners hold Crown Ridge as daylight reaches the Muster Fields. Sorrel lowers the last chart: the Grey Dawn is broken, and the campaign is won.",
+      "defeat": "The Sovereign holds Crown Ridge. Sorrel gathers the five banners from the Muster Fields; fill the war chest and return for the final dawn."
+    },
+    "requires": [
+      "grey-dawn-road"
+    ]
   }
 ]

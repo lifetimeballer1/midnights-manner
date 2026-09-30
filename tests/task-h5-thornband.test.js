@@ -41,7 +41,7 @@ function annexBoth(g, choice = 'outpost') {
 }
 
 test('H5: chapters 18-20 chain from Ironshield, use forest maps and escalating baskets', () => {
-  assert.equal(Math.max(...data.missions.map(m => Number(m.chapter))), 32, 'H11 ends at chapter 32; H12 has not started');
+  assert.equal(Math.max(...data.missions.map(m => Number(m.chapter))), 33, 'H12 completes the finale at chapter 33');
   const t = data.conquest.tribes[0];
   assert.equal(t.id, tribe); assert.equal(t.color, '#6a8a5a');
   assert.deepEqual(t.require, {vlevel: 10, renown: 3, barracksTier: 3, troops: 10});

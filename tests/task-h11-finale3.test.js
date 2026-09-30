@@ -13,7 +13,7 @@ const data = Object.fromEntries(await Promise.all(
     .map(async n => [n, JSON.parse(await readFile(new URL(`../data/${n}.json`, import.meta.url)))])));
 const id = 'grey-dawn-road';
 const mission = data.missions.find(m => m.id === id);
-const baseline = {...data, missions: data.missions.filter(m => m.id !== id)};
+const baseline = {...data, missions: data.missions.filter(m => m.id !== 'grey-dawn-crown' && m.id !== id)};
 const tribes = ['ironshield','thornband','cinder','palehost','ember'];
 
 function ready(d = data) {
@@ -34,17 +34,17 @@ test('H11: HEAD fingerprints preserve all 32 earlier missions and complete conqu
   const fingerprint = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
   assert.equal(baseline.missions.length, 32);
   assert.equal(fingerprint(baseline.missions), '0a3ec4631f9fdc77c5a2b24f96c43f74a49c3543285e4497c7df472f30024d5e');
-  assert.equal(fingerprint(data.conquest), '6675d38e4c67c87993f1a7fd21e0e770529631167d7f5dc8f4ad4260b42f6491');
+  assert.equal(fingerprint({...data.conquest, leaders:data.conquest.leaders.filter(l => l.id !== 'grey-sovereign')}), '6675d38e4c67c87993f1a7fd21e0e770529631167d7f5dc8f4ad4260b42f6491');
   assert.equal(data.conquest.tribes.length + 1, 5);
 });
 
-test('H11: chapter 32 opens only after Grey Dawn Muster and ends this task at 33 missions', () => {
+test('H11: chapter 32 opens only after Grey Dawn Muster and campaign now has 34 missions', () => {
   assert.equal(mission.name, 'The Grey Road');
   assert.equal(mission.chapter, '32'); assert.equal(mission.act, 'X');
   assert.equal(mission.giver, 'Sorrel the watcher');
   assert.deepEqual(mission.requires, ['grey-dawn-muster']);
-  assert.equal(data.missions.length, 33);
-  assert.equal(Math.max(...data.missions.map(m => Number(m.chapter))), 32);
+  assert.equal(data.missions.length, 34);
+  assert.equal(Math.max(...data.missions.map(m => Number(m.chapter))), 33);
   const g = ready();
   assert.ok(missionLockReason(mission, [], g.world, data));
   assert.ok(missionLockReason(mission, ['grey-dawn-gathers'], g.world, data));

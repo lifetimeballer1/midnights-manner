@@ -13,7 +13,7 @@ const data = Object.fromEntries(await Promise.all(
     .map(async n => [n, JSON.parse(await readFile(new URL(`../data/${n}.json`, import.meta.url)))])));
 const id = 'grey-dawn-gathers';
 const mission = data.missions.find(m => m.id === id);
-const baseline = {...data, missions: data.missions.filter(m => m.id !== id && m.id !== 'grey-dawn-muster' && m.id !== 'grey-dawn-road')};
+const baseline = {...data, missions: data.missions.filter(m => m.id !== 'grey-dawn-crown' && m.id !== id && m.id !== 'grey-dawn-muster' && m.id !== 'grey-dawn-road')};
 const tribes = ['ironshield','thornband','cinder','palehost','ember'];
 
 function ready(d = data) {
@@ -34,17 +34,17 @@ test('H9: HEAD fingerprints preserve all 30 earlier missions and complete conque
   const fingerprint = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
   assert.equal(baseline.missions.length, 30);
   assert.equal(fingerprint(baseline.missions), '3083ebc3bcdcd2f7148fcfeeae05da3c8eef4dc605ae77bc1cbcfd6b6d529166');
-  assert.equal(fingerprint(data.conquest), '6675d38e4c67c87993f1a7fd21e0e770529631167d7f5dc8f4ad4260b42f6491');
+  assert.equal(fingerprint({...data.conquest, leaders:data.conquest.leaders.filter(l => l.id !== 'grey-sovereign')}), '6675d38e4c67c87993f1a7fd21e0e770529631167d7f5dc8f4ad4260b42f6491');
   assert.equal(data.conquest.tribes.length + 1, 5);
 });
 
-test('H9: chapter 30 opens only after Ember Throne and campaign now has 33 missions', () => {
+test('H9: chapter 30 opens only after Ember Throne and campaign now has 34 missions', () => {
   assert.equal(mission.name, 'The Grey Dawn Gathers');
   assert.equal(mission.chapter, '30'); assert.equal(mission.act, 'X');
   assert.equal(mission.giver, 'Sorrel the watcher');
   assert.deepEqual(mission.requires, ['ember-throne']);
-  assert.equal(data.missions.length, 33);
-  assert.equal(Math.max(...data.missions.map(m => Number(m.chapter))), 32);
+  assert.equal(data.missions.length, 34);
+  assert.equal(Math.max(...data.missions.map(m => Number(m.chapter))), 33);
   const g = ready();
   assert.ok(missionLockReason(mission, [], g.world, data));
   assert.ok(missionLockReason(mission, ['ember-redoubt'], g.world, data));
