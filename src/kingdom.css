@@ -151,3 +151,6 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 #game .collect-ready span{min-width:0;overflow:hidden;text-overflow:ellipsis}
 
 @media(max-width:359px){#game .dock-button b{font-size:9px}#game .dock-button small{font-size:7px}}
+.panel .quest>span{color:#69543a}.panel .quest :is(.qflavor,.qgiver,.qprog){color:#69543a}
+.panel .quest>.qpill-active{color:#fff0cf}.panel .quest>.qpill-done{color:#49391f}.panel .quest>.qpill-upcoming{color:#5b533f}
+.panel .quest.qdone{opacity:.85}
