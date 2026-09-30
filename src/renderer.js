@@ -11,7 +11,9 @@ import {weatherAt,skyLightAt} from './systems/daynight.js';
 import {drawAtmosphere} from './atmosphere-art.js';
 import {insideWorkplace} from './systems/villagers.js';
 import {trackStride, footstepFor, surfaceAt} from './systems/footsteps.js';
-import {zoomBand, bandGain, setListener} from './systems/soundstage.js';
+import {zoomBand, bandGain, setListener, pickEmitters} from './systems/soundstage.js';
+import {buildingActivityState, seedOf} from './building-activity.js';
+import {WorkSync} from './systems/worksync.js';
 export class Renderer {
  constructor(canvas,data,images){this.canvas=canvas;this.ctx=canvas.getContext('2d');this.data=data;this.images=images;this.grid=false;this.hover=null;this.selection=null;this.placing=null;this.moving=null;this.tw=43;this.th=22;this.ox=510;this.oy=97;this.shake=0;this.cam={x:10,y:8,zoom:1,yaw:DEFAULT_YAW,pitch:DEFAULT_PITCH};this.orbitMode=false;this.cx=550;this.cy=370;this.width=1100;this.height=740;this.dpr=1;this.hitAreas=[];this.staticLayer=null;this.staticKey='';this.frameTimes=[];this._pendingStaticKey=null;this._noCache=false;this._lastFrame=null;try{this.calm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch{this.calm=false;}this.seen=new Map();this.flash=new Map();this.deadAt=new Map();this.tints=new Map();}
  base(x,y){return {x:this.ox+(x-y)*this.tw/2,y:this.oy+(x+y)*this.th/2};}
@@ -348,11 +350,39 @@ export class Renderer {
    this.seen.set(key,{hp:e.hp});
   }
    for(const key of [...this.seen.keys()])if(!alive.has(key)){this.seen.delete(key);this.flash.delete(key);this._strideActors?.delete(key);}
+   this.syncWork(world,time);
   for(const [key,until] of [...this.flash.entries()])if(time>until+4000)this.flash.delete(key);
   for(const [key,t0] of [...this.deadAt.entries()])if(time-t0>4000)this.deadAt.delete(key);
  }
- // Stormglass motion pool: capped at 60 transient effects so raids stay
- // flat on phones; calm players get the same visuals with zero shake.
+  // Work sync: the five nearest active work buildings (forge/mine/lumber/
+  // sawmill family) get impact sounds on their visible work moments — only
+  // crewed buildings, only zoomed in. Renderer-local cycles, sim untouched.
+  syncWork(world,time){
+   try{
+    if(this.cam.zoom<1.05)return;
+    const gain=bandGain(zoomBand(this.cam.zoom),'work');
+    if(!(gain>0))return;
+    if(!this._workSync)this._workSync=new WorkSync();
+    const sync=this._workSync;
+    const crewCounts=new Map();
+    for(const u of world.troops||[])if(u?.hp>0&&u.workplace&&!u.emergency&&!u.expedition&&!u.order)crewCounts.set(u.workplace,(crewCounts.get(u.workplace)||0)+1);
+    const alive=new Set();
+    const candidates=[];
+    for(const b of world.buildings||[]){
+     if(b?.id==null)continue;
+     alive.add('w'+b.id);
+     if(!['forge','smeltery','workshop','mine','emberglass','lumber','timber_yard','sawmill'].includes(b.type))continue;
+     const spec=this.data.buildings[b.type];
+     if(buildingActivityState(b,spec,world,crewCounts).crew<=0)continue;
+     candidates.push({b,x:b.x+(spec?.size||1)/2,y:b.y+(spec?.size||1)/2});
+    }
+    sync.prune(alive);
+    const picks=pickEmitters(candidates,this.cam.x,this.cam.y,5,14);
+    for(const p of picks)sync.fire(p.item.b,seedOf(p.item.b.id),time,p.vol*gain);
+   }catch{}
+  }
+  // Stormglass motion pool: capped at 60 transient effects so raids stay
+  // flat on phones; calm players get the same visuals with zero shake.
  burst(world,x,y,tx,ty,kind,life){if(world.effects.length>=60)return;world.effects.push({x,y,tx,ty,kind,life});}
  tint(name){let t=this.tints.get(name);if(t!==undefined)return t;const img=this.images[name];t=null;try{if(img){t=document.createElement('canvas');t.width=img.naturalWidth||32;t.height=img.naturalHeight||32;const g=t.getContext('2d');g.drawImage(img,0,0);g.globalCompositeOperation='source-in';g.fillStyle='#fff';g.fillRect(0,0,t.width,t.height);}}catch{t=null;}this.tints.set(name,t);return t;}
  spriteFlash(name,x,y,size,key,time,dy=0){const until=this.flash.get(key);if(!until||time>until)return;const t=this.tint(name);if(!t)return;const p=this.project(x,y),raw=size*this.cam.zoom,s=32*Math.max(1,Math.round(raw/32)),c=this.ctx;c.globalAlpha=Math.min(1,(until-time)/150);c.drawImage(t,Math.round(p.x-s/2),Math.round(p.y-s+12*this.cam.zoom+dy),s,s);c.globalAlpha=1;}

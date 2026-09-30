@@ -167,6 +167,16 @@ export const sfx = {
     tone(420, 0.04, { type: 'triangle', slide: -120, vol: 0.02 * vol, pitch });
     tone(240, 0.05, { type: 'triangle', delay: 0.05, slide: -60, vol: 0.016 * vol, pitch });
   },
+  bellows({vol = 1, pitch = 1} = {}) {
+    if (!ready('mach', 900)) return;
+    tone(70, 0.5, { type: 'sine', slide: 45, vol: 0.03 * vol, pitch });
+    tone(140, 0.4, { type: 'triangle', delay: 0.1, slide: -40, vol: 0.018 * vol, pitch });
+  },
+  saw({vol = 1, pitch = 1} = {}) {
+    if (!ready('mach', 300)) return;
+    tone(900, 0.09, { type: 'sawtooth', slide: -350, vol: 0.016 * vol, pitch });
+    tone(450, 0.07, { type: 'triangle', delay: 0.02, slide: 120, vol: 0.012 * vol, pitch });
+  },
   warning() {
     if (!ready('alert', 2000)) return;
     [196, 196, 147].forEach((f, i) => tone(f, 0.24, { type: 'sawtooth', delay: i * 0.21, vol: 0.045 }));
