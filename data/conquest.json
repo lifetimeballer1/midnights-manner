@@ -64,6 +64,35 @@
           "dmgMult": 1.5
         }
       }
+    },
+    {
+      "id": "cinder-sorr",
+      "name": "Furnace-Captain Sorr",
+      "title": "Forge-lord of Ashfall March",
+      "hpBase": 1900,
+      "hpPerWave": 110,
+      "dmgBase": 68,
+      "dmgPerWave": 4,
+      "speed": 0.6,
+      "range": 1.4,
+      "wallDamage": 4,
+      "mechanics": {
+        "slam": {
+          "damage": 58,
+          "radius": 1.7,
+          "everySec": 7
+        },
+        "summon": {
+          "role": "breaker",
+          "count": 2,
+          "everySec": 20,
+          "cap": 6
+        },
+        "enrage": {
+          "hpFrac": 0.3,
+          "dmgMult": 1.5
+        }
+      }
     }
   ],
   "annex": [
@@ -172,6 +201,89 @@
           "limitBonus": 1,
           "flatAuras": {
             "gather": 0.04,
+            "food": 0.4
+          }
+        }
+      ]
+    },
+    {
+      "id": "cinder",
+      "name": "Cinder Clan",
+      "color": "#c76b43",
+      "text": "In the hills of Ashfall March, the Cinder Clan hammer slag into walls and stoke their war forges. Wall-breakers march behind forge-fire, tearing down every road that refuses their captain.",
+      "require": {
+        "vlevel": 10,
+        "renown": 4,
+        "barracksTier": 3,
+        "troops": 12
+      },
+      "preliminaries": [
+        {
+          "id": "cinder-slags",
+          "name": "Break the Slag Lines",
+          "text": "Break the slag barricades before the wall-breakers reach the road."
+        },
+        {
+          "id": "cinder-forge",
+          "name": "Quench the Forge",
+          "text": "Silence the war forge and cut the breakers off from fresh iron."
+        }
+      ],
+      "assault": "cinder-citadel",
+      "intel": {
+        "leader": "Furnace-Captain Sorr",
+        "army": "Wall-breakers and forge guards marching through the ash",
+        "tactics": "Slams the yard and summons breakers to tear down defenses",
+        "weakness": "Keep repair crews behind overlapping pikes and tower fire",
+        "reward": "The Ashfall March roads, forge stores and hills join the Manner."
+      },
+      "annex": [
+        {
+          "id": "outpost",
+          "name": "Rebuild as an Outpost",
+          "icon": "🏰",
+          "text": "A fortified hill base: two more of every building line may stand.",
+          "supply": {
+            "cost": {
+              "food": 1000,
+              "bread": 60,
+              "plate": 12,
+              "gold": 140
+            }
+          },
+          "flatAuras": {
+            "damage": 0.04,
+            "heal": 0.1
+          },
+          "limitBonus": 2
+        },
+        {
+          "id": "dismantle",
+          "name": "Dismantle for Materials",
+          "icon": "⚒",
+          "text": "Strip the citadel for forge timber, plate and cold coin.",
+          "resources": {
+            "lumber": 6000,
+            "plate": 750,
+            "gold": 5000,
+            "frostwood": 450
+          }
+        },
+        {
+          "id": "settlement",
+          "name": "Frontier Settlement",
+          "icon": "🌾",
+          "text": "Hill homesteads feed the Manner and open one more of every building line.",
+          "supply": {
+            "cost": {
+              "food": 1200,
+              "lumber": 120,
+              "gold": 140
+            }
+          },
+          "limitBonus": 1,
+          "flatAuras": {
+            "gather": 0.05,
             "food": 0.4
           }
         }

@@ -369,3 +369,11 @@ Ironshield retains its original top-level `world.conquest` fields and default ca
 Chapter plan: H5 uses 18-20; H6 is reserved for 21-23, H7 for 24-26, H8 for 27-29. The story finale (H9-H12) moves to 30-33 plus the final boss. Chapters are display labels; mission `requires` chains gate progress. H6 and the finale are not implemented by H5.
 
 Verification: `npm test` passed all 740 checks, including 12 H5 checks and the unchanged Phase 8 Ironshield checks. Browser interaction smoke was not run.
+
+### Grey Dawn H6
+
+Cinder Clan conquest follows the H5 per-tribe ledger in the hills of Ashfall March: **Break the Slag Lines** (21, requires Thornband Hold), **Quench the Forge** (22), then **The Cinder Citadel** (23). Scouting and the assault require village level 10, Renown 4, a tier-3 barracks and 12 living fighters. The citadel charges its campaign war chest only on departure. Furnace-Captain Sorr uses the existing slam, breaker summon and enrage machinery and stays outside the home crown rotation. First-clear rewards escalate to 4,500 gold, 2,500 lumber, 650 plate and 400 frostwood.
+
+Cinder progress lives under `world.conquest.tribes.cinder`, created only when written. Its one-time outpost, dismantle or settlement judgement reuses storage overflow, building limits, existing aura keys and separate daily territory upkeep. Ironshield and Thornband retain their earlier behavior. No runtime code, mechanics, currencies or save version changed. H6 ends at chapter 23; H7 is not implemented.
+
+Verification: `npm test` passed all 754 checks, including 14 H6 checks covering the chain, muster, ledgers, rewards, paid departure, boss mechanics and home rotation, annex choices, upkeep, saves, Adventure controls and unchanged earlier-tribe outcomes. `npm run build` passed with 400 precached files. On Windows, both commands used `npm.cmd` because PowerShell blocks `npm.ps1`. Browser interaction smoke was not run.

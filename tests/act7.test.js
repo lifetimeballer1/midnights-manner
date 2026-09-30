@@ -153,8 +153,8 @@ test('ph11: the Pale Host debuts wave-scaling with Sorrel holding the line', () 
   for (const key of ['warning', 'victory', 'defeat'])
     assert.ok(m.ceremony?.[key]?.includes('Sorrel'), `ceremony.${key} names Sorrel`);
   // 15 chapters crowned Act VIII; the Ironshield conquest arc (Phase 8)
-  // adds chapters 15-17; H5 adds Thornband 18-20 — a deliberate pin update.
-  assert.equal(data.missions.length, 21);
+  // adds chapters 15-17; H5 adds Thornband 18-20; H6 adds Cinder 21-23 — a deliberate pin update.
+  assert.equal(data.missions.length, 24);
 });
 
 test('ph11: wave-scaling steepens spawns; home raids ride the classic curve', () => {
@@ -787,9 +787,9 @@ test('ph15: twin banners — both roads open, the mirror recruitable either way'
 });
 
 // Act VII cross-cutting: totals, chains, conditionals, saves.
-test('viii: frontier legend counts — 37 people, 21 missions, 24 steps, 2640 XP', () => {
+test('viii: frontier legend counts — 37 people, 24 missions, 24 steps, 2640 XP', () => {
   assert.equal(Object.keys(data.troops).length, 37);
-  assert.equal(data.missions.length, 21);
+  assert.equal(data.missions.length, 24);
   assert.equal(data.quests.length, 24);
   assert.equal(data.quests.reduce((n, x) => n + x.xp, 0), 2640);
   assert.equal(levelForXp(2640), 11);
