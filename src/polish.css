@@ -116,3 +116,33 @@ while the dismiss button stays pinned. Phone-friendly by default. */
 .news-links{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}
 .news-links button{font-size:11px;min-height:40px;padding:7px 13px}
 .news-card>.gold-button{width:100%}
+/* U1: edge summaries keep the village clear; detail is explicitly expandable. */
+#game .hud-chip{min-width:44px;min-height:44px;height:44px;padding:6px 9px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:12px;border-radius:10px;background:linear-gradient(145deg,#293e5af5,#14223af5);color:#fff1d4;border:1px solid #b79a5c}
+#game #resource-summary{grid-column:1/-1;width:100%;white-space:nowrap}
+#resource-summary>span{display:inline-flex;align-items:center;gap:3px;min-width:0}
+#resource-summary img{width:18px;height:18px}
+#resource-summary em{font-size:9px;font-style:normal;color:#edcd88}
+body.hud-resources-collapsed #game{--resource-stack-height:44px}
+body:not(.hud-resources-collapsed) #game{--resource-stack-height:calc(var(--resource-rows) * (var(--hud-row-height) + var(--hud-gap)) + 44px)}
+body.hud-resources-collapsed #game #resources{display:grid;grid-template-columns:minmax(0,1fr);width:248px;max-width:calc(100vw - 88px - var(--safe-left) - var(--safe-right));gap:0}
+#game .camera-tools{display:flex;flex-direction:row;align-items:flex-start;gap:4px}
+#game #camera-buttons{display:flex;gap:4px}
+#game #camera-buttons[hidden],#game #army-rail[hidden],#game #quest-chip[hidden],#game #quest-dismiss[hidden],#game #quest-summary[hidden]{display:none}
+#game .camera-tools button{min-width:44px;min-height:44px;width:44px;height:44px}
+#game #quest-summary,#game #quest-dismiss{position:absolute;z-index:4;top:calc(var(--hud-top) + var(--resource-stack-height) + 10px);left:calc(var(--hud-edge) + var(--safe-left))}
+#game #quest-chip{left:calc(var(--hud-edge) + var(--safe-left) + 50px);top:calc(var(--hud-top) + var(--resource-stack-height) + 10px);max-width:calc(100% - 170px - var(--safe-left) - var(--safe-right));min-width:0}
+#game .army-controls{display:flex;align-items:center;justify-content:center;gap:4px;margin-bottom:6px;pointer-events:auto}
+#game #army-summary-slot{display:flex}
+#game .army-level{border-radius:5px;padding:2px 4px;background:#e5c27f;color:#14223a;font-size:11px}
+body.hud-army-collapsed #game .army-rail{display:none}
+@media(max-width:700px){
+ #game #camera-buttons{display:grid;grid-template-columns:repeat(2,44px)}
+ #game .camera-tools{max-width:92px;flex-wrap:wrap}
+ #game #camera-buttons{flex-basis:100%}
+}
+@media(max-height:550px) and (orientation:landscape){
+ #game .camera-tools{max-width:none;flex-wrap:nowrap}
+ #game #camera-buttons{display:flex;flex-basis:auto}
+ #game .army-controls{position:absolute;bottom:64px;left:0;margin:0}
+ body.hud-army-collapsed #game .army-controls{width:max-content}
+}

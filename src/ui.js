@@ -1,3 +1,4 @@
+import {hudPreferences,resourceSummary,armySummary,cameraToggle,questDot} from './systems/hud.js';
 import {researchPanel} from './research-ui.js';
 import {factionFor} from './systems/tactics.js';
 import {resourceInfo,collectionTotals,reserveCollectible} from './resources.js';
@@ -29,7 +30,7 @@ const img=name=>`<img src="./assets/sprites/${name}" alt="">`;
 const rarTag=item=>{const r=itemRarity(item);return r==='common'?'':` <em class="rarity" style="color:${RARITY_INFO[r].color}">· ${RARITY_INFO[r].name}</em>`;};
 const $=s=>document.querySelector(s);
 export class UI {
- constructor(game,renderer,music){this.game=game;this.renderer=renderer;this.music=music;this.tab='build';this.category='all';this.expandMode=false;this.selected=null;this.selectedTroop=null;this.clock=0;this.panel=$('#panel');this.lastMessage='';this.toastTime=0;this.lastPanel='';this.lastRail='';this.lastResult='';this.started=false;this.game.paused=true;this.guide=loadGuide();this.bind();this.refresh();}
+ constructor(game,renderer,music){this.game=game;this.renderer=renderer;this.music=music;this.tab='build';this.category='all';this.expandMode=false;this.selected=null;this.selectedTroop=null;this.clock=0;this.panel=$('#panel');this.lastMessage='';this.toastTime=0;this.lastPanel='';this.lastRail='';this.lastResult='';this.started=false;this.game.paused=true;this.guide=loadGuide();let hudStorage;try{hudStorage=localStorage;}catch{}this.hudPrefs=hudPreferences(hudStorage);this.bind();this.refresh();}
  blocked(){return !this.started||this.game.paused||!$('#drawer').hidden||!$('#raid-overlay').hidden;}
  bind(){
   // Mounted once so refreshes never replace a control during a touch press.
@@ -49,8 +50,14 @@ export class UI {
   $('#begin').onclick=()=>{this.started=true;this.music.start({calm:this.renderer.calm});$('#title').hidden=true;this.game.paused=false;this.renderer.fitVillage(this.game.world);$('#world').focus({preventScroll:true});this.game.notify('Your village awaits. Drag to explore; pinch to zoom.');this.refresh();};
   document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>this.openPanel(b.dataset.tab));
   $('#close-panel').onclick=()=>this.closePanel();$('#drawer-backdrop').onclick=()=>this.closePanel();
+  $('#camera-toggle-slot').innerHTML=cameraToggle(this.hudPrefs.get().camera);
+  $('#camera-toggle').onclick=()=>this.toggleHUD('camera');
+  $('#quest-summary').onclick=e=>{if(e.target.closest('#quest-dot'))this.toggleHUD('quest');};
+  $('#quest-dismiss').onclick=()=>this.toggleHUD('quest');
+  $('#army-summary-slot').onclick=()=>this.openPanel('troops');
+  $('#army-toggle').onclick=()=>this.toggleHUD('army');
   $('#quest-chip').onclick=()=>{this.openPanel('story');this.category='quests';this.lastPanel='';this.renderFilters();this.refresh();};
-  $('#resources').onclick=e=>{if(e.target.closest('[data-resource]'))this.openPanel('resources');};
+  $('#resources').onclick=e=>{if(e.target.closest('#resource-summary')){this.toggleHUD('resources');return;}if(e.target.closest('[data-resource]'))this.openPanel('resources');};
   $('#panel-search').oninput=e=>{this.search=e.target.value.trim().toLowerCase();this.lastPanel='';this.refresh();};
   $('#panel-filters').onclick=e=>{const button=e.target.closest('[data-category]');if(!button)return;this.category=button.dataset.category;this.lastPanel='';this.renderFilters();this.refresh();};
   $('#pause').onclick=()=>this.openPause();$('#resume').onclick=()=>this.closePause();
@@ -140,7 +147,8 @@ export class UI {
   document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('#pause-overlay').hidden)this.closePause();else if(!$('#drawer').hidden)this.closePanel();else this.cancel();}if(e.key==='Tab')this.trapFocus(e);});
  }
  trapFocus(e){const container=!$('#title').hidden?$('#title'):!$('#pause-overlay').hidden?$('#pause-overlay'):!$('#raid-overlay').hidden?$('#raid-overlay'):!$('#drawer').hidden?$('#drawer'):null;if(!container)return;const items=[...container.querySelectorAll('button:not(:disabled),select,input')].filter(el=>el.getClientRects().length);if(!items.length)return;const first=items[0],last=items.at(-1);if(e.shiftKey&&(document.activeElement===first||!container.contains(document.activeElement))){e.preventDefault();last.focus();}else if(!e.shiftKey&&(document.activeElement===last||!container.contains(document.activeElement))){e.preventDefault();first.focus();}}
- openPanel(tab){if(!this.started||this.game.paused)return;this.cancel();this.tab=tab;this.category=tab==='story'?'home':'all';this.search='';$('#panel-search').value='';$('#panel-search-wrap').hidden=!['build','troops'].includes(tab);$('#panel-search').placeholder=tab==='build'?'Find a building…':'Find a person or profession…';this.panel.scrollTop=0;this.lastPanel='';this.closeSelectionOnly();$('#drawer').hidden=false;$('#drawer-backdrop').hidden=false;document.body.classList.add('drawer-open');const titles={build:['VILLAGE WORKSHOP','Build your village'],troops:['YOUR PEOPLE','Army & people'],workplace:['WORKPLACE','Manage this job'],story:['BEYOND THE TREELINE','Adventure'],resources:['THE VILLAGE STORES','Resources'],friends:['THE OPEN ROADS','Friends & visits']};$('#panel-kicker').textContent=titles[tab][0];$('#panel-title').textContent=titles[tab][1];document.querySelectorAll('[data-tab]').forEach(b=>{b.classList.toggle('active',b.dataset.tab===tab);b.setAttribute('aria-expanded',String(b.dataset.tab===tab));});this.renderFilters();this.refresh();$('#close-panel').focus({preventScroll:true});sfx.click();}
+ toggleHUD(key){this.hudPrefs.set(key,!this.hudPrefs.get()[key]);if(key==='camera'&&this.hudPrefs.get().camera){$('#camera-panel').hidden=true;$('#camera-menu').setAttribute('aria-expanded','false');}this.refresh();}
+ openPanel(tab){if(!this.started||this.game.paused)return;if(tab==='resources')this.hudPrefs.set('resources',false);this.cancel();this.tab=tab;this.category=tab==='story'?'home':'all';this.search='';$('#panel-search').value='';$('#panel-search-wrap').hidden=!['build','troops'].includes(tab);$('#panel-search').placeholder=tab==='build'?'Find a building…':'Find a person or profession…';this.panel.scrollTop=0;this.lastPanel='';this.closeSelectionOnly();$('#drawer').hidden=false;$('#drawer-backdrop').hidden=false;document.body.classList.add('drawer-open');const titles={build:['VILLAGE WORKSHOP','Build your village'],troops:['YOUR PEOPLE','Army & people'],workplace:['WORKPLACE','Manage this job'],story:['BEYOND THE TREELINE','Adventure'],resources:['THE VILLAGE STORES','Resources'],friends:['THE OPEN ROADS','Friends & visits']};$('#panel-kicker').textContent=titles[tab][0];$('#panel-title').textContent=titles[tab][1];document.querySelectorAll('[data-tab]').forEach(b=>{b.classList.toggle('active',b.dataset.tab===tab);b.setAttribute('aria-expanded',String(b.dataset.tab===tab));});this.renderFilters();this.refresh();$('#close-panel').focus({preventScroll:true});sfx.click();}
  closePanel(){const wasOpen=!$('#drawer').hidden;$('#drawer').hidden=true;$('#drawer-backdrop').hidden=true;document.body.classList.remove('drawer-open');document.querySelectorAll('[data-tab]').forEach(b=>{b.classList.remove('active');b.setAttribute('aria-expanded','false');});if(wasOpen)$('#world').focus({preventScroll:true});}
   renderFilters(){const filters=this.tab==='build'?[['all','All'],['economy','Resources'],['defense','Defenses'],['village','Village & jobs'],['projects','Projects']]:this.tab==='troops'?[['all','Everyone'],['combat','Fighters'],['workers','Workers'],['recruit','Recruit']]:this.tab==='story'?[['home',ADVENTURE_LABELS.home],['quests',ADVENTURE_LABELS.quests],['expeditions',ADVENTURE_LABELS.expeditions],['chapters',ADVENTURE_LABELS.chapters],['lore',ADVENTURE_LABELS.lore]]:[];$('#panel-filters').hidden=!filters.length;$('#panel-filters').innerHTML=filters.map(([id,label])=>`<button data-category="${id}" class="${id===this.category?'active':''}" aria-pressed="${id===this.category}">${label}</button>`).join('');}
  openPause(){if(!this.started)return;this.closePanel();this.cancel();this.game.paused=true;$('#pause-overlay').hidden=false;this.syncPause();$('#resume').focus();}
@@ -185,20 +193,29 @@ export class UI {
   this.collectReady.querySelector('small').textContent=String(collectible.length);
   this.collectReady.setAttribute('aria-label',`Collect Ready from ${collectible.length} buildings. Collect what fits; remaining resources stay on-site.`);
   const visibleResources=Object.entries(w.resources).filter(([key,value])=>['wood','food','gold'].includes(key)||value>0||w.buildings.some(b=>d.buildings[b.type].production===key));
+  const hud=this.hudPrefs.get();
+  document.body.classList.toggle('hud-resources-collapsed',hud.resources);
+  document.body.classList.toggle('hud-army-collapsed',hud.army);
+  document.body.classList.toggle('hud-camera-collapsed',hud.camera);
+  document.body.classList.toggle('hud-quest-collapsed',hud.quest);
+  $('#camera-buttons').hidden=hud.camera;$('#camera-toggle').setAttribute('aria-expanded',String(!hud.camera));$('#camera-toggle').setAttribute('aria-label',`Map controls: ${hud.camera?'Expand':'Collapse'} camera tools`);
+  $('#army-rail').hidden=hud.army;$('#army-toggle').setAttribute('aria-expanded',String(!hud.army));$('#army-toggle').setAttribute('aria-label',`${hud.army?'Expand':'Collapse'} quick troop commands`);$('#army-toggle').textContent=hud.army?'›':'‹';
+  $('#quest-chip').hidden=hud.quest;$('#quest-dismiss').hidden=hud.quest;$('#quest-summary').hidden=!hud.quest;
   document.body.classList.toggle('many-resources',visibleResources.length>3);
   $('#game').style.setProperty('--resource-rows',Math.ceil(visibleResources.length/2));
-  const resourceHTML=visibleResources.map(([key,value])=>{
+  const summary=resourceSummary(w.resources,visibleResources.map(([key])=>key),Object.fromEntries(visibleResources.map(([key])=>[key,storageCap(w,d,key)])),hud.resources);
+  const resourceHTML=summary+(hud.resources?'':visibleResources.map(([key,value])=>{
    const r=resourceInfo(key),cap=storageCap(w,d,key),finite=Number.isFinite(cap),full=finite&&value>=cap;
    const stored=Math.floor(value).toLocaleString(),capacity=finite?Math.floor(cap).toLocaleString():'Uncapped';
    return `<button class="resource ${value<30?'low':''} ${full?'full':''}" data-resource="${key}" aria-label="${stored} ${r.label}${finite?` of ${capacity} capacity`:`, ${capacity}`}${full?' — stores full':''}. Open resource stores" style="--resource-color:${r.color}">${img(r.sprite)}<span class="resource-copy"><b>${stored}</b><small>${r.label}</small></span><span class="resource-storage"><span>${finite?`/ ${capacity}`:capacity}</span>${full?'<em>FULL</em>':''}</span></button>`;
-  }).join('');if($('#resources').innerHTML!==resourceHTML)$('#resources').innerHTML=resourceHTML;
+  }).join(''));if($('#resources').innerHTML!==resourceHTML)$('#resources').innerHTML=resourceHTML;
   document.body.classList.toggle('raid-active',w.enemies.length>0||!!w.raidPending);
   const seasonName=seasonFor(d.calendar,new Date())?.season?.name;
   $('#day').textContent=`Day ${Math.floor(w.elapsed/180)+1} · ${g.state.mission?'Expedition':(seasonName||'Homestead')}`;
   $('#village-level').textContent=g.state.vlevel||1;const lv=g.state.vlevel||1,lo=XP_LEVELS[lv-1]||0,hi=XP_LEVELS[lv]||lo+1;$('#xp-fill').style.width=`${Math.max(0,Math.min(100,((g.state.xp||0)-lo)/(hi-lo)*100))}%`;
   $('#chapter-count').textContent=`${g.state.completed.length} / ${d.missions.length}`;$('#population-count').textContent=`${w.troops.length} villagers`;$('#wave-count').textContent=g.state.mission?'Expedition':`Wave ${w.wave+1}`;
   if(this.lastMessage!==g.message){this.lastMessage=g.message;$('#status').textContent=g.message;this.toastTime=4.5;$('#status').classList.add('show');const log=$('#event-log');if(log)log.textContent=g.message;}
-  const q=currentQuest(g.state,d);$('#quest-name').textContent=q?.name||'Your village is thriving';
+  const q=currentQuest(g.state,d),questName=q?.name||'Your village is thriving';$('#quest-name').textContent=questName;$('#quest-chip').setAttribute('aria-label',`Open current quest: ${questName}`);$('#quest-dismiss').setAttribute('aria-label',`Dismiss current quest: ${questName}`);const dot=questDot(questName);if($('#quest-summary').innerHTML!==dot)$('#quest-summary').innerHTML=dot;
   const legendEl=$('#title-legend');if(legendEl&&!$('#title').hidden){const legend=pickLegend(d.legends,daySeed());if(legend)legendEl.textContent=`${legend.title} — ${legend.text}`;}  if(q){const p=questProgress(q.task,g.state);$('#quest-progress').textContent=`${Math.min(p.have,p.need)} / ${p.need} · +${q.xp} XP`;}else $('#quest-progress').textContent='Explore the campaign';
   try{const hint=this.started&&!g.paused?updateGuide(this.guide,g):null;const guideEl=$('#guide');if(guideEl){if(hint){guideEl.hidden=false;const line=`Step ${hint.index+1}/${hint.total} · ${hint.text}`;if(guideEl.textContent!==line)guideEl.textContent=line;}else if(!guideEl.hidden)guideEl.hidden=true;}}catch{}
   const mission=d.missions.find(m=>m.id===g.state.mission?.id),battle=$('#battle-hud');battle.hidden=!w.enemies.length&&!w.raidPending&&!mission;
@@ -207,9 +224,10 @@ export class UI {
   else if(w.enemies.length)battle.innerHTML=`<b>DEFEND THE MANOR</b><small>${w.enemies.length} raiders left · ${w.raidKills||0} defeated</small>${chestBtn}`;
   else if(mission){const all=mission.objectives.map(o=>missionObjectiveProgress(o,w,d)),o=all.find(x=>!x.complete)||all[0],fraction=Math.min(1,(o?.have||0)/Math.max(1,o?.need||1)),done=all.filter(x=>x.complete).length;battle.innerHTML=`<b>${Math.max(0,Math.ceil(mission.timeLimit-w.elapsed))}s · ${mission.name}</b><small>${o?.progressText||'Hold the line'} · ${done}/${all.length} objectives</small><div class="battle-progress"><i style="width:${fraction*100}%"></i></div><button data-home="true" class="hud-home">Return home</button>`;}
   const units=w.troops.filter(t=>d.troops[t.type].role==='combat'),rail=units.map(u=>`<button class="army-card ${this.selectedTroop===u.id?'selected':''}" data-select-unit="${u.id}" aria-label="Select ${d.troops[u.type].name}, level ${u.level}" ${u.hp<=0?'disabled':''}><span class="unit-level">${u.level}</span>${img(d.troops[u.type].sprite)}<small>${d.troops[u.type].name}</small><span class="unit-health"><i style="width:${Math.ceil(u.hp/stats(u,d).hp*100)}%"></i></span></button>`).join('');if(rail!==this.lastRail){const scroll=$('#army-rail').scrollLeft;$('#army-rail').innerHTML=rail;$('#army-rail').scrollLeft=scroll;this.lastRail=rail;}
+  const army=armySummary(units.length,w.troops.find(u=>u.id===this.selectedTroop));if($('#army-summary-slot').innerHTML!==army)$('#army-summary-slot').innerHTML=army;
   if(!$('#drawer').hidden){if(this.tab==='build')this.renderBuild();else if(this.tab==='troops')this.renderTroops();else if(this.tab==='workplace')this.renderWorkplace();else if(this.tab==='resources')this.renderResources();else if(this.tab==='friends')this.renderFriends();else this.renderStory();}
   this.renderInspector();this.placementHint();this.renderRaidOverlay();
-  this.renderer.collectionObstacles=[...document.querySelectorAll('.chief,#resources,#quest-chip,#guide,.camera-tools,#collect-ready,.bottom-hud,#inspector,#battle-hud,#camera-panel')].filter(el=>el.getClientRects().length).map(el=>{const r=el.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height};});
+  this.renderer.collectionObstacles=[...document.querySelectorAll('.chief,#resources,#quest-chip,#guide,.camera-tools,#collect-ready,.bottom-hud,#inspector,#battle-hud,#camera-panel,#resource-summary,#army-summary,#army-toggle,#camera-toggle,#quest-dot,#quest-dismiss')].filter(el=>el.getClientRects().length).map(el=>{const r=el.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height};});
   g.dirty=false;
  }
  renderRaidOverlay(){const g=this.game,w=g.world,el=$('#raid-overlay'),mission=g.state.mission;
