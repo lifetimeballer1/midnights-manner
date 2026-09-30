@@ -23,9 +23,13 @@ function housing(type, level) {
 
 test('housing: every cottage tier adds silhouette, never a palette swap', () => {
   const one = housing('cottage', 1), two = housing('cottage', 2), three = housing('cottage', 3);
+  const four = housing('cottage', 4), five = housing('cottage', 5), six = housing('cottage', 6);
   assert.ok(two.length > one.length, `tier 2 adds structure (${one.length} → ${two.length})`);
   assert.ok(three.length > two.length, `tier 3 adds structure (${two.length} → ${three.length})`);
-  for (const faces of [one, two, three]) {
+  assert.ok(four.length > three.length, `tier 4 adds structure (${three.length} → ${four.length})`);
+  assert.ok(five.length >= four.length, `tier 5 keeps structure (${four.length} → ${five.length})`);
+  assert.ok(six.length >= five.length, `tier 6 keeps structure (${five.length} → ${six.length})`);
+  for (const faces of [one, two, three, four, five, six]) {
     assert.ok(faces.every(f => /^#[0-9a-f]{6}$/i.test(f.color) && f.points.every(p => Number.isFinite(p.x) && Number.isFinite(p.y))), 'tiers stay paintable');
   }
 });
