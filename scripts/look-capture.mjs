@@ -64,6 +64,15 @@ try{
  await mkdir('artifacts',{recursive:true});
  const shot=async name=>{const {data}=await call('Page.captureScreenshot',{format:'png',captureBeyondViewport:true});await writeFile(`artifacts/${name}.png`,Buffer.from(data,'base64'));};
  const summary={views:[],errors:[]};
+ // GUI title proof (env-gated): the title screen shows before begin, so
+ // capture it from a second load after the main pass leaves saves warm.
+ if(process.env.GUI_CAPTURE==='1'){
+  await call('Page.navigate',{url:`http://127.0.0.1:${port}/midnights-manner/`});
+  await new Promise(r=>setTimeout(r,1500));
+  await shot('look-gui-title');
+  summary.views.push({file:'artifacts/look-gui-title.png'});
+  await evaluate('document.querySelector("#begin").click()');await waitFor('window.midnightsManner.ready');
+ }
  for(const [name,fraction] of [['dawn',0.01],['day',0.3],['dusk',0.54],['night',0.8]]){
   const t=clearAt(fraction);await setSky(t);await shot('look-desktop-'+name);
   summary.views.push({file:`artifacts/look-desktop-${name}.png`,phase:phaseAt(t,{world}).id,weather:weatherAt(t,{world}).id,elapsed:t});
