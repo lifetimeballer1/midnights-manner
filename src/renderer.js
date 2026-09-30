@@ -1,3 +1,4 @@
+import {inViewport,unitShadowVisible,drawLayeredRain} from './cinematic-lighting.js';
 import {resourceInfo,resourceLabel,layoutCollectionBubbles,collectionBubbleScale,reserveReady,isCollectionCrowded} from './resources.js';
 import {centralRoom} from './systems/storage.js';
 import {placementCells} from './systems/walls.js';
@@ -100,6 +101,7 @@ export class Renderer {
   }
  }
   draw(world,time){
+   (this.lightingStats??={}).unitShadows=0;
    const c=this.ctx;c.setTransform(this.dpr,0,0,this.dpr,0,0);c.clearRect(0,0,this.width,this.height);this.recordFrame(time);c.fillStyle='#29472f';c.fillRect(0,0,this.width,this.height);c.imageSmoothingEnabled=false;this.hitAreas=[];setListener({zoom:this.cam.zoom});this.trackTransitions(world,time);const didShake=!this.calm&&this.shake>.2;
   if(didShake){c.save();c.translate((Math.random()-.5)*this.shake,(Math.random()-.5)*this.shake);this.shake*=.88;}
   const W=this.data.world.width,H=this.data.world.height;
@@ -160,8 +162,9 @@ export class Renderer {
   {const lx=sky.keyDir[0],ly=sky.keyDir[1],ln=Math.hypot(lx,ly)||1,len=.42*Math.min(1,sky.keyI/.26),ox=-lx/ln*len,oy=-ly/ln*len,alpha=Math.max(.06,Math.min(.22,sky.keyI*.75));
    c.fillStyle=`rgba(18,24,16,${alpha})`;
    for(const b of world.buildings){const spec=this.data.buildings[b.type];if(!spec)continue;const n=spec.size;
+    if(!inViewport(this,[[b.x,b.y],[b.x+n,b.y],[b.x+n,b.y+n],[b.x,b.y+n]].map(([x,y])=>this.project(x+ox,y+oy,.01))))continue;
     c.beginPath();[[b.x,b.y],[b.x+n,b.y],[b.x+n,b.y+n],[b.x,b.y+n]].forEach(([x,y],i)=>{const p=this.project(x+ox,y+oy,.01);i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y);});c.closePath();c.fill();}
-   for(const u of [...world.troops.filter(u=>!insideWorkplace(world,this.data,u)),...world.enemies]){if(u.hp<=0)continue;const p=this.project(u.x+ox,u.y+oy,.01),rz=13*this.cam.zoom;c.beginPath();c.ellipse(p.x,p.y,rz,rz*.42,0,0,Math.PI*2);c.fill();}}
+   for(const u of [...world.troops.filter(u=>!insideWorkplace(world,this.data,u)),...world.enemies]){if(!unitShadowVisible(this,u))continue;this.lightingStats.unitShadows++;const p=this.project(u.x+ox,u.y+oy,.01),rz=13*this.cam.zoom;c.beginPath();c.ellipse(p.x,p.y,rz,rz*.42,0,0,Math.PI*2);c.fill();}}
   if(this.placing&&this.hover){const cells=placementCells(this),valid=cells.every(p=>canPlace(world,this.data,this.placing,p.x,p.y,this.moving));const size=this.data.buildings[this.placing].size;for(const p of cells)for(let y=0;y<size;y++)for(let x=0;x<size;x++)this.diamond(p.x+x,p.y+y,valid?'#69a06bcc':'#c05a4ecc',valid?'#fff6d8':'#ffe3dc');}
   else if(this.hover&&this.grid)this.diamond(this.hover.x,this.hover.y,'#f2ecb988','#fff3c0');
   const ring=(x,y,radius)=>{c.beginPath();for(let i=0;i<=64;i++){const a=i*Math.PI/32,p=this.project(x+Math.cos(a)*radius,y+Math.sin(a)*radius,.02);if(i)c.lineTo(p.x,p.y);else c.moveTo(p.x,p.y);}c.stroke();};
@@ -262,11 +265,7 @@ export class Renderer {
    if(weather.color&&weather.alpha>0){c.globalAlpha=weather.alpha;c.fillStyle=weather.color;c.fillRect(0,0,this.width,this.height);c.globalAlpha=1;}
    // Source lighting is depth-safe: ground spill and facade shading are
    // drawn inside drawVillage3D, before foreground meshes and overlays.
-   // Rain streaks: 36 deterministic slashes, falling with the clock. Flat.
-   if(weather.streaks){c.strokeStyle='#9fc4d4';c.globalAlpha=.32;c.lineWidth=1;c.beginPath();
-    for(let i=0;i<36;i++){const rx=(i*97.31)%this.width,ry=((i*57.73)+time*.35)%(this.height+14)-7;
-     c.moveTo(rx,ry);c.lineTo(rx-4,ry+9);}
-    c.stroke();c.globalAlpha=1;}
+   if(weather.streaks)drawLayeredRain(this,time);
    this._skyPhase=sky.phase.id;}
   if(didShake)c.restore();else if(this.shake<=.2)this.shake=0;
   if(!this.calm)for(let i=0;i<8;i++){const p=this.project(4+i*1.8,4+(i*3)%9);c.globalAlpha=.25+Math.sin(time/1000+i)*.2;c.fillStyle='#fcf4c0';c.fillRect(p.x+Math.sin(time/1500+i)*8,p.y-25,2,2);}c.globalAlpha=1;
@@ -289,24 +288,22 @@ export class Renderer {
    return {id:b.id,x:p.x,y:p.y-(spec.size===2?79:51)*z-18*scale,anchor:p,info,full,
     text:full?`${info.label} storage full ? ${amount} waiting here.`:`${info.label} +${amount}`,width:44,height:44};
   });
+  // Dots keep overview landmarks quiet; full markers only appear at close zoom.
   this.collectionCrowded=isCollectionCrowded(ready.length,{},null,z);
-  const visible=this.collectionCrowded?[]:layoutCollectionBubbles(items,this.width,this.height,obstacles);
-  // Standalone renderer fallback; the UI's edge action owns aggregate collection.
-  if(!this.collectionEdgeControl&&ready.length&&(this.collectionCrowded||visible.length<items.length)){
-   const summary=layoutCollectionBubbles([{x:84,y:this.height*.42,width:144,height:44}],this.width,this.height,obstacles)[0];
-   if(summary){
-    c.save();c.fillStyle='#142538';c.strokeStyle='#b79a5c';c.lineWidth=1.5;c.beginPath();c.roundRect(summary.x,summary.y,summary.w,summary.h,12);c.fill();c.stroke();
-    c.fillStyle='#f0dfb5';c.textAlign='center';c.font='bold 12px system-ui';c.fillText(`${ready.length} ready`,summary.x+summary.w/2,summary.y+18);
-    c.font='11px system-ui';c.fillText('Collect in Resources',summary.x+summary.w/2,summary.y+34);c.restore();
-   }
-  }
+  const visible=layoutCollectionBubbles(items,this.width,this.height,obstacles);
   for(const marker of visible){
    const {x,y,w,h,info,full}=marker,cx=x+w/2,cy=y+h/2,radius=17*scale,iconSize=26*scale;
-   c.save();c.strokeStyle='#b79a5c88';c.lineWidth=1;c.beginPath();c.moveTo(cx,cy+radius);c.lineTo(marker.anchor.x,marker.anchor.y-28*z);c.stroke();
-   c.fillStyle='#142538';c.strokeStyle='#b79a5c';c.lineWidth=1.5;c.beginPath();c.arc(cx,cy,radius,0,Math.PI*2);c.fill();c.stroke();
-   const icon=this.images[info.sprite];if(icon)c.drawImage(icon,cx-iconSize/2,cy-iconSize/2,iconSize,iconSize);
-   c.fillStyle=full?'#142538':info.color;c.strokeStyle='#d7bd7e';c.lineWidth=1.5;c.beginPath();c.arc(cx+radius-2,cy-radius+3,5,0,Math.PI*2);c.fill();c.stroke();
-   if(full){c.fillStyle='#f0dfb5';c.font='bold 10px system-ui';c.textAlign='center';c.fillText('!',cx+radius-2,cy-radius+6);}
+   c.save();
+   if(z<1.5){
+    c.globalAlpha=z<1.05?.62:.85;c.fillStyle='#f2c96e';c.strokeStyle='#60451f';c.lineWidth=1;
+    c.beginPath();c.arc(cx,cy,z<1.05?2.5:4.5,0,Math.PI*2);c.fill();c.stroke();
+   }else{
+    c.strokeStyle='#b79a5c88';c.lineWidth=1;c.beginPath();c.moveTo(cx,cy+radius);c.lineTo(marker.anchor.x,marker.anchor.y-28*z);c.stroke();
+    c.fillStyle='#142538';c.strokeStyle='#b79a5c';c.lineWidth=1.5;c.beginPath();c.arc(cx,cy,radius,0,Math.PI*2);c.fill();c.stroke();
+    const icon=this.images[info.sprite];if(icon)c.drawImage(icon,cx-iconSize/2,cy-iconSize/2,iconSize,iconSize);
+    c.fillStyle=full?'#142538':info.color;c.strokeStyle='#d7bd7e';c.lineWidth=1.5;c.beginPath();c.arc(cx+radius-2,cy-radius+3,5,0,Math.PI*2);c.fill();c.stroke();
+    c.fillStyle='#f0dfb5';c.font='bold 10px system-ui';c.textAlign='center';c.fillText('!',cx+radius-2,cy-radius+6);
+   }
    c.restore();
    this.hitAreas.push({kind:'harvest',id:marker.id,x,y,w,h,resource:info.label,label:marker.text});
   }
@@ -418,7 +415,7 @@ export class Renderer {
  tint(name){let t=this.tints.get(name);if(t!==undefined)return t;const img=this.images[name];t=null;try{if(img){t=document.createElement('canvas');t.width=img.naturalWidth||32;t.height=img.naturalHeight||32;const g=t.getContext('2d');g.drawImage(img,0,0);g.globalCompositeOperation='source-in';g.fillStyle='#fff';g.fillRect(0,0,t.width,t.height);}}catch{t=null;}this.tints.set(name,t);return t;}
  spriteFlash(name,x,y,size,key,time,dy=0){const until=this.flash.get(key);if(!until||time>until)return;const t=this.tint(name);if(!t)return;const p=this.project(x,y),raw=size*this.cam.zoom,s=32*Math.max(1,Math.round(raw/32)),c=this.ctx;c.globalAlpha=Math.min(1,(until-time)/150);c.drawImage(t,Math.round(p.x-s/2),Math.round(p.y-s+12*this.cam.zoom+dy),s,s);c.globalAlpha=1;}
  recordFrame(now){if(this._lastFrame==null){this._lastFrame=now;return;}const dt=now-this._lastFrame;this._lastFrame=now;if(dt>=0&&dt<1000){this.frameTimes.push(dt);if(this.frameTimes.length>240)this.frameTimes.shift();}}
- frameReport(){const a=[...this.frameTimes].sort((x,y)=>x-y);if(!a.length)return null;const avg=a.reduce((n,v)=>n+v,0)/a.length;const q=f=>a[Math.min(a.length-1,Math.floor(a.length*f))];return {n:a.length,avg:Math.round(avg*100)/100,p50:Math.round(q(.5)*100)/100,p95:Math.round(q(.95)*100)/100,faces:(this.sceneFaces||[]).length,staticFaces:(this._meshStatic?.faces||[]).length};}
+ frameReport(){const a=[...this.frameTimes].sort((x,y)=>x-y);if(!a.length)return null;const avg=a.reduce((n,v)=>n+v,0)/a.length;const q=f=>a[Math.min(a.length-1,Math.floor(a.length*f))];return {n:a.length,avg:Math.round(avg*100)/100,p50:Math.round(q(.5)*100)/100,p95:Math.round(q(.95)*100)/100,faces:(this.sceneFaces||[]).length,staticFaces:(this._meshStatic?.faces||[]).length,lighting:{...this.lightingStats,sources:(this.sceneSources||[]).length}};}
  staticCacheKey(world){const b=world.bounds||{w:20,h:16};const seed=this.data.world?.seed??0;const lm=Array.isArray(this.data.world?.tiles)?this.data.world.tiles.length:0;let claimed=-1;try{if(Array.isArray(world.tiles)){claimed=0;for(const t of world.tiles)if(t.claimed)claimed++;}}catch{}this.claimedTileCount=claimed;return [this.cam.x.toFixed(2),this.cam.y.toFixed(2),this.cam.zoom,this.cam.yaw??DEFAULT_YAW,this.cam.pitch??DEFAULT_PITCH,this.width,this.height,this.dpr,this.grid?1:0,b.w,b.h,seed,lm,claimed].join('|');}
  blitCachedStatic(world){if(this._noCache)return false;const key=this.staticCacheKey(world);if(this.staticLayer&&key===this.staticKey){try{this.ctx.drawImage(this.staticLayer,0,0,this.width,this.height);}catch{this._noCache=true;return false;}return true;}this._pendingStaticKey=key;return false;}
  captureStatic(world){const key=this._pendingStaticKey;this._pendingStaticKey=null;if(!key||this._noCache||typeof document==='undefined')return;if(this.shake>0.2)return;try{const pw=Math.round(this.width*this.dpr),ph=Math.round(this.height*this.dpr);if(!this.staticLayer)this.staticLayer=document.createElement('canvas');if(this.staticLayer.width!==pw||this.staticLayer.height!==ph){this.staticLayer.width=pw;this.staticLayer.height=ph;}const g=this.staticLayer.getContext('2d');g.setTransform(1,0,0,1,0,0);g.drawImage(this.canvas,0,0);this.staticKey=key;}catch{this._noCache=true;this.staticLayer=null;this.staticKey='';}}

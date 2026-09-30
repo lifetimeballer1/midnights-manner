@@ -49,6 +49,8 @@ try{
   await click('#begin');await waitFor('window.midnightsManner.ready');
   assert.equal(await evaluate('Boolean(document.querySelector("#camera-buttons")?.hidden)'),true,'camera tools collapse by default');
   assert.ok(await evaluate('Boolean(document.querySelector("#resource-summary"))'),'resource summary chip present');
+  assert.ok(await evaluate('document.querySelector("#collect-ready").closest(".bottom-hud")!==null'),'collect action belongs to bottom HUD');
+  assert.equal(await evaluate('document.querySelectorAll(".dock .dock-button").length'),5,'five navigation actions remain');
  const musicStarts=await evaluate('window.__audioProbe.starts');assert.ok(musicStarts>=12,'Enter village starts the generated score');
  let musicLevel;
  for(let i=0;i<30;i++){
@@ -57,10 +59,15 @@ try{
   await new Promise(r=>setTimeout(r,100));
  }
  assert.ok(musicLevel&&musicLevel.rms>0.0001,'score produces a non-silent browser audio signal');assert.ok(musicLevel.peak<.95,'score leaves headroom instead of clipping');console.log('Music output level',musicLevel);
- await click('#pause');const stopsBeforeMute=await evaluate('window.__audioProbe.stops');await click('#opt-sound');
- assert.ok(await evaluate(`window.__audioProbe.stops>${stopsBeforeMute}`),'Sound off stops scheduled score notes');
- const startsBeforeUnmute=await evaluate('window.__audioProbe.starts');await click('#opt-sound');
- assert.ok(await evaluate(`window.__audioProbe.starts>${startsBeforeUnmute}`),'Sound on resumes the score');await click('#resume');
+ // Both score engines route through the shared bus: test audible behavior,
+ // since the ambient engine fades voices instead of stopping oscillators.
+ const audioRms='(()=>{const a=window.__audioProbe.analyser;if(!a)return null;const d=new Float32Array(a.fftSize);a.getFloatTimeDomainData(d);return Math.sqrt(d.reduce((n,v)=>n+v*v,0)/d.length);})()';
+ await click('#pause');await click('#opt-sound');
+ await waitFor(`document.querySelector('#opt-sound').getAttribute('aria-pressed')==='false'&&${audioRms}<0.0001`);
+ assert.ok(await evaluate(`(async()=>{const a=await import('./src/systems/audio.js');return a.isMuted()&&a.sharedAudioOutput().gain.value<.0001;})()`),'Sound off silences the shared music/effects bus');
+ await click('#opt-sound');
+ await waitFor(`document.querySelector('#opt-sound').getAttribute('aria-pressed')==='true'&&${audioRms}>0.0001`);
+ await click('#resume');
  await screenshot('desktop');
  assert.equal(await evaluate('document.documentElement.scrollHeight > innerHeight'),false,'game has no document scrolling');
  const count=await evaluate('window.midnightsManner.snapshot().world.buildings.length');

@@ -3,7 +3,7 @@ import {visibleFrontierCamps} from './environment-art.js';
 import {phaseSeed} from './camera.js';
 
 const SMOKE_TYPES=new Set(['hall','cottage']);
-export const ATMOSPHERE_LIMITS=Object.freeze({smokeSources:8,trailActors:12,rainSplashes:14});
+export const ATMOSPHERE_LIMITS=Object.freeze({smokeSources:8,trailActors:12,rainSplashes:6});
 
 function actorTarget(world,data,actor,enemy=false){
  if(enemy){
@@ -71,6 +71,7 @@ function rainSplashes(r,time){
  const c=r.ctx;c.strokeStyle='#a9ced8';c.lineWidth=Math.max(.7,r.cam.zoom*.45);c.globalAlpha=.22;
  for(let i=0;i<ATMOSPHERE_LIMITS.rainSplashes;i++){
   const x=(i*37.17+(time*.00035*(i%3+1)))%(r.data.world.width||52),y=(i*19.43+7)%(r.data.world.height||44),p=r.project(x+.5,y+.5,.014);
+  if(p.x<0||p.x>r.width||p.y<0||p.y>r.height)continue;
   c.beginPath();c.ellipse(p.x,p.y,2.2*r.cam.zoom,.8*r.cam.zoom,0,0,Math.PI*2);c.stroke();
  }
  c.globalAlpha=1;

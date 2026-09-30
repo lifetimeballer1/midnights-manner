@@ -1,3 +1,10 @@
+## 2026-09-30 — Mobile UI and Lighting Pass 2
+
+- Move Collect Ready into the bottom Army utility row, retaining collection/storage logic and five navigation actions. Zero is disabled; menus and placement hide it.
+- Add quiet overview dots, scrollable unclipped filters, compact resource totals, shared parchment cards, secondary close controls and grouped settings/stores. Training follows equipment.
+- Reuse the existing clock for restrained phase/weather values, culled bounded shadow hulls, overview unit-shadow LOD, capped source bloom/spill, clear-weather rays, three-layer rain and sparse fog/ripples.
+- Add renderer-only effect telemetry, lighting/performance regression coverage and mature-settlement browser screenshots in CI. No save migration or gameplay/economy/AI changes.
+
 # Wooden interface: cartoon wood + candy reskin, wave stars
 
 - CSS-only cartoon reskin (no assets): plank-gradient wood panels, candy-orange dock (gold Build, red Defend, dark glyphs), dark-wood resource trays/quest/toast/raid banner, round camera buttons, shop-style drawer cards with dark cost insets, wooden dialogs/title/inspector with red ✗ close, wood-framed canvas status bars.
