@@ -8,7 +8,7 @@ import {validateSave,exportSave,importSaveBlob,VERSION} from '../src/storage.js'
 const data=Object.fromEntries(await Promise.all(
  ['world','troops','items','abilities','buildings','missions','quests','levels','calendar','traders','endgame','festivals']
   .map(async n=>[n,JSON.parse(await readFile(new URL(`../data/${n}.json`,import.meta.url)))])));
-const PROJECTS=['market-square','grand-granary','manor-gardens','monument','stone-road','city-wall'];
+const PROJECTS=['market-square','grand-granary','manor-gardens','monument','stone-road','city-wall','forge-quarter','lantern-rows'];
 const fresh=(vlevel=1)=>{const g=new Game(data);g.state={...g.state,world:createWorld(data),home:null,mission:null,vlevel};g.world.resources={wood:99999,food:99999,gold:99999,lumber:99999,plate:9999,frostwood:9999,flour:9999,bread:9999};return g;};
 
 test('phase4: town projects are data-shaped grand works',()=>{
@@ -205,6 +205,115 @@ test('H2: both infrastructure projects round-trip all stages in existing saves',
   const back=importSaveBlob(exportSave(g.state),data);
   assert.equal(back.ok,true);
   for(const id of ['stone-road','city-wall'])assert.equal(back.state.world.buildings.find(b=>b.type===id).level,stage);
+  assert.equal(back.state.version,VERSION);
+ }
+});
+
+const H3=['forge-quarter','lantern-rows'];
+test('H3: forge and lantern stages use distinct transparent 32px PNG assets',async()=>{
+ const assets=[];
+ for(const id of H3){
+  const spec=data.buildings[id];
+  assert.equal(spec.size,2);
+  assert.equal(spec.minLevel,id==='forge-quarter'?7:6);
+  assert.equal(spec.tierGates[3],id==='forge-quarter'?10:9);
+  assert.deepEqual(spec.costCurve,[1,2,8]);
+  assert.equal(spec.tiers.length,3);
+  assert.equal(spec.production,null);
+  assert.equal(spec.rate,0);
+  for(const tier of spec.tiers){
+   const png=await readFile(new URL(`../assets/sprites/${tier.sprite}`,import.meta.url));
+   assert.equal(png.subarray(0,8).toString('hex'),'89504e470d0a1a0a');
+   assert.equal(png.readUInt32BE(16),32);
+   assert.equal(png.readUInt32BE(20),32);
+   assert.equal(png[25],6,'RGBA assets');
+   assets.push(png.toString('hex'));
+  }
+ }
+ assert.equal(new Set(assets).size,6);
+});
+
+test('H3: friendly baskets scale and special goods join only the final stage',()=>{
+ const w={...createWorld(data),troops:[]};
+ const baskets={
+  'forge-quarter':[{lumber:2500,plate:40,gold:1200},{lumber:5000,plate:80,gold:2400},{lumber:20000,plate:560,gold:9600}],
+  'lantern-rows':[{wood:2500,gold:1000},{wood:5000,gold:2000},{wood:20000,gold:8000,frostwood:80}]
+ };
+ for(const id of H3)for(const stage of [1,2,3])assert.deepEqual(buildingCost(id,stage,w,data),baskets[id][stage-1]);
+});
+
+test('H3: projects enforce level gates, exact staged payment and one-per-village',()=>{
+ for(const id of H3){
+  const spec=data.buildings[id],g=fresh(spec.minLevel-1);
+  const locked=structuredClone(g.world.resources);
+  assert.equal(g.build(id,2,2),undefined);
+  assert.match(g.message,new RegExp(`village level ${spec.minLevel}`));
+  assert.deepEqual(g.world.resources,locked);
+  g.state.vlevel=spec.minLevel;
+  const cost=buildingCost(id,1,g.world,data),before=structuredClone(g.world.resources);
+  const b=g.build(id,2,2);assert.ok(b);
+  for(const [k,v] of Object.entries(before))assert.equal(g.world.resources[k],v-(cost[k]||0));
+  const once=structuredClone(g.world.resources);
+  assert.equal(g.build(id,6,2),undefined);
+  assert.match(g.message,/only one/i);
+  assert.deepEqual(g.world.resources,once);
+  b.remaining=0;
+  const cost2=buildingCost(id,2,g.world,data),stage2=structuredClone(g.world.resources);
+  g.upgrade(b.id);assert.equal(b.level,2);
+  for(const [k,v] of Object.entries(stage2))assert.equal(g.world.resources[k],v-(cost2[k]||0));
+  b.remaining=0;
+  const gated=structuredClone(g.world.resources);
+  assert.equal(g.upgrade(b.id),undefined);
+  assert.match(g.message,new RegExp(`village level ${spec.tierGates[3]}`));
+  assert.equal(b.level,2);assert.deepEqual(g.world.resources,gated);
+  g.state.vlevel=spec.tierGates[3];
+  const cost3=buildingCost(id,3,g.world,data);
+  for(const resource of Object.keys(cost3)){
+   const held=g.world.resources[resource];g.world.resources[resource]=cost3[resource]-1;
+   const short=structuredClone(g.world.resources);
+   assert.equal(g.upgrade(b.id),undefined);
+   assert.equal(b.level,2);assert.deepEqual(g.world.resources,short);
+   g.world.resources[resource]=held;
+  }
+  const ready=structuredClone(g.world.resources);
+  g.upgrade(b.id);assert.equal(b.level,3);
+  for(const [k,v] of Object.entries(ready))assert.equal(g.world.resources[k],v-(cost3[k]||0));
+  assert.equal(b.hp,spec.tiers[2].hp);
+ }
+});
+
+test('H3: existing aura bonuses scale per finished tier and stop in ruins or scaffolds',()=>{
+ const effects={'forge-quarter':{damage:0.02,discount:0.01},'lantern-rows':{survey:0.05,xp:0.02}};
+ for(const id of H3){
+  const w=createWorld(data),base=auras(w,data),b=makeBuilding(id,2,2,data);
+  assert.deepEqual(data.buildings[id].flatAuras,effects[id]);
+  w.buildings.push(b);
+  for(const stage of [1,2,3]){
+   b.level=stage;b.hp=data.buildings[id].tiers[stage-1].hp;
+   const expected={...base};
+   for(const [k,v] of Object.entries(effects[id]))expected[k]+=v*stage;
+   const actual=auras(w,data);
+   for(const k of Object.keys(base))assert.ok(Math.abs(actual[k]-expected[k])<1e-9,`${id} stage ${stage}: ${k}`);
+  }
+  b.hp=0;assert.deepEqual(auras(w,data),base);
+  b.hp=100;b.remaining=5;assert.deepEqual(auras(w,data),base);
+ }
+});
+
+test('H3: both projects preserve all stages through the existing save contract',()=>{
+ for(const stage of [1,2,3]){
+  const g=fresh(10);
+  for(const [id,x] of [['forge-quarter',2],['lantern-rows',6]]){
+   const b=makeBuilding(id,x,2,data);b.level=stage;b.hp=data.buildings[id].tiers[stage-1].hp;
+   g.world.buildings.push(b);
+  }
+  assert.equal(validateSave(g.state,data),true);
+  const back=importSaveBlob(exportSave(g.state),data);
+  assert.equal(back.ok,true);
+  for(const id of H3){
+   const b=back.state.world.buildings.find(b=>b.type===id);
+   assert.equal(b.level,stage);assert.equal(b.hp,data.buildings[id].tiers[stage-1].hp);
+  }
   assert.equal(back.state.version,VERSION);
  }
 });

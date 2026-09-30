@@ -351,3 +351,7 @@ Three data-only bulk commissions join the existing Grey Market rotation, each ca
 ### Grey Dawn H2
 
 Two size-2 Town Projects reuse the Phase 4 pipeline, each limited to one per village with three distinct original sprites and stage prices at 1×, 2× and 8× base. **Stone Road Network** opens at level 6 (stage 3 at 9): trail → dirt road → reinforced road, spending wood, lumber and gold, with 120 plate added only at stage 3; each finished tier adds +1 carry and +2% trade. **City Wall Project** opens at level 7 (stage 3 at 10), spending lumber, plate and gold for +2% armor and +0.1/s healing per finished tier. Ruins and unfinished stages grant no aura. No new systems, aura keys or save fields were added. H3 remains outside this task.
+
+### Grey Dawn H3
+
+Two size-2 Town Projects extend the Phase 4/H2 pipeline, each limited to one per village with three distinct original 32x32 sprites and stage prices at 1x, 2x and 8x base. **Royal Forge Quarter** opens at level 7 (stage 3 at 10): open smithy yard, covered workshop, then a twin-chimney quarter. It spends lumber, plate and gold, with an extra 240 plate at stage 3; each finished tier grants +2% damage and +1% construction discount. **Lantern Rows** opens at level 6 (stage 3 at 9): posts, torch rows, then paved rows with cold lanterns. It spends wood and gold, adding 80 frostwood at stage 3; each finished tier grants +0.05 survey and +2% village XP. Ruins and unfinished stages grant no aura. No new systems, aura keys or save fields were added. H4 remains outside this task.
