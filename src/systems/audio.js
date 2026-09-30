@@ -3,7 +3,25 @@
 let ctx = null;
 let output = null;
 let muted = false;
-const lastPlayed = {hit: 0, step: 0, work: 0, combat: 0, melee: 0, bow: 0, gate: 0, wall: 0, trap: 0, mach: 0, fire: 0, alert: 0};
+const lastPlayed = {hit: 0, step: 0, work: 0, combat: 0, melee: 0, bow: 0, gate: 0, wall: 0, trap: 0, mach: 0, fire: 0, alert: 0, thud: 0, siege: 0};
+// Release/impact separation: combat lands the swing now and schedules the
+// impact for arrow-flight time later. Pumped by AmbiencePlayer.tick.
+const scheduled = [];
+const SCHEDULE_CAP = 24;
+export function scheduleSound(delaySec, fn) {
+  if (typeof fn !== 'function') return;
+  if (scheduled.length >= SCHEDULE_CAP) scheduled.shift();
+  scheduled.push({at: clockNow() + Math.max(0, Number(delaySec) || 0) * 1000, fn});
+}
+export function pumpScheduled() {
+  if (muted) { scheduled.length = 0; return 0; }
+  const now = clockNow();
+  let n = 0;
+  for (let i = scheduled.length - 1; i >= 0; i--) {
+    if (now >= scheduled[i].at) { const {fn} = scheduled[i]; scheduled.splice(i, 1); n++; try { fn(); } catch {} }
+  }
+  return n;
+}
 // Voice cap: fire-and-forget oscillators are cheap, but twenty simultaneous
 // close-up sources are not a mix. Quiet voices are dropped past the cap.
 let voices = 0;
@@ -11,7 +29,7 @@ const VOICE_CAP = 12;
 export function audioStats() { return {voices, cap: VOICE_CAP, pools: {...lastPlayed}}; }
 // Test/smoke driver: clear every cooldown pool so scripted checks hear each
 // cue deterministically. Never called by the game itself.
-export function resetAudioPools() { for (const k of Object.keys(lastPlayed)) lastPlayed[k] = -1e9; voices = 0; }
+export function resetAudioPools() { for (const k of Object.keys(lastPlayed)) lastPlayed[k] = -1e9; voices = 0; scheduled.length = 0; }
 try {
   muted = typeof localStorage !== 'undefined' && localStorage.getItem('midnights-manner-sound') === 'off';
 } catch { muted = false; }
@@ -112,6 +130,42 @@ export const sfx = {
     if (!ready('gate', 350)) return;
     tone(92, 0.22, { type: 'triangle', slide: -28, vol: 0.055 * vol, pitch });
     tone(145, 0.06, { type: 'square', delay: 0.16, slide: -50, vol: 0.018 * vol, pitch });
+  },
+  gateThud({vol = 1, pitch = 1} = {}) {
+    if (!ready('thud', 500)) return;
+    tone(68, 0.22, { type: 'sine', slide: -26, vol: 0.11 * vol, pitch });
+    tone(150, 0.08, { type: 'square', delay: 0.01, slide: -60, vol: 0.04 * vol, pitch });
+  },
+  wallWood({vol = 1, pitch = 1} = {}) {
+    if (!ready('wall', 120)) return;
+    tone(300, 0.05, { type: 'square', slide: -190, vol: 0.035 * vol, pitch });
+    tone(110, 0.09, { type: 'triangle', delay: 0.012, slide: -35, vol: 0.03 * vol, pitch });
+  },
+  wallStone({vol = 1, pitch = 1} = {}) {
+    if (!ready('wall', 120)) return;
+    tone(1900, 0.03, { type: 'square', slide: -900, vol: 0.02 * vol, pitch });
+    tone(140, 0.1, { type: 'triangle', delay: 0.01, slide: -45, vol: 0.032 * vol, pitch });
+  },
+  siege({vol = 1, pitch = 1} = {}) {
+    if (!ready('siege', 400)) return;
+    tone(90, 0.3, { type: 'sawtooth', slide: 60, vol: 0.03 * vol, pitch });
+    tone(58, 0.35, { type: 'square', delay: 0.28, slide: -20, vol: 0.09 * vol, pitch });
+    tone(44, 0.4, { type: 'sine', delay: 0.29, slide: -12, vol: 0.08 * vol, pitch });
+  },
+  ignite({vol = 1, pitch = 1} = {}) {
+    if (!ready('fire', 500)) return;
+    tone(180, 0.18, { type: 'sawtooth', slide: 320, vol: 0.035 * vol, pitch });
+    tone(75, 0.28, { type: 'sine', delay: 0.14, slide: -25, vol: 0.09 * vol, pitch });
+  },
+  crackle({vol = 1, pitch = 1} = {}) {
+    if (!ready('fire', 400)) return;
+    tone(2100, 0.025, { type: 'square', slide: -700, vol: 0.012 * vol, pitch });
+    if (Math.random() < 0.5) tone(1500, 0.03, { type: 'square', delay: 0.05, slide: -400, vol: 0.009 * vol, pitch });
+  },
+  trapReset({vol = 1, pitch = 1} = {}) {
+    if (!ready('trap', 800)) return;
+    tone(420, 0.04, { type: 'triangle', slide: -120, vol: 0.02 * vol, pitch });
+    tone(240, 0.05, { type: 'triangle', delay: 0.05, slide: -60, vol: 0.016 * vol, pitch });
   },
   warning() {
     if (!ready('alert', 2000)) return;

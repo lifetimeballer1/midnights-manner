@@ -5,7 +5,36 @@ import {move,blocked} from './pathfinding.js';
 import {enemyDamageMult,enemySpeedMult} from './daynight.js';
 import {isWall} from './walls.js';
 import {bossTick,bossAuraMult,isSiegeRole,eliteLootMult,renownDamageMult,renownLootMult,paragonDamageMult,markElites} from './endgame.js';
-import {sfx} from './audio.js';
+import {sfx, scheduleSound} from './audio.js';
+import {listenerGain} from './soundstage.js';
+// Release/impact split: the swing (or bow release) sounds now; the impact
+// thud lands after arrow-flight time (distance-scaled) or a melee beat.
+// Damage itself is untouched — this only separates what the ear hears.
+function flightTime(from, to) {
+  try {
+    const d = Math.hypot(from.x - to.x, from.y - to.y);
+    return Math.max(0.05, Math.min(0.5, d * 0.09));
+  } catch { return 0.12; }
+}
+export function strikeSound(from, to, ranged) {
+  const g = listenerGain('combat');
+  if (!(g > 0)) return;
+  if (ranged) {
+    sfx.arrow({vol: g});
+    const f = flightTime(from, to);
+    scheduleSound(f, () => { const g2 = listenerGain('combat'); if (g2 > 0) sfx.hit({vol: g2}); });
+  } else {
+    sfx.blade({vol: g});
+    scheduleSound(0.07, () => { const g2 = listenerGain('combat'); if (g2 > 0) sfx.hit({vol: g2}); });
+  }
+}
+const STONE_WALLS = new Set(['stonewall', 'rampart']);
+export function wallSound(b) {
+  const g = listenerGain('combat');
+  if (!(g > 0)) return;
+  if (b && STONE_WALLS.has(b.type)) sfx.wallStone({vol: g});
+  else sfx.wallWood({vol: g});
+}
 import {grantCentral} from './storage.js';
 import {warChestBonus} from './warchest.js';
 export function raidSides(wave,count) {
@@ -166,16 +195,16 @@ export function tickCombat(world,data,dt) {
   }
   // Phase 7 temperament: Brave holds (+10%) and Cowardly falters (−10%) while raiders walk. No raid, no modifier.
   const grit=raidDamageMult(unit,raidActive);
-   if(order&&order.kind==='hold'){const e2=nearestFoe(world.enemies,unit);if(e2&&distance(unit,e2)<=s.range&&unit.attackTimer<=0){const dealt=s.damage*(1+aura.damage)*grit;e2.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,e2,data.items[unit.gear].animation);if(s.range>2)sfx.arrow();else sfx.blade();dmgNum(world,e2,dealt);}continue;}
+   if(order&&order.kind==='hold'){const e2=nearestFoe(world.enemies,unit);if(e2&&distance(unit,e2)<=s.range&&unit.attackTimer<=0){const dealt=s.damage*(1+aura.damage)*grit;e2.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,e2,data.items[unit.gear].animation);strikeSound(unit,e2,s.range>2);dmgNum(world,e2,dealt);}continue;}
    if(order&&order.kind==='attack'){const tgt=world.enemies.find(e=>e.id===order.targetId&&e.hp>0);if(!tgt){unit.order=null;continue;}
-    if(move(world,data,unit,tgt,s.speed,dt,s.range,false,true)&&unit.attackTimer<=0){const dealt=s.damage*(1+aura.damage)*grit;tgt.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,tgt,data.items[unit.gear].animation);if(s.range>2)sfx.arrow();else sfx.blade();dmgNum(world,tgt,dealt);}continue;}
+    if(move(world,data,unit,tgt,s.speed,dt,s.range,false,true)&&unit.attackTimer<=0){const dealt=s.damage*(1+aura.damage)*grit;tgt.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,tgt,data.items[unit.gear].animation);strikeSound(unit,tgt,s.range>2);dmgNum(world,tgt,dealt);}continue;}
   if(!world.enemies.length){unit.hp=Math.min(s.hp,unit.hp+dt*2);continue;}
   if(data.troops[unit.type].role!=='combat')continue;
   const enemy=defenseTarget(world,data,unit,tgtCtx);if(!enemy)continue;
   if(s.range>2&&distance(unit,enemy)<1.7)retreat(world,data,unit,enemy,s.speed,dt);
    if(move(world,data,unit,enemy,s.speed,dt,s.range,false,true)&&unit.attackTimer<=0){
     const dealt=s.damage*(1+aura.damage)*grit;
-    enemy.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,enemy,data.items[unit.gear].animation);if(s.range>2)sfx.arrow();else sfx.blade();dmgNum(world,enemy,dealt);
+    enemy.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,enemy,data.items[unit.gear].animation);strikeSound(unit,enemy,s.range>2);dmgNum(world,enemy,dealt);
    for(const a of abs) if(a.effect==='splash')for(const other of world.enemies)if(other!==enemy&&distance(other,enemy)<a.radius)other.hp-=s.damage*a.factor;
   }
  }
@@ -209,7 +238,20 @@ export function tickCombat(world,data,dt) {
    if(tier.burn)enemy.burn={dps:tier.burn*mult,timer:tier.burnDuration||3};
    // Slow heavy engines (the ballista's data `cooldown`) reload on
    // their own rhythm; everything else keeps the classic cadence.
-    b.cooldown=tier.cooldown??(b.type==='trap'?8:1.2);effect(world,c,enemy,b.type==='trap'?'slam':'arrow');if(b.type==='trap')sfx.hit();else sfx.arrow();dmgNum(world,enemy,dealt);
+    b.cooldown=tier.cooldown??(b.type==='trap'?8:1.2);
+    if(b.type==='trap'){
+     const g=listenerGain('combat');
+     effect(world,c,enemy,'slam');
+     if(g>0){sfx.hit({vol:g});if(tier.burn)sfx.ignite({vol:g});}
+     dmgNum(world,enemy,dealt);
+    }else if(b.type==='ballista'){
+     const g=listenerGain('combat');
+     effect(world,c,enemy,'bolt');
+     if(g>0){sfx.siege({vol:g});scheduleSound(flightTime(c,enemy)+0.1,()=>{const g2=listenerGain('combat');if(g2>0)sfx.hit({vol:g2,pitch:0.7});});}
+     dmgNum(world,enemy,dealt);
+    }else{
+     effect(world,c,enemy,'arrow');strikeSound(c,enemy,true);dmgNum(world,enemy,dealt);
+    }
   }
  }
  // Perf: wall membership never changes mid-tick (only hp does) — hoist the
@@ -266,8 +308,8 @@ export function tickCombat(world,data,dt) {
     if(d<=1.2&&d<barrierD){barrierD=d;barrier=b;}
    }
    if(barrier&&enemy.attackTimer<=0){
-    barrier.hp=Math.max(0,barrier.hp-enemy.damage*skyDmg*(role.wallDamage||1)*chestGuard);enemy.attackTimer=1.3;
-    effect(world,enemy,center(barrier,data),'slash');
+     barrier.hp=Math.max(0,barrier.hp-enemy.damage*skyDmg*(role.wallDamage||1)*chestGuard);enemy.attackTimer=1.3;
+     effect(world,enemy,center(barrier,data),'slash');wallSound(barrier);
     if(barrier.hp<=0)world.raidLosses=(world.raidLosses||0)+1;
     continue;
    }
@@ -277,7 +319,7 @@ export function tickCombat(world,data,dt) {
    const bb=target;let adjacent=false;
    const bx0=Math.floor(enemy.x),by0=Math.floor(enemy.y);
    for(let yy=bb.y-1;yy<bb.y+data.buildings[bb.type].size+1&&!adjacent;yy++)for(let xx=bb.x-1;xx<bb.x+data.buildings[bb.type].size+1&&!adjacent;xx++)if(xx===bx0&&yy===by0)adjacent=true;
-    if(adjacent&&enemy.attackTimer<=0){bb.hp=Math.max(0,bb.hp-enemy.damage*skyDmg*(isWall(bb)?(role.wallDamage||1)*chestGuard:1));if(bb.hp<=0)world.raidLosses=(world.raidLosses||0)+1;enemy.attackTimer=1.3;effect(world,enemy,center(bb,data),'slash');push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y,kind:'hit',life:.18});continue;}
+     if(adjacent&&enemy.attackTimer<=0){bb.hp=Math.max(0,bb.hp-enemy.damage*skyDmg*(isWall(bb)?(role.wallDamage||1)*chestGuard:1));if(bb.hp<=0)world.raidLosses=(world.raidLosses||0)+1;enemy.attackTimer=1.3;effect(world,enemy,center(bb,data),'slash');if(isWall(bb))wallSound(bb);else{const g=listenerGain('combat');if(g>0)sfx.hit({vol:g});}push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y,kind:'hit',life:.18});continue;}
   }
   if(arrived&&enemy.attackTimer<=0){
    // Armor stacks: sky aura + ability resolve + worn gear (Padded Coat
@@ -295,8 +337,8 @@ export function tickCombat(world,data,dt) {
    let dread=1;
    try{if(enemy.role!=='boss')dread=bossAuraMult(world,data,enemy);}catch{}
    const raw=enemy.damage*dread*skyDmg*(1-Math.min(.8,reduction))*(!targetUnit&&isWall(target)?(role.wallDamage||1)*chestGuard:1);
-   if(targetUnit&&raw>=target.hp&&!target.unbrokenUsed){try{if(unlockedAbilities(target,data).some(a=>a.effect==='unbroken')){target.hp=1;target.unbrokenUsed=true;enemy.attackTimer=1.3;push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y-1,kind:'float',text:'UNBROKEN!',color:'#ffe9a8',life:.9});effect(world,enemy,targetPoint,'slash');sfx.hit();continue;}}catch{}}
-    target.hp=Math.max(0,target.hp-raw);enemy.attackTimer=1.3;effect(world,enemy,targetPoint,role.range>2?'arrow':'slash');push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y,kind:'hit',life:.18});if(role.range>2)sfx.arrow();else sfx.blade();sfx.hit();
+    if(targetUnit&&raw>=target.hp&&!target.unbrokenUsed){try{if(unlockedAbilities(target,data).some(a=>a.effect==='unbroken')){target.hp=1;target.unbrokenUsed=true;enemy.attackTimer=1.3;push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y-1,kind:'float',text:'UNBROKEN!',color:'#ffe9a8',life:.9});effect(world,enemy,targetPoint,'slash');strikeSound(enemy,targetPoint,false);continue;}}catch{}}
+    target.hp=Math.max(0,target.hp-raw);enemy.attackTimer=1.3;effect(world,enemy,targetPoint,role.range>2?'arrow':'slash');push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y,kind:'hit',life:.18});strikeSound(enemy,targetPoint,role.range>2);
    // Rue's ledger: a building that falls while raiders walk counts against
    // the flawless defense. Troops falling never do — only walls and roofs.
    if(!targetUnit&&target.hp<=0)world.raidLosses=(world.raidLosses||0)+1;

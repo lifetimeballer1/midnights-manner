@@ -47,6 +47,16 @@ export function pickEmitters(items, cx, cy, max = 5, range = 12) {
   return out.slice(0, Math.floor(max));
 }
 
+// The listener follows the camera (renderer updates it once per frame).
+// Sim-side emitters (combat, work) read gains from here instead of taking
+// zoom parameters they cannot reach. Renderer-side detail passes zoom in.
+let listener = {zoom: 1};
+export function setListener(next) {
+  if (next && Number.isFinite(next.zoom)) listener = {zoom: next.zoom};
+}
+export function listenerZoom() { return listener.zoom; }
+export function listenerGain(kind) { return bandGain(zoomBand(listener.zoom), kind); }
+
 // Detail gain per band for a sound class: 0 = silent here, 1 = full.
 // Broad layers (music/weather/birds) ignore this; close-up detail obeys it.
 export function bandGain(band, kind) {

@@ -11,6 +11,7 @@ import {weatherAt,skyLightAt} from './systems/daynight.js';
 import {drawAtmosphere} from './atmosphere-art.js';
 import {insideWorkplace} from './systems/villagers.js';
 import {trackStride, footstepFor, surfaceAt} from './systems/footsteps.js';
+import {zoomBand, bandGain, setListener} from './systems/soundstage.js';
 export class Renderer {
  constructor(canvas,data,images){this.canvas=canvas;this.ctx=canvas.getContext('2d');this.data=data;this.images=images;this.grid=false;this.hover=null;this.selection=null;this.placing=null;this.moving=null;this.tw=43;this.th=22;this.ox=510;this.oy=97;this.shake=0;this.cam={x:10,y:8,zoom:1,yaw:DEFAULT_YAW,pitch:DEFAULT_PITCH};this.orbitMode=false;this.cx=550;this.cy=370;this.width=1100;this.height=740;this.dpr=1;this.hitAreas=[];this.staticLayer=null;this.staticKey='';this.frameTimes=[];this._pendingStaticKey=null;this._noCache=false;this._lastFrame=null;try{this.calm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch{this.calm=false;}this.seen=new Map();this.flash=new Map();this.deadAt=new Map();this.tints=new Map();}
  base(x,y){return {x:this.ox+(x-y)*this.tw/2,y:this.oy+(x+y)*this.th/2};}
@@ -84,8 +85,8 @@ export class Renderer {
    });c.closePath();c.fill();
   }
  }
- draw(world,time){
-  const c=this.ctx;c.setTransform(this.dpr,0,0,this.dpr,0,0);c.clearRect(0,0,this.width,this.height);this.recordFrame(time);c.fillStyle='#29472f';c.fillRect(0,0,this.width,this.height);c.imageSmoothingEnabled=false;this.hitAreas=[];this.trackTransitions(world,time);const didShake=!this.calm&&this.shake>.2;
+  draw(world,time){
+   const c=this.ctx;c.setTransform(this.dpr,0,0,this.dpr,0,0);c.clearRect(0,0,this.width,this.height);this.recordFrame(time);c.fillStyle='#29472f';c.fillRect(0,0,this.width,this.height);c.imageSmoothingEnabled=false;this.hitAreas=[];setListener({zoom:this.cam.zoom});this.trackTransitions(world,time);const didShake=!this.calm&&this.shake>.2;
   if(didShake){c.save();c.translate((Math.random()-.5)*this.shake,(Math.random()-.5)*this.shake);this.shake*=.88;}
   const W=this.data.world.width,H=this.data.world.height;
   // One resolved sky per frame feeds shadows, the vignette, the overlay,
@@ -223,7 +224,7 @@ export class Renderer {
    if(e.kind==='fanfare'){c.globalAlpha=Math.min(1,e.life*1.5);c.fillStyle='#f2c96e';for(let s=0;s<6;s++){const rise=(0.8-Math.max(0,e.life))*46;c.fillRect(b.x-14+s*6,b.y-44-rise-(s%3)*7,3,3);}c.globalAlpha=1;continue;}
    if(e.kind==='hit'){c.globalAlpha=Math.max(0,e.life)/.18;c.fillStyle='#fff';c.beginPath();c.arc(b.x,b.y-10,9,0,Math.PI*2);c.fill();c.globalAlpha=1;continue;}
    if(e.kind==='poof'){const t=1-Math.max(0,e.life)/.4;c.globalAlpha=Math.max(0,e.life)/.4;c.strokeStyle='#b8c4bb';c.lineWidth=2;c.beginPath();c.ellipse(b.x,b.y-8,6+t*12,4+t*6,0,0,Math.PI*2);c.stroke();c.globalAlpha=1;continue;}
-   if(!this.calm&&e.kind==='slam')this.shake=Math.max(this.shake,3);c.globalAlpha=e.life/.3;c.strokeStyle=e.kind==='heal'?'#e4efb0':e.kind==='arrow'?'#f6ecbb':'#f5d78d';c.lineWidth=e.kind==='slam'?5:2;c.beginPath();if(e.kind==='heal'||e.kind==='slam'){c.ellipse(b.x,b.y-8,25,12,0,0,Math.PI*2);}else{c.moveTo(a.x,a.y-12);c.lineTo(b.x,b.y-12);}c.stroke();c.globalAlpha=1;}
+   if(!this.calm&&e.kind==='slam')this.shake=Math.max(this.shake,3);if(!this.calm&&e.kind==='bolt')this.shake=Math.max(this.shake,4);c.globalAlpha=e.life/.3;c.strokeStyle=e.kind==='heal'?'#e4efb0':e.kind==='arrow'?'#f6ecbb':e.kind==='bolt'?'#e8c98a':'#f5d78d';c.lineWidth=e.kind==='slam'?5:e.kind==='bolt'?4:2;c.beginPath();if(e.kind==='heal'||e.kind==='slam'){c.ellipse(b.x,b.y-8,25,12,0,0,Math.PI*2);}else{c.moveTo(a.x,a.y-12);c.lineTo(b.x,b.y-12);}c.stroke();c.globalAlpha=1;}
   // Raiders can arrive from every side: a quiet border glow never points west by mistake.
   if(world.enemies.length){
    const radius=Math.max(this.width,this.height)*.7,g=c.createRadialGradient(this.width/2,this.height/2,Math.min(this.width,this.height)*.35,this.width/2,this.height/2,radius);
@@ -309,11 +310,18 @@ export class Renderer {
    const key='b'+b.id;alive.add(key);
    const prev=this.seen.get(key),cp=center(b,this.data);
    if(prev){
-    if(prev.hp>0&&b.hp<=0){this.burst(world,cp.x,cp.y,cp.x,cp.y,'poof',.4);this.burst(world,cp.x,cp.y,cp.x,cp.y,'hit',.18);if(!this.calm)this.shake=Math.max(this.shake,6);sfx.destroy();}
-    else if(b.hp<prev.hp&&time>(this.flash.get(key)||0)){this.burst(world,cp.x,cp.y,cp.x,cp.y,'hit',.18);if(!this.calm)this.shake=Math.max(this.shake,2.5);this.flash.set(key,time+200);sfx.hit();}
-    if(prev.remaining>0&&!(b.remaining>0)){this.burst(world,cp.x,cp.y,cp.x,cp.y,'sparkle',.4);sfx.buildDone();}
-   }
-   this.seen.set(key,{hp:b.hp,remaining:b.remaining});
+     if(prev.hp>0&&b.hp<=0){this.burst(world,cp.x,cp.y,cp.x,cp.y,'poof',.4);this.burst(world,cp.x,cp.y,cp.x,cp.y,'hit',.18);if(!this.calm)this.shake=Math.max(this.shake,6);sfx.destroy();}
+     else if(b.hp<prev.hp&&time>(this.flash.get(key)||0)){this.burst(world,cp.x,cp.y,cp.x,cp.y,'hit',.18);if(!this.calm)this.shake=Math.max(this.shake,2.5);this.flash.set(key,time+200);sfx.hit();}
+     if(prev.remaining>0&&!(b.remaining>0)){this.burst(world,cp.x,cp.y,cp.x,cp.y,'sparkle',.4);sfx.buildDone();}
+     // A re-armed trap clicks its mechanism home — renderer-local edge on
+     // the sim's cooldown, never a save write.
+     if((b.type||'').includes('trap')&&Number.isFinite(prev.cooldown)&&prev.cooldown>0&&!(b.cooldown>0))try{sfx.trapReset();}catch{}
+    }
+    this.seen.set(key,{hp:b.hp,remaining:b.remaining,cooldown:b.cooldown});
+    // Watchfire crackle: sparse, close-up only, throttled in sfx.
+    if(b.type==='watchfire'&&b.hp>0&&!(b.remaining>0)&&Math.random()<0.03){
+     try{const g=bandGain(zoomBand(this.cam.zoom),'fire');if(g>0)sfx.crackle({vol:g});}catch{}
+    }
   }
    for(const u of world.troops){
     const key='u'+u.id;alive.add(key);
