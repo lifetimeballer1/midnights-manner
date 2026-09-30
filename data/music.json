@@ -786,6 +786,271 @@
         "seconds": 0.14,
         "gain": 0.07
       }
+    },
+    {
+      "id": "awakens",
+      "name": "Village Awakens",
+      "bpm": 78,
+      "rootHz": 98,
+      "bars": 4,
+      "pulsesPerBar": 6,
+      "scale": [
+        0,
+        2,
+        4,
+        7,
+        9
+      ],
+      "progression": [
+        [
+          0,
+          4,
+          7,
+          12
+        ],
+        [
+          5,
+          9,
+          12,
+          16
+        ],
+        [
+          -3,
+          2,
+          5,
+          9
+        ],
+        [
+          -5,
+          0,
+          4,
+          7
+        ]
+      ],
+      "melodySlots": [
+        0,
+        1,
+        2,
+        4,
+        5
+      ],
+      "calmMelodySlots": [
+        0,
+        2
+      ],
+      "voices": {
+        "bass": 0.075,
+        "pad": 0.08,
+        "pluck": 0.11
+      },
+      "gain": 0.7,
+      "echo": {
+        "seconds": 0.22,
+        "gain": 0.11
+      },
+      "moods": [
+        "dawn"
+      ]
+    },
+    {
+      "id": "midnight_walls",
+      "name": "Walls of Midnight",
+      "bpm": 96,
+      "rootHz": 55,
+      "bars": 4,
+      "pulsesPerBar": 7,
+      "scale": [
+        0,
+        2,
+        3,
+        5,
+        7,
+        8,
+        10
+      ],
+      "progression": [
+        [
+          0,
+          3,
+          7,
+          10
+        ],
+        [
+          -2,
+          3,
+          5,
+          10
+        ],
+        [
+          -4,
+          0,
+          3,
+          8
+        ],
+        [
+          -5,
+          2,
+          5,
+          8
+        ]
+      ],
+      "melodySlots": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "calmMelodySlots": [
+        0,
+        3
+      ],
+      "voices": {
+        "bass": 0.1,
+        "pad": 0.06,
+        "pluck": 0.115
+      },
+      "gain": 0.74,
+      "echo": {
+        "seconds": 0.12,
+        "gain": 0.07
+      },
+      "moods": [
+        "danger",
+        "tension"
+      ]
+    },
+    {
+      "id": "aftermath",
+      "name": "After the Raid",
+      "bpm": 52,
+      "rootHz": 65.406,
+      "bars": 4,
+      "pulsesPerBar": 4,
+      "scale": [
+        0,
+        3,
+        5,
+        7,
+        10
+      ],
+      "progression": [
+        [
+          0,
+          3,
+          7,
+          12
+        ],
+        [
+          -4,
+          0,
+          3,
+          7
+        ],
+        [
+          -2,
+          3,
+          5,
+          10
+        ],
+        [
+          -5,
+          0,
+          3,
+          7
+        ]
+      ],
+      "melodySlots": [
+        0,
+        2
+      ],
+      "calmMelodySlots": [
+        0
+      ],
+      "voices": {
+        "bass": 0.07,
+        "pad": 0.09,
+        "pluck": 0.09
+      },
+      "gain": 0.6,
+      "echo": {
+        "seconds": 0.32,
+        "gain": 0.14
+      },
+      "moods": [
+        "aftermath"
+      ]
+    },
+    {
+      "id": "ascendant",
+      "name": "A Manor Ascendant",
+      "bpm": 84,
+      "rootHz": 98,
+      "bars": 5,
+      "pulsesPerBar": 7,
+      "scale": [
+        0,
+        2,
+        4,
+        5,
+        7,
+        9,
+        11
+      ],
+      "progression": [
+        [
+          0,
+          4,
+          7,
+          11
+        ],
+        [
+          5,
+          9,
+          12,
+          16
+        ],
+        [
+          2,
+          5,
+          9,
+          14
+        ],
+        [
+          -3,
+          0,
+          4,
+          7
+        ]
+      ],
+      "melodySlots": [
+        0,
+        1,
+        2,
+        4,
+        5,
+        6
+      ],
+      "calmMelodySlots": [
+        0,
+        2,
+        4
+      ],
+      "voices": {
+        "bass": 0.085,
+        "pad": 0.08,
+        "pluck": 0.11
+      },
+      "gain": 0.74,
+      "echo": {
+        "seconds": 0.2,
+        "gain": 0.1
+      },
+      "moods": [
+        "prosperous"
+      ]
     }
   ]
 }

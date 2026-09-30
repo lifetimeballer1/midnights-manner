@@ -15,14 +15,14 @@ async function boot(){
  const images=Object.fromEntries(await Promise.all([...new Set(sprites)].map(name=>new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve([name,image]);image.onerror=()=>reject(Error(`Missing sprite: ${name}`));image.src=new URL(`../assets/sprites/${name}`,import.meta.url).href;}))));
  const canvas=document.querySelector('#world'),game=new Game(data),renderer=new Renderer(canvas,data,images);
  const resize=()=>{const rect=canvas.getBoundingClientRect();renderer.resize(rect.width,rect.height,window.devicePixelRatio||1);};resize();renderer.fitVillage(game.world);
- const music=new MusicPlayer(data.music),ambience=new AmbiencePlayer(game);music.setMood(soundtrackMood(game.world,data));
+  const music=new MusicPlayer(data.music),ambience=new AmbiencePlayer(game),moodMemory={};music.setMood(soundtrackMood(game.world,data,{memory:moodMemory,vlevel:game.state.vlevel}));
  const ui=new UI(game,renderer,music);new MapInput(canvas,renderer,ui);new GameUpdates(game);new PatchNotes(game,ui);
  new ResizeObserver(resize).observe(canvas);
  try{if(new URLSearchParams(location.search).has('perf')){const badge=document.createElement('div');badge.id='perf';document.body.appendChild(badge);setInterval(()=>{const r=renderer.frameReport();if(r)badge.textContent='frame avg '+r.avg+'ms · p50 '+r.p50+'ms · p95 '+r.p95+'ms · n='+r.n+' · faces '+r.faces+' · '+(renderer.staticLayer?'cached':'uncached');},500);}}catch{}
  window.addEventListener('pointerdown',()=>unlock(),{passive:true});window.addEventListener('keydown',()=>unlock());
  let last=performance.now(),accumulator=0;
  document.addEventListener('visibilitychange',()=>{if(document.hidden){game.persist();ambience.reset();}last=performance.now();accumulator=0;});window.addEventListener('pagehide',()=>game.persist());
- function frame(now){const dt=Math.min((now-last)/1000,.15);last=now;if(!document.hidden){accumulator+=dt;while(accumulator>=.05){game.tick(.05);accumulator-=.05;}music.setMood(soundtrackMood(game.world,data));ui.tick(dt);if(ui.started)ambience.tick();renderer.draw(game.world,now);}requestAnimationFrame(frame);}requestAnimationFrame(frame);
+ function frame(now){const dt=Math.min((now-last)/1000,.15);last=now;if(!document.hidden){accumulator+=dt;while(accumulator>=.05){game.tick(.05);accumulator-=.05;}music.setMood(soundtrackMood(game.world,data,{memory:moodMemory,vlevel:game.state.vlevel}));ui.tick(dt);if(ui.started)ambience.tick();renderer.draw(game.world,now);}requestAnimationFrame(frame);}requestAnimationFrame(frame);
  // Read-only hooks keep real-input browser tests independent of camera constants.
  // setElapsed/setCamera are test-only drivers for the look-capture harness:
  // they set transient view/clock state, never saves, rules or placement.
