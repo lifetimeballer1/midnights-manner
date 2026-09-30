@@ -166,16 +166,16 @@ export function tickCombat(world,data,dt) {
   }
   // Phase 7 temperament: Brave holds (+10%) and Cowardly falters (−10%) while raiders walk. No raid, no modifier.
   const grit=raidDamageMult(unit,raidActive);
-  if(order&&order.kind==='hold'){const e2=nearestFoe(world.enemies,unit);if(e2&&distance(unit,e2)<=s.range&&unit.attackTimer<=0){const dealt=s.damage*(1+aura.damage)*grit;e2.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,e2,data.items[unit.gear].animation);dmgNum(world,e2,dealt);}continue;}
-  if(order&&order.kind==='attack'){const tgt=world.enemies.find(e=>e.id===order.targetId&&e.hp>0);if(!tgt){unit.order=null;continue;}
-   if(move(world,data,unit,tgt,s.speed,dt,s.range,false,true)&&unit.attackTimer<=0){const dealt=s.damage*(1+aura.damage)*grit;tgt.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,tgt,data.items[unit.gear].animation);dmgNum(world,tgt,dealt);}continue;}
+   if(order&&order.kind==='hold'){const e2=nearestFoe(world.enemies,unit);if(e2&&distance(unit,e2)<=s.range&&unit.attackTimer<=0){const dealt=s.damage*(1+aura.damage)*grit;e2.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,e2,data.items[unit.gear].animation);if(s.range>2)sfx.arrow();else sfx.blade();dmgNum(world,e2,dealt);}continue;}
+   if(order&&order.kind==='attack'){const tgt=world.enemies.find(e=>e.id===order.targetId&&e.hp>0);if(!tgt){unit.order=null;continue;}
+    if(move(world,data,unit,tgt,s.speed,dt,s.range,false,true)&&unit.attackTimer<=0){const dealt=s.damage*(1+aura.damage)*grit;tgt.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,tgt,data.items[unit.gear].animation);if(s.range>2)sfx.arrow();else sfx.blade();dmgNum(world,tgt,dealt);}continue;}
   if(!world.enemies.length){unit.hp=Math.min(s.hp,unit.hp+dt*2);continue;}
   if(data.troops[unit.type].role!=='combat')continue;
   const enemy=defenseTarget(world,data,unit,tgtCtx);if(!enemy)continue;
   if(s.range>2&&distance(unit,enemy)<1.7)retreat(world,data,unit,enemy,s.speed,dt);
-  if(move(world,data,unit,enemy,s.speed,dt,s.range,false,true)&&unit.attackTimer<=0){
-   const dealt=s.damage*(1+aura.damage)*grit;
-   enemy.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,enemy,data.items[unit.gear].animation);dmgNum(world,enemy,dealt);
+   if(move(world,data,unit,enemy,s.speed,dt,s.range,false,true)&&unit.attackTimer<=0){
+    const dealt=s.damage*(1+aura.damage)*grit;
+    enemy.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,enemy,data.items[unit.gear].animation);if(s.range>2)sfx.arrow();else sfx.blade();dmgNum(world,enemy,dealt);
    for(const a of abs) if(a.effect==='splash')for(const other of world.enemies)if(other!==enemy&&distance(other,enemy)<a.radius)other.hp-=s.damage*a.factor;
   }
  }
@@ -209,7 +209,7 @@ export function tickCombat(world,data,dt) {
    if(tier.burn)enemy.burn={dps:tier.burn*mult,timer:tier.burnDuration||3};
    // Slow heavy engines (the ballista's data `cooldown`) reload on
    // their own rhythm; everything else keeps the classic cadence.
-   b.cooldown=tier.cooldown??(b.type==='trap'?8:1.2);effect(world,c,enemy,b.type==='trap'?'slam':'arrow');dmgNum(world,enemy,dealt);
+    b.cooldown=tier.cooldown??(b.type==='trap'?8:1.2);effect(world,c,enemy,b.type==='trap'?'slam':'arrow');if(b.type==='trap')sfx.hit();else sfx.arrow();dmgNum(world,enemy,dealt);
   }
  }
  // Perf: wall membership never changes mid-tick (only hp does) — hoist the
@@ -296,7 +296,7 @@ export function tickCombat(world,data,dt) {
    try{if(enemy.role!=='boss')dread=bossAuraMult(world,data,enemy);}catch{}
    const raw=enemy.damage*dread*skyDmg*(1-Math.min(.8,reduction))*(!targetUnit&&isWall(target)?(role.wallDamage||1)*chestGuard:1);
    if(targetUnit&&raw>=target.hp&&!target.unbrokenUsed){try{if(unlockedAbilities(target,data).some(a=>a.effect==='unbroken')){target.hp=1;target.unbrokenUsed=true;enemy.attackTimer=1.3;push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y-1,kind:'float',text:'UNBROKEN!',color:'#ffe9a8',life:.9});effect(world,enemy,targetPoint,'slash');sfx.hit();continue;}}catch{}}
-   target.hp=Math.max(0,target.hp-raw);enemy.attackTimer=1.3;effect(world,enemy,targetPoint,role.range>2?'arrow':'slash');push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y,kind:'hit',life:.18});sfx.hit();
+    target.hp=Math.max(0,target.hp-raw);enemy.attackTimer=1.3;effect(world,enemy,targetPoint,role.range>2?'arrow':'slash');push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y,kind:'hit',life:.18});if(role.range>2)sfx.arrow();else sfx.blade();sfx.hit();
    // Rue's ledger: a building that falls while raiders walk counts against
    // the flawless defense. Troops falling never do — only walls and roofs.
    if(!targetUnit&&target.hp<=0)world.raidLosses=(world.raidLosses||0)+1;

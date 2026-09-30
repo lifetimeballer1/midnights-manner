@@ -597,7 +597,7 @@ export class Game {
     const patrol=boss?null:directorPatrol(this.state,this.data);
     if(patrol)count=Math.max(2,Math.min(4,count));
     const warning=cfg.warning+scout+(boss?(this.data.endgame?.bossRule?.warningBonus||20):0);
-    this.world.raidPending={timer:warning,count,scheduled:true,boss:boss?.id||null};this.world.raidKills=0;this.world.raidLoot=0;this.world.raidResult=null;sfx.horn();
+    this.world.raidPending={timer:warning,count,scheduled:true,boss:boss?.id||null};this.world.raidKills=0;this.world.raidLoot=0;this.world.raidResult=null;sfx.horn();sfx.warning();
     if(patrol)this.world.raidPending.patrol=patrol.tribe;
     if(boss){
      this.world.lastBoss={id:boss.id,name:boss.name,title:boss.title,wave:this.world.wave+1,won:null,elapsed:this.world.elapsed};

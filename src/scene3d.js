@@ -10,6 +10,7 @@ import {reserveCapacity,reserveReady} from './resources.js';
 import {drawBuildingActivity} from './building-activity.js';
 import {addEnvironmentScenery} from './environment-art.js';
 import {insideWorkplace} from './systems/villagers.js';
+import {sfx} from './systems/audio.js';
 export function pointInPolygon(x,y,points){let inside=false;for(let i=0,j=points.length-1;i<points.length;j=i++){const a=points[i],b=points[j];if((a.y>y)!==(b.y>y)&&x<(b.x-a.x)*(y-a.y)/(b.y-a.y)+a.x)inside=!inside;}return inside;}
 const FALLBACK_LIGHT=skyLightAt(DAY_LENGTH*.3,null); // high noon, for bare MeshScene uses
 // Phase 4 — ground-contact occlusion: faces near the dirt lose a slice of
@@ -79,9 +80,12 @@ function gateLiftStage(r,b,world,time){
  motion=motions.get(b.id);
  if(!motion){motion={stage:target,from:target,to:target,started:now};motions.set(b.id,motion);}
  else if(motion.to!==target){motion.from=motion.stage;motion.to=target;motion.started=now;}
- const progress=Math.max(0,Math.min(1,(now-motion.started)/GATE_MOVE_MS));
- motion.stage=Math.round(motion.from+(motion.to-motion.from)*progress);
- return motion.stage;
+  const progress=Math.max(0,Math.min(1,(now-motion.started)/GATE_MOVE_MS));
+  motion.stage=Math.round(motion.from+(motion.to-motion.from)*progress);
+  // The gate creaks while it travels (throttled in sfx) and falls silent
+  // once seated. Calm snaps above, so no sound path reaches frozen digests.
+  if(motion.from!==motion.to&&progress<1)try{sfx.gate();}catch{}
+  return motion.stage;
 }
 function trapArmed(b){return b.hp>0&&!(b.remaining>0)&&!(Number.isFinite(+b.cooldown)&&+b.cooldown>0);}
 function fence(s,x,y,w,d,color=timber){for(let i=0;i<=w;i+=.45){s.box(x+i,y,.05,.09,.09,.45,color);s.box(x+i,y+d-.09,.05,.09,.09,.45,color);}for(let j=.4;j<d;j+=.45){s.box(x,y+j,.05,.09,.09,.45,color);s.box(x+w-.09,y+j,.05,.09,.09,.45,color);}s.box(x,y,.23,w,.055,.07,color);s.box(x,y+d-.06,.23,w,.055,.07,color);s.box(x,y,.23,.055,d,.07,color);s.box(x+w-.06,y,.23,.055,d,.07,color);}
