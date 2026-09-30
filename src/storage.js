@@ -1,3 +1,4 @@
+import {normalizeTrails} from './systems/trails.js';
 import {ensureIdentity} from './systems/villagers.js';
 import {buildTiles} from './systems/biomes.js';
 import {mealDay} from './systems/food.js';
@@ -359,6 +360,7 @@ export function validateSave(value, data) {
 function supplyDefaults(value, data) {
   for (const w of [value.world, value.home]) {
     if (!w) continue;
+    normalizeTrails(w,data);
     if (typeof w.autoTrain !== 'boolean') w.autoTrain = false;
     if (typeof w.wellSupplied !== 'boolean') w.wellSupplied = false;
     if (!Number.isInteger(w.lastSupplyDay) || w.lastSupplyDay < 0) {
