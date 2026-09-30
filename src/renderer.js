@@ -11,6 +11,18 @@ import {weatherAt,skyLightAt,phaseAt} from './systems/daynight.js';
 import {drawAtmosphere} from './atmosphere-art.js';
 import {insideWorkplace} from './systems/villagers.js';
 import {trackStride, footstepFor, surfaceAt} from './systems/footsteps.js';
+// Wood-framed status bars: pure geometry so the frame math is unit-tested;
+// the draw call only paints the three rects. Fill color stays caller-owned
+// (hp green/red, reserves, build progress keep their meaning).
+export function barGeometry(x, y, fraction, width) {
+ const f = Math.max(0, Math.min(1, Number(fraction) || 0));
+ const w = Math.max(1, Number(width) || 1);
+ return {
+  frame: {x: x - w / 2 - 1, y: y - 1, w: w + 2, h: 5},
+  track: {x: x - w / 2, y, w, h: 3},
+  fill: {x: x - w / 2, y, w: w * f, h: 3},
+ };
+}
 import {zoomBand, bandGain, setListener, pickEmitters} from './systems/soundstage.js';
 import {buildingActivityState, seedOf} from './building-activity.js';
 import {WorkSync} from './systems/worksync.js';
@@ -406,5 +418,5 @@ export class Renderer {
  staticCacheKey(world){const b=world.bounds||{w:20,h:16};const seed=this.data.world?.seed??0;const lm=Array.isArray(this.data.world?.tiles)?this.data.world.tiles.length:0;let claimed=-1;try{if(Array.isArray(world.tiles)){claimed=0;for(const t of world.tiles)if(t.claimed)claimed++;}}catch{}this.claimedTileCount=claimed;return [this.cam.x.toFixed(2),this.cam.y.toFixed(2),this.cam.zoom,this.cam.yaw??DEFAULT_YAW,this.cam.pitch??DEFAULT_PITCH,this.width,this.height,this.dpr,this.grid?1:0,b.w,b.h,seed,lm,claimed].join('|');}
  blitCachedStatic(world){if(this._noCache)return false;const key=this.staticCacheKey(world);if(this.staticLayer&&key===this.staticKey){try{this.ctx.drawImage(this.staticLayer,0,0,this.width,this.height);}catch{this._noCache=true;return false;}return true;}this._pendingStaticKey=key;return false;}
  captureStatic(world){const key=this._pendingStaticKey;this._pendingStaticKey=null;if(!key||this._noCache||typeof document==='undefined')return;if(this.shake>0.2)return;try{const pw=Math.round(this.width*this.dpr),ph=Math.round(this.height*this.dpr);if(!this.staticLayer)this.staticLayer=document.createElement('canvas');if(this.staticLayer.width!==pw||this.staticLayer.height!==ph){this.staticLayer.width=pw;this.staticLayer.height=ph;}const g=this.staticLayer.getContext('2d');g.setTransform(1,0,0,1,0,0);g.drawImage(this.canvas,0,0);this.staticKey=key;}catch{this._noCache=true;this.staticLayer=null;this.staticKey='';}}
- bar(x,y,fraction,width,color){const c=this.ctx;c.fillStyle='#43573d66';c.fillRect(x-width/2,y,width,3);c.fillStyle=color;c.fillRect(x-width/2,y,width*Math.max(0,Math.min(1,fraction)),3);}
+  bar(x,y,fraction,width,color){const c=this.ctx,g=barGeometry(x,y,fraction,width);c.fillStyle='#3a2413';c.fillRect(g.frame.x,g.frame.y,g.frame.w,g.frame.h);c.fillStyle='#43573d';c.fillRect(g.track.x,g.track.y,g.track.w,g.track.h);c.fillStyle=color;c.fillRect(g.fill.x,g.fill.y,g.fill.w,g.fill.h);}
 }

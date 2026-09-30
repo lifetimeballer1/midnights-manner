@@ -1,3 +1,10 @@
+# Wooden interface: cartoon wood + candy reskin, wave stars
+
+- CSS-only cartoon reskin (no assets): plank-gradient wood panels, candy-orange dock (gold Build, red Defend, dark glyphs), dark-wood resource trays/quest/toast/raid banner, round camera buttons, shop-style drawer cards with dark cost insets, wooden dialogs/title/inspector with red ✗ close, wood-framed canvas status bars.
+- 28 surface colors centralized as `:root` tokens first (pixel-neutral proof), then painted in the winning `kingdom.css` layer — including the in-progress navy ledger, paint-only, layout untouched.
+- Raid cards award wave stars from the ledger (3 flawless / 2 scars ≤2 / 1 heavy / 0 defeat) with an accessible label; no sim changes.
+- Review: `npm test` 893 green (token/star/bar-geometry/touch-target checks, drawer+title capture harness), `npm run build` green, browser smoke green, day/dusk/night/rain/phone/drawer/title captures judged readable.
+
 # Alive village: zoom-gated synchronized sound, work audio, four new themes
 
 - Sound follows the camera: far hears only music/weather/settlement wash, village zoom adds faint work, near zoom individual buildings (nearest 5, distance-faded), close/intimate adds footsteps/machinery/combat detail. Independent cooldown pools per class, 12-voice cap, per-call vol/pitch, release/impact scheduler (capped, mute-dropping).

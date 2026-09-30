@@ -68,7 +68,8 @@ try{
  // capture it from a second load after the main pass leaves saves warm.
  if(process.env.GUI_CAPTURE==='1'){
   await call('Page.navigate',{url:`http://127.0.0.1:${port}/midnights-manner/`});
-  await new Promise(r=>setTimeout(r,1500));
+  await waitFor('Boolean(window.midnightsManner)');
+  await new Promise(r=>setTimeout(r,1200));
   await shot('look-gui-title');
   summary.views.push({file:'artifacts/look-gui-title.png'});
   await evaluate('document.querySelector("#begin").click()');await waitFor('window.midnightsManner.ready');
