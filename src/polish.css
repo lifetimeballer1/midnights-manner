@@ -117,7 +117,7 @@ while the dismiss button stays pinned. Phone-friendly by default. */
 .news-links button{font-size:11px;min-height:40px;padding:7px 13px}
 .news-card>.gold-button{width:100%}
 /* U1: edge summaries keep the village clear; detail is explicitly expandable. */
-#game .hud-chip{min-width:44px;min-height:44px;height:44px;padding:6px 9px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:12px;border-radius:10px;background:linear-gradient(145deg,#293e5af5,#14223af5);color:#fff1d4;border:1px solid #b79a5c}
+#game .hud-chip{min-width:44px;min-height:44px;height:44px;padding:6px 9px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:12px;border-radius:10px;background:var(--wood-dark-bg);color:#fff1d4;border:2px solid var(--wood-edge)}
 #game #resource-summary{grid-column:1/-1;width:100%;white-space:nowrap}
 #resource-summary>span{display:inline-flex;align-items:center;gap:3px;min-width:0}
 #resource-summary img{width:18px;height:18px}
