@@ -205,8 +205,10 @@ try{
  await call('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
  const after=await evaluate('window.midnightsManner.camera()');assert.ok(Math.abs(before.x-after.x)+Math.abs(before.y-after.y)>.1,'one finger pans');
  const zoomBefore=after.zoom;
- await call('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:140,y:360,id:1},{x:240,y:360,id:2}]});
- await call('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:100,y:360,id:1},{x:280,y:360,id:2}]});
+ const pinchArea=await evaluate('(()=>{for(let y=300;y<innerHeight-180;y+=20)for(let x=120;x<innerWidth-120;x+=20){if(document.elementFromPoint(x-50,y)?.id==="world"&&document.elementFromPoint(x+50,y)?.id==="world")return {x,y};}return null;})()');
+ assert.ok(pinchArea,'clear canvas area available for pinch');
+ await call('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:pinchArea.x-50,y:pinchArea.y,id:1},{x:pinchArea.x+50,y:pinchArea.y,id:2}]});
+ await call('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:pinchArea.x-90,y:pinchArea.y,id:1},{x:pinchArea.x+90,y:pinchArea.y,id:2}]});
  await call('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
  assert.ok((await evaluate('window.midnightsManner.camera().zoom'))>zoomBefore,'two fingers zoom');
  await click('#recenter');await screenshot('mobile');
