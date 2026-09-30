@@ -40,11 +40,24 @@ export function ambienceProfile(world,data){
  };
 }
 
-export function soundtrackMood(world,data){
+export function soundtrackMood(world,data,extra={}){
  const profile=ambienceProfile(world,data);
- if(profile.raid)return 'danger';
+ const mem=(extra&&typeof extra==='object'&&extra.memory&&typeof extra.memory==='object')?extra.memory:{};
+ if(profile.raid){
+  mem.lastRaidElapsed=Number.isFinite(world?.elapsed)?world.elapsed:null;
+  return 'danger';
+ }
  if(profile.warning)return 'tension';
+ // Aftermath: the quiet rebuild after a raid, remembered renderer-side so
+ // saves and sim stay untouched. Fades 90 seconds after the all-clear.
+ const since=Number.isFinite(world?.elapsed)&&Number.isFinite(mem.lastRaidElapsed)?world.elapsed-mem.lastRaidElapsed:null;
+ if(since!==null&&since>=0&&since<90)return 'aftermath';
  if(profile.weather!=='clear')return 'weather';
+ // A Manor Ascendant: a grown, populous settlement in daylight sounds like
+ // what it has become. Nights keep their lantern intimacy.
+ const vlevel=Number(extra?.vlevel)||0;
+ if(!profile.night&&vlevel>=7&&profile.settlement>=12)return 'prosperous';
+ if(profile.phase==='dawn')return 'dawn';
  return profile.night?'night':'day';
 }
 

@@ -1,3 +1,10 @@
+# Alive village: zoom-gated synchronized sound, work audio, four new themes
+
+- Sound follows the camera: far hears only music/weather/settlement wash, village zoom adds faint work, near zoom individual buildings (nearest 5, distance-faded), close/intimate adds footsteps/machinery/combat detail. Independent cooldown pools per class, 12-voice cap, per-call vol/pitch, release/impact scheduler (capped, mute-dropping).
+- Impacts match action: forge bellows->CLANG->hiss on the pulse peak, mine picks/carts, lumber chops/log drops, sawmill rasps/feeds, mill creaks on the wheel angle, farm rustles, bakery/mason/fletcher/tannery/butchery/water/market/homes/barracks voices, footsteps from real stride with stone/water/frost surfaces, bow release vs flight-delayed impact, ballista strain/THUNK with bolt visual, wood/stone wall damage, gate transit creaks + raid-close thuds, trap resets, watchfire crackle, rare raven/owl/rooster/dog/livestock/gust/thunder.
+- Four procedural themes: Village Awakens (dawn), Walls of Midnight (danger/tension), After the Raid (90s aftermath memory, save-free), A Manor Ascendant (vlevel 7+ populous daylight).
+- Review: `npm test` 881 green (30 new audio/sync/music checks incl. a fake-AudioContext ambience driver and real-time release/impact timing), `npm run build` green, browser smoke green, look-capture pixel-stable with identical face counts.
+
 # Midnight Manor visual overhaul: six tiers for every reasonable building
 
 - All 53 permanent player-built buildings now climb six tiers (T1–T3 byte-identical, saves compatible): 9 core (farm/mine/lumber/cottage/hall/longhouse/storehouse/barracks/forge), 10 production, 13 defenses, 21 nature/civic/projects. Upper tiers add lumber/plate costs and village-level gates (max 11, reachable). Combat stats carry forward unchanged per tier; only hp/rate scale.
