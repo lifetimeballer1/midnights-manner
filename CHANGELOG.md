@@ -1,3 +1,11 @@
+# Midnight Manor visual overhaul: six tiers for every reasonable building
+
+- All 53 permanent player-built buildings now climb six tiers (T1–T3 byte-identical, saves compatible): 9 core (farm/mine/lumber/cottage/hall/longhouse/storehouse/barracks/forge), 10 production, 13 defenses, 21 nature/civic/projects. Upper tiers add lumber/plate costs and village-level gates (max 11, reachable). Combat stats carry forward unchanged per tier; only hp/rate scale.
+- Procedural L4–L6 geometry in `src/scene3d.js` (both render paths in `src/building-art.js` for walls/gates): longhouse meadhall wings/shields/braziers, farm scarecrow/irrigation/shed, mine pulley/second cart, sawmill gantry, mill wheel bands, wall foundations/pennants, gate lanterns, project gold trim, plus a `masterworkDetails()` prop layer and deterministic per-building variants. One distinct 32×32 PNG per tier (warmed upper-stage art for project pairs).
+- Ambient life: jobless villagers breathe (`workMotionFor` idle branch, zero at time 0 so frozen digests hold, calm freezes); occupied homes emit level-gated chimney smoke (`hearthSmokeFor`); bakery/tannery/groves join the layered probabilistic ambience sets.
+- Pins updated deliberately (tier lengths, stonewall hp ladder, GW1 earlier-hash/caps, H2/H3 twelve-asset distinctness, paragon now crowns T6 walls); GW1 raw-file pins normalize CRLF/LF so Windows and CI agree.
+- Review: `npm test` 846 green, `npm run build` 598 precached, browser smoke green, 60s frontier soak green (max ~3k/30k faces, 4/60 effects, zero page errors), look-capture day/dusk/night + rain/fog + phone judged.
+
 # Late-Game Economy — Phase 8: spawn protection and the Ironshield conquest
 
 - Spawn protection in `spawnRaid`: `spawnExclusion(world, data, buffer)` builds the settlement's exclusion ring (structures + `world.spawnBuffer`, default 2) once per raid; entries must fall outside it, and a built-up near edge pushes the muster outward into the wild before any fallback. Per-raid tile dedup added. Deliberate contract update in wall-controls ("on the grid" = the navigation grid; a side's party holds its edge or beyond).

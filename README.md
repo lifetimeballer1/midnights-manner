@@ -110,9 +110,13 @@ User-provided Clash of Clans village and battle screenshots informed edge-anchor
 
 These are design references only. No screenshots or commercial game assets are bundled; the repository's original pixel sprite set is retained. The brighter grass, dark framed HUD, camera scale and high-contrast selection treatment make it readable on a small phone.
 
+### Building tiers and visual progression
+
+Every permanent player-built building climbs six visual/gameplay tiers (frontier → established → professional → prosperous → advanced → masterwork), each with distinct procedural 3D geometry, profession props and lighting — never a recolor. Upper tiers cost lumber/plate and, for defenses and projects, village levels up to 11. Tier 1–3 data is byte-identical to earlier releases so old saves import untouched; great works (Manner Citadel, Grand Watchtower), consumable traps and single-piece wonders (Oathstone, Moon-dial, Cairnfield, Dawn-gate, Bellcote) keep their authored stage counts. Repeated buildings vary deterministically by building id, and all lights (windows, lanterns, torches, forges, braziers) originate from visible sources with day/night arcs. Jobless villagers breathe idly while posted workers hold their work poses; occupied homes emit level-gated chimney smoke.
+
 ### Verification
 
-`npm test` includes 686 simulation/rendering/input/audio/update regression checks. `npm run test:browser` requires a locally installed Chromium (`CHROME_BIN` may point at Chrome or Edge). CI runs real pointer/touch input checks for placement preview/confirm, menus, equipment/training, missions, raids, save/reload, one-finger pan, pinch zoom, audio start/mute/resume, and no document overflow at portrait/landscape sizes. Screenshots are attached to the Actions run. A browser test failure blocks deployment. The update/refresh smoke path now restores the Settings sheet after service-worker controller transitions while separately asserting that no unapproved reload occurred; the same browser pass also requires live frame telemetry and keeps visible/static mesh face counts below a generous 30,000-face runaway guard.
+`npm test` includes 846 simulation/rendering/input/audio/update regression checks. `npm run test:browser` requires a locally installed Chromium (`CHROME_BIN` may point at Chrome or Edge). CI runs real pointer/touch input checks for placement preview/confirm, menus, equipment/training, missions, raids, save/reload, one-finger pan, pinch zoom, audio start/mute/resume, and no document overflow at portrait/landscape sizes. Screenshots are attached to the Actions run. A browser test failure blocks deployment. The update/refresh smoke path now restores the Settings sheet after service-worker controller transitions while separately asserting that no unapproved reload occurred; the same browser pass also requires live frame telemetry and keeps visible/static mesh face counts below a generous 30,000-face runaway guard.
 
 For visual work, `npm run build && npm run capture` writes deterministic look snapshots (dawn/day/dusk/night desktop plus a phone night view — calm motion, clear skies, pinned camera) to `artifacts/look-*.png`. `tests/lighting-baseline.test.js` freezes the current mesh shading and the static-cache invariant until a phase updates them deliberately. The `?perf` badge and `window.midnightsManner.frameReport()` report frame times plus painted and cached face counts.
 
@@ -138,7 +142,7 @@ src/
     storage.js         central storage caps, reward ledger, inflow gates
     conquest.js        tribal conquest state, readiness law, annex ledger
     dashboard.js       read-only per-day economy ledger
-assets/sprites/        95 original 32×32 transparent PNG placeholders
+assets/sprites/        506 original 32×32 transparent PNG placeholders (one per building tier)
 assets/favicon.svg
 data/                  editable game configuration JSON (buildings, troops, items, quests, missions, world)
 scripts/
@@ -480,4 +484,4 @@ Verification: `npm.cmd test` passed all 844 checks, including seven PAT1 checks.
 
 Late-Game Economy Plan, all ten phases plus conquest: storage caps with grandfathering and quiet settling (P1), steep upper-tier curves (P2), farm-mill-bakery chain with Well Fed and Well Supplied (P3), eight Town Projects (P4), five-investment War Chest (P5), three festivals now fed by rations and feast supplies (P6), rotating lossy market valves (P7), escalating multi-good Renown (P8), two Great Works (P9), read-only economy dashboard (P10). Tribal endgame per spec: spawn-exclusion footprint, sequential five-tribe conquest with prelims, war-chest march costs, named leaders, outpost/dismantle/settlement annex with supply upkeep, tribe-locked core regions (Ironshield has no valley region and is unchanged) with patrol pressure that ends at victory, and the 34-mission campaign crowned by The Grey Dawn Crown.
 
-Deliberate compressions: the Gristmill keeps its original flour step beside the Bakery; Construction Contract was not added (Armory pays gold). No harsh decay, no production nerfs, no mandatory upkeep � sinks only. Verification: full suite green locally and on GitHub Actions (node tests plus real-Chromium smoke, including the U1-aware harness); browser smoke cannot run in every local environment, so CI is the source of truth there.
+Deliberate compressions: the Gristmill keeps its original flour step beside the Bakery; Construction Contract was not added (Armory pays gold). No harsh decay, no production nerfs, no mandatory upkeep � sinks only. Verification: full suite green locally and on GitHub Actions (node tests plus real-Chromium smoke, including the U1-aware harness); browser smoke cannot run in every local environment, so CI is the source of truth there.
