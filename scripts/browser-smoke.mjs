@@ -143,7 +143,7 @@ try{
  await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:2,mobile:true});await new Promise(r=>setTimeout(r,150));await click('#recenter');
  await waitFor('window.midnightsManner.collectionBubbles().length > 0',1600);
  const bubbles=await evaluate('window.midnightsManner.collectionBubbles()');
- assert.ok(bubbles.every(b=>/\+\d+ (Wood|Food|Gold|Frostwood|Plate)/.test(b.label)),'collection bubbles name their resources');
+ assert.ok(bubbles.every(b=>/(Wood|Food|Gold|Frostwood|Plate)(?: \+\d+| storage full)/.test(b.label)),'collection markers name their resources');
  await screenshot('polished-village');
  const visiblePill=await evaluate('window.midnightsManner.collectionBubbles().find(b=>document.elementFromPoint(b.x+b.w/2,b.y+b.h/2)?.id==="world")');
  assert.ok(visiblePill,'collection touch target visible');
