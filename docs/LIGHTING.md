@@ -168,3 +168,9 @@ darkening.
 - `tests/source-lighting.test.js` — emitter gating/placement, cache invariants, profile assignment, deterministic bounded flicker, Calm behavior, fallback and profile falloff.
 - `tests/daynight.test.js` — unchanged: overlay pins (`lightingFor` keeps its
   contract; `skyLightAt().overlay` re-exports it).
+
+## Cinematic Canvas layer
+
+The renderer calls `drawCelestialShadows`, `drawGroundMist`, `drawSourceSpill`, opaque mesh painting, visible-source bloom, chimney wisps and peripheral air, then the existing building activity/readout pass. No CSS/HUD post-processing or simulation changes. Ground shadows reuse cached caster envelopes and reproject at the sky paint bucket; their conservative silhouettes are ground-only. Nearby practical wash is static-cache work, indexed by source radius in tile cells, with footprint blockers and a 0.24 additional-light ceiling. Existing albedo/geometry and frozen shading contracts remain pinned.
+
+Bloom tests visibility against the opaque painter stack, uses 3–18px halos and is capped at 32 sources. Smoke uses real chimney coordinates and foreground bounds to suppress occluded wisps, with an eight-plume budget. Calm retains static atmosphere and bloom while suppressing embers; far zoom removes bloom/smoke details. This is approximate GI/volume/depth presentation in Canvas, not a replacement WebGL engine or an optical blur pass.

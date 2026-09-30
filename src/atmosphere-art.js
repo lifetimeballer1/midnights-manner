@@ -75,9 +75,9 @@ function rainSplashes(r,time){
  }
  c.globalAlpha=1;
 }
-export function drawAtmosphere(r,world,time,weather){
+export function drawAtmosphere(r,world,time,weather,opts={}){
  if(!r||!world||r.calm||r.cam.zoom<.9)return {smoke:0,trails:0,rain:0};
- const smokeList=smokeSources(world,r.data),trails=trailActors(world,r.data);
+ const smokeList=smokeSources(world,r.data).filter(s=>!opts.sceneChimneys||s.type!=='building'),trails=trailActors(world,r.data);
  for(const source of smokeList)smoke(r,source,time,!!weather?.streaks);
  for(const item of trails)footprints(r,item,time);
  const rain=weather?.streaks?ATMOSPHERE_LIMITS.rainSplashes:0;if(rain)rainSplashes(r,time);
