@@ -29,6 +29,15 @@ test('working pose: posted trades and active collectors move their held tools',(
  assert.equal(hasMotion({...smith,order:{kind:'move'}},'weaponsmith'),false,'manual order suppresses work pose');
 });
 
+test('ambient life: jobless townspeople breathe, workers and fighters hold still',()=>{
+  const idler={id:'idler',type:'farmer',hp:100,gear:'sickle',order:null};
+  assert.equal(workMotionFor(idler,data.troops.farmer,0,false),0,'frozen pins never move at time 0');
+  assert.equal(hasMotion(idler,'farmer'),true,'townspeople shift their weight while idle');
+  assert.equal(workMotionFor(idler,data.troops.farmer,700,true),0,'calm freezes idle sway too');
+  assert.equal(hasMotion({...idler,workplace:'farm-1'},'farmer'),false,'posted hands hold their work pose');
+  assert.equal(hasMotion({id:'guard',type:'warrior',hp:100,gear:'sword',order:null},'warrior'),false,'fighters hold still');
+});
+
 test('working pose: repair builders work, calm mode freezes every job pose',()=>{
  const builder={id:'builder',type:'builder',hp:100,gear:'hammer',emergency:{kind:'repair'}};
  assert.equal(hasMotion(builder,'builder'),true);

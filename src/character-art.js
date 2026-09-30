@@ -212,14 +212,24 @@ export function workMotionFor(u,troop,time,calm=false){
  const posted=!!u.workplace&&troop?.role!=='combat'&&!u.emergency;
  const collecting=posted&&troop?.role==='collector'&&u.phase==='gather'&&(u.carry||0)>0;
  const stationed=posted&&troop?.role!=='collector';
- if(!repair&&!collecting&&!stationed)return 0;
- const gear=u.gear||troop?.defaultGear||'';
- let amp=.08,speed=.007;
- if(/pick|axe|hammer|cleaver|sickle|scythe|trowel|tongs/.test(gear)){amp=.18;speed=.011;}
- else if(/rod|crook|net|bow/.test(gear)){amp=.1;speed=.006;}
- else if(/tome|hymnal|primer|orrery|scales|chalice|compass/.test(gear)){amp=.055;speed=.0045;}
- const seed=phaseSeed(u.id)*.013;
- return Math.max(0,Math.sin(time*speed+seed))*amp;
+  if(!repair&&!collecting&&!stationed){
+   // Idle ambient life: villagers breathe and shift their weight while they
+   // wait, gather or talk. Zero at time 0 so frozen digest pins never move,
+   // desynced per unit so the town never sways in formation. Calm still
+   // freezes everything via the early return above. Combat roles, enemies
+   // (no troop record) and posted workers hold still — only townspeople
+   // between jobs breathe, so waiting collectors keep their pinned stillness.
+   if(!troop||troop.role==='combat'||u.workplace)return 0;
+   const s2=phaseSeed(u.id);
+   return (Math.sin(time*.0021+s2)-Math.sin(s2))*.035;
+  }
+  const gear=u.gear||troop?.defaultGear||'';
+  let amp=.08,speed=.007;
+  if(/pick|axe|hammer|cleaver|sickle|scythe|trowel|tongs/.test(gear)){amp=.18;speed=.011;}
+  else if(/rod|crook|net|bow/.test(gear)){amp=.1;speed=.006;}
+  else if(/tome|hymnal|primer|orrery|scales|chalice|compass/.test(gear)){amp=.055;speed=.0045;}
+  const seed=phaseSeed(u.id)*.013;
+  return Math.max(0,Math.sin(time*speed+seed))*amp;
 }
 function carriedLoad(s,u,troop,x,y,detail){
  if(!(u.carry>0))return;
