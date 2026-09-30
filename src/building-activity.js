@@ -19,6 +19,22 @@ export function buildingActivityState(building,spec,world,crewCounts=null){
  const stocking=Number.isFinite(spec.stockRate)&&spec.stockRate>0&&(+building.stock||0)<1;
  return {active:producer||workplace||stocking,crew,producer,workplace,stocking};
 }
+export function hearthSmokeFor(b,spec){
+ // Occupied homes breathe light chimney smoke even when no crew is posted:
+ // the hut() geometry only builds a chimney at level 2+, so smoke follows
+ // the same rule and never floats over a chimneyless cabin. Pure data over
+ // building fields; calm handling stays with the draw call.
+ if(!b||!spec||b.hp<=0||(b.remaining||0)>0)return 0;
+ if((b.level||1)<2)return 0;
+ switch(b.type){
+  case 'cottage':return .35;
+  case 'hall':return .5;
+  case 'longhouse':return .6;
+  case 'storehouse':return .3;
+  case 'grand-granary':return .3;
+  default:return 0;
+ }
+}
 function point(r,x,y,z=0){return r.project(x,y,z);}
 function line(c,a,b,width,color,alpha=1){
  c.globalAlpha=alpha;c.strokeStyle=color;c.lineWidth=width;c.beginPath();c.moveTo(a.x,a.y);c.lineTo(b.x,b.y);c.stroke();c.globalAlpha=1;
@@ -97,7 +113,8 @@ export function drawBuildingActivity(r,world,time){
   if(b.type==='mill')wheel(r,b,n,time,intensity);
   if(['farm','pasture','grove','frostgrove'].includes(b.type))cropSweep(r,b,n,time,intensity);
   if(state.workplace&&['armory','fletcher','shieldwall-yard','tannery','scriptorium','schoolroom','scout_post'].includes(b.type))workGlint(r,b,n,time,intensity);
-  if(state.workplace&&b.type==='mason_yard')dustTick(r,b,n,time,intensity);
-  if(state.stocking&&b.type==='fletcher')workGlint(r,b,n,time,intensity);
+   if(state.workplace&&b.type==='mason_yard')dustTick(r,b,n,time,intensity);
+   if(state.stocking&&b.type==='fletcher')workGlint(r,b,n,time,intensity);
+   if(!r.calm){const hearth=hearthSmokeFor(b,spec);if(hearth>0)smoke(r,b,n,time,hearth);}
  }
 }
