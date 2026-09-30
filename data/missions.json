@@ -3217,5 +3217,122 @@
     "requires": [
       "grey-dawn-gathers"
     ]
+  },
+  {
+    "id": "grey-dawn-road",
+    "name": "The Grey Road",
+    "chapter": "32",
+    "act": "X",
+    "beat": "The drilled banners march onto the Grey Road; the heaviest probe tests their last muster before the assault.",
+    "giver": "Sorrel the watcher",
+    "description": "Three heavy waves probe the Grey Road. Hold the road, keep the oathstone standing, and break the probe.",
+    "timeLimit": 360,
+    "troopLimit": 10,
+    "objectives": [
+      {
+        "kind": "defeat",
+        "amount": 24
+      },
+      {
+        "kind": "survive",
+        "seconds": 300
+      }
+    ],
+    "startingResources": {
+      "wood": 340,
+      "food": 220,
+      "gold": 160
+    },
+    "map": {
+      "biome": "plains",
+      "seed": 3211,
+      "tiles": [
+        {
+          "x": 15,
+          "y": 12,
+          "biome": "plains",
+          "landmark": "Grey Road",
+          "claimed": true
+        }
+      ],
+      "buildings": [
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "tower",
+          "x": 6,
+          "y": 6
+        },
+        {
+          "type": "archer_tower",
+          "x": 6,
+          "y": 9
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 7
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 8
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 9
+        },
+        {
+          "type": "barracks",
+          "x": 8,
+          "y": 4
+        }
+      ],
+      "troops": [
+        "warrior",
+        "pikewoman",
+        "halberdier",
+        "archer",
+        "builder",
+        "miner"
+      ]
+    },
+    "raids": [
+      {
+        "at": 40,
+        "count": 7
+      },
+      {
+        "at": 150,
+        "count": 9
+      },
+      {
+        "at": 250,
+        "count": 11
+      }
+    ],
+    "scaling": {
+      "hp": 34,
+      "damage": 6.5
+    },
+    "rewards": {
+      "gold": 5500,
+      "lumber": 3000,
+      "plate": 800,
+      "frostwood": 500
+    },
+    "unlocks": [],
+    "ceremony": {
+      "warning": "Sorrel leads the drilled banners onto the Grey Road. Three heavy waves come; hold the road and keep the oathstone standing before the final assault.",
+      "victory": "The probe breaks. The five banners hold the Grey Road, and Sorrel turns their march toward the final assault.",
+      "defeat": "The probe breaks the road line. Sorrel gathers the fallen banners; muster again and hold the Grey Road."
+    },
+    "requires": [
+      "grey-dawn-muster"
+    ]
   }
 ]

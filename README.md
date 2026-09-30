@@ -417,3 +417,11 @@ Resources, the army rail, camera tools and the current quest default to compact 
 All 31 earlier missions and complete conquest data retain their HEAD fingerprints; all five tribes retain byte-identical scout, first-clear, annex and daily supply outcomes. Only affected mission/chapter totals, historical fingerprint filters and the rewards-only story expectation were updated in earlier tests. No runtime code, mechanics, save fields or conquest data changed. H10 ends at 32 missions and chapter 31; H11 remains unstarted.
 
 Verification: `npm.cmd test` passed all 808 checks, including seven new H10 checks. `npm.cmd run build` passed with 401 precached files. Browser interaction smoke was not run.
+
+### Grey Dawn H11
+
+**The Grey Road** (chapter 32) follows Muster of the Five Banners. Sorrel leads the drilled banners onto the plains Grey Road for their last muster before the final assault. Three heavy probing waves arrive at 40, 150 and 250 seconds with 7, 9 and 11 raiders. The unchanged Ironshield watch yard and six starting professions support ten troop slots and a 360-second limit: defeat 24 raiders and hold for 300 seconds, with every scheduled wave defeated and the hall standing. The first-clear basket is 5,500 gold, 3,000 lumber, 800 plate and 500 frostwood; replay pays nothing new. This story chapter has no war chest, conquest ledger, destination gate, boss or unlocks.
+
+All 32 earlier missions and complete conquest data retain their HEAD fingerprints; all five tribes retain byte-identical scout, first-clear, annex and daily supply outcomes. Only affected mission/chapter totals, historical fingerprint filters and the rewards-only story expectation were updated in earlier tests. No runtime code, mechanics, save fields or conquest data changed. H11 ends at 33 missions and chapter 32; H12 remains unstarted.
+
+Verification: `npm.cmd test` passed all 815 checks, including seven new H11 checks. `npm.cmd run build` passed with 401 precached files. Browser interaction smoke was not run.
