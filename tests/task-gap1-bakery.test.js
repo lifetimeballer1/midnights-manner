@@ -39,8 +39,8 @@ test('GAP1: bakery is a level-6 miller-hosted refiner with three exact recipes',
     {in: {food: 2, flour: 2}, out: {rations: 2}, perSec: 0.4},
     {in: {bread: 2, gold: 20}, out: {'feast-supplies': 1}, perSec: 0.3},
   ]);
-  assert.equal(b.tiers.length, 2);
-  assert.deepEqual(b.tiers.map(t => t.sprite), ['bakery-1.png', 'bakery-2.png']);
+  assert.equal(b.tiers.length, 6);
+  assert.deepEqual(b.tiers.map(t => t.sprite), ['bakery-1.png', 'bakery-2.png', 'bakery-3.png', 'bakery-4.png', 'bakery-5.png', 'bakery-6.png']);
   // The Gristmill keeps its original two-step chain untouched.
   assert.deepEqual(data.buildings.mill.refine.length, 2);
 });

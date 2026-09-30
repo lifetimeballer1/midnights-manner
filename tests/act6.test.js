@@ -226,10 +226,10 @@ test('ph7: the Smeltery waits on a tier-2 Frostgrove (generic chain gate)', () =
   assert.equal(s.rate, 0.6);
   assert.equal(s.reserve, 400);
   assert.equal(s.workplace, 'smelter');
-  assert.equal(s.tiers.length, 2);
+  assert.equal(s.tiers.length, 6);
   assert.deepEqual(s.cost, {wood: 120, gold: 80, frostwood: 40});
   assert.deepEqual(s.requiresBuilding, {type: 'frostgrove', level: 2});
-  assert.equal(new Set(s.tiers.map(t => t.sprite)).size, 2, 'tiers stay visually distinct');
+  assert.equal(new Set(s.tiers.map(t => t.sprite)).size, 6, 'tiers stay visually distinct');
   // The gate is generic data: only the chain-gated line carries the field
    // (smeltery first; later frontier workplaces reuse it).
   for (const [id, b] of Object.entries(data.buildings)) {
@@ -716,12 +716,12 @@ test('ph10: the Wild Market is a size-3 haggler workplace with no production', (
   assert.equal(m.size, 3);
   assert.deepEqual(m.cost, {wood: 150, gold: 120, frostwood: 60});
   assert.equal(m.workplace, 'haggler');
-  assert.equal(m.tiers.length, 2);
+  assert.equal(m.tiers.length, 6);
   assert.equal(m.production, null);
   assert.ok(!m.harvest, 'no harvest block — no production, like forge/armory');
   assert.ok(!data.buildings.forge.harvest && !data.buildings.armory.harvest, 'the pattern holds');
   assert.equal(m.tradeAura, 0.1);
-  assert.equal(new Set(m.tiers.map(t => t.sprite)).size, 2, 'tiers stay visually distinct');
+  assert.equal(new Set(m.tiers.map(t => t.sprite)).size, 6, 'tiers stay visually distinct');
   assert.ok(data.world.locked.includes('market'), 'earned where the roads rejoin');
 });
 

@@ -1190,12 +1190,53 @@
     "rateMultiplier": 2,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "pasture-3.png",
+    "hp": 540,
+    "rateMultiplier": 3,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "pasture-4.png",
+    "hp": 756,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "pasture-5.png",
+    "hp": 972,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "pasture-6.png",
+    "hp": 1242,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
   ],
   "harvest": {
    "capacity": 500,
    "notifyAt": 150,
    "perTier": 500
+  },
+  "tierCosts": {
+   "4": {
+    "lumber": 50
+   },
+   "5": {
+    "lumber": 110,
+    "plate": 8
+   },
+   "6": {
+    "lumber": 190,
+    "plate": 25
+   }
   }
  },
  "butchery": {
@@ -1225,12 +1266,53 @@
     "rateMultiplier": 2,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "butchery-3.png",
+    "hp": 450,
+    "rateMultiplier": 3,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "butchery-4.png",
+    "hp": 630,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "butchery-5.png",
+    "hp": 810,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "butchery-6.png",
+    "hp": 1035,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
   ],
   "harvest": {
    "capacity": 500,
    "notifyAt": 150,
    "perTier": 500
+  },
+  "tierCosts": {
+   "4": {
+    "lumber": 50
+   },
+   "5": {
+    "lumber": 110,
+    "plate": 8
+   },
+   "6": {
+    "lumber": 190,
+    "plate": 25
+   }
   }
  },
  "scriptorium": {
@@ -1503,8 +1585,49 @@
     "rateMultiplier": 2,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "workshop-3.png",
+    "hp": 510,
+    "rateMultiplier": 3,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "workshop-4.png",
+    "hp": 714,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "workshop-5.png",
+    "hp": 918,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "workshop-6.png",
+    "hp": 1173,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
-  ]
+  ],
+  "tierCosts": {
+   "4": {
+    "lumber": 50
+   },
+   "5": {
+    "lumber": 110,
+    "plate": 8
+   },
+   "6": {
+    "lumber": 190,
+    "plate": 25
+   }
+  }
  },
  "tannery": {
   "maxCount": 2,
@@ -1533,8 +1656,49 @@
     "rateMultiplier": 2,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "tannery-3.png",
+    "hp": 450,
+    "rateMultiplier": 3,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "tannery-4.png",
+    "hp": 630,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "tannery-5.png",
+    "hp": 810,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "tannery-6.png",
+    "hp": 1035,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
-  ]
+  ],
+  "tierCosts": {
+   "4": {
+    "lumber": 50
+   },
+   "5": {
+    "lumber": 110,
+    "plate": 8
+   },
+   "6": {
+    "lumber": 190,
+    "plate": 25
+   }
+  }
  },
  "grove": {
   "maxCount": [
@@ -1709,8 +1873,49 @@
     "rateMultiplier": 2,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "mason_yard-3.png",
+    "hp": 660,
+    "rateMultiplier": 3,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "mason_yard-4.png",
+    "hp": 924,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "mason_yard-5.png",
+    "hp": 1188,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "mason_yard-6.png",
+    "hp": 1518,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
-  ]
+  ],
+  "tierCosts": {
+   "4": {
+    "lumber": 50
+   },
+   "5": {
+    "lumber": 110,
+    "plate": 8
+   },
+   "6": {
+    "lumber": 190,
+    "plate": 25
+   }
+  }
  },
  "frostgrove": {
   "maxCount": [
@@ -1804,12 +2009,53 @@
     "rateMultiplier": 2,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "smeltery-3.png",
+    "hp": 660,
+    "rateMultiplier": 3,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "smeltery-4.png",
+    "hp": 924,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "smeltery-5.png",
+    "hp": 1188,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "smeltery-6.png",
+    "hp": 1518,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
   ],
   "harvest": {
    "capacity": 500,
    "notifyAt": 150,
    "perTier": 500
+  },
+  "tierCosts": {
+   "4": {
+    "lumber": 50
+   },
+   "5": {
+    "lumber": 110,
+    "plate": 8
+   },
+   "6": {
+    "lumber": 190,
+    "plate": 25
+   }
   }
  },
  "deephole": {
@@ -1998,8 +2244,49 @@
     "rateMultiplier": 2,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "market-3.png",
+    "hp": 1200,
+    "rateMultiplier": 3,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "market-4.png",
+    "hp": 1680,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "market-5.png",
+    "hp": 2160,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "market-6.png",
+    "hp": 2760,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
-  ]
+  ],
+  "tierCosts": {
+   "4": {
+    "lumber": 50
+   },
+   "5": {
+    "lumber": 110,
+    "plate": 8
+   },
+   "6": {
+    "lumber": 190,
+    "plate": 25
+   }
+  }
  },
  "oathstone": {
   "name": "Oathstone",
@@ -2342,8 +2629,49 @@
     "rateMultiplier": 2,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "sawmill-3.png",
+    "hp": 600,
+    "rateMultiplier": 3,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "sawmill-4.png",
+    "hp": 840,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "sawmill-5.png",
+    "hp": 1080,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "sawmill-6.png",
+    "hp": 1380,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
-  ]
+  ],
+  "tierCosts": {
+   "4": {
+    "lumber": 50
+   },
+   "5": {
+    "lumber": 110,
+    "plate": 8
+   },
+   "6": {
+    "lumber": 190,
+    "plate": 25
+   }
+  }
  },
  "storehouse": {
   "costCurve": [
@@ -2511,8 +2839,49 @@
     "rateMultiplier": 2,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "mill-3.png",
+    "hp": 600,
+    "rateMultiplier": 3,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "mill-4.png",
+    "hp": 840,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "mill-5.png",
+    "hp": 1080,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "mill-6.png",
+    "hp": 1380,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
-  ]
+  ],
+  "tierCosts": {
+   "4": {
+    "lumber": 50
+   },
+   "5": {
+    "lumber": 110,
+    "plate": 8
+   },
+   "6": {
+    "lumber": 190,
+    "plate": 25
+   }
+  }
  },
  "bakery": {
   "maxCount": [
@@ -2587,8 +2956,49 @@
     "rateMultiplier": 2,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "bakery-3.png",
+    "hp": 675,
+    "rateMultiplier": 3,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "bakery-4.png",
+    "hp": 945,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "bakery-5.png",
+    "hp": 1215,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "bakery-6.png",
+    "hp": 1553,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
-  ]
+  ],
+  "tierCosts": {
+   "4": {
+    "lumber": 50
+   },
+   "5": {
+    "lumber": 110,
+    "plate": 8
+   },
+   "6": {
+    "lumber": 190,
+    "plate": 25
+   }
+  }
  },
  "market-square": {
   "name": "Grand Market Square",
