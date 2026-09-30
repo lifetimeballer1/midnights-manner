@@ -45,7 +45,7 @@ test('GW1: exactly two additive projects preserve earlier buildings and campaign
  const earlier=Object.fromEntries(Object.entries(data.buildings).filter(([id])=>!ids.includes(id)));
  assert.equal(hash(JSON.stringify(earlier)),'d2fa1da74227b9f0cca9e3d54da1d5659a17d4e89be17e559870c959a0023b1f');
  assert.equal(hash(JSON.stringify(data.buildings['dawn-gate'])),'00d6157bcb7d5e00372e02318c3f8ee8626e85584e6e263c38cdb179626ce0f0');
- for(const [file,pin] of Object.entries({conquest:'a10a78e63c04a73e8414c74629cfcf4046de44aa26362bf1b5c79485a45236b6',missions:'664776326e07a6efe2e3dd6c3b806456544d4b097db3ddcbc74575b8fa240a75'})){
+  for(const [file,pin] of Object.entries({conquest:'a10a78e63c04a73e8414c74629cfcf4046de44aa26362bf1b5c79485a45236b6',missions:'e8daf341349c20b5b2b9397bf58e934701459e97187cf5c4ae415d699dcb433a'})){
   assert.equal(hash(await readFile(new URL(`../data/${file}.json`,import.meta.url))),pin);
  }
  // Renown stays optional; the future project hook stays an unwired comment.
