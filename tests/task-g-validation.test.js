@@ -69,7 +69,8 @@ test('Task G: collection placement respects danger, selection and quest obstacle
   r.drawCollections(game.world);
   assert.equal(r.hitAreas.length,1);
   for(const o of [...r.collectionObstacles,...r.collectionSceneObstacles])assert.ok(!overlaps(r.hitAreas[0],o));
-  r.hitAreas=[];r.cam.zoom=.75;r.drawCollections(game.world);assert.equal(r.hitAreas.length,0);
+  r.hitAreas=[];r.cam.zoom=.75;r.drawCollections(game.world);assert.equal(r.hitAreas.length,1);
+  for(const o of [...r.collectionObstacles,...r.collectionSceneObstacles])assert.ok(!overlaps(r.hitAreas[0],o));
  }
 });
 

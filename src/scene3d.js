@@ -15,7 +15,7 @@ import {drawBuildingActivity} from './building-activity.js';
 import {addEnvironmentScenery} from './environment-art.js';
 import {insideWorkplace} from './systems/villagers.js';
 import {sfx} from './systems/audio.js';
-import {drawCelestialShadows,drawGroundMist,drawPracticalBloom,drawCelestialAir,drawChimneyWisps,prepareNearbyLight} from './cinematic-lighting.js';
+import {drawCelestialShadows,drawGroundMist,drawPracticalBloom,drawCelestialAir,drawChimneyWisps,prepareNearbyLight,drawGodRays} from './cinematic-lighting.js';
 export function pointInPolygon(x,y,points){let inside=false;for(let i=0,j=points.length-1;i<points.length;j=i++){const a=points[i],b=points[j];if((a.y>y)!==(b.y>y)&&x<(b.x-a.x)*(y-a.y)/(b.y-a.y)+a.x)inside=!inside;}return inside;}
 const FALLBACK_LIGHT=skyLightAt(DAY_LENGTH*.3,null); // high noon, for bare MeshScene uses
 // Phase 4 — ground-contact occlusion: faces near the dirt lose a slice of
@@ -875,6 +875,7 @@ export function drawVillage3D(r,world,time,light){const s=new MeshScene(r),W=r.d
  r._meshStatic={key,faces:s.faces.slice(),sources:s.sources,chimneys:s.chimneys,doors:s.doors};
  }
 
+  r.sceneSources=s.sources; // Publish this frame before spill/bloom can return early.
   r._motionWorld=world;
   addLivingMechanisms(s,world,time);
   addWindLife(s,world,time);
@@ -887,5 +888,6 @@ export function drawVillage3D(r,world,time,light){const s=new MeshScene(r),W=r.d
  drawPracticalBloom(s,time);
  drawChimneyWisps(s,time);
  drawCelestialAir(r,s.light);
+ drawGodRays(r,s.light,time);
  drawBuildingActivity(r,world,time);
 }

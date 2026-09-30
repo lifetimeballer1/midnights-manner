@@ -12,7 +12,7 @@ const data=Object.fromEntries(await Promise.all(
 ));
 
 test('atmosphere: hard caps stay intentionally small for mobile',()=>{
- assert.deepEqual(ATMOSPHERE_LIMITS,{smokeSources:8,trailActors:12,rainSplashes:14});
+ assert.deepEqual(ATMOSPHERE_LIMITS,{smokeSources:8,trailActors:12,rainSplashes:6});
 });
 
 test('atmosphere: smoke sources include finished village chimneys and visible wild camps only',()=>{

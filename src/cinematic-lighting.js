@@ -1,7 +1,7 @@
 // Canvas atmospheric approximations, not a GPU volumetric/GI pipeline.
 // All geometry, hit targets and simulation state remain owned by the game.
-import {sourceFlicker,sourcePhase,sourceProfile,lightAt} from './source-lighting.js';
-export const CINEMATIC_LIMITS=Object.freeze({casters:180,mist:12,bloom:32,embers:12});
+import {sourceFlicker,sourcePhase,sourceProfile,lightAt,visibleLightBudget} from './source-lighting.js';
+export const CINEMATIC_LIMITS=Object.freeze({casters:180,mist:5,bloom:72,embers:12,shadowCache:512});
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export function hull(points){
  const sorted=points.slice().sort((a,b)=>a.x-b.x||a.y-b.y);
@@ -17,13 +17,13 @@ export function shadowCasters(faces){
  for(const f of faces){
   if(f.alpha!==1||f.fixture||!f.vertices)continue;
   const key=f.owner?.id??`scenery:${Math.floor(f.center[0])},${Math.floor(f.center[1])}`;
-  let b=groups.get(key);if(!b){b={min:[Infinity,Infinity,Infinity],max:[-Infinity,-Infinity,-Infinity]};groups.set(key,b);}
+  let b=groups.get(key);if(!b){b={id:key,min:[Infinity,Infinity,Infinity],max:[-Infinity,-Infinity,-Infinity]};groups.set(key,b);}
   for(const p of f.vertices)for(let i=0;i<3;i++){b.min[i]=Math.min(b.min[i],p[i]);b.max[i]=Math.max(b.max[i],p[i]);}
  }
  return [...groups.values()].filter(b=>b.max[2]>.22).map(b=>{
   // Use each group's bounds rather than retaining thousands of face vertices.
   const points=[];for(const x of [b.min[0],b.max[0]])for(const y of [b.min[1],b.max[1]])for(const z of [0,b.max[2]])points.push([x,y,z]);
-  return {points,x:(b.min[0]+b.max[0])/2,y:(b.min[1]+b.max[1])/2};
+  return {id:b.id,points,x:(b.min[0]+b.max[0])/2,y:(b.min[1]+b.max[1])/2};
  });
 }
 export function projectShadow(r,caster,light){
@@ -31,37 +31,63 @@ export function projectShadow(r,caster,light){
  return hull(caster.points.map(([x,y,z])=>r.project(x-lx*z*scale,y-ly*z*scale,.018)));
 }
 function polygon(c,points){c.beginPath();points.forEach((p,i)=>i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y));c.closePath();}
+// Bounded world-space hull cache survives camera reprojection and static-mesh rebuilds.
+// Quantized direction + footprint/height invalidate only the affected hull.
+export function shadowCacheKey(caster,light){
+ return JSON.stringify([caster.id,caster.points,light.keyDir.map(v=>Math.round(v*24))]);
+}
+export function inViewport(r,points,padding=32){
+ if(!points.length)return false;
+ let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+ for(const p of points){minX=Math.min(minX,p.x);maxX=Math.max(maxX,p.x);minY=Math.min(minY,p.y);maxY=Math.max(maxY,p.y);}
+ return maxX>=-padding&&minX<=r.width+padding&&maxY>=-padding&&minY<=r.height+padding;
+}
+export function unitShadowVisible(r,u){
+ if(r.cam.zoom<1.05||u.hp<=0||u.expedition)return false;
+ return inViewport(r,[r.project(u.x,u.y)],32*r.cam.zoom);
+}
 export function drawCelestialShadows(scene){
- const r=scene.r,c=r.ctx,sky=scene.light,cache=r._meshStatic;
- if(!cache||sky.keyI<=0)return 0;
- if(!cache.casters)cache.casters=shadowCasters(cache.faces);
- if(cache.shadowKey!==sky.key){
-  cache.shadows=cache.casters.slice().sort((a,b)=>Math.hypot(a.x-r.cam.x,a.y-r.cam.y)-Math.hypot(b.x-r.cam.x,b.y-r.cam.y)).slice(0,CINEMATIC_LIMITS.casters).map(b=>projectShadow(r,b,sky));
-  cache.shadowKey=sky.key;
- }
+ const r=scene.r,c=r.ctx,sky=scene.light,mesh=r._meshStatic;
+ const stats=r.lightingStats??={};stats.shadows=0;stats.shadowCulled=0;
+ if(!mesh||sky.keyI<=0)return 0;
+ if(!mesh.casters)mesh.casters=shadowCasters(mesh.faces);
+ const cache=r._shadowHullCache??=new Map(),passes=r.cam.zoom>=1.5?3:2;
+ stats.penumbraPasses=passes;
+ const dir=sky.keyDir.map(v=>Math.round(v*24)/24),alt=Math.max(.28,dir[2]),stretch=Math.min(2.4,1/alt);
  c.save();
- const alpha=clamp(sky.keyI*.48,.035,.15)*(1-(sky.fog||0)*.65);
- // A faint expanded silhouette supplies the penumbra without Canvas blur.
- for(const pts of cache.shadows){
-  if(pts.length<3)continue;
+ const alpha=clamp(sky.keyI*.48,.035,.15)*(1-(sky.fog||0)*.65),softness=1+(sky.fog||0)*1.5+(sky.weatherId==='rain'?.5:0);
+ for(const caster of mesh.casters){
+  // Check the complete cast extent; an offscreen building may still cast onto visible ground.
+  const ground=caster.points.map(([x,y,z])=>({x:x-dir[0]*z*stretch,y:y-dir[1]*z*stretch}));
+  const projected=ground.map(p=>r.project(p.x,p.y,.018));
+  if(!inViewport(r,projected)){stats.shadowCulled++;continue;}
+  if(stats.shadows>=CINEMATIC_LIMITS.casters)continue;
+  const key=shadowCacheKey(caster,sky);let shape=cache.get(key);
+  if(!shape){shape=hull(ground);cache.set(key,shape);while(cache.size>CINEMATIC_LIMITS.shadowCache)cache.delete(cache.keys().next().value);}
+  else{cache.delete(key);cache.set(key,shape);}
+  const pts=shape.map(p=>r.project(p.x,p.y,.018));if(pts.length<3)continue;
   const center=pts.reduce((a,p)=>({x:a.x+p.x/pts.length,y:a.y+p.y/pts.length}),{x:0,y:0});
-  c.fillStyle=`rgba(12,20,35,${alpha*.28})`;
-  polygon(c,pts.map(p=>({x:center.x+(p.x-center.x)*1.035,y:center.y+(p.y-center.y)*1.035})));c.fill();
-  c.fillStyle=`rgba(12,20,35,${alpha})`;polygon(c,pts);c.fill();
+  for(let i=passes-1;i>=0;i--){
+   const expand=1+i*.018*softness;
+   c.fillStyle=`rgba(12,20,35,${alpha*(i===0?1:.2)})`;
+   polygon(c,pts.map(p=>({x:center.x+(p.x-center.x)*expand,y:center.y+(p.y-center.y)*expand})));c.fill();
+  }
+  stats.shadows++;
  }
- c.restore();return cache.shadows.length;
+ c.restore();stats.shadowCache=cache.size;return stats.shadows;
 }
 export function drawGroundMist(scene,time){
  const r=scene.r,c=r.ctx,sky=scene.light,night=sky.overlay?.glow||0;
- const strength=.012+night*.038+(sky.fog||0)*.055;
+ const strength=.008+night*.025+(sky.fog||0)*.065;
  const t=r.calm?0:(Number.isFinite(time)?time:0)*.000018;
  const color=night>.7?'155,187,225':'244,214,165';
  c.save();
  // Grade only the ground; mesh faces retain the celestial directional model.
  c.fillStyle=night>.7?'rgba(26,49,89,.12)':'rgba(244,195,113,.025)';c.fillRect(0,0,r.width,r.height);
- for(let i=0;i<CINEMATIC_LIMITS.mist;i++){
+ const banks=Math.min(r.width,r.height)<=700?4:5;
+ for(let i=0;i<banks;i++){
   // Camera-local tile coordinates: a fixed budget even on the 52x44 frontier.
-  const dx=(i%4-1.5)*3.4,dy=(Math.floor(i/4)-1)*3.6;
+  const dx=(i%2-.5)*6,dy=(Math.floor(i/2)-.5)*6;
   const p=r.project(r.cam.x+dx+Math.sin(t+i*1.7)*.38,r.cam.y+dy+Math.cos(t*.7+i)*.24,.075);
   const radius=(62+(i%3)*19)*r.cam.zoom;
   if(p.x+radius<0||p.x-radius>r.width||p.y+radius*.28<0||p.y-radius*.28>r.height)continue;
@@ -69,7 +95,7 @@ export function drawGroundMist(scene,time){
   const g=c.createRadialGradient(0,0,0,0,0,radius);g.addColorStop(0,`rgba(${color},${strength})`);g.addColorStop(.48,`rgba(${color},${strength*.6})`);g.addColorStop(1,`rgba(${color},0)`);
   c.fillStyle=g;c.fillRect(-radius,-radius,radius*2,radius*2);c.restore();
  }
- c.restore();return CINEMATIC_LIMITS.mist;
+ c.restore();(r.lightingStats??={}).fogBanks=banks;return banks;
 }
 // Check the opaque painter stack at the actual source position: glow on a
 // hidden rear window must never appear through its roof or another house.
@@ -87,12 +113,14 @@ export function visibleEmitter(source,faces,r){
 }
 export function drawPracticalBloom(scene,time){
  const r=scene.r,c=r.ctx,strength=scene.light.overlay?.glow||0;
- if(strength<=0||r.cam.zoom<.9)return {bloom:0,embers:0};
+ const stats=r.lightingStats??={};stats.bloom=0;stats.bloomCulled=0;
+ if(strength<=0)return {bloom:0,embers:0};
+ const cap=visibleLightBudget(r);
  let count=0,embers=0;c.save();
  // Small screen-space halos, anchored to a visible pane/flame, never giant blobs.
  for(const source of scene.sources){
-  if(count>=CINEMATIC_LIMITS.bloom)break;
-  const p=visibleEmitter(source,scene.faces,r);if(!p)continue;
+  if(count>=cap)break;
+  const p=visibleEmitter(source,scene.faces,r);if(!p){stats.bloomCulled++;continue;}
   const window=source.profile==='window',profile=sourceProfile(source),flicker=sourceFlicker(source,time,r.calm);
   const radius=clamp((window?4:7)*r.cam.zoom,3,18),g=c.createRadialGradient(p.x,p.y,0,p.x,p.y,radius);
   const alpha=(window?.12:.18)*strength*flicker;
@@ -105,7 +133,7 @@ export function drawPracticalBloom(scene,time){
    c.fillRect(p.x+Math.sin(age*5+sourcePhase(source))*2*r.cam.zoom,p.y-age*10*r.cam.zoom,1.1,1.1);c.globalAlpha=1;embers++;
   }
  }
- c.restore();return {bloom:count,embers};
+ c.restore();stats.bloom=count;stats.bloomCap=cap;return {bloom:count,embers};
 }
 export function drawCelestialAir(r,sky){
  const c=r.ctx,night=(sky.overlay?.glow||0)>.8,color=night?'140,177,229':'247,204,139';
@@ -114,6 +142,35 @@ export function drawCelestialAir(r,sky){
  const g=c.createRadialGradient(r.width*.5,r.height*.48,Math.min(r.width,r.height)*.26,r.width*.5,r.height*.48,Math.max(r.width,r.height)*.65);
  g.addColorStop(0,`rgba(${color},0)`);g.addColorStop(.62,`rgba(${color},.012)`);g.addColorStop(1,`rgba(${color},${night?.065:.035})`);
  c.fillStyle=g;c.fillRect(0,0,r.width,r.height);c.restore();
+}
+export function drawGodRays(r,sky,time=0){
+ const stats=r.lightingStats??={};stats.rays=0;
+ if(sky.weatherId!=='clear'||(sky.fog||0)>.02||sky.phase?.id==='night')return 0;
+ const count=Math.min(r.width,r.height)<=700?3:5,c=r.ctx,t=r.calm?0:time*.00004;
+ const direction=sky.keyDir?.[0]||0,origin=r.width*(direction>0?.8:.2);
+ c.save();
+ for(let i=0;i<count;i++){
+  const x=origin+(i-count/2)*r.width*.14+Math.sin(t+i)*8;
+  const g=c.createLinearGradient(x,0,x+direction*100,r.height*.65);
+  g.addColorStop(0,'rgba(255,218,160,.025)');g.addColorStop(1,'rgba(255,218,160,0)');
+  c.fillStyle=g;polygon(c,[{x:x-5,y:0},{x:x+5,y:0},{x:x+direction*100+45,y:r.height*.65},{x:x+direction*100-45,y:r.height*.65}]);c.fill();
+ }
+ c.restore();stats.rays=count;return count;
+}
+// Three deterministic depth layers; no particle allocation or extra clock.
+export function drawLayeredRain(r,time=0){
+ const c=r.ctx,t=r.calm?0:time,phone=Math.min(r.width,r.height)<=700;
+ c.save();c.strokeStyle='#b5d2dc';
+ for(let layer=0;layer<3;layer++){
+  const count=(phone?12:18)+layer*4,speed=.12+layer*.10,len=5+layer*4;
+  c.globalAlpha=.10+layer*.06;c.lineWidth=.6+layer*.35;c.beginPath();
+  for(let i=0;i<count;i++){
+   const x=(i*97.31+layer*53.7)%r.width,y=(i*57.73+layer*31+t*speed)%(r.height+len)-len;
+   c.moveTo(x,y);c.lineTo(x-len*.35,y+len);
+  }
+  c.stroke();
+ }
+ c.restore();
 }
 // Segment/AABB test in the ground plane: intervening structures stop bounce.
 export function blockedLight(start,end,buildings,data,ignoreIds=[]){

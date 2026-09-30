@@ -49,6 +49,8 @@ try{
   await click('#begin');await waitFor('window.midnightsManner.ready');
   assert.equal(await evaluate('Boolean(document.querySelector("#camera-buttons")?.hidden)'),true,'camera tools collapse by default');
   assert.ok(await evaluate('Boolean(document.querySelector("#resource-summary"))'),'resource summary chip present');
+  assert.ok(await evaluate('document.querySelector("#collect-ready").closest(".bottom-hud")!==null'),'collect action belongs to bottom HUD');
+  assert.equal(await evaluate('document.querySelectorAll(".dock .dock-button").length'),5,'five navigation actions remain');
  const musicStarts=await evaluate('window.__audioProbe.starts');assert.ok(musicStarts>=12,'Enter village starts the generated score');
  let musicLevel;
  for(let i=0;i<30;i++){

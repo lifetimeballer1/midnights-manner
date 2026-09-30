@@ -1092,5 +1092,62 @@
       "name": "Pale Court Shore Pavilion",
       "text": "Pale banners stand in precise rows above the salt grass. Supplies are arranged by rank, giving the whole camp a ceremonial order."
     }
-  ]
+  ],
+  "daynight": {
+    "lighting": {
+      "dawn": {
+        "key": {
+          "intensity": 0.32
+        },
+        "ambient": {
+          "intensity": 0.58
+        },
+        "alpha": 0.07,
+        "glow": 0.36
+      },
+      "day": {
+        "key": {
+          "intensity": 0.3
+        },
+        "ambient": {
+          "intensity": 0.68
+        }
+      },
+      "dusk": {
+        "key": {
+          "intensity": 0.31
+        },
+        "ambient": {
+          "color": "#a7b4d0",
+          "intensity": 0.54
+        },
+        "alpha": 0.09,
+        "glow": 0.72
+      },
+      "night": {
+        "key": {
+          "intensity": 0.2
+        },
+        "ambient": {
+          "intensity": 0.44
+        },
+        "alpha": 0.24,
+        "glow": 0.92
+      }
+    },
+    "weather": {
+      "rain": {
+        "mesh": {
+          "fog": 0.12,
+          "dim": 0.9
+        }
+      },
+      "fog": {
+        "mesh": {
+          "fog": 0.55,
+          "dim": 0.88
+        }
+      }
+    }
+  }
 }

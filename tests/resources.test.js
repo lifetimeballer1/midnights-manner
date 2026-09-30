@@ -59,7 +59,7 @@ test('marker touch targets do not shrink with icon scale or overlap blocked spac
  assert.equal(layoutCollectionBubbles([{x:100,y:100,width:44}],390,844,[{x:0,y:0,w:390,h:844}]).length,0);
 });
 
-test('compact markers use SVG icons, reveal full-store amounts on tap and collapse at overview',()=>{
+test('compact markers use SVG icons, reveal full-store amounts on tap and become quiet dots at overview',()=>{
  const texts=[],icons=[];
  const ctx=new Proxy({measureText:text=>({width:text.length*6}),fillText:text=>texts.push(text),drawImage:icon=>icons.push(icon)},
   {get:(target,key)=>key in target?target[key]:()=>{}});
@@ -76,8 +76,8 @@ test('compact markers use SVG icons, reveal full-store amounts on tap and collap
  r.hitAreas=[];texts.length=0;r.drawCollections(world);
  assert.ok(texts.includes(hit.label));
  r.collectionDetail=null;r.cam.zoom=.7;r.hitAreas=[];texts.length=0;r.drawCollections(world);
- assert.equal(r.collectionCrowded,true);assert.equal(r.hitAreas.length,0);
- assert.ok(texts.includes('1 ready'));assert.ok(!texts.some(t=>t.includes('430')));
+ assert.equal(r.collectionCrowded,true);assert.equal(r.hitAreas.length,1);
+ assert.deepEqual(texts,[]);assert.equal(r.hitAreas[0].w,44);assert.equal(r.hitAreas[0].h,44);
 });
 
 test('readiness keeps tier thresholds and excludes construction and ruins',()=>{

@@ -38,5 +38,5 @@ test('effect budgets are bounded and Calm retains bloom without moving embers',(
  assert.deepEqual(drawPracticalBloom(scene,2000),{bloom:CINEMATIC_LIMITS.bloom,embers:0});
  assert.equal(gradients,CINEMATIC_LIMITS.bloom);
  scene.r.calm=false;assert.equal(drawPracticalBloom(scene,2000).embers,CINEMATIC_LIMITS.embers);
- scene.r.cam={zoom:.7};assert.deepEqual(drawPracticalBloom(scene,2000),{bloom:0,embers:0});
+ scene.r.cam={zoom:.7};assert.deepEqual(drawPracticalBloom(scene,2000),{bloom:48,embers:0});
 });
