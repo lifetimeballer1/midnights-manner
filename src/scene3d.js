@@ -449,6 +449,39 @@ function masterworkDetails(s,b,spec,fine){
    if(l>=5)detailSack(s,x+side,y+.28,.13,.85);
    if(l>=6)lanternPost(s,x+.24,y+.24,.66,.95,.42);
   }
+  if(t==='armory'){
+   for(let i=0;i<3;i++){const px=x+.3+i*.16;s.box(px,front+.02,.4,.09,.035,.28,i%2?'#718e9b':'#ad6155');}
+   if(l>=5)detailCrate(s,x+side,y+.28,.12,.9);
+   if(l>=6&&fine){s.box(x+n-.4,y+.3,.13,.08,.08,.66,timber);s.box(x+n-.52,y+.34,.39,.32,.08,.08,'#8f7555');}
+  }
+  if(t==='fletcher'){
+   for(let i=0;i<6;i++)s.box(x+.3+i*.045,y+.35,.2,.02,.02,.54,'#d5c59c');
+   if(l>=5)detailCrate(s,x+side,y+.26,.12,.85);
+   if(l>=6)lanternPost(s,x+n-.35,y+.3,.62,.9,.4);
+  }
+  if(t==='shieldwall-yard'){
+   for(let i=0;i<3;i++)s.box(x+.3+i*.16,front+.02,.4,.09,.035,.3,'#5e8c9b');
+   if(l>=5){s.box(x+n-.42,y+.28,.12,.08,.08,.66,timber);s.box(x+n-.54,y+.32,.39,.32,.08,.08,'#8f7555');}
+   if(l>=6)detailBarrel(s,x+side,y+.3,.13,.9);
+  }
+  if(t==='bastion'){
+   for(let i=0;i<2;i++)s.box(x+.32+i*.2,front+.02,.4,.1,.04,.3,i%2?'#ad6155':'#718e9b');
+   if(l>=5)detailCrate(s,x+side,y+.28,.12,.88);
+   if(l>=6){s.box(x+n-.4,y+.3,.13,.08,.08,.7,timber);s.box(x+n*.47,y+n*.47,.75,.22,.02,.14,'#b76053');}
+  }
+  if(t==='scout_post'){
+   detailCrate(s,x+side,front-.24,.12,.85);
+   if(l>=5)s.box(x+.3,front+.02,.4,.07,.03,.4,'#d5c59c');
+   if(l>=6)lanternPost(s,x+n-.32,y+.3,.62,.9,.4);
+  }
+  if(t==='tower'||t==='archer_tower'||t==='ballista'){
+   if(l>=5)detailCrate(s,x+side,y+.26,.12,.85);
+   if(l>=6)detailBarrel(s,x+n-.45,y+.3,.12,.85);
+  }
+  if(t==='watchfire'){
+   if(l>=5)s.box(x+.2,y+.2,.12,.3,.2,.14,'#6b5541');
+   if(l>=6)detailCrate(s,x+n-.48,y+.3,.12,.8);
+  }
 }
 
 function buildingShape(s,b,spec,world,time){
@@ -475,16 +508,19 @@ function buildingShape(s,b,spec,world,time){
    if(l>=2)s.box(x+.38,y+.435,h+.22,.22,.13,.07,'#324a41');
    if(l>=3){s.box(x+.43,y+.74,h+.36,.05,.05,.42,timber);s.box(x+.43,y+.79,h+.69,.02,.2,.12,'#b76053');}
   }
-  // Paired gate torches make the entrance readable from either approach.
-  if(axis==='x'){torch(s,x+.26,y+.31,h*.74,[0,-1],1.08,.55);torch(s,x+.74,y+.69,h*.74,[0,1],1.08,.55);}
-  else{torch(s,x+.31,y+.26,h*.74,[-1,0],1.08,.55);torch(s,x+.69,y+.74,h*.74,[1,0],1.08,.55);}
-  return;}
+   // Paired gate torches make the entrance readable from either approach.
+   if(axis==='x'){torch(s,x+.26,y+.31,h*.74,[0,-1],1.08,.55);torch(s,x+.74,y+.69,h*.74,[0,1],1.08,.55);}
+   else{torch(s,x+.31,y+.26,h*.74,[-1,0],1.08,.55);torch(s,x+.69,y+.74,h*.74,[1,0],1.08,.55);}
+   if(l>=6){lanternPost(s,x+.2,y+.2,h+.3,1,.42);lanternPost(s,x+.8,y+.8,h+.3,1,.42);}
+   return;}
  if(isWall(b)){const ramp=t==='rampart',h=.38+l*.17+(t==='stonewall'?.15:0)+(ramp?.12:0),color=ramp?'#8a6f4d':l>1||t==='stonewall'?stone:timber,neighbors=wallNeighbors(b,world);for(const [dx,dy]of neighbors.filter(([a,c])=>a+c<0))s.box(x+.4+Math.min(0,dx*.5),y+.4+Math.min(0,dy*.5),.1,.2+Math.abs(dx)*.5,.2+Math.abs(dy)*.5,h-.13,color);s.box(x+.28,y+.28,.1,.44,.44,h,color);
   if(ramp){s.box(x+.2,y+.2,.1,.6,.6,.1,timber);s.box(x+.2,y+.2,h-.12,.6,.07,.07,'#6b543a');}
    if(l===1&&t==='wall')s.pyramid(x+.5,y+.5,h+.1,.32,.2,color);else for(const [a,c]of[[.25,.25],[.6,.25],[.25,.6],[.6,.6]])s.box(x+a,y+c,h+.1,.16,.16,.18,l>=3||ramp&&l>=2?gold:color);
   for(const [dx,dy]of neighbors.filter(([a,c])=>a+c>=0))s.box(x+.4+Math.min(0,dx*.5),y+.4+Math.min(0,dy*.5),.1,.2+Math.abs(dx)*.5,.2+Math.abs(dy)*.5,h-.13,color);
-  const cap=ramp?'#b89c70':l>1||t==='stonewall'?'#d3d9d0':WALL_CAP;
-  for(const [dx,dy]of wallEnds(neighbors)){const alongX=!!dx,px=dx<0?.15:dx>0?.65:.37,py=dy<0?.15:dy>0?.65:.37,w=alongX?.2:.26,d=alongX?.26:.2;s.box(x+px,y+py,.1,w,d,h+.12,cap);}
+   const cap=ramp?'#b89c70':l>1||t==='stonewall'?'#d3d9d0':WALL_CAP;
+   for(const [dx,dy]of wallEnds(neighbors)){const alongX=!!dx,px=dx<0?.15:dx>0?.65:.37,py=dy<0?.15:dy>0?.65:.37,w=alongX?.2:.26,d=alongX?.26:.2;s.box(x+px,y+py,.1,w,d,h+.12,cap);}
+   if(l>=5)s.box(x+.2,y+.2,.04,.6,.6,.2,l>1||t==='stonewall'?stone:timber);
+   if(l>=6)s.box(x+.42,y+.42,h+.2,.16,.16,.3,gold);
   // One torch roughly every three wall tiles keeps long defenses legible
   // without turning every segment into an expensive light source.
   const torchSide=WALL_DIRECTIONS.find(([dx,dy])=>!neighbors.some(([nx,ny])=>nx===dx&&ny===dy));
@@ -531,13 +567,17 @@ function buildingShape(s,b,spec,world,time){
  if(['tower','bell-tower','bellcote','scout_post','archer_tower','ballista'].includes(t)){const width=t==='archer_tower'?n*.45:t==='ballista'?n*.62:n*.55,h=t==='archer_tower'?1+l*.3:t==='ballista'?.62+l*.18:.85+l*.24;tower(s,x+(n-width)/2,y+(n-width)/2,width,h,l===1?timber:stone);if(t.includes('bell')){s.box(x+n*.4,y+n*.4,h+.3,n*.2,n*.2,.28,gold);s.roof(x+.15,y+.15,h+.7,n-.3,n-.3,.45,'#648b90');}
   // Archer tower: slim shaft, hooded crown and a level-2 pennant — the
   // longest reach on the wall, paid for in fragility.
-  if(t==='archer_tower'){s.box(x+(n-width)/2-.06,y+(n-width)/2-.06,h+.12,width+.12,width+.12,.1,l>=3?gold:stone);if(l>=2){s.box(x+n*.47,y+n*.47,h+.2,.06,.06,.5,timber);s.box(x+n*.53,y+n*.47,h+.55,.22,.02,.14,l>=3?'#b76053':'#73956a');}}
-  // Ballista: squat engine deck with a spanned crossbow on top — short
-  // range, slow reload (data cooldown), the hardest single hit in town.
-  if(t==='ballista'){s.box(x+.14,y+.14,h,width+.1,width+.1,.12,timber);s.box(x+n/2-.3,y+n/2-.03,h+.12,.6,.06,.06,stone);s.box(x+n/2-.03,y+n/2-.3,h+.12,.06,.6,.06,stone);s.box(x+n/2-.02,y+n/2-.02,h+.12,.04,.5,.05,gold);}
+   if(t==='archer_tower'){s.box(x+(n-width)/2-.06,y+(n-width)/2-.06,h+.12,width+.12,width+.12,.1,l>=3?gold:stone);if(l>=2){s.box(x+n*.47,y+n*.47,h+.2,.06,.06,.5,timber);s.box(x+n*.53,y+n*.47,h+.55,.22,.02,.14,l>=3?'#b76053':'#73956a');}
+    if(l>=5)s.box(x+(n-width)/2-.02,y+(n-width)/2-.02,.06,width+.04,width+.04,.2,stone);
+    if(l>=6){s.box(x+n*.47,y+n*.47,h+.62,.06,.06,.4,timber);s.box(x+n*.31,y+n*.47,h+.9,.22,.02,.12,'#b76053');}}
+   // Ballista: squat engine deck with a spanned crossbow on top — short
+   // range, slow reload (data cooldown), the hardest single hit in town.
+   if(t==='ballista'){s.box(x+.14,y+.14,h,width+.1,width+.1,.12,timber);s.box(x+n/2-.3,y+n/2-.03,h+.12,.6,.06,.06,stone);s.box(x+n/2-.03,y+n/2-.3,h+.12,.06,.6,.06,stone);s.box(x+n/2-.02,y+n/2-.02,h+.12,.04,.5,.05,gold);
+    if(l>=4){s.box(x+.1,y+.4,h+.05,.06,.2,.3,timber);s.box(x+.84,y+.4,h+.05,.06,.2,.3,timber);}
+    if(l>=6)s.box(x+n/2-.02,y+n/2-.02,h+.18,.04,.5,.05,gold);}
   torch(s,x+n/2,y+(n+width)/2+.035,h*.58,[0,1],1.02,.45);
   return;}
- if(['watchfire','oathstone','moon-dial','cairnfield'].includes(t)){const spots=t==='cairnfield'?[[.5,.5],[1.3,.6],[.6,1.4],[1.35,1.35]]:[[n/2,n/2]];s.emissive=t==='watchfire'?1:0;for(const [a,c]of spots){s.box(x+a-.18,y+c-.18,.13,.36,.36,.22,stone);if(t==='watchfire'){s.source([x+a,y+c,.55],null,2.1,1,'fire');s.pyramid(x+a,y+c,.36,.26,.55,'#f2b35c',5);}else if(t==='moon-dial')s.pyramid(x+a,y+c,.35,.17,.55,gold);else s.box(x+a-.09,y+c-.06,.35,.18,.12,.6,t==='oathstone'?'#90b5b5':stone);}s.emissive=0;return;}
+  if(['watchfire','oathstone','moon-dial','cairnfield'].includes(t)){const spots=t==='cairnfield'?[[.5,.5],[1.3,.6],[.6,1.4],[1.35,1.35]]:[[n/2,n/2]];s.emissive=t==='watchfire'?1:0;for(const [a,c]of spots){s.box(x+a-.18,y+c-.18,.13,.36,.36,.22,stone);if(t==='watchfire'){s.source([x+a,y+c,.55],null,2.1,1,'fire');s.pyramid(x+a,y+c,.36,.26,.55,'#f2b35c',5);if(l>=4)s.pyramid(x+a,y+c,.2,.15,.3,'#e8883f',5);if(l>=5)for(const [ox,oy]of[[-.3,0],[.3,0],[0,-.3],[0,.3]])s.box(x+a+ox-.06,y+c+oy-.06,.13,.12,.12,.16,stone);if(l>=6){s.box(x+a-.05,y+c-.05,.13,.1,.1,.5,timber);s.box(x+a-.09,y+c-.09,.55,.18,.18,.08,'#4d514b');}}else if(t==='moon-dial')s.pyramid(x+a,y+c,.35,.17,.55,gold);else s.box(x+a-.09,y+c-.06,.35,.18,.12,.6,t==='oathstone'?'#90b5b5':stone);}s.emissive=0;return;}
  if(t==='dawn-gate'){tower(s,x+.18,y+.35,.62,1.7,stone);tower(s,x+n-.8,y+.35,.62,1.7,stone);s.box(x+.8,y+.43,1.35,n-1.6,.46,.45,gold);s.roof(x+.05,y+.2,2,n-.1,.95,.32,'#638b92');torch(s,x+.68,y+.92,1.22,[0,1],1.25,.58);torch(s,x+n-.68,y+.92,1.22,[0,1],1.25,.58);return;}
  if(t==='market'){for(const [a,c,color]of[[.22,.24,'#b76053'],[1.7,.25,'#73956a'],[.6,1.75,'#ccac60']]){s.box(x+a,y+c,.14,1,.5,.35,timber);for(const dx of [0,.94])s.box(x+a+dx,y+c,.14,.06,.06,.95,timber);s.roof(x+a-.06,y+c-.12,1.02,1.12,.75,.12,color);}lanternPost(s,x+.32,y+n-.32,.9,1.12,.44);lanternPost(s,x+n-.32,y+n-.32,.9,1.12,.44);return;}
  // The new production chain buildings need to read differently at map scale.

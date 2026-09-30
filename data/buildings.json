@@ -485,7 +485,10 @@
   "costCurve": [
    1,
    2,
-   8
+   8,
+   20,
+   32,
+   50
   ],
   "name": "Palisade",
   "size": 1,
@@ -517,19 +520,67 @@
     "rateMultiplier": 3,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "wall-4.png",
+    "hp": 966,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "wall-5.png",
+    "hp": 1242,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "wall-6.png",
+    "hp": 1587,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
-  ]
+  ],
+  "tierCosts": {
+   "4": {
+    "lumber": 30
+   },
+   "5": {
+    "lumber": 70,
+    "plate": 5
+   },
+   "6": {
+    "lumber": 130,
+    "plate": 15
+   }
+  },
+  "tierGates": {
+   "4": 8,
+   "5": 10,
+   "6": 11
+  }
  },
  "stonewall": {
   "costCurve": [
    1,
    2,
    8,
-   20
+   20,
+   36,
+   55
   ],
   "tierCosts": {
    "4": {
     "plate": 6
+   },
+   "5": {
+    "plate": 12
+   },
+   "6": {
+    "plate": 25,
+    "lumber": 40
    }
   },
   "name": "Stone Wall",
@@ -570,10 +621,26 @@
     "rateMultiplier": 4,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "stonewall-5.png",
+    "hp": 3510,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "stonewall-6.png",
+    "hp": 4550,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
   ],
   "tierGates": {
-   "4": 10
+   "4": 10,
+   "5": 11,
+   "6": 11
   }
  },
  "gate": {
@@ -581,11 +648,20 @@
    1,
    2,
    8,
-   20
+   20,
+   36,
+   55
   ],
   "tierCosts": {
    "4": {
     "plate": 6
+   },
+   "5": {
+    "plate": 12
+   },
+   "6": {
+    "plate": 25,
+    "lumber": 40
    }
   },
   "name": "Timber Gate",
@@ -627,10 +703,26 @@
     "rateMultiplier": 4,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "gate-5.png",
+    "hp": 2700,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "gate-6.png",
+    "hp": 3500,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
   ],
   "tierGates": {
-   "4": 10
+   "4": 10,
+   "5": 11,
+   "6": 11
   }
  },
  "rampart": {
@@ -638,11 +730,20 @@
    1,
    2,
    8,
-   20
+   20,
+   36,
+   55
   ],
   "tierCosts": {
    "4": {
     "plate": 8
+   },
+   "5": {
+    "plate": 15
+   },
+   "6": {
+    "plate": 30,
+    "lumber": 40
    }
   },
   "name": "Earthen Rampart",
@@ -683,10 +784,26 @@
     "rateMultiplier": 4,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "rampart-5.png",
+    "hp": 4320,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "rampart-6.png",
+    "hp": 5600,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
   ],
   "tierGates": {
-   "4": 11
+   "4": 11,
+   "5": 11,
+   "6": 11
   }
  },
  "tower": {
@@ -694,12 +811,22 @@
    1,
    2,
    9,
-   24
+   24,
+   38,
+   60
   ],
   "tierCosts": {
    "4": {
     "plate": 20,
     "lumber": 30
+   },
+   "5": {
+    "plate": 35,
+    "lumber": 60
+   },
+   "6": {
+    "plate": 55,
+    "lumber": 110
    }
   },
   "name": "Watchtower",
@@ -739,10 +866,26 @@
     "rateMultiplier": 4,
     "damage": 65,
     "range": 5.2
+   },
+   {
+    "sprite": "tower-5.png",
+    "hp": 1728,
+    "rateMultiplier": 5,
+    "damage": 65,
+    "range": 5.2
+   },
+   {
+    "sprite": "tower-6.png",
+    "hp": 2240,
+    "rateMultiplier": 6,
+    "damage": 65,
+    "range": 5.2
    }
   ],
   "tierGates": {
-   "4": 8
+   "4": 8,
+   "5": 10,
+   "6": 11
   }
  },
  "archer_tower": {
@@ -750,12 +893,22 @@
    1,
    2,
    9,
-   24
+   24,
+   38,
+   60
   ],
   "tierCosts": {
    "4": {
     "plate": 24,
     "lumber": 40
+   },
+   "5": {
+    "plate": 40,
+    "lumber": 70
+   },
+   "6": {
+    "plate": 60,
+    "lumber": 120
    }
   },
   "name": "Archer Tower",
@@ -795,22 +948,53 @@
     "rateMultiplier": 4,
     "damage": 55,
     "range": 7.4
+   },
+   {
+    "sprite": "archer_tower-5.png",
+    "hp": 1620,
+    "rateMultiplier": 5,
+    "damage": 55,
+    "range": 7.4
+   },
+   {
+    "sprite": "archer_tower-6.png",
+    "hp": 2100,
+    "rateMultiplier": 6,
+    "damage": 55,
+    "range": 7.4
    }
   ],
   "tierGates": {
-   "4": 11
+   "4": 11,
+   "5": 11,
+   "6": 11
   }
  },
  "ballista": {
   "costCurve": [
    1,
    2,
-   10
+   10,
+   24,
+   40,
+   65
   ],
   "tierCosts": {
    "3": {
     "plate": 15,
     "lumber": 25
+   },
+   "4": {
+    "plate": 25,
+    "lumber": 45
+   },
+   "5": {
+    "plate": 40,
+    "lumber": 80
+   },
+   "6": {
+    "plate": 60,
+    "lumber": 130
    }
   },
   "name": "Ballista Tower",
@@ -847,10 +1031,40 @@
     "range": 4.8,
     "cooldown": 2.6,
     "siegebane": 1
+   },
+   {
+    "sprite": "ballista-4.png",
+    "hp": 1540,
+    "rateMultiplier": 4,
+    "damage": 150,
+    "range": 4.8,
+    "cooldown": 2.6,
+    "siegebane": 1
+   },
+   {
+    "sprite": "ballista-5.png",
+    "hp": 1980,
+    "rateMultiplier": 5,
+    "damage": 150,
+    "range": 4.8,
+    "cooldown": 2.6,
+    "siegebane": 1
+   },
+   {
+    "sprite": "ballista-6.png",
+    "hp": 2530,
+    "rateMultiplier": 6,
+    "damage": 150,
+    "range": 4.8,
+    "cooldown": 2.6,
+    "siegebane": 1
    }
   ],
   "tierGates": {
-   "3": 10
+   "3": 10,
+   "4": 10,
+   "5": 11,
+   "6": 11
   }
  },
  "bastion": {
@@ -891,10 +1105,79 @@
      "boss",
      "siege"
     ]
+   },
+   {
+    "sprite": "bastion-3.png",
+    "hp": 1800,
+    "rateMultiplier": 3,
+    "damage": 120,
+    "range": 5.4,
+    "cooldown": 2,
+    "siegebane": 1,
+    "prefer": [
+     "boss",
+     "siege"
+    ]
+   },
+   {
+    "sprite": "bastion-4.png",
+    "hp": 2520,
+    "rateMultiplier": 4,
+    "damage": 120,
+    "range": 5.4,
+    "cooldown": 2,
+    "siegebane": 1,
+    "prefer": [
+     "boss",
+     "siege"
+    ]
+   },
+   {
+    "sprite": "bastion-5.png",
+    "hp": 3240,
+    "rateMultiplier": 5,
+    "damage": 120,
+    "range": 5.4,
+    "cooldown": 2,
+    "siegebane": 1,
+    "prefer": [
+     "boss",
+     "siege"
+    ]
+   },
+   {
+    "sprite": "bastion-6.png",
+    "hp": 4140,
+    "rateMultiplier": 6,
+    "damage": 120,
+    "range": 5.4,
+    "cooldown": 2,
+    "siegebane": 1,
+    "prefer": [
+     "boss",
+     "siege"
+    ]
    }
   ],
   "tierGates": {
-   "2": 11
+   "2": 11,
+   "3": 11,
+   "4": 11,
+   "5": 11,
+   "6": 11
+  },
+  "tierCosts": {
+   "4": {
+    "lumber": 50
+   },
+   "5": {
+    "lumber": 110,
+    "plate": 8
+   },
+   "6": {
+    "lumber": 190,
+    "plate": 25
+   }
   }
  },
  "trap": {
@@ -1393,8 +1676,48 @@
     "rateMultiplier": 2,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "scout_post-3.png",
+    "hp": 450,
+    "rateMultiplier": 3,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "scout_post-4.png",
+    "hp": 630,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "scout_post-5.png",
+    "hp": 810,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "scout_post-6.png",
+    "hp": 1035,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
-  ]
+  ],
+  "tierCosts": {
+   "4": {
+    "lumber": 40
+   },
+   "5": {
+    "lumber": 90
+   },
+   "6": {
+    "lumber": 160,
+    "plate": 10
+   }
+  }
  },
  "chapel": {
   "costCurve": [
@@ -1555,8 +1878,49 @@
     "rateMultiplier": 2,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "armory-3.png",
+    "hp": 510,
+    "rateMultiplier": 3,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "armory-4.png",
+    "hp": 714,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "armory-5.png",
+    "hp": 918,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "armory-6.png",
+    "hp": 1173,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
-  ]
+  ],
+  "tierCosts": {
+   "4": {
+    "lumber": 50
+   },
+   "5": {
+    "lumber": 110,
+    "plate": 8
+   },
+   "6": {
+    "lumber": 190,
+    "plate": 25
+   }
+  }
  },
  "workshop": {
   "maxCount": 3,
@@ -1803,11 +2167,25 @@
   "costCurve": [
    1,
    2,
-   8
+   8,
+   20,
+   32,
+   50
   ],
   "tierCosts": {
    "3": {
     "lumber": 20
+   },
+   "4": {
+    "lumber": 40
+   },
+   "5": {
+    "lumber": 90,
+    "plate": 8
+   },
+   "6": {
+    "lumber": 160,
+    "plate": 20
    }
   },
   "name": "Signal Watchfire",
@@ -1840,10 +2218,34 @@
     "rateMultiplier": 3,
     "damage": 30,
     "range": 6.5
+   },
+   {
+    "sprite": "watchfire-4.png",
+    "hp": 840,
+    "rateMultiplier": 4,
+    "damage": 30,
+    "range": 6.5
+   },
+   {
+    "sprite": "watchfire-5.png",
+    "hp": 1080,
+    "rateMultiplier": 5,
+    "damage": 30,
+    "range": 6.5
+   },
+   {
+    "sprite": "watchfire-6.png",
+    "hp": 1380,
+    "rateMultiplier": 6,
+    "damage": 30,
+    "range": 6.5
    }
   ],
   "tierGates": {
-   "3": 8
+   "3": 8,
+   "4": 9,
+   "5": 10,
+   "6": 11
   }
  },
  "mason_yard": {
@@ -2420,8 +2822,55 @@
     "rateMultiplier": 1,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "fletcher-2.png",
+    "hp": 400,
+    "rateMultiplier": 2,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "fletcher-3.png",
+    "hp": 600,
+    "rateMultiplier": 3,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "fletcher-4.png",
+    "hp": 840,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "fletcher-5.png",
+    "hp": 1080,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "fletcher-6.png",
+    "hp": 1380,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
-  ]
+  ],
+  "tierCosts": {
+   "4": {
+    "lumber": 40
+   },
+   "5": {
+    "lumber": 90
+   },
+   "6": {
+    "lumber": 160,
+    "plate": 10
+   }
+  }
  },
  "shieldwall-yard": {
   "maxCount": 2,
@@ -2442,8 +2891,55 @@
     "rateMultiplier": 1,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "shieldwall-yard-2.png",
+    "hp": 600,
+    "rateMultiplier": 2,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "shieldwall-yard-3.png",
+    "hp": 900,
+    "rateMultiplier": 3,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "shieldwall-yard-4.png",
+    "hp": 1260,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "shieldwall-yard-5.png",
+    "hp": 1620,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "shieldwall-yard-6.png",
+    "hp": 2070,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
-  ]
+  ],
+  "tierCosts": {
+   "4": {
+    "lumber": 40
+   },
+   "5": {
+    "lumber": 90
+   },
+   "6": {
+    "lumber": 160,
+    "plate": 10
+   }
+  }
  },
  "moon-dial": {
   "name": "Moon Dial",
