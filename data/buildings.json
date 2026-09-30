@@ -280,12 +280,60 @@
     "rateMultiplier": 1,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "timber_yard-2.png",
+    "hp": 300,
+    "rateMultiplier": 2,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "timber_yard-3.png",
+    "hp": 450,
+    "rateMultiplier": 3,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "timber_yard-4.png",
+    "hp": 630,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "timber_yard-5.png",
+    "hp": 810,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "timber_yard-6.png",
+    "hp": 1035,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
   ],
   "harvest": {
    "capacity": 500,
    "notifyAt": 150,
    "perTier": 500
+  },
+  "tierCosts": {
+   "4": {
+    "lumber": 50
+   },
+   "5": {
+    "lumber": 110,
+    "plate": 8
+   },
+   "6": {
+    "lumber": 190,
+    "plate": 25
+   }
   }
  },
  "mine": {
@@ -1377,6 +1425,17 @@
   "tierCosts": {
    "3": {
     "lumber": 20
+   },
+   "4": {
+    "lumber": 40
+   },
+   "5": {
+    "lumber": 90,
+    "plate": 8
+   },
+   "6": {
+    "lumber": 160,
+    "plate": 20
    }
   },
   "maxCount": [
@@ -1423,6 +1482,27 @@
     "rateMultiplier": 3,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "pond-4.png",
+    "hp": 672,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "pond-5.png",
+    "hp": 864,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "pond-6.png",
+    "hp": 1104,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
   ],
   "harvest": {
@@ -1432,7 +1512,12 @@
   },
   "hosts": [
    "tidecaller"
-  ]
+  ],
+  "tierGates": {
+   "4": 9,
+   "5": 10,
+   "6": 11
+  }
  },
  "pasture": {
   "maxCount": [
@@ -1607,6 +1692,17 @@
   "tierCosts": {
    "3": {
     "lumber": 20
+   },
+   "4": {
+    "lumber": 40
+   },
+   "5": {
+    "lumber": 90,
+    "plate": 8
+   },
+   "6": {
+    "lumber": 160,
+    "plate": 20
    }
   },
   "maxCount": 3,
@@ -1622,7 +1718,10 @@
   "workplace": "scholar",
   "xpRate": 0.12,
   "tierGates": {
-   "3": 7
+   "3": 7,
+   "4": 9,
+   "5": 10,
+   "6": 11
   },
   "tiers": [
    {
@@ -1643,6 +1742,27 @@
     "sprite": "scriptorium-3.png",
     "hp": 450,
     "rateMultiplier": 3,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "scriptorium-4.png",
+    "hp": 630,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "scriptorium-5.png",
+    "hp": 810,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "scriptorium-6.png",
+    "hp": 1035,
+    "rateMultiplier": 6,
     "damage": 0,
     "range": 0.75
    }
@@ -1728,6 +1848,17 @@
   "tierCosts": {
    "3": {
     "lumber": 25
+   },
+   "4": {
+    "lumber": 40
+   },
+   "5": {
+    "lumber": 90,
+    "plate": 8
+   },
+   "6": {
+    "lumber": 160,
+    "plate": 20
    }
   },
   "maxCount": 3,
@@ -1763,12 +1894,38 @@
     "rateMultiplier": 3,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "chapel-4.png",
+    "hp": 924,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "chapel-5.png",
+    "hp": 1188,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "chapel-6.png",
+    "hp": 1518,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
   ],
   "tierUnlocks": {
    "3": [
     "bellcote"
    ]
+  },
+  "tierGates": {
+   "4": 9,
+   "5": 10,
+   "6": 11
   }
  },
  "forge": {
@@ -2103,12 +2260,53 @@
     "rateMultiplier": 2,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "grove-3.png",
+    "hp": 510,
+    "rateMultiplier": 3,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "grove-4.png",
+    "hp": 714,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "grove-5.png",
+    "hp": 918,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "grove-6.png",
+    "hp": 1173,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
   ],
   "harvest": {
    "capacity": 500,
    "notifyAt": 150,
    "perTier": 500
+  },
+  "tierCosts": {
+   "4": {
+    "lumber": 50
+   },
+   "5": {
+    "lumber": 110,
+    "plate": 8
+   },
+   "6": {
+    "lumber": 190,
+    "plate": 25
+   }
   }
  },
  "whisper-grove": {
@@ -2155,12 +2353,53 @@
     "rateMultiplier": 2,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "whisper-grove-3.png",
+    "hp": 600,
+    "rateMultiplier": 3,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "whisper-grove-4.png",
+    "hp": 840,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "whisper-grove-5.png",
+    "hp": 1080,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "whisper-grove-6.png",
+    "hp": 1380,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
   ],
   "harvest": {
    "capacity": 500,
    "notifyAt": 150,
    "perTier": 500
+  },
+  "tierCosts": {
+   "4": {
+    "lumber": 50
+   },
+   "5": {
+    "lumber": 110,
+    "plate": 8
+   },
+   "6": {
+    "lumber": 190,
+    "plate": 25
+   }
   }
  },
  "watchfire": {
@@ -2359,12 +2598,53 @@
     "rateMultiplier": 2,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "frostgrove-3.png",
+    "hp": 600,
+    "rateMultiplier": 3,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "frostgrove-4.png",
+    "hp": 840,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "frostgrove-5.png",
+    "hp": 1080,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "frostgrove-6.png",
+    "hp": 1380,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
   ],
   "harvest": {
    "capacity": 500,
    "notifyAt": 150,
    "perTier": 500
+  },
+  "tierCosts": {
+   "4": {
+    "lumber": 50
+   },
+   "5": {
+    "lumber": 110,
+    "plate": 8
+   },
+   "6": {
+    "lumber": 190,
+    "plate": 25
+   }
   }
  },
  "smeltery": {
@@ -2503,6 +2783,34 @@
     "rateMultiplier": 2,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "deephole-3.png",
+    "hp": 510,
+    "rateMultiplier": 3,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "deephole-4.png",
+    "hp": 714,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "deephole-5.png",
+    "hp": 918,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "deephole-6.png",
+    "hp": 1173,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
   ],
   "harvest": {
@@ -2512,7 +2820,20 @@
   },
   "hosts": [
    "tidecaller"
-  ]
+  ],
+  "tierCosts": {
+   "4": {
+    "lumber": 50
+   },
+   "5": {
+    "lumber": 110,
+    "plate": 8
+   },
+   "6": {
+    "lumber": 190,
+    "plate": 25
+   }
+  }
  },
  "blackwater-weir": {
   "name": "Blackwater Weir",
@@ -2558,12 +2879,53 @@
     "rateMultiplier": 2,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "blackwater-weir-3.png",
+    "hp": 510,
+    "rateMultiplier": 3,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "blackwater-weir-4.png",
+    "hp": 714,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "blackwater-weir-5.png",
+    "hp": 918,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "blackwater-weir-6.png",
+    "hp": 1173,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
   ],
   "harvest": {
    "capacity": 500,
    "notifyAt": 150,
    "perTier": 500
+  },
+  "tierCosts": {
+   "4": {
+    "lumber": 50
+   },
+   "5": {
+    "lumber": 110,
+    "plate": 8
+   },
+   "6": {
+    "lumber": 190,
+    "plate": 25
+   }
   }
  },
  "emberglass": {
@@ -2610,12 +2972,53 @@
     "rateMultiplier": 2,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "emberglass-3.png",
+    "hp": 720,
+    "rateMultiplier": 3,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "emberglass-4.png",
+    "hp": 1008,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "emberglass-5.png",
+    "hp": 1296,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "emberglass-6.png",
+    "hp": 1656,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
   ],
   "harvest": {
    "capacity": 500,
    "notifyAt": 150,
    "perTier": 500
+  },
+  "tierCosts": {
+   "4": {
+    "lumber": 50
+   },
+   "5": {
+    "lumber": 110,
+    "plate": 8
+   },
+   "6": {
+    "lumber": 190,
+    "plate": 25
+   }
   }
  },
  "market": {
@@ -2788,11 +3191,52 @@
     "rateMultiplier": 2,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "schoolroom-3.png",
+    "hp": 780,
+    "rateMultiplier": 3,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "schoolroom-4.png",
+    "hp": 1092,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "schoolroom-5.png",
+    "hp": 1404,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "schoolroom-6.png",
+    "hp": 1794,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
   ],
   "hosts": [
    "apprentice"
-  ]
+  ],
+  "tierCosts": {
+   "4": {
+    "lumber": 50
+   },
+   "5": {
+    "lumber": 110,
+    "plate": 8
+   },
+   "6": {
+    "lumber": 190,
+    "plate": 25
+   }
+  }
  },
  "fletcher": {
   "maxCount": 2,
@@ -2983,8 +3427,56 @@
     "rateMultiplier": 1,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "bell-tower-2.png",
+    "hp": 1040,
+    "rateMultiplier": 2,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "bell-tower-3.png",
+    "hp": 1560,
+    "rateMultiplier": 3,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "bell-tower-4.png",
+    "hp": 2184,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "bell-tower-5.png",
+    "hp": 2808,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "bell-tower-6.png",
+    "hp": 3588,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
-  ]
+  ],
+  "tierCosts": {
+   "4": {
+    "lumber": 50
+   },
+   "5": {
+    "lumber": 110,
+    "plate": 8
+   },
+   "6": {
+    "lumber": 190,
+    "plate": 25
+   }
+  }
  },
  "sunken-chapel": {
   "name": "Sunken Chapel",
@@ -3028,8 +3520,49 @@
     "rateMultiplier": 2,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "sunken-chapel-3.png",
+    "hp": 1260,
+    "rateMultiplier": 3,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "sunken-chapel-4.png",
+    "hp": 1764,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "sunken-chapel-5.png",
+    "hp": 2268,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "sunken-chapel-6.png",
+    "hp": 2898,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
-  ]
+  ],
+  "tierCosts": {
+   "4": {
+    "lumber": 50
+   },
+   "5": {
+    "lumber": 110,
+    "plate": 8
+   },
+   "6": {
+    "lumber": 190,
+    "plate": 25
+   }
+  }
  },
  "cairnfield": {
   "name": "Cairnfield",
@@ -3517,7 +4050,10 @@
    8
   ],
   "tierGates": {
-   "3": 9
+   "3": 9,
+   "4": 10,
+   "5": 11,
+   "6": 11
   },
   "flatAuras": {
    "trade": 0.04,
@@ -3545,8 +4081,42 @@
     "rateMultiplier": 3,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "market-square-4.png",
+    "hp": 2240,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "market-square-5.png",
+    "hp": 2880,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "market-square-6.png",
+    "hp": 3680,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
-  ]
+  ],
+  "tierCosts": {
+   "4": {
+    "lumber": 40
+   },
+   "5": {
+    "lumber": 90,
+    "plate": 8
+   },
+   "6": {
+    "lumber": 160,
+    "plate": 20
+   }
+  }
  },
  "grand-granary": {
   "name": "Grand Granary",
@@ -3568,7 +4138,10 @@
    8
   ],
   "tierGates": {
-   "3": 8
+   "3": 8,
+   "4": 10,
+   "5": 11,
+   "6": 11
   },
   "storage": {
    "food": 3000,
@@ -3596,8 +4169,42 @@
     "rateMultiplier": 3,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "grand-granary-4.png",
+    "hp": 1764,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "grand-granary-5.png",
+    "hp": 2268,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "grand-granary-6.png",
+    "hp": 2898,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
-  ]
+  ],
+  "tierCosts": {
+   "4": {
+    "lumber": 40
+   },
+   "5": {
+    "lumber": 90,
+    "plate": 8
+   },
+   "6": {
+    "lumber": 160,
+    "plate": 20
+   }
+  }
  },
  "manor-gardens": {
   "name": "Manor Gardens",
@@ -3619,12 +4226,18 @@
    8
   ],
   "tierGates": {
-   "3": 9
+   "3": 9,
+   "4": 10,
+   "5": 11,
+   "6": 11
   },
   "housing": [
    10,
    16,
-   24
+   24,
+   34,
+   46,
+   60
   ],
   "flatAuras": {
    "heal": 0.1,
@@ -3651,8 +4264,42 @@
     "rateMultiplier": 3,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "manor-gardens-4.png",
+    "hp": 1260,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "manor-gardens-5.png",
+    "hp": 1620,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "manor-gardens-6.png",
+    "hp": 2070,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
-  ]
+  ],
+  "tierCosts": {
+   "4": {
+    "lumber": 40
+   },
+   "5": {
+    "lumber": 90,
+    "plate": 8
+   },
+   "6": {
+    "lumber": 160,
+    "plate": 20
+   }
+  }
  },
  "stone-road": {
   "name": "Stone Road Network",
@@ -3676,10 +4323,24 @@
   "tierCosts": {
    "3": {
     "plate": 120
+   },
+   "4": {
+    "lumber": 40
+   },
+   "5": {
+    "lumber": 90,
+    "plate": 8
+   },
+   "6": {
+    "lumber": 160,
+    "plate": 20
    }
   },
   "tierGates": {
-   "3": 9
+   "3": 9,
+   "4": 10,
+   "5": 11,
+   "6": 11
   },
   "flatAuras": {
    "carry": 1,
@@ -3706,6 +4367,27 @@
     "rateMultiplier": 3,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "stone-road-4.png",
+    "hp": 1764,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "stone-road-5.png",
+    "hp": 2268,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "stone-road-6.png",
+    "hp": 2898,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
   ]
  },
@@ -3729,7 +4411,10 @@
    8
   ],
   "tierGates": {
-   "3": 10
+   "3": 10,
+   "4": 10,
+   "5": 11,
+   "6": 11
   },
   "flatAuras": {
    "armor": 0.02,
@@ -3756,8 +4441,42 @@
     "rateMultiplier": 3,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "city-wall-4.png",
+    "hp": 2520,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "city-wall-5.png",
+    "hp": 3240,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "city-wall-6.png",
+    "hp": 4140,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
-  ]
+  ],
+  "tierCosts": {
+   "4": {
+    "lumber": 40
+   },
+   "5": {
+    "lumber": 90,
+    "plate": 8
+   },
+   "6": {
+    "lumber": 160,
+    "plate": 20
+   }
+  }
  },
  "forge-quarter": {
   "name": "Royal Forge Quarter",
@@ -3781,10 +4500,24 @@
   "tierCosts": {
    "3": {
     "plate": 240
+   },
+   "4": {
+    "lumber": 40
+   },
+   "5": {
+    "lumber": 90,
+    "plate": 8
+   },
+   "6": {
+    "lumber": 160,
+    "plate": 20
    }
   },
   "tierGates": {
-   "3": 10
+   "3": 10,
+   "4": 10,
+   "5": 11,
+   "6": 11
   },
   "flatAuras": {
    "damage": 0.02,
@@ -3811,6 +4544,27 @@
     "rateMultiplier": 3,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "forge-quarter-4.png",
+    "hp": 2520,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "forge-quarter-5.png",
+    "hp": 3240,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "forge-quarter-6.png",
+    "hp": 4140,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
   ]
  },
@@ -3835,10 +4589,24 @@
   "tierCosts": {
    "3": {
     "frostwood": 80
+   },
+   "4": {
+    "lumber": 40
+   },
+   "5": {
+    "lumber": 90,
+    "plate": 8
+   },
+   "6": {
+    "lumber": 160,
+    "plate": 20
    }
   },
   "tierGates": {
-   "3": 9
+   "3": 9,
+   "4": 10,
+   "5": 11,
+   "6": 11
   },
   "flatAuras": {
    "survey": 0.05,
@@ -3865,6 +4633,27 @@
     "rateMultiplier": 3,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "lantern-rows-4.png",
+    "hp": 1764,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "lantern-rows-5.png",
+    "hp": 2268,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "lantern-rows-6.png",
+    "hp": 2898,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
   ]
  },
@@ -3888,7 +4677,10 @@
    8
   ],
   "tierGates": {
-   "3": 10
+   "3": 10,
+   "4": 10,
+   "5": 11,
+   "6": 11
   },
   "reviveMult": 0.6,
   "flatAuras": {
@@ -3916,8 +4708,42 @@
     "rateMultiplier": 3,
     "damage": 0,
     "range": 0.75
+   },
+   {
+    "sprite": "monument-4.png",
+    "hp": 2520,
+    "rateMultiplier": 4,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "monument-5.png",
+    "hp": 3240,
+    "rateMultiplier": 5,
+    "damage": 0,
+    "range": 0.75
+   },
+   {
+    "sprite": "monument-6.png",
+    "hp": 4140,
+    "rateMultiplier": 6,
+    "damage": 0,
+    "range": 0.75
    }
-  ]
+  ],
+  "tierCosts": {
+   "4": {
+    "lumber": 40
+   },
+   "5": {
+    "lumber": 90,
+    "plate": 8
+   },
+   "6": {
+    "lumber": 160,
+    "plate": 20
+   }
+  }
  },
  "manner-citadel": {
   "name": "The Manner Citadel",

@@ -116,17 +116,17 @@ test('H2: infrastructure stages have distinct original 32px PNG assets',async()=
   const b=data.buildings[id];
   assert.equal(b.size,2);
   assert.equal(b.minLevel,id==='stone-road'?6:7);
-  assert.deepEqual(b.costCurve,[1,2,8]);
-  assert.equal(b.tiers.length,3);
-  for(const t of b.tiers){
-   const png=await readFile(new URL(`../assets/sprites/${t.sprite}`,import.meta.url));
-   assert.equal(png.subarray(0,8).toString('hex'),'89504e470d0a1a0a');
-   assert.equal(png.readUInt32BE(16),32);
-   assert.equal(png.readUInt32BE(20),32);
-   pixels.push(png.toString('hex'));
+   assert.deepEqual(b.costCurve,[1,2,8]);
+   assert.equal(b.tiers.length,6);
+   for(const t of b.tiers){
+    const png=await readFile(new URL(`../assets/sprites/${t.sprite}`,import.meta.url));
+    assert.equal(png.subarray(0,8).toString('hex'),'89504e470d0a1a0a');
+    assert.equal(png.readUInt32BE(16),32);
+    assert.equal(png.readUInt32BE(20),32);
+    pixels.push(png.toString('hex'));
+   }
   }
- }
- assert.equal(new Set(pixels).size,6,'all six stage assets differ');
+  assert.equal(new Set(pixels).size,12,'all twelve stage assets differ');
 });
 
 test('H2: infrastructure baskets retain friendly opening and road plate joins stage three',()=>{
@@ -217,8 +217,8 @@ test('H3: forge and lantern stages use distinct transparent 32px PNG assets',asy
   assert.equal(spec.size,2);
   assert.equal(spec.minLevel,id==='forge-quarter'?7:6);
   assert.equal(spec.tierGates[3],id==='forge-quarter'?10:9);
-  assert.deepEqual(spec.costCurve,[1,2,8]);
-  assert.equal(spec.tiers.length,3);
+   assert.deepEqual(spec.costCurve,[1,2,8]);
+   assert.equal(spec.tiers.length,6);
   assert.equal(spec.production,null);
   assert.equal(spec.rate,0);
   for(const tier of spec.tiers){
@@ -230,7 +230,7 @@ test('H3: forge and lantern stages use distinct transparent 32px PNG assets',asy
    assets.push(png.toString('hex'));
   }
  }
- assert.equal(new Set(assets).size,6);
+  assert.equal(new Set(assets).size,12);
 });
 
 test('H3: friendly baskets scale and special goods join only the final stage',()=>{
