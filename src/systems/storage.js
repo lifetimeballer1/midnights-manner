@@ -11,7 +11,7 @@
 // Caps come from data: world.storageBase (the floor every village owns)
 // plus every living, finished building whose spec carries a `storage` map,
 // scaled by that tier's rateMultiplier, so storage grows with upgrades.
-const FALLBACK_BASE = {wood: 3000, food: 3000, gold: 2000, lumber: 800, flour: 800, bread: 800, frostwood: 600, plate: 600};
+const FALLBACK_BASE = {wood: 3000, food: 3000, gold: 2000, lumber: 800, flour: 800, bread: 800, frostwood: 600, plate: 600, rations: 800, 'feast-supplies': 400};
 
 function tierMult(building, spec) {
   const tier = spec?.tiers?.[Math.max(0, (building?.level || 1) - 1)];

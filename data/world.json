@@ -93,7 +93,9 @@
     "flour": 800,
     "bread": 800,
     "frostwood": 600,
-    "plate": 600
+    "plate": 600,
+    "rations": 800,
+    "feast-supplies": 400
   },
   "spawnBuffer": 2,
   "townMeal": {
