@@ -1,3 +1,10 @@
+## 2026-09-30 — Ambient soundtrack safety + performance sync
+
+- Keep the legacy `data/music.json` theme score intact as the fallback used by `MusicPlayer`; the ambient engine continues to load only `data/ambient-score.json`.
+- Sync the archival `update/audio.js` deliverable to the active pooled/shared-bus engine so future update passes do not reintroduce the older per-voice implementation.
+- Replace the commercial-song tribute cue with the original felt-piano bonus track “Coins at Sundown,” retaining the five-minute 25% peaceful-state easter-egg roll.
+- Add regression coverage for soundtrack schema separation, shared mute/unlock integration and required reactive tracks.
+
 ## 2026-09-30 — Mobile UI and Lighting Pass 2
 
 - Move Collect Ready into the bottom Army utility row, retaining collection/storage logic and five navigation actions. Zero is disabled; menus and placement hide it.
