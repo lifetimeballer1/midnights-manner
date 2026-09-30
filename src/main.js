@@ -14,7 +14,6 @@ async function boot(){
  const names=['world','troops','items','abilities','buildings','missions','quests','levels','rumors','names','legends','calendar','traders','biomes','expansion','updates','artifacts','endgame','music','festivals','conquest'];
  const data=Object.fromEntries(await Promise.all(names.map(async name=>{const response=await fetch(new URL(`../data/${name}.json`,import.meta.url));if(!response.ok)throw Error(`Could not load ${name}`);return [name,await response.json()];})));
 
- // Optional ambient score (C418-style reactive tracks). Fail soft if missing.
  let ambientScore=null;
  try{
   const res=await fetch(new URL('../data/ambient-score.json',import.meta.url));
@@ -32,24 +31,34 @@ async function boot(){
  const ambience=new AmbiencePlayer(game),moodMemory={};
  music.setMood(soundtrackMood(game.world,data,{memory:moodMemory,vlevel:game.state.vlevel}));
 
- // Prefer the ambient score as the session soundtrack when available.
- // Hook MusicPlayer.start (called from UI Begin) so we don't depend on DOM order.
+ // Ambient score is preferred when available; fall back to MusicPlayer if it cannot start.
+ let usingAmbient=false;
  if(ambientScore){
   const origStart=music.start.bind(music);
   music.start=function(opts){
-   // Start ambient instead of the theme player to avoid double-music.
-   ambient.start(ambientScore);
-   ambient.updateGameState(stateFromWorld(game, data));
-   // Keep MusicPlayer marked as entered/enabled for UI, but silent.
-   music.entered=true;
-   music.enabled=!isMuted();
-   music.mood=typeof opts?.mood==='string'?opts.mood:music.mood;
-   music.calm=Boolean(opts?.calm);
+   unlock();
+   const ok=ambient.start(ambientScore);
+   if(ok){
+    usingAmbient=true;
+    ambient.updateGameState(stateFromWorld(game, data));
+    music.entered=true;
+    music.enabled=!isMuted();
+    music.mood=typeof opts?.mood==='string'?opts.mood:music.mood;
+    music.calm=Boolean(opts?.calm);
+   }else{
+    // Ambient muted or unavailable — keep the proven theme player alive.
+    usingAmbient=false;
+    origStart(opts);
+   }
   };
   const origSetEnabled=music.setEnabled.bind(music);
   music.setEnabled=function(enabled){
-   origSetEnabled(enabled);
-   ambient.setEnabled(Boolean(enabled) && !isMuted());
+   if(usingAmbient){
+    music.enabled=Boolean(enabled)&&!isMuted();
+    ambient.setEnabled(Boolean(enabled)&&!isMuted());
+   }else{
+    origSetEnabled(enabled);
+   }
   };
  }
 
@@ -80,7 +89,7 @@ async function boot(){
    while(accumulator>=.05){game.tick(.05);accumulator-=.05;}
    const mood=soundtrackMood(game.world,data,{memory:moodMemory,vlevel:game.state.vlevel});
    music.setMood(mood);
-   if(ambient.started){
+   if(usingAmbient && ambient.started){
     ambient.updateGameState(stateFromWorld(game, data));
    }
    ui.tick(dt);
@@ -91,9 +100,6 @@ async function boot(){
  }
  requestAnimationFrame(frame);
 
- // Read-only hooks keep real-input browser tests independent of camera constants.
- // setElapsed/setCamera are test-only drivers for the look-capture harness:
- // they set transient view/clock state, never saves, rules or placement.
- window.midnightsManner={snapshot:()=>structuredClone(game.state),modelPoints:id=>(renderer.sceneFaces||[]).filter(f=>f.owner?.id===id).map(f=>({x:f.points.reduce((n,p)=>n+p.x,0)/f.points.length,y:f.points.reduce((n,p)=>n+p.y,0)/f.points.length})).filter(p=>renderer.pick(p.x,p.y)?.id===id),pick:(x,y)=>{const hit=renderer.pick(x,y);return hit?{...hit}:null;},collectionBubbles:()=>renderer.hitAreas.filter(h=>h.kind==='harvest').map(h=>({...h})),project:(x,y)=>renderer.project(x,y),camera:()=>({...renderer.cam}),frameReport:()=>renderer.frameReport(),get paused(){return game.paused;},get ready(){return ui.started;},setElapsed:seconds=>{const t=Number(seconds);if(Number.isFinite(t)&&t>=0)game.world.elapsed=t;},setCamera:({yaw,pitch,zoom,x,y}={})=>{const cam=renderer.cam;if(Number.isFinite(yaw))cam.yaw=yaw;if(Number.isFinite(pitch))cam.pitch=pitch;if(Number.isFinite(zoom)&&zoom>0)renderer.zoomBy(zoom/cam.zoom);if(Number.isFinite(x))cam.x=x;if(Number.isFinite(y))cam.y=y;},ambientTrack:()=>ambient.currentTrackKey};
+ window.midnightsManner={snapshot:()=>structuredClone(game.state),modelPoints:id=>(renderer.sceneFaces||[]).filter(f=>f.owner?.id===id).map(f=>({x:f.points.reduce((n,p)=>n+p.x,0)/f.points.length,y:f.points.reduce((n,p)=>n+p.y,0)/f.points.length})).filter(p=>renderer.pick(p.x,p.y)?.id===id),pick:(x,y)=>{const hit=renderer.pick(x,y);return hit?{...hit}:null;},collectionBubbles:()=>renderer.hitAreas.filter(h=>h.kind==='harvest').map(h=>({...h})),project:(x,y)=>renderer.project(x,y),camera:()=>({...renderer.cam}),frameReport:()=>renderer.frameReport(),get paused(){return game.paused;},get ready(){return ui.started;},setElapsed:seconds=>{const t=Number(seconds);if(Number.isFinite(t)&&t>=0)game.world.elapsed=t;},setCamera:({yaw,pitch,zoom,x,y}={})=>{const cam=renderer.cam;if(Number.isFinite(yaw))cam.yaw=yaw;if(Number.isFinite(pitch))cam.pitch=pitch;if(Number.isFinite(zoom)&&zoom>0)renderer.zoomBy(zoom/cam.zoom);if(Number.isFinite(x))cam.x=x;if(Number.isFinite(y))cam.y=y;},ambientTrack:()=>ambient.currentTrackKey,usingAmbient:()=>usingAmbient};
 }
 boot().catch(error=>{console.error(error);document.querySelector('#fatal').hidden=false;document.querySelector('#fatal').textContent=`The village could not load: ${error.message}. Refresh to retry. If running locally, serve the game over HTTP.`;});

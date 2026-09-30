@@ -1,4 +1,4 @@
-import {isMuted, sharedAudioContext, sharedAudioOutput} from './systems/audio.js';
+import {isMuted, sharedAudioContext, sharedAudioOutput, unlock} from './systems/audio.js';
 
 /**
  * Context-reactive Minecraft/C418-style ambient score engine.
@@ -22,13 +22,14 @@ export class AmbientScoreEngine {
     this.isPlaying = false;
     this.started = false;
 
-    // Easter egg: 25% roll after 5 minutes of calm, then every 2 minutes
     this.easterEggActive = false;
     this.rollTimer = null;
     this.firstRollTimer = null;
   }
 
   _ensureGraph() {
+    // Ensure the shared context exists (creates it on first user gesture path).
+    unlock();
     const ctx = sharedAudioContext();
     const output = sharedAudioOutput();
     if (!ctx || !output) return false;
@@ -89,11 +90,8 @@ export class AmbientScoreEngine {
 
   initTimerRolls() {
     this.clearRollTimers();
-
-    // First check at exactly 5 minutes
     this.firstRollTimer = setTimeout(() => {
       this.attemptEasterEggRoll();
-      // Recurring check every 2 minutes after that
       this.rollTimer = setInterval(() => this.attemptEasterEggRoll(), 120000);
     }, 300000);
   }
@@ -110,7 +108,6 @@ export class AmbientScoreEngine {
   }
 
   attemptEasterEggRoll() {
-    // Only during calm base-building; never interrupt event tracks
     if (this.currentTrackKey !== 'peace_day' || this.easterEggActive) return;
     if (!this.data?.tracks?.money_right) return;
     if (Math.random() <= 0.25) {
@@ -119,10 +116,6 @@ export class AmbientScoreEngine {
     }
   }
 
-  /**
-   * Map live game flags to a score track.
-   * Preserves money_right easter egg until it finishes or an event interrupts.
-   */
   updateGameState(state = {}) {
     if (state.inRaid || state.raidPending) {
       this.easterEggActive = false;
@@ -136,7 +129,6 @@ export class AmbientScoreEngine {
     } else if (!this.easterEggActive) {
       this.setTrack('peace_day');
     }
-    // else: stay on money_right until the cycle completes
   }
 
   noteToFreq(note) {
@@ -175,13 +167,19 @@ export class AmbientScoreEngine {
     voiceFilter.connect(gain);
     gain.connect(this.filter);
 
-    osc.start(time);
-    osc.stop(time + dur + 0.15);
+    try {
+      osc.start(time);
+      osc.stop(time + dur + 0.15);
+    } catch {}
   }
 
   tick() {
     if (!this.isPlaying || !this.data?.tracks) return;
-    if (!this._ensureGraph()) return;
+    if (!this._ensureGraph()) {
+      // Context not ready yet — retry shortly instead of dying silently.
+      this.timer = setTimeout(() => this.tick(), 250);
+      return;
+    }
 
     const target = isMuted() ? 0.0001 : 0.32;
     try {
@@ -219,7 +217,6 @@ export class AmbientScoreEngine {
 
     this.phraseIndex = (this.phraseIndex + 1) % track.phrases.length;
 
-    // After one full cycle of the tribute, return to peace
     if (this.currentTrackKey === 'money_right' && this.phraseIndex === 0) {
       this.easterEggActive = false;
       this.setTrack('peace_day');
@@ -228,23 +225,27 @@ export class AmbientScoreEngine {
     this.timer = setTimeout(() => this.tick(), (totalPhraseSec + restSec) * 1000);
   }
 
+  /**
+   * @returns {boolean} true if playback is running
+   */
   start(scoreData = null) {
     if (scoreData) this.loadScore(scoreData);
-    if (!this.data) return;
+    if (!this.data) return false;
 
     this.started = true;
+    unlock();
+
     if (isMuted()) {
       this.isPlaying = false;
-      return;
+      return false;
     }
 
-    if (!this._ensureGraph()) return;
-    if (this.ctx.state === 'suspended') this.ctx.resume();
-
-    if (this.isPlaying) return;
+    // Always mark playing and schedule tick — tick retries if graph is not ready yet.
+    if (this.isPlaying) return true;
     this.isPlaying = true;
     this.initTimerRolls();
     this.tick();
+    return true;
   }
 
   setEnabled(enabled) {
@@ -255,7 +256,9 @@ export class AmbientScoreEngine {
         this.initTimerRolls();
         this.tick();
       } else if (this.masterGain && this.ctx) {
-        this.masterGain.gain.setTargetAtTime(0.32, this.ctx.currentTime, 0.05);
+        try {
+          this.masterGain.gain.setTargetAtTime(0.32, this.ctx.currentTime, 0.05);
+        } catch {}
       }
     } else {
       this.stop(false);
