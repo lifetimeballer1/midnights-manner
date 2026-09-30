@@ -1990,5 +1990,144 @@
       { "sprite": "monument-2.png", "hp": 1200, "rateMultiplier": 2, "damage": 0, "range": 0.75 },
       { "sprite": "monument-3.png", "hp": 1800, "rateMultiplier": 3, "damage": 0, "range": 0.75 }
     ]
+  },
+  "manner-citadel": {
+    "name": "The Manner Citadel",
+    "project": true,
+    "size": 3,
+    "cost": {
+      "wood": 10000,
+      "lumber": 5000,
+      "gold": 10000,
+      "plate": 1000,
+      "frostwood": 250,
+      "food": 2000,
+      "bread": 500
+    },
+    "buildSeconds": 16,
+    "production": null,
+    "rate": 0,
+    "minLevel": 10,
+    "maxPerVillage": 1,
+    "costCurve": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "tierCosts": {
+      "2": {
+        "plate": 12000,
+        "frostwood": 2000
+      },
+      "3": {
+        "plate": 19000,
+        "frostwood": 7500
+      },
+      "4": {
+        "plate": 19000,
+        "frostwood": 13000
+      }
+    },
+    "tierGates": {
+      "4": 11
+    },
+    "flatAuras": {
+      "armor": 0.02,
+      "heal": 0.1
+    },
+    "tiers": [
+      {
+        "sprite": "manner-citadel-1.png",
+        "hp": 800,
+        "rateMultiplier": 1,
+        "damage": 0,
+        "range": 0.75
+      },
+      {
+        "sprite": "manner-citadel-2.png",
+        "hp": 1600,
+        "rateMultiplier": 2,
+        "damage": 0,
+        "range": 0.75
+      },
+      {
+        "sprite": "manner-citadel-3.png",
+        "hp": 2400,
+        "rateMultiplier": 3,
+        "damage": 0,
+        "range": 0.75
+      },
+      {
+        "sprite": "manner-citadel-4.png",
+        "hp": 3200,
+        "rateMultiplier": 4,
+        "damage": 0,
+        "range": 0.75
+      }
+    ]
+  },
+  "grand-watchtower": {
+    "name": "Grand Watchtower",
+    "project": true,
+    "size": 2,
+    "cost": {
+      "wood": 3000,
+      "lumber": 2000,
+      "gold": 3300,
+      "plate": 100,
+      "frostwood": 250,
+      "food": 1000,
+      "bread": 250
+    },
+    "buildSeconds": 14,
+    "production": null,
+    "rate": 0,
+    "minLevel": 9,
+    "maxPerVillage": 1,
+    "costCurve": [
+      1,
+      2,
+      7
+    ],
+    "tierCosts": {
+      "2": {
+        "plate": 5700
+      },
+      "3": {
+        "plate": 13300,
+        "frostwood": 5750
+      }
+    },
+    "tierGates": {
+      "3": 10
+    },
+    "flatAuras": {
+      "damage": 0.02,
+      "survey": 0.05
+    },
+    "tiers": [
+      {
+        "sprite": "grand-watchtower-1.png",
+        "hp": 600,
+        "rateMultiplier": 1,
+        "damage": 0,
+        "range": 0.75
+      },
+      {
+        "sprite": "grand-watchtower-2.png",
+        "hp": 1200,
+        "rateMultiplier": 2,
+        "damage": 0,
+        "range": 0.75
+      },
+      {
+        "sprite": "grand-watchtower-3.png",
+        "hp": 2000,
+        "rateMultiplier": 3,
+        "damage": 0,
+        "range": 0.75
+      }
+    ]
   }
 }

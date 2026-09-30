@@ -435,3 +435,27 @@ The generic departure path already charges mission launchCost only after a succe
 H12 extends the resource-only story exemption in tests/raids.test.js to the finale, with no unlocks. Existing fitting equipment already has quest unlock paths. There is no conquest tag, tribe, log, destination, ledger write or annex judgement. All 33 earlier missions, five earlier leaders and remaining conquest data retain their pre-H12 SHA-256 fingerprints. All five tribes retain byte-identical scout, first-clear, annex and daily supply outcomes, and chapters 30-32 retain free departures and unchanged clear, replay and loss outcomes. No new mechanics, currencies, aura keys, tribes or save version changes. The campaign now has 34 missions, max chapter 33 and six leaders; the finale is done.
 
 Verification: npm.cmd test passed all 823 checks, including eight new H12 checks. npm.cmd run build passed with 401 precached files. Browser interaction smoke was not run.
+
+### Grey Dawn GW1
+
+Two optional Great Works reuse Town Projects: **The Manner Citadel** opens at level 10 with Clearing → Foundations → Walls → Crowned Citadel (final stage at level 11); **Grand Watchtower** opens at level 9 with Footings → Timber tower → Beacon tower (final stage at level 10). Each is limited to one per village. Every finished Citadel tier grants +2% armor and +0.1/s healing; every finished Watchtower tier grants +2% damage and +0.05 survey, under existing aura caps. Scaffolds and ruins grant nothing. Seven original transparent 32×32 sprites distinguish the stages.
+
+Undiscounted central-store prices follow the existing `costCurve` plus `tierCosts` pipeline; builder discounts still apply normally. Citadel uses `[1, 2, 3, 4]`, Watchtower `[1, 2, 7]`. Plate extras distribute the Citadel's 60,000 total across four payable stages: after the approachable 1,000 opening, stage two must already spend 14,000 because two later stages can hold at most 46,200 plate combined.
+
+| Work / stage | Wood | Lumber | Gold | Plate | Frostwood | Food | Bread |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Citadel: Clearing | 10,000 | 5,000 | 10,000 | 1,000 | 250 | 2,000 | 500 |
+| Citadel: Foundations | 20,000 | 10,000 | 20,000 | 14,000 | 2,500 | 4,000 | 1,000 |
+| Citadel: Walls | 30,000 | 15,000 | 30,000 | 22,000 | 8,250 | 6,000 | 1,500 |
+| Citadel: Crowned Citadel | 40,000 | 20,000 | 40,000 | 23,000 | 14,000 | 8,000 | 2,000 |
+| Citadel total | 100,000 | 50,000 | 100,000 | 60,000 | 25,000 | 20,000 | 5,000 |
+| Watchtower: Footings | 3,000 | 2,000 | 3,300 | 100 | 250 | 1,000 | 250 |
+| Watchtower: Timber tower | 6,000 | 4,000 | 6,600 | 5,900 | 500 | 2,000 | 500 |
+| Watchtower: Beacon tower | 21,000 | 14,000 | 23,100 | 14,000 | 7,500 | 7,000 | 1,750 |
+| Watchtower total | 30,000 | 20,000 | 33,000 | 20,000 | 8,250 | 10,000 | 2,500 |
+
+Cap reference: tier-3 Hall, six tier-3 Storehouses (base level-11 limit), and tier-3 Grand Granary, without Renown/conquest bonuses. Each cap is `storageBase + Hall storage × 3 + Storehouse storage × 3 × 6 + Granary storage × 3` where that resource exists: wood 118,000; food 127,000; gold 79,500; lumber 38,000; flour/bread 44,000 each; plate/frostwood 23,100 each. For example, plate is `600 + 300×3 + 1,200×3×6 = 23,100`, lumber `800 + 400×3 + 2,000×3×6 = 38,000`, and food `4,000 + 2,000×3 + 6,000×3×6 + 3,000×3 = 127,000`. Every individual stage fits these caps; final Citadel plate leaves only 100 room. Players refill between stages. Reserves, cargo and pending rewards cannot pay a missing central good.
+
+No runtime changes, new mechanics, currencies, aura keys, save fields or version bump were added. Conquest/muster laws, missions, Renown data and its future-project hook remain pinned, as do all earlier building entries including the one-tier Dawn Gate. Great Works add no upkeep or decay.
+
+Verification: `npm.cmd test` passed all 831 checks, including eight GW1 checks. `npm.cmd run build` passed with 408 precached files. Stage sprite artwork was visually inspected; browser interaction smoke was not run.
