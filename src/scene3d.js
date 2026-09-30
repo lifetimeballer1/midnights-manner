@@ -482,6 +482,59 @@ function masterworkDetails(s,b,spec,fine){
    if(l>=5)s.box(x+.2,y+.2,.12,.3,.2,.14,'#6b5541');
    if(l>=6)detailCrate(s,x+n-.48,y+.3,.12,.8);
   }
+  if(t==='pond'||t==='deephole'){
+   if(l>=4)detailCrate(s,x+side,y+.24,.12,.8);
+   if(l>=5)s.box(x+.3,front-.2,.13,.4,.16,.18,timber);
+   if(l>=6)lanternPost(s,x+n-.3,y+.3,.62,.9,.4);
+  }
+  if(t==='grove'||t==='frostgrove'||t==='whisper-grove'){
+   if(l>=4)detailCrate(s,x+side,y+.24,.12,.82);
+   if(l>=5){s.box(x+.24,y+1.2,.13,.07,.07,.7,timber);s.box(x+.24,y+1.2,.7,.36,.06,.045,timber);}
+   if(l>=6)lanternPost(s,x+n-.3,y+.32,.66,.95,.42);
+  }
+  if(t==='blackwater-weir'){
+   if(l>=4)detailBarrel(s,x+side,y+.3,.12,.85);
+   if(l>=5)detailSack(s,x+n-.45,y+.4,.12,.8);
+   if(l>=6)lanternPost(s,x+.3,y+.3,.62,.9,.4);
+  }
+  if(t==='chapel'||t==='sunken-chapel'){
+   for(const dx of [.3,.7])s.box(x+n*dx-.08,y+n-.2,.85,.16,.03,.26,dx<.5?'#ad6155':'#5e8c9b');
+   if(l>=5)detailBarrel(s,x+side,y+.28,.13,.9);
+   if(l>=6)lanternPost(s,x+.26,y+.26,.7,1,.42);
+  }
+  if(t==='scriptorium'||t==='schoolroom'){
+   if(l>=4)s.box(x+.2,front-.04,.14,n-.36,.17,.24,timber);
+   if(l>=5)detailCrate(s,x+side,y+.26,.12,.82);
+   if(l>=6)lanternPost(s,x+n-.32,y+.3,.62,.9,.4);
+  }
+  if(t==='market-square'){
+   detailSack(s,x+side,y+n-.5,.13,.8);
+   if(l>=5)detailBarrel(s,x+n-.5,y+n-.55,.13,.8);
+   if(l>=6)lanternPost(s,x+n*.5,y+.25,.7,1,.42);
+  }
+  if(t==='grand-granary'){
+   detailSack(s,x+side,front-.2,.13,.95);
+   if(l>=5)detailSack(s,x+n-.4,y+.3,.13,.85);
+   if(l>=6)detailBarrel(s,x+.2,y+.3,.13,.95);
+  }
+  if(t==='manor-gardens'){
+   for(const dx of [.36,.5,.64])s.pyramid(x+side+dx-.3,front+.02,.2,.06,.1,'#90a369');
+   if(l>=5)s.box(x+n*.4,y+n*.4,.2,.3,.3,.14,'#4e9aaa');
+   if(l>=6)lanternPost(s,x+.28,y+.28,.66,.95,.42);
+  }
+  if(t==='monument'){
+   if(l>=5)detailCrate(s,x+side,y+.26,.12,.82);
+   if(l>=6){s.box(x+n*.43,y+n*.43,.5,.14,.14,.3,stone);s.pyramid(x+n*.5,y+n*.5,.8,.12,.16,gold,4);}
+  }
+  if(t==='stone-road'||t==='city-wall'||t==='forge-quarter'||t==='lantern-rows'){
+   detailCrate(s,x+side,y+.26,.12,.85);
+   if(l>=5)detailBarrel(s,x+n-.48,y+.3,.12,.85);
+   if(l>=6)lanternPost(s,x+.28,y+.28,.7,1,.42);
+  }
+  if(t==='bell-tower'){
+   if(l>=5)s.box(x+n*.4,y+n*.4,1.5,.2,.2,.2,gold);
+   if(l>=6)lanternPost(s,x+.28,y+.28,.7,1,.42);
+  }
 }
 
 function buildingShape(s,b,spec,world,time){
@@ -553,7 +606,11 @@ function buildingShape(s,b,spec,world,time){
    if(l>=2){for(const a of [.28,1.24])s.box(x+a,y+1.25,.13,.07,.07,.76,timber);s.roof(x+.22,y+1.16,.89,1.16,.5,.16,'#60897b');s.box(x+1.4,y+1.2,.13,.08,.46,.35,timber);s.box(x+1.33,y+1.2,.46,.22,.46,.06,'#d4ae73');}
    lanternPost(s,x+n-.26,y+n-.26,.76,1.08,.42);return;
   }
-  if(['grove','frostgrove'].includes(t)){for(const [a,c]of[[.5,.5],[1.35,.65],[.9,1.4]])pine(s,x+a,y+c,1.2+l*.15,t==='frostgrove');fence(s,x+.15,y+.15,n-.3,n-.3);lanternPost(s,x+n-.26,y+n-.26,.76,1.08,.42);return;}
+  if(['grove','frostgrove'].includes(t)){for(const [a,c]of[[.5,.5],[1.35,.65],[.9,1.4]])pine(s,x+a,y+c,1.2+l*.15,t==='frostgrove');fence(s,x+.15,y+.15,n-.3,n-.3);lanternPost(s,x+n-.26,y+n-.26,.76,1.08,.42);
+   if(l>=4)pine(s,x+.9,y+.5,.8+l*.1,t==='frostgrove');
+   if(l>=5){s.box(x+.4,y+.4,.1,.5,.2,.3,timber);s.roof(x+.35,y+.35,.4,.6,.3,.12,'#60897b');}
+   if(l>=6)s.box(x+.45,y+.45,.72,.4,.1,.06,gold);
+   return;}
   if(['lumber','timber_yard'].includes(t)){for(let i=0;i<3;i++)s.box(x+.18,y+.2+i*.19,.13,.62,.14,.14,timber);s.box(x+.28,y+.29,.27,.43,.14,.14,'#d4ae73');s.box(x+.17,y+.16,.13,.08,.08,.73,timber);s.box(x+.74,y+.16,.13,.08,.08,.73,timber);s.roof(x+.1,y+.1,.83,.8,.6,.18,'#60897b');lanternPost(s,x+.79,y+.22,.78,1,.42);
    if(l>=4){s.box(x+.1,y+.62,.13,.5,.12,.12,'#c79861');s.box(x+.14,y+.66,.25,.42,.08,.06,timber);}
    if(l>=5){s.pyramid(x+.3,y+.7,.13,.16,.24,'#76593d',5);s.pyramid(x+.48,y+.7,.13,.13,.2,'#8a6a48',5);}
@@ -653,31 +710,43 @@ function buildingShape(s,b,spec,world,time){
    for(const dx of [0,.76])s.box(x+a+dx,y+c,.1,.06,.06,.8,timber);
    s.roof(x+a-.05,y+c-.1,.86,1,.66,.12,color);
   }
-  if(l>=2){s.box(x+n*.43,y+n*.43,.09,.14,.14,.52,stone);s.pyramid(x+n*.5,y+n*.5,.61,.26,.32,gold,4);}
-  if(l>=3){s.box(x+.55,y+n-.26,.08,n-1.1,.13,.3,stone);s.box(x+n-1.45,y+.55,.08,.13,n-1.1,.3,stone);}
-  return;
+   if(l>=2){s.box(x+n*.43,y+n*.43,.09,.14,.14,.52,stone);s.pyramid(x+n*.5,y+n*.5,.61,.26,.32,gold,4);}
+   if(l>=3){s.box(x+.55,y+n-.26,.08,n-1.1,.13,.3,stone);s.box(x+n-1.45,y+.55,.08,.13,n-1.1,.3,stone);}
+   if(l>=4){for(const [a,c]of[[.18,n-1.02],[n-1.02,n-1.02]])s.box(x+a,y+c,1.02,.12,.12,.14,gold);}
+   if(l>=5){s.box(x+.2,y+.2,.06,.5,.5,.4,timber);s.roof(x+.15,y+.15,.46,.6,.6,.14,'#ccac60');}
+   if(l>=6)lanternPost(s,x+n*.5,y+.2,.8,1.05,.44);
+   return;
  }
  if(t==='grand-granary'){
   hut(s,x+.22,y+.22,n-.44,n-.44,.5+l*.16,l>=3?stone:timber,l);
   s.box(x+n-.6,y+.16,.32,.36,.32,.42,'#d8c98f');
   s.box(x+.24,y+n-.46,.14,.4,.3,.28,'#deca9f');
   s.box(x+.48,y+n-.46,.14,.4,.3,.32,'#deca9f');
-  if(l>=3)for(const a of [.12,n-.34]){s.box(x+a,y+n*.42,.96,.18,.18,.8,'#e9dab2');s.pyramid(x+a+.09,y+n*.51,1.08,.15,.22,stone,4);}
-  return;
+   if(l>=3)for(const a of [.12,n-.34]){s.box(x+a,y+n*.42,.96,.18,.18,.8,'#e9dab2');s.pyramid(x+a+.09,y+n*.51,1.08,.15,.22,stone,4);}
+   if(l>=4){s.box(x+.24,y+n-.5,.14,.5,.24,.2,'#8d6844');s.box(x+.28,y+n-.46,.34,.42,.16,.03,'#b88a55');}
+   if(l>=5){s.box(x+n-.62,y+.14,1.5,.3,.3,.3,gold);}
+   if(l>=6)lanternPost(s,x+.3,y+.3,.72,1,.42);
+   return;
  }
  if(t==='manor-gardens'){
   s.box(x+.1,y+.1,.04,n-.2,n-.2,.05,'#547b60');
   for(const [a,c]of[[.42,.42],[n-.8,.5],[.5,n-.8]])pine(s,x+a,y+c,.6+l*.16,false);
-  if(l>=2){s.box(x+n*.4,y+n*.4,.1,.34,.34,.12,stone);s.box(x+n*.43,y+n*.43,.14,.28,.28,.1,'#4e9aaa');}
-  for(const [a,c]of[[.22,n*.5],[n-.36,n*.5],[n*.5,.22],[n*.5,n-.36]])s.pyramid(x+a,y+c,.08,.06,.15,l>=3?gold:'#a26b7e',4);
-  return;
+   if(l>=2){s.box(x+n*.4,y+n*.4,.1,.34,.34,.12,stone);s.box(x+n*.43,y+n*.43,.14,.28,.28,.1,'#4e9aaa');}
+   for(const [a,c]of[[.22,n*.5],[n-.36,n*.5],[n*.5,.22],[n*.5,n-.36]])s.pyramid(x+a,y+c,.08,.06,.15,l>=3?gold:'#a26b7e',4);
+   if(l>=4){s.box(x+.2,y+.2,.06,n-.4,.08,.1,stone);s.box(x+.2,y+n-.28,.06,n-.4,.08,.1,stone);}
+   if(l>=5)for(const [a,c]of[[.6,.6],[n-.7,.6],[.6,n-.7],[n-.7,n-.7]])s.pyramid(x+a,y+c,.3,.07,.14,'#90a369');
+   if(l>=6){s.box(x+n*.4,y+n*.4,.5,.34,.34,.1,gold);lanternPost(s,x+.3,y+n-.3,.7,1,.42);}
+   return;
  }
  if(t==='monument'){
   if(l>=2){s.box(x+n*.14,y+n*.14,.1,.72,.72,.1,stone);s.box(x+n*.2,y+n*.2,.16,.6,.6,.16,'#e9dab2');}
   s.box(x+n*.32,y+n*.32,.24,.36,.36,.5+l*.4,'#e9dab2');
   s.pyramid(x+n*.5,y+n*.5,.9+l*.4,.16,.22,l>=3?gold:stone,4);
-  if(l>=3){s.box(x+n*.12,y+n*.12,.5,.16,.76,.09,stone);s.box(x+n*.12,y+n*.6,.5,.76,.16,.09,stone);}
-  return;
+   if(l>=3){s.box(x+n*.12,y+n*.12,.5,.16,.76,.09,stone);s.box(x+n*.12,y+n*.6,.5,.76,.16,.09,stone);}
+   if(l>=4)for(const [a,c]of[[.3,.3],[n-.3,.3],[.3,n-.3],[n-.3,n-.3]])s.box(x+a-.06,y+c-.06,.12,.12,.12,.5,stone);
+   if(l>=5)s.box(x+n*.32,y+n*.32,1.3,.36,.36,.12,gold);
+   if(l>=6){for(const [a,c]of[[n*.2,n*.5],[n*.8,n*.5]])s.box(x+a-.08,y+c-.01,.9,.16,.03,.3,'#5e8c9b');lanternPost(s,x+.25,y+.25,.8,1,.42);}
+   return;
  }
  const colors={hall:'#658d99',barracks:'#b96d5a',cottage:'#9ba061',longhouse:'#977851',chapel:'#8e8dae','sunken-chapel':'#679fa5',forge:'#976b54',smeltery:'#846f67',armory:'#667b91',workshop:'#789380',tannery:'#bd9a69',schoolroom:'#ba9369',scriptorium:'#798ca7',butchery:'#a75e54',fletcher:'#7c9868','shieldwall-yard':'#668a91',mason_yard:'#949b90'};
  hut(s,x+.22,y+.22,n-.44,n-.44,.42+l*.16,colors[t]||'#829a78',l);

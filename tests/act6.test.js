@@ -22,11 +22,11 @@ test('ph6: the Frostgrove is a level-gated frostwood production building', () =>
   assert.equal(f.production, 'frostwood');
   assert.equal(f.reserve, 400);
   assert.equal(f.workplace, 'woodward');
-  assert.equal(f.tiers.length, 2);
+  assert.equal(f.tiers.length, 6);
   assert.equal(f.minLevel, 6);
   assert.deepEqual(f.cost, {wood: 90, food: 30});
   const sprites = f.tiers.map(t => t.sprite);
-  assert.equal(new Set(sprites).size, 2, 'tiers stay visually distinct');
+  assert.equal(new Set(sprites).size, 6, 'tiers stay visually distinct');
 });
 
 test('ph6: the Woodward debuts the G1 gatherer kit', () => {
@@ -413,10 +413,10 @@ test('ph8: the Deephole waits on a tier-2 pond (same generic chain gate)', () =>
   assert.equal(hole.rate, 2.2);
   assert.equal(hole.reserve, 350);
   assert.equal(hole.workplace, 'diver');
-  assert.equal(hole.tiers.length, 2);
+  assert.equal(hole.tiers.length, 6);
   assert.deepEqual(hole.cost, {wood: 70, food: 40});
   assert.deepEqual(hole.requiresBuilding, {type: 'pond', level: 2});
-  assert.equal(new Set(hole.tiers.map(t => t.sprite)).size, 2, 'tiers stay visually distinct');
+  assert.equal(new Set(hole.tiers.map(t => t.sprite)).size, 6, 'tiers stay visually distinct');
   assert.ok(!data.world.locked.includes('deephole'), 'chain-gated like the frostgrove, never locked');
   const d = structuredClone(data);
   const g = new Game(d);
@@ -441,10 +441,10 @@ test('ph8: the Deephole waits on a tier-2 pond (same generic chain gate)', () =>
 
 test('ph8: Pond Tier 3 deepens the old water', () => {
   const tiers = data.buildings.pond.tiers;
-  assert.equal(tiers.length, 3, 'the pond chain grows down, not out');
+  assert.equal(tiers.length, 6, 'the pond chain grows down, not out');
   assert.equal(tiers[2].sprite, 'pond-3.png');
   assert.equal(tiers[2].rateMultiplier, 3);
-  assert.equal(new Set(tiers.map(t => t.sprite)).size, 3, 'tiers stay visually distinct');
+  assert.equal(new Set(tiers.map(t => t.sprite)).size, 6, 'tiers stay visually distinct');
 });
 
 test('ph8: the Diver shares the G1 collector track — zero new abilities', () => {
@@ -565,10 +565,10 @@ test('ph9: the Emberglass waits on a tier-2 mine (same generic chain gate)', () 
   assert.equal(em.rate, 2.4);
   assert.equal(em.reserve, 500);
   assert.equal(em.workplace, 'sapper');
-  assert.equal(em.tiers.length, 2);
+  assert.equal(em.tiers.length, 6);
   assert.deepEqual(em.cost, {wood: 110, food: 40, frostwood: 30});
   assert.deepEqual(em.requiresBuilding, {type: 'mine', level: 2});
-  assert.equal(new Set(em.tiers.map(t => t.sprite)).size, 2, 'tiers stay visually distinct');
+  assert.equal(new Set(em.tiers.map(t => t.sprite)).size, 6, 'tiers stay visually distinct');
   assert.ok(!data.world.locked.includes('emberglass'), 'chain-gated like the smeltery, never locked');
   const d = structuredClone(data);
   const g = new Game(d);

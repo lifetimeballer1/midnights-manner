@@ -22,8 +22,8 @@ test('whisper: grove has authored production and the existing tier/level gates',
   assert.equal(spec.workplace, 'heartwarden');
   assert.deepEqual(spec.requiresBuilding, {type: 'grove', level: 2});
   assert.deepEqual(spec.cost, data.buildings.frostgrove.cost);
-  assert.equal(spec.tiers.length, 2);
-  assert.equal(new Set(spec.tiers.map(t => t.sprite)).size, 2);
+  assert.equal(spec.tiers.length, 6);
+  assert.equal(new Set(spec.tiers.map(t => t.sprite)).size, 6);
 });
 
 test('whisper: rejected construction spends nothing; both gates must pass', () => {

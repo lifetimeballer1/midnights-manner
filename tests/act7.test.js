@@ -363,7 +363,7 @@ test('ph13: a shared workplace stacks — healer and chorister mend as one', () 
 
 test('ph13: chapel tier 3 teaches the Bellcote itself', () => {
   const ch = data.buildings.chapel;
-  assert.equal(ch.tiers.length, 3);
+  assert.equal(ch.tiers.length, 6);
   assert.equal(ch.tiers[2].rateMultiplier, 3);
   assert.deepEqual(ch.tierUnlocks, {3: ['bellcote']});
   const d = structuredClone(data);
@@ -547,7 +547,7 @@ test('ph14: the Schoolroom trickles XP and teaches cheaper', () => {
   assert.equal(s.workplace, 'apprentice');
   assert.equal(s.xpRate, 0.06);
   assert.equal(s.tutorDiscount, 0.34);
-  assert.equal(s.tiers.length, 2);
+  assert.equal(s.tiers.length, 6);
   assert.ok(data.world.locked.includes('schoolroom'), 'earned with three new stools');
   const d = structuredClone(data);
   const g = richState(d);
