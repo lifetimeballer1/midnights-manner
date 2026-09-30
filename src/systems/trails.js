@@ -1,3 +1,4 @@
+import {roadAt,ROAD_SPEED} from './roads.js';
 // Sparse half-tile desire paths. Only movement in the simulation deposits wear.
 export const TRAIL_THRESHOLDS=Object.freeze([3,15,45]);
 export const TRAIL_BONUSES=Object.freeze([1,1.025,1.07,1.11]);
@@ -17,7 +18,7 @@ export function normalizeTrails(world,data){
  world.trails=out;changed(world);return out;
 }
 export function trailWearAt(world,x,y){return strength(world.trails?.[`${Math.floor(x*SCALE)},${Math.floor(y*SCALE)}`],world.elapsed||0);}
-export function trailMultiplier(world,x,y,friendly=true){return friendly?TRAIL_BONUSES[trailStage(trailWearAt(world,x,y))]:1;}
+export function trailMultiplier(world,x,y,friendly=true){return friendly?Math.max(ROAD_SPEED[roadAt(world,x,y)],TRAIL_BONUSES[trailStage(trailWearAt(world,x,y))]):1;}
 export function recordTravel(world,data,x0,y0,x1,y1){
  if(![x0,y0,x1,y1].every(Number.isFinite))return 0;
  const dx=x1-x0,dy=y1-y0,d=Math.hypot(dx,dy);if(d<1e-8)return 0;

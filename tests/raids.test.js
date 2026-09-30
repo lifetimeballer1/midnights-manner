@@ -122,7 +122,7 @@ test('test-button raids still work and also reschedule the horns', ()=>{
 });
 
 test('migration v3->latest: fresh raid clock, earned unlocks healed, stores untouched', ()=>{
-  assert.equal(VERSION, 14);
+  assert.equal(VERSION, 15);
   const w = createWorld(data);
   delete w.nextRaidAt;
   w.elapsed = 900; // a veteran village, long past the first horn

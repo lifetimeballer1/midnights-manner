@@ -82,7 +82,7 @@ test('GAP1: posted millers bake bread, bind rations and lay in feast stores', ()
 });
 
 test('GAP1: level gate, exact payment and save round-trip without a version bump', () => {
-  assert.equal(VERSION, 14);
+  assert.equal(VERSION, 15);
   const g = new Game(data);
   g.state.vlevel = 5;
   const locked = structuredClone(g.world.resources);
@@ -94,7 +94,7 @@ test('GAP1: level gate, exact payment and save round-trip without a version bump
   assert.ok(b);
   assert.equal(validateSave(g.state, data), true);
   const back = importSaveBlob(exportSave(g.state), data);
-  assert.equal(back.ok, true); assert.equal(back.state.version, 14);
+  assert.equal(back.ok, true); assert.equal(back.state.version, 15);
   assert.ok(back.state.world.buildings.some(x => x.type === 'bakery'));
 });
 

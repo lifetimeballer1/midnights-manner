@@ -1,3 +1,4 @@
+import {refinementEfficiency,consumeSupply} from './logistics.js';
 // Phase 8 — Production chains and crafting.
 // Refiner buildings (Sawmill, Gristmill) turn raw stores into refined
 // goods through posted crews; the Emberforge and Wardarmory work queued
@@ -81,7 +82,7 @@ export function tickRefine(world, data, dt) {
     if (!Array.isArray(recipes) || !recipes.length) continue;
     const power = crewPower(refinerCrew(world, data, b));
     if (power <= 0) continue;
-    const mult = tierMult(b, data);
+    const mult = tierMult(b, data)*refinementEfficiency(world,data,b);
     for (const r of recipes) {
       if (!r || typeof r !== 'object') continue;
       const runs = (Number.isFinite(r.perSec) ? r.perSec : 0) * mult * power * dt;
@@ -100,6 +101,7 @@ export function tickRefine(world, data, dt) {
         if (Number.isFinite(room)) capped = Math.min(capped, room / v);
       }
       if (capped <= 0) continue;
+      consumeSupply(world,b,r.in,capped);
       for (const [k, v] of Object.entries(r.in || {})) world.resources[k] = (world.resources[k] || 0) - v * capped;
       for (const [k, v] of Object.entries(r.out || {})) {
         if (!Number.isFinite(v) || v <= 0) continue;

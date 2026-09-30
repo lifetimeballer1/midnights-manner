@@ -1,10 +1,11 @@
+import {normalizeRoads} from './systems/roads.js';
 import {normalizeTrails} from './systems/trails.js';
 import {ensureIdentity} from './systems/villagers.js';
 import {buildTiles} from './systems/biomes.js';
 import {mealDay} from './systems/food.js';
 const KEY='midnights-manner-v2';
 const OLD_KEY='midnights-manner-v1';
-export const VERSION = 14;
+export const VERSION = 15;
 // In-memory fallback when localStorage is missing (private mode, SSR, tests)
 // or full (quota). Saves still work for the session; persist() warns.
 const memFallback = new Map();
@@ -324,7 +325,13 @@ function migrateV13toV14(value, data) {
   value.version = 14;
   return value;
 }
-const MIGRATIONS = {1: migrateV1toV2, 2: migrateV2toV3, 3: migrateV3toV4, 4: migrateV4toV5, 5: migrateV5toV6, 6: migrateV6toV7, 7: migrateV7toV8, 8: migrateV8toV9, 9: migrateV9toV10, 10: migrateV10toV11, 11: migrateV11toV12, 12: migrateV12toV13, 13: migrateV13toV14};
+// v14 -> v15: permanent roads only. Hauls are runtime reservations;
+// reserves and shared stores already save every real resource.
+function migrateV14toV15(value,data){
+ for(const w of [value.world,value.home])if(w)normalizeRoads(w,data);
+ value.version=15;return value;
+}
+const MIGRATIONS = {1: migrateV1toV2, 2: migrateV2toV3, 3: migrateV3toV4, 4: migrateV4toV5, 5: migrateV5toV6, 6: migrateV6toV7, 7: migrateV7toV8, 8: migrateV8toV9, 9: migrateV9toV10, 10: migrateV10toV11, 11: migrateV11toV12, 12: migrateV12toV13, 13: migrateV13toV14, 14: migrateV14toV15};
 export function migrate(value, data) {
   return migrateToLatest(value, data);
 }
@@ -360,7 +367,7 @@ export function validateSave(value, data) {
 function supplyDefaults(value, data) {
   for (const w of [value.world, value.home]) {
     if (!w) continue;
-    normalizeTrails(w,data);
+    normalizeTrails(w,data);normalizeRoads(w,data);
     if (typeof w.autoTrain !== 'boolean') w.autoTrain = false;
     if (typeof w.wellSupplied !== 'boolean') w.wellSupplied = false;
     if (!Number.isInteger(w.lastSupplyDay) || w.lastSupplyDay < 0) {

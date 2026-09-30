@@ -1,3 +1,5 @@
+import {addLogisticsMeshes,addRoadGeometry,drawLogisticsOverlay} from './logistics-art.js';
+import {roadRevision} from './systems/roads.js';
 import {addLivingMechanisms} from './mechanical-art.js';
 import {addLivingProps} from './living-props.js';
 import {addWindLife} from './wind-art.js';
@@ -863,11 +865,11 @@ export function drawVillage3D(r,world,time,light){const s=new MeshScene(r),W=r.d
   // Project static meshes only when the camera, footprint, building state or
   // visible defense/production stage changes; moving gates quantize to four
   // steps and traps key only their armed state, never every cooldown tick.
-  const key=JSON.stringify([r.width,r.height,r.cx,r.cy,r.cam,W,H,r.claimedTileCount??-1,trailRevision(world),world.wave||0,world.buildings.map(b=>{const spec=r.data.buildings[b.type];return [b.id,b.type,b.x,b.y,b.level,b.hp<=0,b.remaining>0,productionStage(b,spec),spec?.production&&reserveReady(b,spec)?1:0,b.type==='gate'?gateLiftStage(r,b,world,time):0,b.type.includes('trap')?(trapArmed(b)?1:0):0];})]);
+  const key=JSON.stringify([r.width,r.height,r.cx,r.cy,r.cam,W,H,r.claimedTileCount??-1,trailRevision(world),roadRevision(world),world.wave||0,world.buildings.map(b=>{const spec=r.data.buildings[b.type];return [b.id,b.type,b.x,b.y,b.level,b.hp<=0,b.remaining>0,productionStage(b,spec),spec?.production&&reserveReady(b,spec)?1:0,b.type==='gate'?gateLiftStage(r,b,world,time):0,b.type.includes('trap')?(trapArmed(b)?1:0):0];})]);
  if(r._meshStatic?.key===key){s.faces=r._meshStatic.faces.slice();s.sources=r._meshStatic.sources;s.chimneys=r._meshStatic.chimneys;s.doors=r._meshStatic.doors||[];}else{
  // Border trees share depth sorting with the village, including reverse views.
  for(let i=-1;i<W+2;i++){s.owner=null;if(i%2)pine(s,i,-1.5,1.4+(i%3)*.22);if(i%3===0)pine(s,-1.5,((i%H)+H)%H,1.5);if(i%3===1)pine(s,W+1,i%H,1.6);if(i%4===0)pine(s,i,H+3,1.5);}
-  addTrailGeometry(s,world);
+  addTrailGeometry(s,world);addRoadGeometry(s,world);
   addEnvironmentScenery(s,world,r.data);
   for(const b of world.buildings)buildingModel(s,b,r.data.buildings[b.type],world,time);
  prepareSourceLighting(s);
@@ -878,7 +880,7 @@ export function drawVillage3D(r,world,time,light){const s=new MeshScene(r),W=r.d
   r.sceneSources=s.sources; // Publish this frame before spill/bloom can return early.
   r._motionWorld=world;
   addLivingMechanisms(s,world,time);
-  addWindLife(s,world,time);
+  addWindLife(s,world,time);addLogisticsMeshes(s,world);
   for(const u of world.troops)if(!insideWorkplace(world,r.data,u))characterModel(s,u,r.data,time);for(const e of world.enemies)characterModel(s,e,r.data,time,true);
   if(r.placing&&r.hover){const source=world.buildings.find(b=>b.id===r.moving),ghosts=placementCells(r).map(p=>({type:r.placing,...p,level:source?.level||1,hp:1,remaining:1,id:null})),preview={buildings:[...world.buildings.filter(b=>b.id!==r.moving),...ghosts]};for(const b of ghosts)buildingModel(s,b,r.data.buildings[b.type],preview,time);}
  drawCelestialShadows(s);
@@ -889,5 +891,5 @@ export function drawVillage3D(r,world,time,light){const s=new MeshScene(r),W=r.d
  drawChimneyWisps(s,time);
  drawCelestialAir(r,s.light);
  drawGodRays(r,s.light,time);
- drawBuildingActivity(r,world,time);
+ drawBuildingActivity(r,world,time);drawLogisticsOverlay(r,world);
 }
