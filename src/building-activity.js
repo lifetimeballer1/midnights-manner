@@ -106,7 +106,9 @@ export function drawBuildingActivity(r,world,time){
   const spec=r.data.buildings[b.type],state=buildingActivityState(b,spec,world,crewCounts);
   if(!state.active)continue;
   const n=spec.size||1,intensity=Math.min(1,.45+state.crew*.2);
-  if(['forge','smeltery','workshop','butchery'].includes(b.type)){if(!r.calm)smoke(r,b,n,time,intensity);sparks(r,b,n,time,intensity);}
+   if(['forge','smeltery','workshop','butchery'].includes(b.type)){if(!r.calm)smoke(r,b,n,time,intensity);sparks(r,b,n,time,intensity);}
+   // The bakery breathes oven steam and glows at the door — tasteful, quiet.
+   if(b.type==='bakery'){if(!r.calm)smoke(r,b,n,time,Math.min(1,intensity*.55));workGlint(r,b,n,time,intensity);}
    if(['lumber','timber_yard','sawmill','whisper-grove'].includes(b.type))sawStroke(r,b,n,time,intensity);
   if(['mine','emberglass'].includes(b.type))mineGlint(r,b,n,time,intensity);
    if(['pond','deephole','blackwater-weir'].includes(b.type))waterRipple(r,b,n,time,intensity);

@@ -7,7 +7,7 @@ import {center,canPlace,stats,housing,assignedWorkers} from './model.js';
 import {sfx} from './systems/audio.js';
 import {isWall} from './building-art.js';
 import {drawVillage3D,pointInPolygon} from './scene3d.js';
-import {weatherAt,skyLightAt} from './systems/daynight.js';
+import {weatherAt,skyLightAt,phaseAt} from './systems/daynight.js';
 import {drawAtmosphere} from './atmosphere-art.js';
 import {insideWorkplace} from './systems/villagers.js';
 import {trackStride, footstepFor, surfaceAt} from './systems/footsteps.js';
@@ -364,6 +364,8 @@ export class Renderer {
     if(!(gain>0))return;
     if(!this._workSync)this._workSync=new WorkSync();
     const sync=this._workSync;
+    let populated=false;
+    try{populated=(world.troops||[]).some(u=>u&&u.hp>0);}catch{}
     const crewCounts=new Map();
     for(const u of world.troops||[])if(u?.hp>0&&u.workplace&&!u.emergency&&!u.expedition&&!u.order)crewCounts.set(u.workplace,(crewCounts.get(u.workplace)||0)+1);
     const alive=new Set();
@@ -371,14 +373,27 @@ export class Renderer {
     for(const b of world.buildings||[]){
      if(b?.id==null)continue;
      alive.add('w'+b.id);
-     if(!['forge','smeltery','workshop','mine','emberglass','lumber','timber_yard','sawmill'].includes(b.type))continue;
+     if(!['forge','smeltery','workshop','mine','emberglass','lumber','timber_yard','sawmill','farm','pasture','grove','frostgrove','mill','bakery','mason_yard','fletcher','tannery','butchery','pond','blackwater-weir','deephole','market','market-square','cottage','hall','longhouse','storehouse','grand-granary','barracks'].includes(b.type))continue;
      const spec=this.data.buildings[b.type];
-     if(buildingActivityState(b,spec,world,crewCounts).crew<=0)continue;
+     const st=buildingActivityState(b,spec,world,crewCounts);
+     // Homes breathe on occupancy, not crew: standing level-2+ homes in a
+     // populated village are lived in (housing is aggregate, never per-hut).
+     const home=['cottage','hall','longhouse','storehouse','grand-granary'].includes(b.type);
+     if(home){
+      if((b.level||1)<2||b.hp<=0||(b.remaining||0)>0)continue;
+      if(!populated)continue;
+     }else{
+      if(!st.active)continue;
+      // Water laps uncrewed; every other workplace needs its crew present.
+      if(!['pond','blackwater-weir','deephole'].includes(b.type)&&st.crew<=0)continue;
+     }
      candidates.push({b,x:b.x+(spec?.size||1)/2,y:b.y+(spec?.size||1)/2});
     }
     sync.prune(alive);
+    let night=false;
+    try{night=!!phaseAt(world.elapsed,this.data).night;}catch{}
     const picks=pickEmitters(candidates,this.cam.x,this.cam.y,5,14);
-    for(const p of picks)sync.fire(p.item.b,seedOf(p.item.b.id),time,p.vol*gain);
+    for(const p of picks)sync.fire(p.item.b,seedOf(p.item.b.id),time,p.vol*gain,Math,{night});
    }catch{}
   }
   // Stormglass motion pool: capped at 60 transient effects so raids stay

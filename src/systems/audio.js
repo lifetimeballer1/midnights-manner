@@ -3,7 +3,11 @@
 let ctx = null;
 let output = null;
 let muted = false;
-const lastPlayed = {hit: 0, step: 0, work: 0, combat: 0, melee: 0, bow: 0, gate: 0, wall: 0, trap: 0, mach: 0, fire: 0, alert: 0, thud: 0, siege: 0};
+// Pools start in the distant past so the first seconds of a session are
+// audible — a zero start would swallow every throttled cue until the clock
+// outran its gap (caught by the alive-village tests on fast runners).
+const PAST = -1e9;
+const lastPlayed = {hit: PAST, step: PAST, work: PAST, combat: PAST, melee: PAST, bow: PAST, gate: PAST, wall: PAST, water: PAST, trap: PAST, mach: PAST, fire: PAST, alert: PAST, thud: PAST, siege: PAST, field: PAST, mill: PAST, stall: PAST};
 // Release/impact separation: combat lands the swing now and schedules the
 // impact for arrow-flight time later. Pumped by AmbiencePlayer.tick.
 const scheduled = [];
@@ -29,7 +33,7 @@ const VOICE_CAP = 12;
 export function audioStats() { return {voices, cap: VOICE_CAP, pools: {...lastPlayed}}; }
 // Test/smoke driver: clear every cooldown pool so scripted checks hear each
 // cue deterministically. Never called by the game itself.
-export function resetAudioPools() { for (const k of Object.keys(lastPlayed)) lastPlayed[k] = -1e9; voices = 0; scheduled.length = 0; }
+export function resetAudioPools() { for (const k of Object.keys(lastPlayed)) lastPlayed[k] = PAST; voices = 0; scheduled.length = 0; }
 try {
   muted = typeof localStorage !== 'undefined' && localStorage.getItem('midnights-manner-sound') === 'off';
 } catch { muted = false; }
@@ -177,6 +181,27 @@ export const sfx = {
     tone(900, 0.09, { type: 'sawtooth', slide: -350, vol: 0.016 * vol, pitch });
     tone(450, 0.07, { type: 'triangle', delay: 0.02, slide: 120, vol: 0.012 * vol, pitch });
   },
+  rustle({vol = 1, pitch = 1} = {}) {
+    if (!ready('field', 600)) return;
+    tone(2400, 0.12, { type: 'sine', slide: -900, vol: 0.008 * vol, pitch });
+    tone(3100, 0.09, { type: 'sine', delay: 0.05, slide: -1100, vol: 0.006 * vol, pitch });
+  },
+  creak({vol = 1, pitch = 1} = {}) {
+    if (!ready('mill', 700)) return;
+    tone(160, 0.16, { type: 'sawtooth', slide: -55, vol: 0.014 * vol, pitch });
+    tone(110, 0.14, { type: 'triangle', delay: 0.05, slide: 30, vol: 0.012 * vol, pitch });
+  },
+  murmur({vol = 1, pitch = 1} = {}) {
+    if (!ready('stall', 2500)) return;
+    tone(180, 0.4, { type: 'sine', slide: 25, vol: 0.008 * vol, pitch });
+    tone(220, 0.35, { type: 'sine', delay: 0.12, slide: -20, vol: 0.007 * vol, pitch });
+    tone(150, 0.45, { type: 'triangle', delay: 0.2, slide: 15, vol: 0.006 * vol, pitch });
+  },
+  coin({vol = 1, pitch = 1} = {}) {
+    if (!ready('stall', 1200)) return;
+    tone(2800, 0.05, { type: 'triangle', slide: -800, vol: 0.01 * vol, pitch });
+    tone(3400, 0.04, { type: 'sine', delay: 0.04, slide: -600, vol: 0.008 * vol, pitch });
+  },
   warning() {
     if (!ready('alert', 2000)) return;
     [196, 196, 147].forEach((f, i) => tone(f, 0.24, { type: 'sawtooth', delay: i * 0.21, vol: 0.045 }));
@@ -201,7 +226,10 @@ export const sfx = {
   win() { [523, 659, 784, 1046].forEach((f, i) => tone(f, 0.14, { type: 'triangle', delay: i * 0.1, vol: 0.14 })); },
   lose() { [392, 330, 262, 196].forEach((f, i) => tone(f, 0.18, { type: 'triangle', delay: i * 0.13, vol: 0.12 })); },
   click() { tone(660, 0.04, { vol: 0.06 }); },
-  splash() { tone(900, 0.08, { type: 'sine', slide: -500, vol: 0.07 }); tone(1400, 0.06, { delay: 0.05, vol: 0.05 }); },
+  splash({vol = 1, pitch = 1} = {}) {
+    if (!ready('water', 700)) return;
+    tone(900, 0.08, { type: 'sine', slide: -500, vol: 0.07 * vol, pitch }); tone(1400, 0.06, { delay: 0.05, vol: 0.05 * vol, pitch });
+  },
   birth() { [660, 830, 990, 1320].forEach((f, i) => tone(f, 0.12, { type: 'triangle', delay: i * 0.09, vol: 0.12 })); },
   quest() { [523, 659, 784].forEach((f, i) => tone(f, 0.12, { type: 'triangle', delay: i * 0.07, vol: 0.13 })); tone(1046, 0.2, { type: 'triangle', delay: 0.22, vol: 0.12 }); },
   unlock() { [392, 523, 659, 784, 1046].forEach((f, i) => tone(f, 0.14, { type: 'triangle', delay: i * 0.08, vol: 0.12 })); },
