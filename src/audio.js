@@ -178,10 +178,10 @@ export class AmbientScoreEngine {
 
   attemptRoll() {
     if (this.currentTrackKey !== 'peace_day' || this.easterEggActive) return;
-    if (!this.data?.tracks?.money_right) return;
+    if (!this.data?.tracks?.frontier_fortune) return;
     if (Math.random() <= 0.25) {
       this.easterEggActive = true;
-      this.setTrack('money_right');
+      this.setTrack('frontier_fortune');
     }
   }
 
@@ -284,7 +284,7 @@ export class AmbientScoreEngine {
     this.nextPhraseTime = startTime + phraseDuration + restDuration;
     this.phraseIndex = (this.phraseIndex + 1) % track.phrases.length;
 
-    if (this.currentTrackKey === 'money_right' && this.phraseIndex === 0) {
+    if (this.currentTrackKey === 'frontier_fortune' && this.phraseIndex === 0) {
       this.easterEggActive = false;
       this.setTrack('peace_day');
     }
