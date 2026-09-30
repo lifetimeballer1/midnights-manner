@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {Renderer} from '../src/renderer.js';
 import {MeshScene,buildingModel} from '../src/scene3d.js';
+import {addLivingMechanisms} from '../src/mechanical-art.js';
 
 const data=Object.fromEntries(await Promise.all(
  ['world','troops','items','abilities','buildings','missions','quests'].map(async n=>[n,JSON.parse(await readFile(new URL(`../data/${n}.json`,import.meta.url)))])
@@ -18,7 +19,9 @@ function model(type,level=1,zoom=1.8,overrides={}){
  const r=new Renderer({getContext:()=>context},data,{});
  r.resize(1280,900,1);r.cam.x=6;r.cam.y=6;r.cam.zoom=zoom;r.cam.yaw=Math.PI/4;
  const s=new MeshScene(r),b={id:`${type}-detail`,type,x:5,y:5,level,hp:100,remaining:0,...overrides};
- buildingModel(s,b,data.buildings[type],{buildings:[b]},0);
+ const world={buildings:[b],troops:[],enemies:[]};
+ buildingModel(s,b,data.buildings[type],world,0);
+ addLivingMechanisms(s,world,0);
  return s.faces;
 }
 const has=(faces,color)=>faces.some(f=>f.color===color);
@@ -30,7 +33,7 @@ test('detail pass: military and production workplaces carry readable job props',
  assert.ok(has(forge,'#9fd0d0'),'forge has a visible quench trough');
  assert.ok(has(forge,'#383b38'),'forge has a coal bin');
  assert.ok(has(mine,'#687170'),'mine has short yard rails');
- assert.ok(has(mine,'#414845'),'mine cart has dark wheels');
+ assert.ok(has(mine,'#604c39'),'mine cart has dark wheels');
 });
 
 test('detail pass: field and trade props scale up with building tiers',()=>{

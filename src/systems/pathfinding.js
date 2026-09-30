@@ -1,3 +1,4 @@
+import {recordTravel,trailMultiplier} from './trails.js';
 // Breadth-first routing on a small grid. Walls obstruct units; raiders attack
 // the first barrier when a completely enclosed target cannot be reached.
 // Gates read as walls for row-building, barriers and art, but friendly
@@ -95,10 +96,15 @@ export function move(world,data,actor,target,speed,dt,range=.9,avoidThreats=fals
  if(!actor||!target||!Number.isFinite(actor.x)||!Number.isFinite(target.x))return false;
  if(!Number.isFinite(speed)||speed<=0||!Number.isFinite(dt)||dt<=0)return false;
  if(Math.hypot(actor.x-target.x,actor.y-target.y)<=range) return true;
+ const oldX=actor.x,oldY=actor.y;
+ const friendly=passGates&&!(world.enemies||[]).includes(actor);
+ speed*=trailMultiplier(world,actor.x,actor.y,friendly);
+ const commit=()=>{if(friendly)recordTravel(world,data,oldX,oldY,actor.x,actor.y);};
  const next=nextStep(world,data,actor,target,range,avoidThreats,passGates);
  if(next){
   const dx=next.x-actor.x,dy=next.y-actor.y,d=Math.hypot(dx,dy),step=Math.min(d,speed*dt);
   if(d>.001){actor.x+=dx/d*step;actor.y+=dy/d*step;}
+  commit();
   return Math.hypot(actor.x-target.x,actor.y-target.y)<=range;
  }
  // Friendly ultimate fallback: straight-line progress toward the goal so a
@@ -111,6 +117,7 @@ export function move(world,data,actor,target,speed,dt,range=.9,avoidThreats=fals
    actor.x=Math.max(.25,Math.min(width-.25,actor.x+dx/d*step));
    actor.y=Math.max(.25,Math.min(height-.25,actor.y+dy/d*step));
   }
+  commit();
   return Math.hypot(actor.x-target.x,actor.y-target.y)<=range;
  }
  return false;

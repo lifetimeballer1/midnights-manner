@@ -238,6 +238,10 @@ export class Renderer {
    if(e.kind==='fanfare'){c.globalAlpha=Math.min(1,e.life*1.5);c.fillStyle='#f2c96e';for(let s=0;s<6;s++){const rise=(0.8-Math.max(0,e.life))*46;c.fillRect(b.x-14+s*6,b.y-44-rise-(s%3)*7,3,3);}c.globalAlpha=1;continue;}
    if(e.kind==='hit'){c.globalAlpha=Math.max(0,e.life)/.18;c.fillStyle='#fff';c.beginPath();c.arc(b.x,b.y-10,9,0,Math.PI*2);c.fill();c.globalAlpha=1;continue;}
    if(e.kind==='poof'){const t=1-Math.max(0,e.life)/.4;c.globalAlpha=Math.max(0,e.life)/.4;c.strokeStyle='#b8c4bb';c.lineWidth=2;c.beginPath();c.ellipse(b.x,b.y-8,6+t*12,4+t*6,0,0,Math.PI*2);c.stroke();c.globalAlpha=1;continue;}
+   if(e.kind==='arrow'||e.kind==='bolt'){
+    const age=this.calm?1:Math.max(0,Math.min(1,1-e.life/.3)),dx=e.tx-e.x,dy=e.ty-e.y,len=Math.hypot(dx,dy)||1,px=e.x+dx*age,py=e.y+dy*age,z=.38+Math.sin(age*Math.PI)*.16;
+    const tip=this.project(px,py,z),tail=this.project(px-dx/len*.2,py-dy/len*.2,z);c.save();c.strokeStyle=e.kind==='bolt'?'#d8bf83':'#d4c59b';c.lineWidth=e.kind==='bolt'?2:1.2;c.beginPath();c.moveTo(tail.x,tail.y);c.lineTo(tip.x,tip.y);c.stroke();c.translate(tip.x,tip.y);c.rotate(Math.atan2(tip.y-tail.y,tip.x-tail.x));c.fillStyle='#c0ceca';c.beginPath();c.moveTo(3,0);c.lineTo(-2,-2);c.lineTo(-2,2);c.closePath();c.fill();c.restore();continue;
+   }
    if(!this.calm&&e.kind==='slam')this.shake=Math.max(this.shake,3);if(!this.calm&&e.kind==='bolt')this.shake=Math.max(this.shake,4);c.globalAlpha=e.life/.3;c.strokeStyle=e.kind==='heal'?'#e4efb0':e.kind==='arrow'?'#f6ecbb':e.kind==='bolt'?'#e8c98a':'#f5d78d';c.lineWidth=e.kind==='slam'?5:e.kind==='bolt'?4:2;c.beginPath();if(e.kind==='heal'||e.kind==='slam'){c.ellipse(b.x,b.y-8,25,12,0,0,Math.PI*2);}else{c.moveTo(a.x,a.y-12);c.lineTo(b.x,b.y-12);}c.stroke();c.globalAlpha=1;}
   // Raiders can arrive from every side: a quiet border glow never points west by mistake.
   if(world.enemies.length){
@@ -350,7 +354,7 @@ export class Renderer {
     try{
      if(u.hp>0&&!u.expedition&&!insideWorkplace(world,this.data,u)){
       if(!this._strideActors)this._strideActors=new Map();
-      const side=trackStride(this._strideActors,u);
+      const side=trackStride(this._strideActors,u,time);
       if(side)footstepFor(u,side,surfaceAt(world,this.data,u.x,u.y),this.cam.zoom);
      }else this._strideActors?.delete(key);
     }catch{}
@@ -371,7 +375,7 @@ export class Renderer {
   // crewed buildings, only zoomed in. Renderer-local cycles, sim untouched.
   syncWork(world,time){
    try{
-    if(this.cam.zoom<1.05)return;
+    if(this.calm||this.cam.zoom<1.05)return;
     const gain=bandGain(zoomBand(this.cam.zoom),'work');
     if(!(gain>0))return;
     if(!this._workSync)this._workSync=new WorkSync();

@@ -45,13 +45,18 @@ const SURFACE_TONE = {
 
 // Accumulate travel; returns 'left'/'right' on ground contact, else null.
 // Standing still bleeds the accumulator so idle sway never earns a step.
-export function trackStride(strides, u) {
+export function trackStride(strides, u, time = null) {
   const key = 'u' + u.id;
   let s = strides.get(key);
-  if (!s) { strides.set(key, {x: u.x, y: u.y, acc: 0, side: false}); return null; }
+  if (!s) { strides.set(key, {x: u.x, y: u.y, acc: 0, side: false, movedAt: Number.isFinite(time) ? time : 0}); return null; }
   const d = Math.hypot(u.x - s.x, u.y - s.y);
   s.x = u.x; s.y = u.y;
-  if (!(d > 0.02)) { s.acc = 0; return null; }
+  if (d >= 1) { s.acc = 0; return null; }
+  if (!(d > 0.00001)) {
+    if (!Number.isFinite(time) || time - s.movedAt > 180) s.acc = 0;
+    return null;
+  }
+  if (Number.isFinite(time)) s.movedAt = time;
   s.acc += d;
   if (s.acc >= STRIDE_LEN) { s.acc %= STRIDE_LEN; s.side = !s.side; return s.side ? 'right' : 'left'; }
   return null;

@@ -226,6 +226,35 @@ try{
  assert.ok(perf&&perf.n>=10&&Number.isFinite(perf.avg)&&Number.isFinite(perf.p95),'frame telemetry stays live');
  assert.ok(perf.faces<30000&&perf.staticFaces<30000,`visible mesh stays bounded (faces=${perf.faces}, static=${perf.staticFaces})`);
  console.log('Frame report',perf);
+ // Living detail fixture: use a detached real browser canvas, keeping the
+ // interactive village/save used by the remainder of this smoke untouched.
+ const living=await evaluate(`(async()=>{
+  const root='/midnights-manner/',names=['world','troops','items','buildings','abilities','quests','missions','biomes','expansion'];
+  const data=Object.fromEntries(await Promise.all(names.map(async n=>[n,await(await fetch(root+'data/'+n+'.json')).json()])));
+  const [{Renderer},{createWorld,makeBuilding,makeUnit},{recordTravel,trailMultiplier},{move},{exportSave,importSaveBlob}]=await Promise.all(['renderer.js','model.js','systems/trails.js','systems/pathfinding.js','storage.js'].map(n=>import(root+'src/'+n)));
+  const world=createWorld(data);world.elapsed=400;world.buildings=[];world.troops=[];
+  Object.keys(data.buildings).forEach((type,i)=>{const x=2+(i%10)*4,y=2+Math.floor(i/10)*4,b=makeBuilding(type,x,y,data,Math.min(6,data.buildings[type].tiers.length));b.id='living-'+i;b.remaining=0;world.buildings.push(b);const typeOf=data.buildings[type].workplace;if(typeOf&&data.troops[typeOf]){const u=makeUnit(typeOf,data,i);u.workplace=b.id;u.x=x+data.buildings[type].size/2;u.y=y+data.buildings[type].size;world.troops.push(u);}});
+  for(let i=0;i<600;i++){recordTravel(world,data,4.25,4.25,28.25,4.25);recordTravel(world,data,10.25,4.25,10.25,24.25);}
+  const state={...window.midnightsManner.snapshot(),world,home:null,mission:null},loaded=importSaveBlob(exportSave(state),data);
+  if(!loaded.ok||JSON.stringify(loaded.state.world.trails)!==JSON.stringify(world.trails))throw Error('Living trail save roundtrip failed');
+  const speed=trailMultiplier(world,4.25,4.25),actor={id:'path-walker',hp:100,x:4.25,y:4.25};
+  const isolated={...world,buildings:[],troops:[actor],enemies:[]};move(isolated,data,actor,{x:7.25,y:4.25},1,.05,.1,false,true);
+  if(Math.abs(Math.hypot(actor.x-4.25,actor.y-4.25)-.05*speed)>1e-8)throw Error('Living friendly path speed failed');
+  const before=window.midnightsManner.snapshot().world.troops[0]?.id,frames=[];
+  for(const [width,height,yaw,zoom,calm,raid,tag] of [[1280,900,Math.PI/4,1.65,false,false,'desktop'],[390,844,Math.PI/4,1.65,false,false,'phone'],[1280,900,Math.PI*1.25,2.4,false,false,'reverse'],[1280,900,Math.PI/2,.65,false,false,'far'],[390,844,Math.PI/4,1.65,true,false,'calm'],[1280,900,Math.PI/4,1.65,false,true,'raid']]){
+   const canvas=document.createElement('canvas'),r=new Renderer(canvas,data,{});r.resize(width,height,1);r.cam={x:16,y:12,yaw,pitch:.8,zoom};r.calm=calm;
+   world.enemies=raid?Array.from({length:16},(_,i)=>({id:'living-enemy-'+i,hp:100,maxHp:100,x:8+i*.3,y:8,role:i%2?'archer':'raider',type:'enemy',animation:.2})):[];
+   const times=[];for(let i=0;i<8;i++){const start=performance.now();r.draw(world,2200+i*50);times.push(performance.now()-start);}
+   if(r.sceneFaces.some(f=>!f.color||f.vertices.some(v=>v.some(n=>!Number.isFinite(n)))))throw Error('Invalid living mesh');
+   frames.push({tag,faces:r.sceneFaces.length,staticFaces:r._meshStatic.faces.length,medianMs:times.sort((a,b)=>a-b)[4],image:canvas.toDataURL('image/png').split(',')[1]});
+  }
+  if(window.midnightsManner.snapshot().world.troops[0]?.id!==before)throw Error('Living fixture changed the interactive village');
+  return {speed,cells:Object.keys(world.trails).length,frames};
+ })()`);
+ assert.equal(living.speed,1.11,'packed path bonus in real Chromium');
+ for(const frame of living.frames){assert.ok(frame.faces<30000&&frame.staticFaces<30000,'crowded living village stays bounded');await writeFile('artifacts/living-browser-'+frame.tag+'.png',Buffer.from(frame.image,'base64'));delete frame.image;}
+ console.log('Living detail browser review',living);
+
  await click('[data-tab="troops"]');await click('[data-category="recruit"]');
  assert.ok((await evaluate('document.querySelectorAll("[data-recruit]").length'))>=20,'all professions retained');
  // Serve a second build while the standalone-sized page stays open.

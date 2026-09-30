@@ -1,3 +1,7 @@
+import {addLivingMechanisms} from './mechanical-art.js';
+import {addLivingProps} from './living-props.js';
+import {addWindLife} from './wind-art.js';
+import {addTrailGeometry,trailRevision} from './systems/trails.js';
 // Original low-poly village geometry, projected by the shared orbit camera.
 // The game simulation stays in ground tiles; meshes add height only for display.
 import {prepareSourceLighting,drawSourceSpill,sourcePhase} from './source-lighting.js';
@@ -34,7 +38,7 @@ export function shade(hex,n,light,emissive=0,depth01=0,ao=1,local=0){
  return '#'+[value>>16,(value>>8)&255,value&255].map((v,i)=>{let c=Math.min(255,Math.round(v*(lit[i]+local*[1,.57,.22][i])*dim));if(fog>0)c=Math.round(c+(light.fogRGB[i]*255-c)*fog);return c.toString(16).padStart(2,'0');}).join('');
 }
 export class MeshScene {
- constructor(r){this.r=r;this.faces=[];this.sources=[];this.chimneys=[];this.owner=null;this.alpha=1;this.depthBias=0;this.light=FALLBACK_LIGHT;this.emissive=0;this.fixture=false;this.basis=cameraBasis(r);}
+ constructor(r){this.r=r;this.faces=[];this.sources=[];this.chimneys=[];this.doors=[];this.owner=null;this.alpha=1;this.depthBias=0;this.light=FALLBACK_LIGHT;this.emissive=0;this.fixture=false;this.basis=cameraBasis(r);}
  source(position,direction=null,radius=1.25,power=.7,profile='generic'){
   if(this.alpha===1){const source={position,direction,radius,power,profile,owner:this.owner};source.phase=sourcePhase(source);this.sources.push(source);}
  }
@@ -118,7 +122,9 @@ function windows(s,x,y,w,d,h){
  // Register each pane at the same world position as its visible geometry.
  s.emissive=1;
  for(const f of [.18,.72]){const z=h*.54,ww=Math.min(.18,w*.15);s.source([x+w*f+ww/2,y+d+.05,z+.095],[0,1],1.25,.7,'window');s.source([x+w*f+ww/2,y-.05,z+.095],[0,-1],1.25,.7,'window');s.source([x-.05,y+d*f+ww/2,z+.095],[-1,0],1.25,.7,'window');s.source([x+w+.05,y+d*f+ww/2,z+.095],[1,0],1.25,.7,'window');s.box(x+w*f,y+d+.008,z,ww,.024,.19,'#ffe6ab');s.box(x+w*f,y-.025,z,ww,.024,.19,'#ffe6ab');s.box(x-.025,y+d*f,z,.024,ww,.19,'#ffe6ab');s.box(x+w+.008,y+d*f,z,.024,ww,.19,'#ffe6ab');}
- s.emissive=0;s.box(x+w*.4,y+d+.01,.1,w*.22,.026,.48,'#5b4735');
+ s.emissive=0;
+ if(s.dynamicDoors){s.box(x+w*.4,y+d+.01,.1,w*.22,.026,.48,'#2f342d');s.doors.push({x:x+w*.4,y:y+d+.04,z:.1,w:w*.22,h:.48,owner:s.owner});}
+ else s.box(x+w*.4,y+d+.01,.1,w*.22,.026,.48,'#5b4735');
  s.depthBias=bias;
 }
 function hut(s,x,y,w,d,h,roofColor,level,chimney=true){
@@ -338,10 +344,9 @@ function buildingDetailLayer(s,b,spec){
   const fixture=s.fixture;s.fixture=true;
   s.box(x+.39,y+.86,.16,.22,.02,.31,'#252e2c');
   s.fixture=fixture;
-  for(const rx of [x+.33,x+.64])s.box(rx,y+.58,.13,.045,.65,.035,'#687170');
-  for(let j=0;j<4;j++)s.box(x+.29,y+.62+j*.16,.125,.45,.055,.035,timber);
-  s.box(x+.42,y+.34,.18,.38,.3,.24,'#6f6253');s.box(x+.46,y+.38,.41,.3,.22,.055,t==='emberglass'?'#8ecac7':'#8e846f');
-  for(const wx of [x+.45,x+.7])s.box(wx,y+.62,.13,.08,.08,.12,'#414845');
+  for(const rx of [x+.31,x+.67])s.box(rx,y+.82,.13,.045,.65,.035,'#687170');
+  for(let j=0;j<4;j++)s.box(x+.29,y+.83+j*.16,.125,.45,.055,.035,timber);
+  detailRack(s,x+.13,y+.25,.13,.45);detailTool(s,x+.19,y+.27,.18,'axe');
   s.fixture=true;
   for(const [dx,dy] of [[.13,.25],[.8,.38]])s.pyramid(x+dx,y+dy,.13,.13,.22,t==='mine'?'#a29074':'#96c5c2',5);
   s.fixture=fixture;
@@ -555,6 +560,7 @@ function buildingShape(s,b,spec,world,time){
  // raiders press close; four cached stages avoid rebuilding it every frame.
  if(t==='gate'){const h=.55+l*.22,post=l===1?timber:stone,neighbors=wallNeighbors(b,world),axis=gateAxis(neighbors),lift=gateLiftStage(s.r,b,world,time)/GATE_STAGES;
   for(const [dx,dy]of neighbors){if(axis==='x'&&dx)s.box(x+(dx<0?-.1:.67),y+.4,.1,.43,.2,h-.15,post);else if(axis==='y'&&dy)s.box(x+.4,y+(dy<0?-.1:.67),.1,.2,.43,h-.15,post);}
+  for(const offset of [.28,.695]){const gx=x+(axis==='x'?offset:.42),gy=y+(axis==='x'?.42:offset);s.box(gx,gy,.12,.025,.025,h+1,'#687170');}
   const doorZ=.12+lift*(h+.1),door=l===1?'#785336':'#45525a';
   if(axis==='x'){
    s.box(x+.15,y+.36,.1,.18,.28,h+.18,post);s.box(x+.67,y+.36,.1,.18,.28,h+.18,post);
@@ -571,6 +577,7 @@ function buildingShape(s,b,spec,world,time){
    if(l>=2)s.box(x+.38,y+.435,h+.22,.22,.13,.07,'#324a41');
    if(l>=3){s.box(x+.43,y+.74,h+.36,.05,.05,.42,timber);s.box(x+.43,y+.79,h+.69,.02,.2,.12,'#b76053');}
   }
+   for(const off of [.36,.61]){const gx=x+(axis==='x'?off:.5),gy=y+(axis==='x'?.5:off),top=h+.45,bottom=Math.min(top,doorZ+.5);if(top>bottom)s.box(gx,gy,bottom,.018,.018,top-bottom,'#687170');}
    // Paired gate torches make the entrance readable from either approach.
    if(axis==='x'){torch(s,x+.26,y+.31,h*.74,[0,-1],1.08,.55);torch(s,x+.74,y+.69,h*.74,[0,1],1.08,.55);}
    else{torch(s,x+.31,y+.26,h*.74,[-1,0],1.08,.55);torch(s,x+.69,y+.74,h*.74,[1,0],1.08,.55);}
@@ -628,7 +635,7 @@ function buildingShape(s,b,spec,world,time){
    return;}
   if(['mine','emberglass'].includes(t)){s.pyramid(x+.5,y+.5,.13,.55,.72,'#8b9690',6);s.box(x+.34,y+.76,.14,.32,.09,.4,'#2d3937');s.box(x+.27,y+.79,.14,.07,.12,.48,timber);s.box(x+.68,y+.79,.14,.07,.12,.48,timber);s.box(x+.27,y+.79,.62,.48,.12,.07,timber);s.pyramid(x+.26,y+.35,.62,.14,.26,t==='mine'?gold:'#9cd5d2');torch(s,x+.27,y+.84,.55,[0,1],.95,.47);torch(s,x+.73,y+.84,.55,[0,1],.95,.47);
    if(l>=4){for(const px of [.22,.73])s.box(x+px,y+.72,.14,.09,.09,.55,stone);}
-   if(l>=5){s.box(x+.13,y+.3,.16,.3,.24,.2,'#6f6253');for(const wx of [x+.16,x+.37])s.box(wx,y+.5,.11,.07,.07,.1,'#414845');}
+   if(l>=5){s.box(x+.13,y+.3,.16,.3,.24,.2,'#6f6253');s.pyramid(x+.27,y+.41,.36,.09,.12,'#a29074',5);}
    if(l>=6){s.box(x+.44,y+.86,.14,.05,.05,.7,timber);s.box(x+.44,y+.86,.7,.34,.05,.05,timber);lanternPost(s,x+.5,y+.3,.6,.9,.4);}
    return;}
  if(['tower','bell-tower','bellcote','scout_post','archer_tower','ballista'].includes(t)){const width=t==='archer_tower'?n*.45:t==='ballista'?n*.62:n*.55,h=t==='archer_tower'?1+l*.3:t==='ballista'?.62+l*.18:.85+l*.24;tower(s,x+(n-width)/2,y+(n-width)/2,width,h,l===1?timber:stone);if(t.includes('bell')){s.box(x+n*.4,y+n*.4,h+.3,n*.2,n*.2,.28,gold);s.roof(x+.15,y+.15,h+.7,n-.3,n-.3,.45,'#648b90');}
@@ -655,7 +662,7 @@ function buildingShape(s,b,spec,world,time){
   s.roof(x+.12,y+.12,h+.12,n-.24,.72,.26,'#5f8074'); // open work bay
   s.box(x+.38,y+.8,.14,n-.76,.48,.27,'#6b5945'); // sawing bench
   s.box(x+.44,y+.92,.42,n-.88,.1,.045,'#d3b27e');
-  s.box(x+.8,y+.86,.49,.07,.39,.29,stone); // upright blade
+  for(const dx of [.4,1.5])s.box(x+dx,y+1.08,.15,.07,.07,.45,timber); // attached saw guides
   for(let i=0;i<3;i++)s.box(x+.25,y+.3+i*.18,.13,.69,.13,.13,i===1?'#cba46d':timber);
    if(l>=2){s.box(x+n-.48,y+.42,.14,.18,.18,1.2,timber);s.box(x+n-.48,y+.42,1.2,.54,.12,.1,timber);s.box(x+n-.04,y+.42,.63,.04,.04,.58,'#6a6f65');}
    if(l>=4){for(let i=0;i<2;i++)s.box(x+.25,y+.3+i*.18,.26,.69,.13,.1,i%2?'#cba46d':'#8a6a48');}
@@ -668,13 +675,11 @@ function buildingShape(s,b,spec,world,time){
   hut(s,x+.3,y+.3,n-.6,n-.6,.7+l*.13,'#aa7959',l);
   // A raised wheel, grain hopper, and flour sacks identify the gristmill.
   const z=.5,cx=x+n-.21,cy=y+n*.5;
-  for(const dz of [-.36,.32])s.box(cx-.055,cy-.34,z+dz,.11,.68,.07,timber);
-  for(const dy of [-.36,.32])s.box(cx-.055,cy+dy,z-.36,.11,.07,.75,timber);
-  s.box(cx-.08,cy-.045,z-.39,.16,.09,.82,'#d9ba79');
-  s.box(cx-.08,cy-.38,z-.045,.16,.76,.09,'#d9ba79');
+  s.box(cx-.08,cy-.045,z-.04,.3,.09,.09,timber);
+  for(const dy of [-.24,.24])s.box(cx+.03,cy+dy,.12,.08,.08,.43,timber);
    s.pyramid(x+.58,y+.54,1.15,.27,.38,'#d5b477');
    for(let i=0;i<2;i++)s.box(x+.19+i*.36,y+n-.42,.14,.3,.27,.24,'#decaa0');
-   if(l>=4){s.box(cx-.08,cy-.045,z-.39,.2,.09,.82,'#8a6a48');}
+   if(l>=4){s.box(cx+.01,cy-.28,.12,.12,.56,.06,stone);}
    if(l>=5){for(let i=0;i<3;i++)s.box(x+.19+i*.24,y+n-.42,.14,.2,.2,.2,'#decaa0');}
    if(l>=6){lanternPost(s,x+.3,y+.4,.7,1,.42);s.box(x+n*.4,y+.2,.9,.2,.06,.3,l>=3?gold:stone);}
    return;
@@ -773,7 +778,7 @@ function buildingShape(s,b,spec,world,time){
  }
  workplaceDetails(s,b,n);
  if(spec.housing)homeDetails(s,b,n,l);
- if(['forge','smeltery'].includes(t)){s.box(x+n-.55,y+.28,.1,.28,.28,1.5,stone);s.box(x+n-.57,y+.26,1.6,.32,.32,.12,'#4d514b');s.source([x+.5,y+n-.15,.33],[0,1],1.65,1,'fire');s.emissive=1;s.box(x+.3,y+n-.2,.2,.4,.024,.26,'#eea55d');s.emissive=0;}
+ if(['forge','smeltery'].includes(t)){s.box(x+n-.55,y+.28,.1,.28,.28,1.5,stone);s.box(x+n-.57,y+.26,1.6,.32,.32,.12,'#4d514b');s.chimneys.push({owner:s.owner,position:[x+n-.41,y+.42,1.73]});s.source([x+.5,y+n-.15,.33],[0,1],1.65,1,'fire');s.emissive=1;s.box(x+.3,y+n-.2,.2,.4,.024,.26,'#eea55d');s.emissive=0;}
  if(t.includes('chapel')){tower(s,x+.25,y+.25,.4,1.35,stone);s.pyramid(x+.45,y+.45,1.65,.33,.6,colors[t]);}
   if(t==='hall'&&l>=2)tower(s,x+n-.7,y+.25,.48,1.35,stone);
   if(t==='hall'&&l>=4){tower(s,x+.22,y+.25,.48,1.35+l*.14,stone);for(const dx of [.32,.68])s.box(x+n*dx-.08,y+n-.2,.9,.16,.03,.26,dx<.5?'#ad6155':'#5e8c9b');}
@@ -790,6 +795,7 @@ export function buildingModel(s,b,spec,world,time=0){
  buildingShape(s,b,spec,world,time);
  if(b.id==null)return; // placement previews already have a clear ghost treatment
  buildingDetailLayer(s,b,spec);
+ addLivingProps(s,b,spec);
  const x=b.x,y=b.y,n=spec.size;
  if(b.hp<=0){
   s.alpha=.95;
@@ -853,20 +859,25 @@ export function drawVillage3D(r,world,time,light){const s=new MeshScene(r),W=r.d
  s.light=light||skyLightAt(world.elapsed,r.data,{calm:r.calm});
  // Large settlements keep outfit/weapon silhouettes but omit tiny face/trim meshes.
  s.characterDetail=world.troops.length+world.enemies.length<=64;
+ s.dynamicDoors=true;
   // Project static meshes only when the camera, footprint, building state or
   // visible defense/production stage changes; moving gates quantize to four
   // steps and traps key only their armed state, never every cooldown tick.
-  const key=JSON.stringify([r.width,r.height,r.cx,r.cy,r.cam,W,H,r.claimedTileCount??-1,world.wave||0,world.buildings.map(b=>{const spec=r.data.buildings[b.type];return [b.id,b.type,b.x,b.y,b.level,b.hp<=0,b.remaining>0,productionStage(b,spec),spec?.production&&reserveReady(b,spec)?1:0,b.type==='gate'?gateLiftStage(r,b,world,time):0,b.type.includes('trap')?(trapArmed(b)?1:0):0];})]);
- if(r._meshStatic?.key===key){s.faces=r._meshStatic.faces.slice();s.sources=r._meshStatic.sources;s.chimneys=r._meshStatic.chimneys;}else{
+  const key=JSON.stringify([r.width,r.height,r.cx,r.cy,r.cam,W,H,r.claimedTileCount??-1,trailRevision(world),world.wave||0,world.buildings.map(b=>{const spec=r.data.buildings[b.type];return [b.id,b.type,b.x,b.y,b.level,b.hp<=0,b.remaining>0,productionStage(b,spec),spec?.production&&reserveReady(b,spec)?1:0,b.type==='gate'?gateLiftStage(r,b,world,time):0,b.type.includes('trap')?(trapArmed(b)?1:0):0];})]);
+ if(r._meshStatic?.key===key){s.faces=r._meshStatic.faces.slice();s.sources=r._meshStatic.sources;s.chimneys=r._meshStatic.chimneys;s.doors=r._meshStatic.doors||[];}else{
  // Border trees share depth sorting with the village, including reverse views.
  for(let i=-1;i<W+2;i++){s.owner=null;if(i%2)pine(s,i,-1.5,1.4+(i%3)*.22);if(i%3===0)pine(s,-1.5,((i%H)+H)%H,1.5);if(i%3===1)pine(s,W+1,i%H,1.6);if(i%4===0)pine(s,i,H+3,1.5);}
+  addTrailGeometry(s,world);
   addEnvironmentScenery(s,world,r.data);
   for(const b of world.buildings)buildingModel(s,b,r.data.buildings[b.type],world,time);
  prepareSourceLighting(s);
  prepareNearbyLight(s,world);
- r._meshStatic={key,faces:s.faces.slice(),sources:s.sources,chimneys:s.chimneys};
+ r._meshStatic={key,faces:s.faces.slice(),sources:s.sources,chimneys:s.chimneys,doors:s.doors};
  }
 
+  r._motionWorld=world;
+  addLivingMechanisms(s,world,time);
+  addWindLife(s,world,time);
   for(const u of world.troops)if(!insideWorkplace(world,r.data,u))characterModel(s,u,r.data,time);for(const e of world.enemies)characterModel(s,e,r.data,time,true);
   if(r.placing&&r.hover){const source=world.buildings.find(b=>b.id===r.moving),ghosts=placementCells(r).map(p=>({type:r.placing,...p,level:source?.level||1,hp:1,remaining:1,id:null})),preview={buildings:[...world.buildings.filter(b=>b.id!==r.moving),...ghosts]};for(const b of ghosts)buildingModel(s,b,r.data.buildings[b.type],preview,time);}
  drawCelestialShadows(s);

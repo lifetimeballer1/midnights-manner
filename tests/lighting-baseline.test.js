@@ -63,22 +63,23 @@ const canon = fraction => skyLightAt(DAY_LENGTH * (1 + fraction), null);
 const dayLight = canon(0.3), nightLight = canon(0.8), dawnLight = canon(0.01);
 // Frozen from main after the Phase 4 implementation (Windows V8; coordinates
 // rounded to 2dp so cross-platform float noise can never flake the pins).
+// Living detail pass: functional props, circular cart wheels and gate guides.
 const CASES = [
-  ['hall-1', 'hall', 1, 195, 'f2e96c729f43a75b', 'e379961ae19263e6', '2d4da4d383db7f28', '45c798a5d713b0a9'],
-  ['hall-2', 'hall', 2, 255, 'b3c8e3eb68ee98d7', '6ede7136f8c2dd9e', '60ed48118a1b2ca4', 'f9feabd5b62db54e'],
-  ['hall-3', 'hall', 3, 263, '2aa94608b1269dee', 'adb160dbfe070e56', 'd20b428d3edad62d', '93c41f20e018ebe2'],
-  ['cottage-3', 'cottage', 3, 249, '20b192e637b329e1', '4946506e17b8730c', 'f0e9c18a9ec07de4', 'fc136832cba0e8f3'],
-  ['wall-3', 'wall', 3, 50, '66f49e5bb1ec257b', '0febfbad242f8c3c', 'cb5be678bcbe22ce', 'e4e6c0073c7d5d85'],
-  ['gate-1', 'gate', 1, 62, '203bcfbe2c8ee633', '3e29f116f0466218', '0fdaf47b83804678', '470b7f666b56dc3d'],
-  ['trap-1', 'trap', 1, 51, 'bdd62e2597b787f6', 'c520a25808aa9642', '353c6f1ac46c7783', '2fb02fbd069f95aa'],
-  ['fire-trap-1', 'fire-trap', 1, 54, 'bbe0759e8d33440e', 'f3051ca98323b89c', '66484937567b945d', '39ba568ae48fbe5c'],
-  ['tower-3', 'tower', 3, 54, '58af5e84fee769b5', 'f8ed97103fac8643', '09f21bbcdf549fd9', '8ec76935878278b0'],
-  ['sawmill-2', 'sawmill', 2, 132, 'ba8c21aace31c17a', 'e998dd16132d397e', '83030c9914c6f69c', '407b9959aed4cadc'],
-  ['mill-2', 'mill', 2, 236, '92705efbc770ca5f', 'f6ad68c40637b2a9', 'c87208a185b44010', 'ca4555f6dff00244'],
+  ["hall-1","hall",1,207,"fbeff627beb772a4","06d7d28a22b0aaaf","9cb46ec8433be3bb","e955f4f6ab94a7f6"],
+  ["hall-2","hall",2,267,"4aba687d05ec28f0","961d54243adfcccb","1adb9a33c51f4c74","1b67c461502c5766"],
+  ["hall-3","hall",3,281,"0d2e205bfc3c4e6d","2f19b263851004da","96180e0397dd6806","96b9d51eac1e998f"],
+  ["cottage-3","cottage",3,267,"e6854c4deb6351bd","4e8f8be04c8c61e4","e1dc1076aef07e74","4b03904fa6ca6a02"],
+  ["wall-3","wall",3,50,"66f49e5bb1ec257b","0febfbad242f8c3c","cb5be678bcbe22ce","e4e6c0073c7d5d85"],
+  ["gate-1","gate",1,84,"96e261af4c6c169a","ace76688e6458a7f","1b749b208cadd235","7fabae7d7075bfbe"],
+  ["trap-1","trap",1,51,"bdd62e2597b787f6","c520a25808aa9642","353c6f1ac46c7783","2fb02fbd069f95aa"],
+  ["fire-trap-1","fire-trap",1,54,"bbe0759e8d33440e","f3051ca98323b89c","66484937567b945d","39ba568ae48fbe5c"],
+  ["tower-3","tower",3,72,"ebc9c087acf5f1e3","b10ea680d2afed94","c01b2692645a3315","7f68f3801e65e545"],
+  ["sawmill-2","sawmill",2,151,"be4fd15e9d212d69","7cdf7b6e6718abb3","444862e660ad422e","b2a1b4609cd127db"],
+  ["mill-2","mill",2,229,"86664e9121675515","cc6c6242ca4af88b","a7d93443ff0faf79","84db1b53162d41d2"],
 ];
-const ORBIT = {faces: 712, day: '6a40214f03dfcc44', night: 'ac1ac627c26bb953', dawn: 'eca0736773a556b1'};
+const ORBIT = {"faces":770,"day":"42c57ac0a58b0b8b","night":"0a922c280a83f28f","dawn":"33de588b650fcfbe"};
 // Canonical tool and outfit lineups at the mobile/gameplay zoom.
-const EQUIPMENT_BASELINE={faces:2140,raw:'04e853c014207128',frozen:'241d8b95966059b3',day:'df338acc4f413950',night:'54a4af46c0d747f5',dawn:'39e5caf9f92f0c49'};
+const EQUIPMENT_BASELINE={"faces":2203,"raw":"ef3e4b4906c7d6cd","frozen":"8f0f9c4b7a9afc64","day":"3c03992669202caf","night":"7ea856c01a2b8986","dawn":"debdf98c5d542758"};
 
 test('baseline: canonical meshes keep their raw geometry and albedo', () => {
   const r = renderer();
