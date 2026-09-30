@@ -48,7 +48,9 @@ export class WorkSync {
   // Returns the fired channel name or null. R injects randomness in tests;
   // opts carries ambience context ({night}) for residential hush.
   fire(b, seed01, t, vol, R = Math, opts = {}) {
-    if (!b || b.id == null || !(vol > 0)) return null;
+    // Destroyed or under-construction buildings never work the bellows —
+    // defense in depth behind the renderer's own activity gate.
+    if (!b || b.id == null || !(vol > 0) || b.hp <= 0 || (b.remaining || 0) > 0) return null;
     const id = 'w' + b.id, pitch = buildingPitch(b.id), rate = rateFor(b.level);
     const rnd = typeof R?.random === 'function' ? () => R.random() : Math.random;
     switch (b.type) {
