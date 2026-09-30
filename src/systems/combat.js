@@ -41,6 +41,15 @@ export function raidSides(wave,count) {
  const sides=['west','north','east','south'];
  return Array.from({length:Math.min(4,count)},(_,i)=>sides[(Math.max(0,wave-1)+i)%4]);
 }
+// Wave stars for the raid result card: flawless holds earn three, costly
+// victories fewer, defeats none. Pure read of the raid ledger — no sim.
+export function raidStars(r) {
+ if (!r || !r.won) return 0;
+ const damaged = Math.max(0, Number(r.damaged) || 0);
+ if (damaged <= 0) return 3;
+ if (damaged <= 2) return 2;
+ return 1;
+}
 // Spawn protection (Phase 8): the settlement's exclusion footprint — every
 // structure's tile span grown by a buffer (`world.spawnBuffer`, default 2).
 // Enemies never materialize on or beside the built-up town; one Set per
