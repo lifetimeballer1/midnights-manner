@@ -9,7 +9,7 @@ import {createWorld,makeBuilding,makeUnit,canPlace,inBounds,pay,afford,stats,bui
 import {buildTiles} from './systems/biomes.js';
 import {claimCheck,setClaimed,claimRect,claimRegion,claimPreclaimed,regionFor} from './systems/expansion.js';
 import {tickVillage,gainXp} from './systems/village.js';
-import {tickTownMeal} from './systems/food.js';
+import {tickTownMeal,tickTownSupply} from './systems/food.js';
 import {ensureIdentity, tickVillagerJobs, autoAssign as autoAssignJobs, idleWithoutPosts, autoFillTick, scorePost} from './systems/villagers.js';
 import {tickEconomy} from './systems/economy.js';
 import {depositCentral} from './systems/storage.js';
@@ -490,10 +490,41 @@ export class Game {
   if(w.lastPhase!==phase.id){w.lastPhase=phase.id;const line=cfg.lines[phase.id];if(line)this.notify(line);}
   if(w.lastWeather!==weather.id){w.lastWeather=weather.id;const line=cfg.lines[weather.id];if(line)this.notify(line);}
  }
- harvest(id){const b=this.world.buildings.find(b=>b.id===id),spec=b&&this.data.buildings[b.type];if(this.paused||!b||!spec.production||b.hp<=0||b.remaining>0)return false;const amount=Math.floor(b.harvestBonus||0);if(amount<1)return false;const {banked,leftover}=depositCentral(this.world,this.data,spec.production,amount);if(banked<1){this.notify(`The ${resourceInfo(spec.production).label.toLowerCase()} stores are full — spend a little or raise a Storehouse, then collect again.`);return false;}b.harvestBonus-=banked;const at=center(b,this.data);this.world.effects.push({x:at.x,y:at.y,tx:at.x,ty:at.y,kind:'float',text:resourceLabel(spec.production,banked),color:resourceInfo(spec.production).color,life:.9});sfx.collect();this.notify(`Collected ${banked} ${spec.production}${leftover>=1?` — ${Math.floor(leftover)} still on-site (stores full)`:''}.`);return banked;}
- // One tap gathers every finished producer with a whole unit stored on-site.
- // Same guards as harvest; a single summary notice instead of one per site.
- collectAll(){if(this.paused)return {};const totals={};let sites=0,full=0;for(const b of this.world.buildings){const spec=b&&this.data.buildings[b.type];if(!b||!spec?.production||b.hp<=0||b.remaining>0)continue;const amount=Math.floor(b.harvestBonus||0);if(amount<1)continue;const {banked}=depositCentral(this.world,this.data,spec.production,amount);if(banked<1){full++;continue;}b.harvestBonus-=banked;totals[spec.production]=(totals[spec.production]||0)+banked;sites++;const at=center(b,this.data);this.world.effects.push({x:at.x,y:at.y,tx:at.x,ty:at.y,kind:'float',text:resourceLabel(spec.production,banked),color:resourceInfo(spec.production).color,life:.9});}if(!sites){this.notify(full?'The stores are full — spend or build a Storehouse before collecting more.':'Nothing ready to collect — production buildings store output on-site as they work.');return totals;}sfx.collect();this.persist();this.notify(`Collected ${Object.entries(totals).map(([k,v])=>`${v} ${k}`).join(', ')} from ${sites} building${sites>1?'s':''}.${full?` ${full} more hold full reserves (stores full).`:''}`);return totals;}
+ harvest(id){
+  const b=this.world.buildings.find(b=>b.id===id),spec=b&&this.data.buildings[b.type];
+  if(this.paused||!b||!spec?.production||b.hp<=0||b.remaining>0)return false;
+  const amount=Math.floor(b.harvestBonus||0);if(amount<1)return false;
+  const {banked,leftover}=depositCentral(this.world,this.data,spec.production,amount);
+  const label=resourceInfo(spec.production).label;
+  if(banked<=0){this.notify(`${label} storage full — ${amount} waiting here.`);return false;}
+  b.harvestBonus-=banked;
+  const at=center(b,this.data);this.world.effects.push({x:at.x,y:at.y,tx:at.x,ty:at.y,kind:'float',text:resourceLabel(spec.production,banked),color:resourceInfo(spec.production).color,life:.9});
+  sfx.collect();this.notify(`Collected ${banked} ${label}.${leftover>=1?` ${label} storage full — ${Math.floor(b.harvestBonus)} waiting here.`:''}`);return banked;
+ }
+ // Reuse the storage gate: subtract only what actually banks, even fractional room.
+ // Whole-unit reserves remain eligible just as in manual harvest.
+ collectAll(){
+  if(this.paused)return {};
+  const totals={},waiting={};let sites=0;
+  for(const b of this.world.buildings){
+   const spec=b&&this.data.buildings[b.type];
+   if(!b||!spec?.production||b.hp<=0||b.remaining>0)continue;
+   const amount=Math.floor(b.harvestBonus||0);if(amount<1)continue;
+   const {banked}=depositCentral(this.world,this.data,spec.production,amount);
+   if(banked>0){
+    b.harvestBonus-=banked;totals[spec.production]=(totals[spec.production]||0)+banked;sites++;
+    // Keep batch feedback bounded without skipping any banking or reserve updates.
+    if(this.world.effects.length<60){const at=center(b,this.data);this.world.effects.push({x:at.x,y:at.y,tx:at.x,ty:at.y,kind:'float',text:resourceLabel(spec.production,banked),color:resourceInfo(spec.production).color,life:.9});}
+   }
+   const held=Math.floor(b.harvestBonus||0);
+   if(held>=1)waiting[spec.production]=(waiting[spec.production]||0)+held;
+  }
+  const fullNote=Object.entries(waiting).map(([k,v])=>`${resourceInfo(k).label} storage full — ${v} waiting here.`).join(' ');
+  if(!sites){this.notify(fullNote||'Nothing ready to collect — production buildings store output on-site as they work.');return totals;}
+  sfx.collectBatch();this.persist();
+  this.notify(`Collected ${Object.entries(totals).map(([k,v])=>`${v} ${resourceInfo(k).label}`).join(', ')} from ${sites} building${sites>1?'s':''}.${fullNote?` ${fullNote}`:''}`);
+  return totals;
+ }
  persist(){const ok=save(this.state);if(!ok)this.notify('Browser storage is unavailable. Progress cannot be saved here.');return ok;}
  // Async multiplayer (visits + helping): all local-first. Cloud sync is
  // best-effort and never blocks play — without Supabase configured the
@@ -568,7 +599,7 @@ export class Game {
   // Phase 7 identity backfill: old saves and mission rosters gain names,
   // traits and job ledgers lazily — additive defaults, never a wipe.
   for(const w of [this.world,this.state.home]){if(!w)continue;for(const u of w.troops||[])ensureIdentity(u,this.data,w.troops);}
-  this.world.elapsed+=dt;this.tickClock();if(!this.state.mission)tickTownMeal(this.world,this.data,m=>this.notify(m));if(!this.state.mission)tickFrontierEvents(this.state,this.data,m=>this.notify(m));tickResearch(this.state,this.data,dt,m=>this.notify(m));tickEmergency(this.world,this.data,dt);tickVillagerJobs(this.world,this.data,dt);const filled=autoFillTick(this.world,this.data,dt);if(filled&&(this.world.elapsed-(this.world.lastAutoFillNote||0)>60)){this.world.lastAutoFillNote=this.world.elapsed;this.notify(`${filled} jobless worker${filled>1?'s':''} took ${filled>1?'open posts':'an open post'} on their own — traits matched, locks respected.`);}tickEconomy(this.world,this.data,dt);tickRefine(this.world,this.data,dt);for(const c of tickCraft(this.world,this.data,dt)){const name=this.data.items[c.item]?.name||c.item;this.notify(`${name} finished — fit it from the People panel.`);}tickExpeditions(this.world,this.data,dt,Math.random,{state:this.state,notify:m=>this.notify(m)});tickCombat(this.world,this.data,dt);tickVillage(this.state,this.data,dt,m=>this.notify(m));const before=this.state.mission?.status;tickMission(this.state,this.data);if(this.state.mission?.herald){this.notify(this.state.mission.herald);this.state.mission.herald=null;}
+  this.world.elapsed+=dt;this.tickClock();if(!this.state.mission){tickTownMeal(this.world,this.data,m=>this.notify(m));tickTownSupply(this.world,this.data,m=>this.notify(m));}if(!this.state.mission)tickFrontierEvents(this.state,this.data,m=>this.notify(m));tickResearch(this.state,this.data,dt,m=>this.notify(m));tickEmergency(this.world,this.data,dt);tickVillagerJobs(this.world,this.data,dt);const filled=autoFillTick(this.world,this.data,dt);if(filled&&(this.world.elapsed-(this.world.lastAutoFillNote||0)>60)){this.world.lastAutoFillNote=this.world.elapsed;this.notify(`${filled} jobless worker${filled>1?'s':''} took ${filled>1?'open posts':'an open post'} on their own — traits matched, locks respected.`);}tickEconomy(this.world,this.data,dt);tickRefine(this.world,this.data,dt);for(const c of tickCraft(this.world,this.data,dt)){const name=this.data.items[c.item]?.name||c.item;this.notify(`${name} finished — fit it from the People panel.`);}tickExpeditions(this.world,this.data,dt,Math.random,{state:this.state,notify:m=>this.notify(m)});tickCombat(this.world,this.data,dt);tickVillage(this.state,this.data,dt,m=>this.notify(m));const before=this.state.mission?.status;tickMission(this.state,this.data);if(this.state.mission?.herald){this.notify(this.state.mission.herald);this.state.mission.herald=null;}
   if(raided&&!this.world.enemies.length&&!this.world.raidPending&&this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)){const recovered=warChestRecovery(this.world,this.data);spendWarChest(this.world);const kills=this.world.raidKills??0,loot=this.world.raidLoot??0;
    const damaged=this.world.buildings.filter(b=>b.hp<buildingMaxHp(b,this.data));
    const repairWood=damaged.reduce((n,b)=>n+Math.ceil((buildingMaxHp(b,this.data)-b.hp)/15),0);

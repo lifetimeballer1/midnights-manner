@@ -7,17 +7,17 @@ import {renownCost,renownTitle,renownLimitBonus,renownTroopBonus,renownUnlocksFo
 const data=Object.fromEntries(await Promise.all(
  ['world','troops','items','abilities','buildings','missions','quests','levels','calendar','traders','endgame']
   .map(async n=>[n,JSON.parse(await readFile(new URL(`../data/${n}.json`,import.meta.url)))])));
-const home=()=>{const g=new Game(data);g.state.vlevel=9;return g;};
-const rich=g=>{g.world.resources={gold:999999,food:999999,lumber:99999,bread:99999,plate:99999,frostwood:99999};return g;};
+const home=()=>{const g=new Game(data);g.state={...g.state,world:createWorld(data),home:null,mission:null,vlevel:9};return g;};
+const rich=g=>{g.world.resources={gold:999999,food:999999,wood:999999,flour:99999,lumber:99999,bread:99999,plate:99999,frostwood:99999};return g;};
 
 // ---- The basket cost ----
 
 test('phase5: renown asks the whole basket and climbs 35% a level',()=>{
  const c0=renownCost(data,0);
- assert.deepEqual(c0,{gold:500,food:400,lumber:30,bread:20,plate:6,frostwood:3});
+  assert.deepEqual(c0,{gold:4500,food:2000,wood:2400,flour:60,lumber:900,bread:120,plate:120,frostwood:240});
  const c1=renownCost(data,1);
  for(const k of Object.keys(c0))assert.ok(c1[k]>c0[k],`${k} climbs`);
- assert.equal(c1.gold,Math.ceil(500*1.35));
+  assert.equal(c1.gold,Math.ceil(4500*1.35));
  const c12=renownCost(data,12);
  assert.ok(c12.lumber>c1.lumber*20,'the ladder keeps climbing forever');
  assert.ok(c12.frostwood>c0.frostwood*20,'rare goods climb too');
@@ -26,7 +26,7 @@ test('phase5: renown asks the whole basket and climbs 35% a level',()=>{
 
 test('phase5: a missing good refuses the purchase before anything is paid',()=>{
  const g=home();
- g.world.resources={gold:100000,food:100000,lumber:1000,bread:0,plate:1000,frostwood:1000};
+ g.world.resources={gold:100000,food:100000,wood:100000,flour:1000,lumber:1000,bread:0,plate:1000,frostwood:1000};
  const before=structuredClone(g.world.resources);
  assert.equal(g.raiseRenown(),undefined);
  assert.deepEqual(g.world.resources,before,'nothing moved');
@@ -45,7 +45,7 @@ test('phase5: buying renown pays the basket exactly and speaks the milestone',()
 
 test('phase5: milestone unlocks merge once and heal on the next purchase',()=>{
  const g=rich(home());
- while((g.world.renown||0)<4)g.raiseRenown();
+ while((g.world.renown||0)<4)assert.equal(g.raiseRenown(),true);
  assert.ok(g.state.unlocks.includes('banner-cloak-grey'),'level 4 unlocks the grey banner');
  assert.ok(!g.locked('banner-cloak-grey'),'the banner is earnable through renown');
  assert.ok(g.message.includes('Banner of the Manner'),'the milestone speaks');
@@ -95,7 +95,7 @@ test('phase5: the reward table is caps and cosmetics only by construction',()=>{
 // ---- Integration: the muster grows with renown ----
 
 test('phase5: renown muster room raises the recruit cap above the beds',()=>{
- const g=new Game(data);
+ const g=home();
  for(let i=0;i<3;i++){const c=makeBuilding('cottage',2,5+i*3,data);g.world.buildings.push(c);}
  const beds=housing(g.world,data).beds;
  assert.equal(beds,18,'three cottages hold eighteen');

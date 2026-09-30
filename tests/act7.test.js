@@ -211,8 +211,8 @@ test('ph12/phase2: tower tier 4 rides the endgame curve and waits on level 8', a
   const base = d.buildings.tower.cost;
   // A bare world (no crew discount) isolates the tier curve itself.
   const c4 = bc('tower', 4, {...w, troops: []}, d);
-  assert.equal(c4.wood, base.wood * 16, 'tier-4 rides the Phase 2 endgame curve');
-  assert.equal(c4.gold, base.gold * 16, 'on both coin and timber');
+  assert.equal(c4.wood, base.wood * 24, 'tier-4 rides the Phase 2 endgame curve');
+  assert.equal(c4.gold, base.gold * 24, 'on both coin and timber');
   assert.equal(c4.plate, 20, 'the high tower asks for forged plate');
   assert.equal(c4.lumber, 30, 'and sawn lumber');
   const g = richState(d);

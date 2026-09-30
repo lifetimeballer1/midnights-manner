@@ -104,7 +104,7 @@
   },
   "renown": {
     "minLevel": 9,
-    "baseCost": { "gold": 500, "food": 400, "lumber": 30, "bread": 20, "plate": 6, "frostwood": 3 },
+    "baseCost": { "gold": 4500, "food": 2000, "wood": 2400, "flour": 60, "lumber": 900, "bread": 120, "plate": 120, "frostwood": 240 },
     "costGrowth": 1.35,
     "damagePerLevel": 0.03,
     "lootPerLevel": 0.05,

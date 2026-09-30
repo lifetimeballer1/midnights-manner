@@ -11,7 +11,7 @@
 // FALLBACK pools below (tests and old saves may lack names.json).
 // food.js is the one import allowed: it is pure math with no imports of
 // its own, so the no-cycle law holds. festivals.js follows the same law.
-import {wellFedBonus} from './food.js';
+import {wellFedBonus,supplyBonus} from './food.js';
 import {festivalBonus} from './festivals.js';
 export const FALLBACK_GIVEN = ['Bram', 'Wren', 'Fen', 'Issa', 'Pella', 'Maro', 'Sella', 'Tomm', 'Hob', 'Kess', 'Dren', 'Berra', 'Colm', 'Essie', 'Lark', 'Rill'];
 export const FALLBACK_TRADE = ['Ash', 'Salt', 'Bell', 'Cutler', 'the mason', 'the smith', 'the thatcher', 'the tinker', 'the miller', 'the drover'];
@@ -120,7 +120,7 @@ export function tickVillagerJobs(world, data, dt) {
   // Perf: one id map per tick instead of a buildings.find per posted troop.
   const postOf = new Map();
   for (const b of world.buildings || []) postOf.set(b.id, b);
-  const fed = 1 + wellFedBonus(world, data, 'jobXp') + festivalBonus(world, data, 'jobXp');
+  const fed = 1 + supplyBonus(world, data, 'jobXp') + wellFedBonus(world, data, 'jobXp') + festivalBonus(world, data, 'jobXp');
   const leveled = [];
   for (const u of world.troops || []) {
     if (!u || u.hp <= 0 || !u.workplace) continue;

@@ -6,6 +6,7 @@
 // readiness law, the leader roster (read by endgame's boss machinery) and
 // the annex ledger. Pure math + storage grants; no DOM, no new save
 // version — everything lands additively on world.conquest.
+import {territorySupplied} from './food.js';
 import {grantCentral} from './storage.js';
 
 const AURA_KEYS = ['damage', 'armor', 'gather', 'carry', 'build', 'discount', 'heal', 'xp', 'survey', 'food', 'plate', 'produce', 'beds', 'trade'];
@@ -145,6 +146,7 @@ export function conquestLimitBonus(world, data) {
   return Number.isFinite(+v) ? Math.max(0, Math.floor(+v)) : 0;
 }
 export function conquestAuraEffects(world, data) {
+  if (!territorySupplied(world, data)) return {};
   const fx = annexById(data, conquestState(world).annexed)?.flatAuras;
   if (!fx || typeof fx !== 'object') return {};
   const out = {};

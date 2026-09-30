@@ -7,7 +7,7 @@ import {ensureIdentity} from './villagers.js';
 import {edibleFood, BREAD_FOOD_VALUE} from './crafting.js';
 import {claimRect} from './expansion.js';
 import {depositCentral, grantCentral} from './storage.js';
-import {wellFedBonus} from './food.js';
+import {wellFedBonus,supplyBonus} from './food.js';
 import {festivalBonus} from './festivals.js';
 
 export const CHILD_SECONDS = 75;      // surplus + free bed grows a villager this fast
@@ -139,7 +139,7 @@ function tickPopulation(state, data, dt, notify) {
   if (edibleFood(w) < 20) return; // keep a pantry before growing
   // Well Fed (Phase 3) and live festivals (Phase 6): a warm town quickens
   // the cradle — data bonuses, zero whenever neither is running.
-  w.childTimer += dt * (1 + wellFedBonus(w, data, 'growth') + festivalBonus(w, data, 'growth'));
+  w.childTimer += dt * (1 + supplyBonus(w, data, 'growth') + wellFedBonus(w, data, 'growth') + festivalBonus(w, data, 'growth'));
   if (w.childTimer >= CHILD_SECONDS) {
     w.childTimer = 0;
     const type = START_CHILD_TYPES[w.troops.length % START_CHILD_TYPES.length];

@@ -1,3 +1,4 @@
+import {supplyBonus} from './food.js';
 import {center,distance,stats} from '../model.js';
 import {move} from './pathfinding.js';
 import {retreat} from './tactics.js';
@@ -48,7 +49,7 @@ export function tickEmergency(world,data,dt) {
     if(d<bestD){bestD=d;b=cand;}
    }
    if(b){u.emergency={kind:'repair',target:b.id};if(move(world,data,u,center(b,data),fleeSpeed,dt,data.buildings[b.type].size/2+.7,true,true)){
-    const hp=Math.min(6*dt,data.buildings[b.type].tiers[b.level-1].hp-b.hp,world.resources.wood*15);b.hp+=hp;world.resources.wood=Math.max(0,world.resources.wood-hp/15);
+    const hp=Math.min(6*(1+supplyBonus(world,data,'repair'))*dt,data.buildings[b.type].tiers[b.level-1].hp-b.hp,world.resources.wood*15);b.hp+=hp;world.resources.wood=Math.max(0,world.resources.wood-hp/15);
    }continue;}
   }
   if(job==='heal'){

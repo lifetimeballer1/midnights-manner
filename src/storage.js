@@ -1,5 +1,6 @@
 import {ensureIdentity} from './systems/villagers.js';
 import {buildTiles} from './systems/biomes.js';
+import {mealDay} from './systems/food.js';
 const KEY='midnights-manner-v2';
 const OLD_KEY='midnights-manner-v1';
 export const VERSION = 14;
@@ -355,6 +356,18 @@ export function validateSave(value, data) {
   if(!Array.isArray(value.questsCompleted)||!Number.isFinite(value.xp))return false;
   return true;
 }
+function supplyDefaults(value, data) {
+  for (const w of [value.world, value.home]) {
+    if (!w) continue;
+    if (typeof w.wellSupplied !== 'boolean') w.wellSupplied = false;
+    if (!Number.isInteger(w.lastSupplyDay) || w.lastSupplyDay < 0) {
+      w.lastSupplyDay = mealDay(w, data);
+      w.wellSupplied = false;
+    }
+    if (w.conquest && typeof w.conquest === 'object' && typeof w.conquest.supplied !== 'boolean') w.conquest.supplied = false;
+  }
+  return value;
+}
 export function load(data) {
  try {
   let raw = null;
@@ -365,6 +378,7 @@ export function load(data) {
   if ((value.version ?? 1) < VERSION) value = migrateToLatest(value, data);
   if (!value || value.version !== VERSION) return null;
   if(!validateSave(value,data))return null;
+  supplyDefaults(value, data);
   return value;
  }catch{return null;}
 }
@@ -385,5 +399,5 @@ export function importSaveBlob(text, data) {
   if (v < VERSION) value = migrateToLatest(value, data);
   if (!value || value.version !== VERSION) return {ok:false, error:`Could not migrate this save (version ${v}) to version ${VERSION}. It may be from an incompatible build.`};
   if (!validateSave(value, data)) return {ok:false, error:'This save failed validation — a building, troop or mission in it is unknown. Nothing was changed.'};
-  return {ok:true, state:value};
+  return {ok:true, state:supplyDefaults(value, data)};
 }

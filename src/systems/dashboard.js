@@ -7,7 +7,7 @@
 import {auras} from '../model.js';
 import {midgameRate, reserveMult} from './economy.js';
 import {refinerCrew, crewPower} from './crafting.js';
-import {mealCost, mealConfig, townMouths} from './food.js';
+import {mealCost, mealConfig, townMouths, supplyCost, territorySupplyCost, supplyBonus} from './food.js';
 import {reserveCapacity} from '../resources.js';
 import {settlingRate} from './storage.js';
 
@@ -30,7 +30,7 @@ export function economyDashboard(world, data) {
     const mult = Number.isFinite(tier?.rateMultiplier) ? tier.rateMultiplier : 1;
     const held = Number.isFinite(b.harvestBonus) ? Math.max(0, b.harvestBonus) : 0;
     if (held >= reserveCapacity(spec, b.level || 1)) continue;
-    bump(spec.production, 'prod', spec.rate * mult * reserveMult(b) * midgameRate(world.elapsed, 0.75));
+    bump(spec.production, 'prod', (1 + supplyBonus(world, data, 'production')) * spec.rate * mult * reserveMult(b) * midgameRate(world.elapsed, 0.75));
   }
   // Hearth trickles (posted shops pour food and plate straight in).
   bump('food', 'prod', Number(aura.food) || 0);
@@ -57,6 +57,9 @@ export function economyDashboard(world, data) {
     const meal = mealCost(world, data);
     bump('food', 'use', meal.food / dayLength);
     bump('bread', 'use', meal.bread / dayLength);
+  }
+  for (const cost of [supplyCost(world, data), territorySupplyCost(world, data)]) {
+    for (const [key, amount] of Object.entries(cost)) bump(key, 'use', amount / dayLength);
   }
   for (const key of Object.keys(world.resources || {})) bump(key, 'use', settlingRate(world, data, key));
   const list = Object.values(rows)

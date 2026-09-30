@@ -100,6 +100,8 @@ export const sfx = {
   fail() { tone(220, 0.09, { type: 'triangle', slide: -55, vol: 0.055 }); tone(165, 0.12, { type: 'triangle', delay: 0.08, slide: -35, vol: 0.045 }); },
   place() { tone(120, 0.14, { type: 'sine', slide: -70, vol: 0.22 }); tone(62, 0.16, { type: 'triangle', vol: 0.18 }); },
   collect() { tone(880, 0.07, { vol: 0.1 }); tone(1320, 0.09, { delay: 0.06, vol: 0.1 }); },
+  // One quiet cue for the entire Collect Ready action, regardless of site count.
+  collectBatch() { tone(880, 0.07, { vol: 0.07 }); tone(1320, 0.09, { delay: 0.06, vol: 0.07 }); },
   upgrade() { [523, 659, 784].forEach((f, i) => tone(f, 0.1, { type: 'triangle', delay: i * 0.08, vol: 0.14 })); },
   repair() { tone(440, 0.08, { type: 'triangle', vol: 0.12 }); tone(660, 0.1, { type: 'triangle', delay: 0.07, vol: 0.12 }); },
   buildDone() { [660, 880].forEach((f, i) => tone(f, 0.12, { type: 'triangle', delay: i * 0.09, vol: 0.12 })); },

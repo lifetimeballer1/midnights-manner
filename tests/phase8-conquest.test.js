@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {Game} from '../src/game.js';
 import {createWorld,makeBuilding,makeUnit,auras,buildingLimit} from '../src/model.js';
+import {tickTownSupply} from '../src/systems/food.js';
 import {spawnRaid,spawnExclusion} from '../src/systems/combat.js';
 import {tickMission,finishMission} from '../src/systems/campaign.js';
 import {bossSpec,bossTick} from '../src/systems/endgame.js';
@@ -159,6 +160,7 @@ test('phase8: an outpost lifts every building line and a settlement quickens han
  const base=auras(g2.world,data);
  recordAssault(g2.world);
  applyAnnex(g2.state,data,'settlement');
+ g2.world.elapsed=180;tickTownSupply(g2.world,data);
  const after=auras(g2.world,data);
  assert.ok(Math.abs(after.gather-base.gather-0.03)<1e-9,'the valley quickens hands');
  assert.ok(Math.abs(after.food-base.food-0.4)<1e-9,'and warms the hearth');

@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {createWorld,makeBuilding,makeUnit} from '../src/model.js';
 import {economyDashboard} from '../src/systems/dashboard.js';
 import {reserveCapacity} from '../src/resources.js';
-import {mealConfig} from '../src/systems/food.js';
+import {mealConfig,supplyCost} from '../src/systems/food.js';
 const data=Object.fromEntries(await Promise.all(
  ['world','troops','items','abilities','buildings','missions','quests','calendar'].map(async n=>[n,JSON.parse(await readFile(new URL(`../data/${n}.json`,import.meta.url)))])));
 const row=(dash,key)=>dash.rows.find(r=>r.key===key);
@@ -28,10 +28,10 @@ test('phase7: a full reserve pauses the drip, exactly like the sim',()=>{
 
 test('phase7: the town table is a real daily draw',()=>{
  const w=createWorld(data);
- const dash=economyDashboard(w,data);
- assert.ok(Math.abs(row(dash,'food').use-25/180)<1e-9,'five mouths eat 25 food a day');
- assert.ok(Math.abs(row(dash,'bread').use-5/180)<1e-9,'and five loaves');
- assert.ok(Math.abs(row(dash,'food').net-(2-25/180))<1e-9,'net = produced − used');
+ const dash=economyDashboard(w,data),supply=supplyCost(w,data);
+ assert.ok(Math.abs(row(dash,'food').use-(25+supply.food)/180)<1e-9,'five mouths eat 25 food a day');
+ assert.ok(Math.abs(row(dash,'bread').use-(5+supply.bread)/180)<1e-9,'and five loaves');
+ assert.ok(Math.abs(row(dash,'food').net-(2-(25+supply.food)/180))<1e-9,'net = produced − used');
 });
 
 test('phase7: crewed recipes report both sides of the exchange',()=>{
@@ -40,7 +40,7 @@ test('phase7: crewed recipes report both sides of the exchange',()=>{
  const hand=makeUnit('sawyer',data);hand.workplace=shop.id;w.troops.push(hand);
  const dash=economyDashboard(w,data);
  assert.ok(Math.abs(row(dash,'lumber').prod-1)<1e-9,'one crewed sawmill makes one plank a second');
- assert.ok(Math.abs(row(dash,'wood').use-1)<1e-9,'and eats two timber the same way');
+ assert.ok(Math.abs(row(dash,'wood').use-(1+supplyCost(w,data).wood/180))<1e-9,'and eats two timber the same way');
 });
 
 test('phase7: hearth trickles join the same ledger',()=>{

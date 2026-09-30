@@ -256,8 +256,10 @@ test('renown buys at a standing hall and compounds', () => {
   const g = game(9);
   g.world.resources.gold = 100000;
   g.world.resources.food = 100000;
+  g.world.resources.wood = 100000;
+  g.world.resources.flour = 1000;
   g.world.resources.plate = 1000;
-  g.world.resources.lumber = 1000;
+  g.world.resources.lumber = 10000;
   g.world.resources.bread = 1000;
   g.world.resources.frostwood = 1000;
   assert.equal(g.raiseRenown(), true);

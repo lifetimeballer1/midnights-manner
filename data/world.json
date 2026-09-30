@@ -100,6 +100,91 @@
     "secondsPerDay": 180,
     "foodPerVillager": 5,
     "breadPerVillager": 1,
+    "supply": {
+  "stages": [
+    {
+      "name": "Village supply",
+      "hallTier": 1,
+      "cost": {
+        "food": 200,
+        "wood": 150,
+        "gold": 25,
+        "bread": 5,
+        "flour": 25
+      },
+      "perVillager": {
+        "food": 10,
+        "wood": 5,
+        "flour": 2
+      }
+    },
+    {
+      "name": "Town supply",
+      "hallTier": 2,
+      "cost": {
+        "food": 750,
+        "wood": 600,
+        "gold": 100,
+        "bread": 20,
+        "flour": 150,
+        "lumber": 30
+      },
+      "perVillager": {
+        "food": 15,
+        "wood": 8,
+        "flour": 3
+      }
+    },
+    {
+      "name": "Kingdom supply",
+      "hallTier": 3,
+      "cost": {
+        "food": 1800,
+        "wood": 1200,
+        "gold": 200,
+        "bread": 40,
+        "flour": 300,
+        "lumber": 80,
+        "plate": 8
+      },
+      "perVillager": {
+        "food": 20,
+        "wood": 10,
+        "flour": 4
+      }
+    },
+    {
+      "name": "Grand works supply",
+      "hallTier": 3,
+      "projectTiers": 6,
+      "cost": {
+        "food": 3000,
+        "wood": 1800,
+        "gold": 300,
+        "bread": 60,
+        "flour": 500,
+        "lumber": 120,
+        "plate": 12,
+        "frostwood": 20
+      },
+      "perVillager": {
+        "food": 25,
+        "wood": 12,
+        "flour": 5
+      }
+    }
+  ],
+  "wellSupplied": {
+    "effects": {
+      "build": 0.05,
+      "heal": 0.1
+    },
+    "production": 0.05,
+    "repair": 0.1,
+    "growth": 0.1,
+    "jobXp": 0.15
+  }
+},
     "wellFed": {
       "effects": { "gather": 0.08, "xp": 0.05, "heal": 0.2 },
       "growth": 0.25,
@@ -132,7 +217,7 @@
         "name": "Repair Wagons",
         "icon": "🛠",
         "text": "Crews roll out at dawn — damaged buildings are mended free after the raid.",
-        "cost": { "wood": 400, "lumber": 120 },
+        "cost": { "wood": 1200, "lumber": 120 },
         "max": 2,
         "perLevel": { "repairBuildings": 2 }
       },

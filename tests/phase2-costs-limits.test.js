@@ -15,7 +15,7 @@ test('phase2: data curves steepen upper tiers and keep the opening friendly',()=
  const c1=buildingCost('tower',1,bare,data),c2=buildingCost('tower',2,bare,data),c4=buildingCost('tower',4,bare,data);
  assert.equal(c1.wood,tower.wood,'tier 1 stands at base price');
  assert.equal(c2.wood,tower.wood*2,'tier 2 keeps the legacy friendly curve');
- assert.equal(c4.wood,tower.wood*16,'tier 4 rides the endgame curve');
+  assert.equal(c4.wood,tower.wood*24,'tier 4 rides the endgame curve');
  assert.equal(c4.plate,20,'forged plate joins the high tier');
  assert.equal(c4.lumber,30,'and sawn lumber');
 });
@@ -25,8 +25,8 @@ test('phase2: tierCosts extras are flat — the curve never multiplies them',()=
  const bare={...w,troops:[]};
  const store=data.buildings.storehouse.cost;
  const c3=buildingCost('storehouse',3,bare,data);
- assert.equal(c3.wood,store.wood*6);
- assert.equal(c3.gold,store.gold*6);
+  assert.equal(c3.wood,store.wood*10);
+  assert.equal(c3.gold,store.gold*10);
  assert.equal(c3.lumber,60,'extras name their own price');
  assert.equal(c3.plate,20);
 });

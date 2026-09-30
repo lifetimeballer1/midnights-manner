@@ -12,8 +12,7 @@ export const RESOURCES={
 export const resourceInfo=key=>RESOURCES[key]||{label:String(key||'Resource'),sprite:'resource-gold.svg',color:'#f3cf66',paper:'#fff6cc',description:'Gathered by your village.'};
 export const resourceLabel=(key,amount)=>`+${Math.floor(amount)} ${resourceInfo(key).label}`;
 export const resourceSpriteNames=Object.values(RESOURCES).map(r=>r.sprite);
-// Keep labels readable at the normal camera scale while letting the map breathe
-// when players zoom out. Touch padding is added by the renderer separately.
+// Scale only the visible icon; layout keeps a fixed 44px touch target.
 export const collectionBubbleScale=zoom=>Math.max(.68,Math.min(1,Number(zoom)||1));
 // Tap-reserve sizing (Jesce rebalance 2026-09-27): base capacity 500, badge
 // around 150 (~30% of cap) so flags mean a real haul. Capacity grows with
@@ -30,9 +29,7 @@ export const collectionBubbleScale=zoom=>Math.max(.68,Math.min(1,Number(zoom)||1
 //     ~30% ratio holds at every tier. Taps always sweep any whole unit.
 export const HARVEST_BASE_CAPACITY = 500;
 export const HARVEST_NOTIFY_RATIO = 0.3;
-// When this many producers are ready (or any of their resources has no
-// central room), the map collapses individual parchment pills into one
-// summary chip so a full-storage late village never crowds the screen.
+// Normal village zoom: eight ready producers collapse into a summary.
 export const CROWDED_READY_THRESHOLD = 8;
 export function reserveCapacity(spec, level = 1) {
   const h = spec?.harvest;
@@ -82,34 +79,30 @@ export function formatShortAmount(n){
  if(v>=1000)return `${(v/1000).toFixed(1)}k`;
  return String(v);
 }
-// True when individual parchment pills would crowd the map: many ready
-// producers, or any ready resource already has no central storage room.
-// `roomFor` is optional: (key) => remaining central capacity. When omitted
-// only the ready-count threshold applies.
-export function isCollectionCrowded(readyCount, totals={}, roomFor=null){
- if((Number(readyCount)||0)>=CROWDED_READY_THRESHOLD)return true;
- if(typeof roomFor!=='function')return false;
- for(const key of Object.keys(totals||{})){
-  if((Number(totals[key])||0)<1)continue;
-  const room=roomFor(key);
-  if(Number.isFinite(room)&&room<1)return true;
- }
- return false;
+// Density follows the camera: overview collapses any ready sources, close
+// views admit more icons. Full storage is an individual marker state, not
+// a reason to hide every other resource. Retain the existing call signature.
+export function isCollectionCrowded(readyCount, totals={}, roomFor=null, zoom=1.65){
+ const count=Math.max(0,Number(readyCount)||0),z=Number(zoom)>0?Number(zoom):1.65;
+ if(!count)return false;
+ if(z<1)return true;
+ const threshold=Math.max(3,Math.floor(CROWDED_READY_THRESHOLD*z/1.65));
+ return count>=threshold;
 }
-// Fixed CSS-pixel touch targets; shifting pills prevents dense villages hiding labels.
+// Fixed CSS-pixel touch targets. Nearby candidates keep icons building-anchored;
+// if no collision-free spot exists, omit it instead of stacking hit targets.
 export function layoutCollectionBubbles(items,width,height,obstacles=[]){
  const placed=[];
  for(const item of [...items].sort((a,b)=>a.y-b.y||a.x-b.x)){
   if(item.x<-50||item.x>width+50||item.y<-50||item.y>height+50)continue;
-  const w=Math.min(item.width,width-16),h=item.height||40;
+  const w=Math.min(Math.max(44,item.width||44),width-16),h=Math.max(44,item.height||44);
   const fits=box=>![...placed,...obstacles].some(p=>box.x<p.x+p.w+4&&box.x+box.w+4>p.x&&box.y<p.y+p.h+4&&box.y+box.h+4>p.y);
   let box;
-  for(const dy of [0,-44,44,-88,88,-132,132,-176,176])for(const dx of [0,-w-6,w+6]){
+  for(const dy of [0,-48,48,-96,96])for(const dx of [0,-w-6,w+6,-2*(w+6),2*(w+6)]){
    const candidate={...item,x:Math.max(8,Math.min(width-w-8,item.x-w/2+dx)),y:Math.max(8,Math.min(height-h-8,item.y-h/2+dy)),w,h};
    if(!box&&fits(candidate))box=candidate;
   }
-  // Keep every visible source represented even in a very dense village.
-  placed.push(box||{...item,x:Math.max(8,Math.min(width-w-8,item.x-w/2)),y:Math.max(8,Math.min(height-h-8,item.y-h/2)),w,h});
+  if(box)placed.push(box);
  }
  return placed;
 }

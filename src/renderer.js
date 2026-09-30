@@ -1,4 +1,5 @@
-import {resourceInfo,resourceLabel,layoutCollectionBubbles,collectionBubbleScale,reserveReady} from './resources.js';
+import {resourceInfo,resourceLabel,layoutCollectionBubbles,collectionBubbleScale,reserveReady,isCollectionCrowded} from './resources.js';
+import {centralRoom} from './systems/storage.js';
 import {placementCells} from './systems/walls.js';
 import {screenToWorld,panPixels,zoomAt,phaseSeed,zoomLimits,panLimits,project3D,cameraDepth,orbitCamera,DEFAULT_YAW,DEFAULT_PITCH} from './camera.js';
 import {tileFor} from './systems/biomes.js';
@@ -25,7 +26,7 @@ export class Renderer {
  worldPoint(x,y){return screenToWorld(this,x,y);}
  resize(width,height,dpr=1){this.width=width;this.height=height;this.dpr=Math.min(dpr,2);this.canvas.width=Math.round(width*this.dpr);this.canvas.height=Math.round(height*this.dpr);this.cx=width/2;this.cy=height*.51;}
  fitVillage(world){const hall=world.buildings.find(b=>b.type==='hall');this.cam.x=hall?hall.x+1:this.data.world.width/2;this.cam.y=hall?hall.y+1:this.data.world.height/2;this.cam.zoom=this.width<600?1.65:Math.min(2.5,Math.max(1.6,this.width/540));}
- pick(x,y){const bubble=[...this.hitAreas].reverse().find(h=>h.kind==='harvest'&&x>=h.x&&x<=h.x+h.w&&y>=h.y&&y<=h.y+h.h);if(bubble)return bubble;for(let i=(this.sceneFaces?.length||0)-1;i>=0;i--){const f=this.sceneFaces[i];if(pointInPolygon(x,y,f.points))return f.owner||{kind:'scenery'};}return null;}
+ pick(x,y){const bubble=[...this.hitAreas].reverse().find(h=>h.kind==='harvest'&&x>=h.x&&x<=h.x+h.w&&y>=h.y&&y<=h.y+h.h);if(bubble){this.collectionDetail={...bubble,until:performance.now()+1600};return bubble;}for(let i=(this.sceneFaces?.length||0)-1;i>=0;i--){const f=this.sceneFaces[i];if(pointInPolygon(x,y,f.points))return f.owner||{kind:'scenery'};}return null;}
  resetCam(){this.cam={x:this.data.world.width/2,y:this.data.world.height/2,zoom:1,yaw:DEFAULT_YAW,pitch:DEFAULT_PITCH};}
  cell(event){const r=this.canvas.getBoundingClientRect();return this.unproject((event.clientX-r.left)*this.width/r.width,(event.clientY-r.top)*this.height/r.height);}
  diamond(x,y,color,stroke){const c=this.ctx,points=[[x,y],[x+1,y],[x+1,y+1],[x,y+1]].map(([a,b])=>this.project(a,b));c.beginPath();points.forEach((p,i)=>i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y));c.closePath();c.fillStyle=color;c.fill();if(stroke){c.strokeStyle=stroke;c.lineWidth=.6;c.stroke();}}
@@ -152,6 +153,7 @@ export class Renderer {
   const tier=defense?.tiers[(selected?.level||1)-1];if(tier?.damage&&(selected||this.hover)){const pos=selected?center(selected,this.data):{x:this.hover.x+defense.size/2,y:this.hover.y+defense.size/2};c.save();c.strokeStyle='#f2e2a8';c.lineWidth=1.5;c.setLineDash([6,4]);ring(pos.x,pos.y,tier.range);c.restore();}
   drawAtmosphere(this,world,time,weather);
   drawVillage3D(this,world,time,sky);
+  this.collectionSceneObstacles=[];
   const drawables=[...world.buildings.map(b=>({kind:'building',value:b,depth:this.depth(b.x+this.data.buildings[b.type].size/2,b.y+this.data.buildings[b.type].size/2)})),...world.troops.filter(t=>!insideWorkplace(world,this.data,t)).map(t=>({kind:'unit',value:t,depth:this.depth(t.x,t.y)})),...world.enemies.map(e=>({kind:'enemy',value:e,depth:this.depth(e.x,e.y)}))].sort((a,b)=>a.depth-b.depth);
   for(const {kind,value:b} of drawables){
    if(kind==='building'){
@@ -159,6 +161,7 @@ export class Renderer {
     const gp=this.project(cp.x,cp.y);
     this.hitAreas.push({kind:'building',id:b.id,x:gp.x-size*.4,y:gp.y-size*.84,w:size*.8,h:size*.87});
     if(this.selection===b.id){
+     this.collectionSceneObstacles.push({x:gp.x-size*.4,y:gp.y-size*.84,w:size*.8,h:size*.87});
      for(let y=0;y<spec.size;y++)for(let x=0;x<spec.size;x++)this.diamond(b.x+x,b.y+y,'#f0d47e66','#f2c96e');
      for(let y=0;y<spec.size;y++)for(let x=0;x<spec.size;x++)this.diamond(b.x+x,b.y+y,'#ffffff22','#fff3c0');
      // Pulsing selection marker — readable on phones in bright light.
@@ -167,6 +170,7 @@ export class Renderer {
      c.fillStyle='#1c302c';c.beginPath();c.arc(gp.x,gp.y-size-6+bob,1.4,0,Math.PI*2);c.fill();
      // Name pill so taps answer back with what you picked.
      c.font='bold 11px system-ui';const label=spec.name+(b.remaining>0?' · building…':b.hp<=0?' · ruined':'');const wpx=c.measureText(label).width+14;
+     this.collectionSceneObstacles.push({x:gp.x-wpx/2,y:gp.y-size-34+bob,w:wpx,h:24});
      c.fillStyle='#1c302cee';c.beginPath();if(c.roundRect)c.roundRect(gp.x-wpx/2,gp.y-size-34+bob,wpx,17,8);else c.rect(gp.x-wpx/2,gp.y-size-34+bob,wpx,17);c.fill();
      c.fillStyle='#f3eddc';c.textAlign='center';c.fillText(label,gp.x,gp.y-size-22+bob);c.textAlign='left';
 
@@ -174,10 +178,11 @@ export class Renderer {
     // Living-village readouts: beds on cottages, gold crew pips on workplaces,
     // and a thin reserve bar on nodes draining below two-thirds.
     const p=this.project(cp.x,cp.y);const p2=p;
-    if(spec.housing&&b.hp>0){const hh=housing(world,this.data);c.fillStyle='#1c302cee';c.font='bold 9px system-ui';c.textAlign='center';c.fillText(`🛏 ${hh.used}/${hh.beds}`,p2.x,p2.y-size-10);c.textAlign='left';}
-    if(spec.workplace&&b.hp>0){const crew=assignedWorkers(world,b.id).length;
+    const routineInfo=this.cam.zoom>=1.2&&this.selection!==b.id&&!world.enemies.length&&!world.raidPending;
+    if(spec.housing&&b.hp>0&&routineInfo){const hh=housing(world,this.data);c.fillStyle='#1c302cee';c.font='bold 9px system-ui';c.textAlign='center';c.fillText(`🛏 ${hh.used}/${hh.beds}`,p2.x,p2.y-size-10);c.textAlign='left';}
+    if(spec.workplace&&b.hp>0&&routineInfo){const crew=assignedWorkers(world,b.id).length;
      for(let i=0;i<crew;i++){c.fillStyle='#f2c96e';c.beginPath();c.arc(p2.x-(crew*8)/2+i*8+4,p2.y-size-10,3,0,Math.PI*2);c.fill();c.strokeStyle='#1c302c';c.lineWidth=1;c.stroke();}}
-    if(b.maxReserve&&b.hp>0){const frac=Math.max(0,Math.min(1,b.reserve/b.maxReserve));
+    if(b.maxReserve&&b.hp>0&&routineInfo){const frac=Math.max(0,Math.min(1,b.reserve/b.maxReserve));
      if(frac<0.66)this.bar(p2.x,p2.y+20,frac,36,frac>0.35?'#c9a44e':'#c9766a');}
     // Ready badge: a gold coin-dot on buildings holding a tap reserve.
     if(reserveReady(b,spec)){c.fillStyle='#f2c96e';c.beginPath();c.arc(p2.x+size*.34,p2.y-size-12,5,0,Math.PI*2);c.fill();c.strokeStyle='#1c302c';c.lineWidth=1.5;c.stroke();c.fillStyle='#1c302c';c.font='bold 8px system-ui';c.textAlign='center';c.fillText('!',p2.x+size*.34,p2.y-size-9);c.textAlign='left';}
@@ -194,6 +199,7 @@ export class Renderer {
     const unit=kind==='unit';if(b.hp<=0){if(!this.calm){const age=time-(this.deadAt.get((unit?'u':'e')+b.id)??time);if(age<450)this.sprite(unit?this.data.troops[b.type].sprite:'raider.png',b.x,b.y,39,1-age/450);}continue;}
     const bob=unit?(this.calm?0:Math.sin(time/450+phaseSeed(b.id)*1.7)*2*this.cam.zoom):(this.calm?0:Math.abs(Math.sin(time/300+phaseSeed(b.id)))*2*this.cam.zoom);
     const up=this.project(b.x,b.y);const us=34*this.cam.zoom;this.hitAreas.push({kind:unit?'unit':'enemy',id:b.id,x:up.x-us*.35,y:up.y-us*.8,w:us*.7,h:us*.9});
+    if(!unit||this.selection===b.id)this.collectionSceneObstacles.push({x:up.x-us*.5,y:up.y-us,w:us,h:us+18});
     const p=this.project(b.x,b.y);
     // Hover attention: a soft ring under whoever your finger is over.
     if(this.hover&&!this.placing&&b.hp>0&&Math.hypot(b.x-(this.hover.x+.5),b.y-(this.hover.y+.5))<.8){c.strokeStyle='#fff3c088';c.lineWidth=1.5;c.beginPath();c.ellipse(up.x,up.y+7,unit?15:17,6,0,0,Math.PI*2);c.stroke();}
@@ -201,6 +207,7 @@ export class Renderer {
      if(b.hp<stats(b,this.data).hp)this.bar(p.x,p.y+10,b.hp/stats(b,this.data).hp,20,'#80a56b');
      if(this.selection===b.id){c.strokeStyle='#fff3c0';c.lineWidth=2;c.beginPath();c.ellipse(p.x,p.y+7,17,7,0,0,Math.PI*2);c.stroke();
       c.font='bold 11px system-ui';const nm=this.data.troops[b.type].name+(b.order?' · '+b.order.kind:'');const nw=c.measureText(nm).width+14;
+      this.collectionSceneObstacles.push({x:p.x-nw/2,y:p.y-44+bob,w:nw,h:17});
       c.fillStyle='#1c302cee';c.beginPath();if(c.roundRect)c.roundRect(p.x-nw/2,p.y-44+bob,nw,17,8);else c.rect(p.x-nw/2,p.y-44+bob,nw,17,8);c.fill();
       c.fillStyle='#f3eddc';c.textAlign='center';c.fillText(nm,p.x,p.y-32+bob);c.textAlign='left';}
      if(b.order){const t=b.order.kind==='move'?`➤ ${Math.round(b.order.x)},${Math.round(b.order.y)}`:b.order.kind==='attack'?'⚔!':'✋';c.fillStyle='#1c302cee';c.font='bold 9px system-ui';c.textAlign='center';c.fillText(t,p.x,p.y-22+bob);c.textAlign='left';
@@ -252,22 +259,47 @@ export class Renderer {
   if(!this.placing)this.drawCollections(world);
  }
  drawCollections(world){
-  const c=this.ctx;
-  const items=world.buildings.filter(b=>reserveReady(b,this.data.buildings[b.type])).map(b=>{
-   const spec=this.data.buildings[b.type],p=this.project(b.x+spec.size/2,b.y+spec.size/2),info=resourceInfo(spec.production),text=resourceLabel(spec.production,b.harvestBonus),scale=collectionBubbleScale(this.cam.zoom),fontSize=Math.max(9,12*scale),iconSize=28*scale;
-   c.font=`bold ${fontSize}px system-ui`;
-   return {id:b.id,x:p.x,y:p.y-(spec.size===2?79:51)*this.cam.zoom-18*scale,anchor:p,text,info,width:Math.max(104*scale,c.measureText(text).width+44*scale),height:40*scale,scale,fontSize,iconSize};
+  const c=this.ctx,z=this.cam.zoom,scale=collectionBubbleScale(z),obstacles=[...(this.collectionObstacles||[]),...(this.collectionSceneObstacles||[])];
+  const ready=world.buildings.filter(b=>reserveReady(b,this.data.buildings[b.type]));
+  const room=new Map();
+  const items=ready.map(b=>{
+   const spec=this.data.buildings[b.type],p=this.project(b.x+spec.size/2,b.y+spec.size/2),info=resourceInfo(spec.production);
+   if(!room.has(spec.production))room.set(spec.production,centralRoom(world,this.data,spec.production));
+   const full=room.get(spec.production)<1,amount=Math.floor(b.harvestBonus);
+   return {id:b.id,x:p.x,y:p.y-(spec.size===2?79:51)*z-18*scale,anchor:p,info,full,
+    text:full?`${info.label} storage full ? ${amount} waiting here.`:`${info.label} +${amount}`,width:44,height:44};
   });
-  for(const pill of layoutCollectionBubbles(items,this.width,this.height,this.width<600?(this.collectionObstacles||[]):[])){
-   const {x,y,w,h,info}=pill,scale=pill.scale||1,fontSize=pill.fontSize||12,iconSize=pill.iconSize||28;
-   c.save();c.strokeStyle=info.color+'aa';c.lineWidth=Math.max(1,1.5*scale);c.beginPath();c.moveTo(x+w/2,y+h-4*scale);c.lineTo(pill.anchor.x,pill.anchor.y-28*this.cam.zoom);c.stroke();
-   c.shadowColor='#0c22194d';c.shadowBlur=8*scale;c.shadowOffsetY=3*scale;c.fillStyle=info.paper;c.strokeStyle=info.color;c.lineWidth=Math.max(1,1.5*scale);c.beginPath();c.roundRect(x,y+3*scale,w,h-6*scale,12*scale);c.fill();c.stroke();c.shadowBlur=0;c.shadowOffsetY=0;
-   const icon=this.images[info.sprite];if(icon)c.drawImage(icon,x+5*scale,y+6*scale,iconSize,iconSize);
-   c.fillStyle='#293c30';c.font=`bold ${fontSize}px system-ui`;c.textAlign='left';c.fillText(pill.text,x+36*scale,y+25*scale);c.restore();
-   const pad=Math.max(4,Math.round((44-h)/2));
-   this.hitAreas.push({kind:'harvest',id:pill.id,x:x-pad,y:y-pad,w:w+pad*2,h:h+pad*2,resource:info.label,label:pill.text});
+  this.collectionCrowded=isCollectionCrowded(ready.length,{},null,z);
+  const visible=this.collectionCrowded?[]:layoutCollectionBubbles(items,this.width,this.height,obstacles);
+  // Standalone renderer fallback; the UI's edge action owns aggregate collection.
+  if(!this.collectionEdgeControl&&ready.length&&(this.collectionCrowded||visible.length<items.length)){
+   const summary=layoutCollectionBubbles([{x:84,y:this.height*.42,width:144,height:44}],this.width,this.height,obstacles)[0];
+   if(summary){
+    c.save();c.fillStyle='#142538';c.strokeStyle='#b79a5c';c.lineWidth=1.5;c.beginPath();c.roundRect(summary.x,summary.y,summary.w,summary.h,12);c.fill();c.stroke();
+    c.fillStyle='#f0dfb5';c.textAlign='center';c.font='bold 12px system-ui';c.fillText(`${ready.length} ready`,summary.x+summary.w/2,summary.y+18);
+    c.font='11px system-ui';c.fillText('Collect in Resources',summary.x+summary.w/2,summary.y+34);c.restore();
+   }
+  }
+  for(const marker of visible){
+   const {x,y,w,h,info,full}=marker,cx=x+w/2,cy=y+h/2,radius=17*scale,iconSize=26*scale;
+   c.save();c.strokeStyle='#b79a5c88';c.lineWidth=1;c.beginPath();c.moveTo(cx,cy+radius);c.lineTo(marker.anchor.x,marker.anchor.y-28*z);c.stroke();
+   c.fillStyle='#142538';c.strokeStyle='#b79a5c';c.lineWidth=1.5;c.beginPath();c.arc(cx,cy,radius,0,Math.PI*2);c.fill();c.stroke();
+   const icon=this.images[info.sprite];if(icon)c.drawImage(icon,cx-iconSize/2,cy-iconSize/2,iconSize,iconSize);
+   c.fillStyle=full?'#142538':info.color;c.strokeStyle='#d7bd7e';c.lineWidth=1.5;c.beginPath();c.arc(cx+radius-2,cy-radius+3,5,0,Math.PI*2);c.fill();c.stroke();
+   if(full){c.fillStyle='#f0dfb5';c.font='bold 10px system-ui';c.textAlign='center';c.fillText('!',cx+radius-2,cy-radius+6);}
+   c.restore();
+   this.hitAreas.push({kind:'harvest',id:marker.id,x,y,w,h,resource:info.label,label:marker.text});
+  }
+  // Tap reveals the held amount; normal collection keeps its existing popup
+  // and sound. This view-only detail also explains a blocked full-store tap.
+  const detail=this.collectionDetail;
+  if(detail&&performance.now()<detail.until){
+   c.save();c.font='bold 12px system-ui';const w=Math.min(this.width-16,c.measureText(detail.label).width+20),h=32;
+   const box=layoutCollectionBubbles([{x:detail.x+detail.w/2,y:detail.y-h/2-6,width:w,height:h}],this.width,this.height,obstacles)[0];
+   if(box){const {x,y}=box;c.fillStyle='#142538';c.strokeStyle='#b79a5c';c.beginPath();c.roundRect(x,y,w,h,9);c.fill();c.stroke();c.fillStyle='#f0dfb5';c.textAlign='center';c.fillText(detail.label,x+w/2,y+21,w-16);}c.restore();
   }
  }
+
  // Juice: renderer-local transition detection. Simulation untouched — the
  // renderer watches hp/remaining edges and spawns its own capped effects.
  trackTransitions(world,time){

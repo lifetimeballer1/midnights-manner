@@ -34,8 +34,8 @@ test('phase4: a project is raised in stages with multi-resource prices',()=>{
  const c3=buildingCost('market-square',3,bare,data);
  assert.equal(c1.plate,base.plate);
  assert.equal(c2.plate,base.plate*2);
- assert.equal(c3.plate,base.plate*6,'forged plate scales with the stage');
- assert.equal(c3.lumber,base.lumber*6,'and so does sawn stock');
+  assert.equal(c3.plate,base.plate*8,'forged plate scales with the stage');
+  assert.equal(c3.lumber,base.lumber*8,'and so does sawn stock');
  assert.equal(c1.gold,base.gold,'stage one stands at base price');
 });
 

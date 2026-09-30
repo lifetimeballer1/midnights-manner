@@ -5,7 +5,7 @@ export const copy = value => structuredClone(value);
 export const distance = (a,b) => Math.hypot(a.x-b.x,a.y-b.y);
 import {buildTiles, seedFor} from './systems/biomes.js';
 import {isClaimed, claimPreclaimed, regionsOf} from './systems/expansion.js';
-import {wellFedAuraEffects} from './systems/food.js';
+import {wellFedAuraEffects,supplyAuraEffects} from './systems/food.js';
 import {warChestAuraEffects,warChestBonus} from './systems/warchest.js';
 import {festivalAuraEffects} from './systems/festivals.js';
 import {conquestAuraEffects} from './systems/conquest.js';
@@ -114,7 +114,7 @@ export function createWorld(data,layout=data.world) {
       claimPreclaimed({tiles}, data.expansion);
     }
   } catch {}
-  return {resources:copy(layout.startingResources),bounds,survey:0,childTimer:0,tiles,biomeSeed:seedFor(tileData),buildings:(layout.buildings||missionMap.buildings).map(b=>makeBuilding(b.type,b.x,b.y,data,b.level||1)),troops:(layout.troops||missionMap.troops).map((t,i)=>makeUnit(t,data,i)),enemies:[],effects:[],elapsed:0,gathered:{wood:0,food:0,gold:0,frostwood:0,plate:0,lumber:0,flour:0,bread:0},wave:0,raidTimer:0,nextRaidAt:Number.isFinite(cfg.firstAt)?cfg.firstAt:300,wellFed:false,lastMealDay:0};
+  return {resources:copy(layout.startingResources),bounds,survey:0,childTimer:0,tiles,biomeSeed:seedFor(tileData),buildings:(layout.buildings||missionMap.buildings).map(b=>makeBuilding(b.type,b.x,b.y,data,b.level||1)),troops:(layout.troops||missionMap.troops).map((t,i)=>makeUnit(t,data,i)),enemies:[],effects:[],elapsed:0,gathered:{wood:0,food:0,gold:0,frostwood:0,plate:0,lumber:0,flour:0,bread:0},wave:0,raidTimer:0,nextRaidAt:Number.isFinite(cfg.firstAt)?cfg.firstAt:300,wellFed:false,lastMealDay:0,wellSupplied:false,lastSupplyDay:0};
 }
 export function afford(resources,cost) { return Object.entries(cost).every(([k,v])=>resources[k]>=v); }
 export function pay(resources,cost) {if(!afford(resources,cost)) return false; for(const [k,v] of Object.entries(cost)) resources[k]-=v; return true;}
@@ -297,6 +297,9 @@ export function auras(world, data) {
     for (const [k, v] of Object.entries(wellFedAuraEffects(data))) {
       if (k in out && Number.isFinite(v)) out[k] += v;
     }
+  }
+  for (const [k, v] of Object.entries(supplyAuraEffects(world, data))) {
+    if (k in out && Number.isFinite(v)) out[k] += v;
   }
   // War Chest (Phase 6): while the chest is open, its combat stores lend
   // aura damage, armor and mending — data effects, known keys, caps hold.

@@ -43,6 +43,8 @@
       "name": "Rebuild as an Outpost",
       "icon": "🏰",
       "text": "A fortified regional base: two more of every building line may stand.",
+      "supply": {"cost": {"food": 800, "bread": 40, "plate": 8, "gold": 100}},
+      "flatAuras": {"armor": 0.03, "heal": 0.1},
       "limitBonus": 2
     },
     {
@@ -57,6 +59,7 @@
       "name": "Frontier Settlement",
       "icon": "🌾",
       "text": "The valley feeds the Manner: quicker gathering hands and one more of every line.",
+      "supply": {"cost": {"food": 1000, "lumber": 80, "gold": 100}},
       "limitBonus": 1,
       "flatAuras": { "gather": 0.03, "food": 0.4 }
     }

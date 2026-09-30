@@ -200,13 +200,14 @@ test('phase6: a bulk conversion moves every good exactly once a day',()=>{
  const day=dayWith('provender-run',8);
  assert.ok(day,'the provisioners roll at some point in the cycle');
  const w=createWorld(data);
- w.resources={wood:0,food:50000,gold:0,lumber:0,plate:0,frostwood:0,flour:0,bread:20000};
+ w.resources={wood:0,food:50000,gold:0,lumber:0,plate:0,frostwood:0,flour:5000,bread:20000};
  const state=tradeState(w);
  const res=performTrade(state,data,'provender-run',day);
  assert.equal(res.ok,true,'the deal strikes');
  assert.equal(w.resources.gold,1400,'gold lands');
  assert.equal(w.resources.food,38000,'the food column loads');
- assert.equal(w.resources.bread,17000,'and the loaves');
+ assert.equal(w.resources.bread,19500,'and the loaves');
+ assert.equal(w.resources.flour,2000,'and surplus flour');
  const again=performTrade(state,data,'provender-run',day);
  assert.equal(again.ok,false,'one run a day');
  assert.match(again.error,/done until tomorrow/);

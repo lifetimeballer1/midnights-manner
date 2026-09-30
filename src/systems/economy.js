@@ -1,3 +1,4 @@
+import {supplyBonus} from './food.js';
 import {resourceLabel, reserveCapacity} from '../resources.js';
 import {builderBonuses,center,unlockedAbilities,stats,auras,gatherBonus} from '../model.js';
 import {hasTrait, jobLevelMult} from './villagers.js';
@@ -90,7 +91,7 @@ export function tickEconomy(world,data,dt) {
    // Mid-game pacing: full tilt for 5 minutes, then eases to 75% by 10 min
    // so expansion leans on taps, collectors, upgrades and new buildings.
    const mid = midgameRate(world.elapsed, 0.75);
-   const made = spec.rate*spec.tiers[b.level-1].rateMultiplier*mult*mid*dt;
+   const made = (1+supplyBonus(world,data,'production'))*spec.rate*spec.tiers[b.level-1].rateMultiplier*mult*mid*dt;
    drain(b, made);
    const cap = reserveCapacity(spec, b.level);
    const held = Number.isFinite(b.harvestBonus) ? Math.max(0, b.harvestBonus) : 0;
