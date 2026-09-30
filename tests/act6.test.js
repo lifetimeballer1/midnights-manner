@@ -593,10 +593,10 @@ test('ph9: the Emberglass waits on a tier-2 mine (same generic chain gate)', () 
 
 test('ph9: Mine Tier 3 already stands — the quest only demands the climb', () => {
   const tiers = data.buildings.mine.tiers;
-  assert.equal(tiers.length, 3, 'the old mine always had the third tier');
+  assert.equal(tiers.length, 6, 'the mine climbs six tiers deep');
   assert.equal(tiers[2].sprite, 'mine-3.png');
   assert.equal(tiers[2].rateMultiplier, 3);
-  assert.equal(new Set(tiers.map(t => t.sprite)).size, 3, 'tiers stay visually distinct');
+  assert.equal(new Set(tiers.map(t => t.sprite)).size, 6, 'tiers stay visually distinct');
 });
 
 test('ph9: the Sapper shares the G1 collector track — zero new abilities', () => {

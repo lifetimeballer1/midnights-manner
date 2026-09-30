@@ -43,14 +43,14 @@ const hash=value=>createHash('sha256').update(value).digest('hex');
 
 test('GW1: exactly two additive projects preserve earlier buildings and campaign fingerprints',async()=>{
  const earlier=Object.fromEntries(Object.entries(data.buildings).filter(([id])=>!ids.includes(id)));
- assert.equal(hash(JSON.stringify(earlier)),'d2fa1da74227b9f0cca9e3d54da1d5659a17d4e89be17e559870c959a0023b1f');
+  assert.equal(hash(JSON.stringify(earlier)),'a1c130a289344cb03d11b5f133cf8c93c0a36bf6a85670758f66b4be5d6e51a8');
  assert.equal(hash(JSON.stringify(data.buildings['dawn-gate'])),'00d6157bcb7d5e00372e02318c3f8ee8626e85584e6e263c38cdb179626ce0f0');
-  for(const [file,pin] of Object.entries({conquest:'a10a78e63c04a73e8414c74629cfcf4046de44aa26362bf1b5c79485a45236b6',missions:'e8daf341349c20b5b2b9397bf58e934701459e97187cf5c4ae415d699dcb433a'})){
-  assert.equal(hash(await readFile(new URL(`../data/${file}.json`,import.meta.url))),pin);
- }
- // Renown stays optional; the future project hook stays an unwired comment.
- // Raw-file pins normalize line endings: Windows checkouts use CRLF, CI uses LF.
- const raw=async url=>(await readFile(url,'utf8')).replace(/\r\n?/g,'\n');
+  // Raw-file pins normalize line endings: Windows checkouts use CRLF, CI uses LF.
+  const raw=async url=>(await readFile(url,'utf8')).replace(/\r\n?/g,'\n');
+  for(const [file,pin] of Object.entries({conquest:'985617d5cd71b269a1de1c1a944654b24506ac63be3f6acf75839aab73b7839e',missions:'664776326e07a6efe2e3dd6c3b806456544d4b097db3ddcbc74575b8fa240a75'})){
+   assert.equal(hash(await raw(new URL(`../data/${file}.json`,import.meta.url))),pin);
+  }
+  // Renown stays optional; the future project hook stays an unwired comment.
  assert.equal(hash(await raw(new URL('../data/endgame.json',import.meta.url))),'f5a1930d87089b12db594991a6c947fc6b6da8ccf338f7ce7225e739f24d7f1d');
  assert.equal(hash(await raw(new URL('../src/systems/endgame.js',import.meta.url))),'b6903b3e72a29ab66f719fa92aaf38d72b243cb22d44a07713876e287746adfd');
 });
@@ -85,7 +85,7 @@ test('GW1: all seven stages resolve to distinct original transparent 32px PNGs',
 test('GW1: exact undiscounted baskets and totals fit data-derived developed central caps',()=>{
  const w=developed();
  const caps=Object.fromEntries(capKeys.map(k=>[k,storageCap(w,data,k)]));
- assert.deepEqual(caps,{wood:118000,food:127000,gold:79500,lumber:38000,flour:44000,bread:44000,frostwood:23100,plate:23100});
+  assert.deepEqual(caps,{wood:232000,food:241000,gold:156000,lumber:75200,flour:81200,bread:81200,frostwood:45600,plate:45600});
  for(const id of ids){
   const totals={};
   baskets[id].forEach((basket,i)=>{
