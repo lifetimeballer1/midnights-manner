@@ -9,8 +9,8 @@ const random=(min,max)=>min+Math.random()*(max-min);
 const WORK_TYPES={
  chop:new Set(['lumber','timber_yard','sawmill','grove','frostgrove']),
  pick:new Set(['mine','deephole','mason_yard']),
- hammer:new Set(['forge','armory','workshop','smeltery','emberglass','fletcher','shieldwall-yard']),
- farm:new Set(['farm','pasture','mill','butchery']),
+  hammer:new Set(['forge','armory','workshop','smeltery','emberglass','fletcher','shieldwall-yard','tannery']),
+  farm:new Set(['farm','pasture','mill','butchery','bakery','grove','frostgrove']),
 };
 
 function standingBuildings(world){
