@@ -155,7 +155,7 @@ export class Renderer {
   const ring=(x,y,radius)=>{c.beginPath();for(let i=0;i<=64;i++){const a=i*Math.PI/32,p=this.project(x+Math.cos(a)*radius,y+Math.sin(a)*radius,.02);if(i)c.lineTo(p.x,p.y);else c.moveTo(p.x,p.y);}c.stroke();};
   const selected=world.buildings.find(b=>b.id===this.selection);const defense=selected?this.data.buildings[selected.type]:this.placing?this.data.buildings[this.placing]:null;
   const tier=defense?.tiers[(selected?.level||1)-1];if(tier?.damage&&(selected||this.hover)){const pos=selected?center(selected,this.data):{x:this.hover.x+defense.size/2,y:this.hover.y+defense.size/2};c.save();c.strokeStyle='#f2e2a8';c.lineWidth=1.5;c.setLineDash([6,4]);ring(pos.x,pos.y,tier.range);c.restore();}
-  drawAtmosphere(this,world,time,weather);
+  drawAtmosphere(this,world,time,weather,{sceneChimneys:true});
   drawVillage3D(this,world,time,sky);
   this.collectionSceneObstacles=[];
   const drawables=[...world.buildings.map(b=>({kind:'building',value:b,depth:this.depth(b.x+this.data.buildings[b.type].size/2,b.y+this.data.buildings[b.type].size/2)})),...world.troops.filter(t=>!insideWorkplace(world,this.data,t)).map(t=>({kind:'unit',value:t,depth:this.depth(t.x,t.y)})),...world.enemies.map(e=>({kind:'enemy',value:e,depth:this.depth(e.x,e.y)}))].sort((a,b)=>a.depth-b.depth);
@@ -236,7 +236,7 @@ export class Renderer {
  // motion-safe). Phase 4 — the vignette deepens with the dark (per-phase
  // `vignette`, data-tunable) and the moon glow follows the key arc's sweep.
   {const vg=c.createRadialGradient(this.width/2,this.height/2,Math.min(this.width,this.height)*.3,this.width/2,this.height/2,Math.max(this.width,this.height)*.75);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,`rgba(5,10,8,${sky.vignette})`);c.fillStyle=vg;c.fillRect(0,0,this.width,this.height);
-   if(sky.overlay.glow>0){const mx=this.width*(.5+.42*Math.max(-1,Math.min(1,sky.keyDir[0]))),mg=c.createRadialGradient(mx,80,10,mx,80,320);mg.addColorStop(0,`rgba(242,201,110,${.10*sky.overlay.glow})`);mg.addColorStop(1,'rgba(242,201,110,0)');c.fillStyle=mg;c.fillRect(0,0,this.width,this.height);}}
+   if(sky.overlay.glow>0){const mx=this.width*(.5+.42*Math.max(-1,Math.min(1,sky.keyDir[0]))),mg=c.createRadialGradient(mx,80,10,mx,80,320);mg.addColorStop(0,`rgba(158,187,232,${.07*sky.overlay.glow})`);mg.addColorStop(1,'rgba(158,187,232,0)');c.fillStyle=mg;c.fillRect(0,0,this.width,this.height);}}
  // Living sky (Phase 10): clock-driven lighting from world.elapsed — dawn
 // daylight, dusk ember, deep night blue — plus the weather veil. All drawn
 // every frame AFTER the static-layer blit, so the cached terrain stays valid

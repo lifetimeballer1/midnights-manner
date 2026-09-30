@@ -11,6 +11,7 @@ import {drawBuildingActivity} from './building-activity.js';
 import {addEnvironmentScenery} from './environment-art.js';
 import {insideWorkplace} from './systems/villagers.js';
 import {sfx} from './systems/audio.js';
+import {drawCelestialShadows,drawGroundMist,drawPracticalBloom,drawCelestialAir,drawChimneyWisps,prepareNearbyLight} from './cinematic-lighting.js';
 export function pointInPolygon(x,y,points){let inside=false;for(let i=0,j=points.length-1;i<points.length;j=i++){const a=points[i],b=points[j];if((a.y>y)!==(b.y>y)&&x<(b.x-a.x)*(y-a.y)/(b.y-a.y)+a.x)inside=!inside;}return inside;}
 const FALLBACK_LIGHT=skyLightAt(DAY_LENGTH*.3,null); // high noon, for bare MeshScene uses
 // Phase 4 — ground-contact occlusion: faces near the dirt lose a slice of
@@ -33,7 +34,7 @@ export function shade(hex,n,light,emissive=0,depth01=0,ao=1,local=0){
  return '#'+[value>>16,(value>>8)&255,value&255].map((v,i)=>{let c=Math.min(255,Math.round(v*(lit[i]+local*[1,.57,.22][i])*dim));if(fog>0)c=Math.round(c+(light.fogRGB[i]*255-c)*fog);return c.toString(16).padStart(2,'0');}).join('');
 }
 export class MeshScene {
- constructor(r){this.r=r;this.faces=[];this.sources=[];this.owner=null;this.alpha=1;this.depthBias=0;this.light=FALLBACK_LIGHT;this.emissive=0;this.fixture=false;this.basis=cameraBasis(r);}
+ constructor(r){this.r=r;this.faces=[];this.sources=[];this.chimneys=[];this.owner=null;this.alpha=1;this.depthBias=0;this.light=FALLBACK_LIGHT;this.emissive=0;this.fixture=false;this.basis=cameraBasis(r);}
  source(position,direction=null,radius=1.25,power=.7,profile='generic'){
   if(this.alpha===1){const source={position,direction,radius,power,profile,owner:this.owner};source.phase=sourcePhase(source);this.sources.push(source);}
  }
@@ -46,7 +47,7 @@ export class MeshScene {
   const B=this.basis;if(n[0]*B.s*B.v+n[1]*B.c*B.v+n[2]*B.p<=.00001)return;
   const points=vertices.map(p=>this.r.project(...p));if(points.every(p=>p.x<-60)||points.every(p=>p.x>this.r.width+60)||points.every(p=>p.y<-80)||points.every(p=>p.y>this.r.height+60))return;
   const zAvg=vertices.reduce((sum,p)=>sum+p[2],0)/vertices.length;
-  this.faces.push({points,color,center:vertices[0].map((_,i)=>vertices.reduce((sum,p)=>sum+p[i],0)/vertices.length),normal:n,emissive:this.emissive,fixture:this.fixture,ao:Math.min(1,AO_MIN+(1-AO_MIN)*Math.max(0,zAvg/AO_HEIGHT)),depth:vertices.reduce((sum,p)=>sum+this.r.depth(...p),0)/vertices.length+this.depthBias,owner:this.owner,alpha:this.alpha});
+  this.faces.push({points,vertices,bounds:[Math.min(...points.map(p=>p.x)),Math.min(...points.map(p=>p.y)),Math.max(...points.map(p=>p.x)),Math.max(...points.map(p=>p.y))],color,center:vertices[0].map((_,i)=>vertices.reduce((sum,p)=>sum+p[i],0)/vertices.length),normal:n,emissive:this.emissive,fixture:this.fixture,ao:Math.min(1,AO_MIN+(1-AO_MIN)*Math.max(0,zAvg/AO_HEIGHT)),depth:vertices.reduce((sum,p)=>sum+this.r.depth(...p),0)/vertices.length+this.depthBias,owner:this.owner,alpha:this.alpha});
  }
  box(x,y,z,w,d,h,color,cap=true){const p=[[x,y,z],[x+w,y,z],[x+w,y+d,z],[x,y+d,z],[x,y,z+h],[x+w,y,z+h],[x+w,y+d,z+h],[x,y+d,z+h]];for(const f of [[0,3,2,1],[0,1,5,4],[1,2,6,5],[2,3,7,6],[3,0,4,7],...(cap?[[4,5,6,7]]:[])])this.face(f.map(i=>p[i]),color);}
  roof(x,y,z,w,d,h,color){const p=[[x,y,z],[x+w,y,z],[x+w,y+d,z],[x,y+d,z],[x+w/2,y,z+h],[x+w/2,y+d,z+h]];for(const f of [[0,4,5,3],[4,1,2,5],[0,1,4],[3,5,2]])this.face(f.map(i=>p[i]),color);}
@@ -142,7 +143,7 @@ function hut(s,x,y,w,d,h,roofColor,level,chimney=true){
   }
   s.depthBias=bias;
  }
- if(chimney&&level>=2){s.box(x+w*.75,y+d*.2,h,.18,.18,.75,stone);s.box(x+w*.75-.025,y+d*.2-.025,h+.75,.23,.23,.065,'#786d5b');}
+ if(chimney&&level>=2){s.box(x+w*.75,y+d*.2,h,.18,.18,.75,stone);s.box(x+w*.75-.025,y+d*.2-.025,h+.75,.23,.23,.065,'#786d5b');s.chimneys.push({owner:s.owner,position:[x+w*.75+.09,y+d*.2+.09,h+.82]});}
 }
 
 // Phase 5 — homes read by silhouette, not just paint. Cottages grow a loft
@@ -166,7 +167,7 @@ function homeDetails(s,b,n,l){
   // Raise the kitchen stack clear of the ridge line.
    const cx=x+w*.75,cy=y+w*.2;
    s.box(cx+.01,cy+.01,h+.8,.16,.16,.34,stone);
-   s.box(cx-.02,cy-.02,h+1.14,.22,.22,.06,'#786d5b');
+   s.box(cx-.02,cy-.02,h+1.14,.22,.22,.06,'#786d5b');const chimney=s.chimneys.findLast(p=>p.owner===s.owner);if(chimney)chimney.position[2]=h+1.2;
   }
   if(l>=4){
    // Prosperous: stone skirt around the base and a lantern by the door.
@@ -193,7 +194,7 @@ function longhouseShape(s,b,n){
  const rx=x+.58+(n-1.15)/2;
  s.box(rx-.038,y+.34,h+.1+rise,.076,n-.68,.06,'#6b543a');
  // Twin stacks at both ends of the ridge: one would read cottage, two read hall.
- for(const cy of [y+.72,y+n-.82]){s.box(rx-.08,cy,h+.1,.16,.16,rise+.42,stone);s.box(rx-.11,cy-.03,h+.1+rise+.42,.22,.22,.06,'#786d5b');}
+ for(const cy of [y+.72,y+n-.82]){s.box(rx-.08,cy,h+.1,.16,.16,rise+.42,stone);s.box(rx-.11,cy-.03,h+.1+rise+.42,.22,.22,.06,'#786d5b');s.chimneys.push({owner:s.owner,position:[rx,cy+.08,h+.1+rise+.48]});}
  // Banner over the door, then the veranda rail across the front gable.
  s.box(x+n*.5,y+n-.14,.1,.055,.055,.85,timber);s.box(x+n*.5+.05,y+n-.14,.62,.2,.025,.32,'#5e8c9b');
  for(let i=0;i<4;i++)s.box(x+.62+i*(n-1.2)/3,y+n-.16,.1,.05,.05,.4,timber);
@@ -856,18 +857,24 @@ export function drawVillage3D(r,world,time,light){const s=new MeshScene(r),W=r.d
   // visible defense/production stage changes; moving gates quantize to four
   // steps and traps key only their armed state, never every cooldown tick.
   const key=JSON.stringify([r.width,r.height,r.cx,r.cy,r.cam,W,H,r.claimedTileCount??-1,world.wave||0,world.buildings.map(b=>{const spec=r.data.buildings[b.type];return [b.id,b.type,b.x,b.y,b.level,b.hp<=0,b.remaining>0,productionStage(b,spec),spec?.production&&reserveReady(b,spec)?1:0,b.type==='gate'?gateLiftStage(r,b,world,time):0,b.type.includes('trap')?(trapArmed(b)?1:0):0];})]);
- if(r._meshStatic?.key===key){s.faces=r._meshStatic.faces.slice();s.sources=r._meshStatic.sources;}else{
+ if(r._meshStatic?.key===key){s.faces=r._meshStatic.faces.slice();s.sources=r._meshStatic.sources;s.chimneys=r._meshStatic.chimneys;}else{
  // Border trees share depth sorting with the village, including reverse views.
  for(let i=-1;i<W+2;i++){s.owner=null;if(i%2)pine(s,i,-1.5,1.4+(i%3)*.22);if(i%3===0)pine(s,-1.5,((i%H)+H)%H,1.5);if(i%3===1)pine(s,W+1,i%H,1.6);if(i%4===0)pine(s,i,H+3,1.5);}
   addEnvironmentScenery(s,world,r.data);
   for(const b of world.buildings)buildingModel(s,b,r.data.buildings[b.type],world,time);
  prepareSourceLighting(s);
- r._meshStatic={key,faces:s.faces.slice(),sources:s.sources};
+ prepareNearbyLight(s,world);
+ r._meshStatic={key,faces:s.faces.slice(),sources:s.sources,chimneys:s.chimneys};
  }
 
   for(const u of world.troops)if(!insideWorkplace(world,r.data,u))characterModel(s,u,r.data,time);for(const e of world.enemies)characterModel(s,e,r.data,time,true);
   if(r.placing&&r.hover){const source=world.buildings.find(b=>b.id===r.moving),ghosts=placementCells(r).map(p=>({type:r.placing,...p,level:source?.level||1,hp:1,remaining:1,id:null})),preview={buildings:[...world.buildings.filter(b=>b.id!==r.moving),...ghosts]};for(const b of ghosts)buildingModel(s,b,r.data.buildings[b.type],preview,time);}
+ drawCelestialShadows(s);
+ drawGroundMist(s,time);
  drawSourceSpill(s,time);
  s.paint();
+ drawPracticalBloom(s,time);
+ drawChimneyWisps(s,time);
+ drawCelestialAir(r,s.light);
  drawBuildingActivity(r,world,time);
 }
