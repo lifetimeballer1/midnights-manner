@@ -347,3 +347,7 @@ Task G validated the collection UX: routine housing/crew readouts collapse below
 ### Grey Dawn H1
 
 Three data-only bulk commissions join the existing Grey Market rotation, each capped at one run per day: **Armory Contract** (level 8) exchanges 2,500 plate + 500 gold for 900 gold (400 net); **Harvest Shipment** (level 7) exchanges 18,000 food + 1,000 bread for 1,600 gold; **Frostwood Commission** (level 9) exchanges 1,800 frostwood + 3,000 plate for 1,800 gold. All use modest, lossy gold payouts and the existing exact-payment and storage-room checks. Armory pays gold rather than training progress; no payout keys or runtime code were added.
+
+### Grey Dawn H2
+
+Two size-2 Town Projects reuse the Phase 4 pipeline, each limited to one per village with three distinct original sprites and stage prices at 1×, 2× and 8× base. **Stone Road Network** opens at level 6 (stage 3 at 9): trail → dirt road → reinforced road, spending wood, lumber and gold, with 120 plate added only at stage 3; each finished tier adds +1 carry and +2% trade. **City Wall Project** opens at level 7 (stage 3 at 10), spending lumber, plate and gold for +2% armor and +0.1/s healing per finished tier. Ruins and unfinished stages grant no aura. No new systems, aura keys or save fields were added. H3 remains outside this task.

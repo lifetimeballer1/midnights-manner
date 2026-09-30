@@ -8,7 +8,7 @@ import {validateSave,exportSave,importSaveBlob,VERSION} from '../src/storage.js'
 const data=Object.fromEntries(await Promise.all(
  ['world','troops','items','abilities','buildings','missions','quests','levels','calendar','traders','endgame','festivals']
   .map(async n=>[n,JSON.parse(await readFile(new URL(`../data/${n}.json`,import.meta.url)))])));
-const PROJECTS=['market-square','grand-granary','manor-gardens','monument'];
+const PROJECTS=['market-square','grand-granary','manor-gardens','monument','stone-road','city-wall'];
 const fresh=(vlevel=1)=>{const g=new Game(data);g.state={...g.state,world:createWorld(data),home:null,mission:null,vlevel};g.world.resources={wood:99999,food:99999,gold:99999,lumber:99999,plate:9999,frostwood:9999,flour:9999,bread:9999};return g;};
 
 test('phase4: town projects are data-shaped grand works',()=>{
@@ -108,4 +108,103 @@ test('phase4: project saves validate and round-trip',()=>{
  const imported=back.state.world.buildings.find(x=>x.type==='market-square');
  assert.equal(imported.level,2,'the stage survives the trip');
  assert.equal(VERSION,back.state.version);
+});
+
+test('H2: infrastructure stages have distinct original 32px PNG assets',async()=>{
+ const pixels=[];
+ for(const id of ['stone-road','city-wall']){
+  const b=data.buildings[id];
+  assert.equal(b.size,2);
+  assert.equal(b.minLevel,id==='stone-road'?6:7);
+  assert.deepEqual(b.costCurve,[1,2,8]);
+  assert.equal(b.tiers.length,3);
+  for(const t of b.tiers){
+   const png=await readFile(new URL(`../assets/sprites/${t.sprite}`,import.meta.url));
+   assert.equal(png.subarray(0,8).toString('hex'),'89504e470d0a1a0a');
+   assert.equal(png.readUInt32BE(16),32);
+   assert.equal(png.readUInt32BE(20),32);
+   pixels.push(png.toString('hex'));
+  }
+ }
+ assert.equal(new Set(pixels).size,6,'all six stage assets differ');
+});
+
+test('H2: infrastructure baskets retain friendly opening and road plate joins stage three',()=>{
+ const w={...createWorld(data),troops:[]};
+ for(const id of ['stone-road','city-wall']){
+  const b=data.buildings[id];
+  for(const stage of [1,2,3]){
+   const expected=Object.fromEntries(Object.entries(b.cost).map(([k,v])=>[k,v*b.costCurve[stage-1]]));
+   if(id==='stone-road'&&stage===3)expected.plate=120;
+   assert.deepEqual(buildingCost(id,stage,w,data),expected);
+  }
+ }
+ assert.equal(buildingCost('stone-road',1,w,data).plate,undefined);
+ assert.equal(buildingCost('stone-road',2,w,data).plate,undefined);
+});
+
+test('H2: infrastructure uses normal gates, exact payments and once-per-village limits',()=>{
+ for(const id of ['stone-road','city-wall']){
+  const spec=data.buildings[id],g=fresh(spec.minLevel-1);
+  assert.equal(g.build(id,2,2),undefined);
+  assert.match(g.message,new RegExp(`village level ${spec.minLevel}`));
+  g.state.vlevel=spec.minLevel;
+  const before=structuredClone(g.world.resources),cost=buildingCost(id,1,g.world,data);
+  const b=g.build(id,2,2);assert.ok(b);
+  for(const [k,v] of Object.entries(before))assert.equal(g.world.resources[k],v-(cost[k]||0));
+  assert.equal(g.build(id,6,2),undefined);
+  assert.match(g.message,/only one/i);
+  b.remaining=0;
+  const stage2=structuredClone(g.world.resources),cost2=buildingCost(id,2,g.world,data);
+  g.upgrade(b.id);assert.equal(b.level,2);
+  for(const [k,v] of Object.entries(stage2))assert.equal(g.world.resources[k],v-(cost2[k]||0));
+  b.remaining=0;
+  const held=structuredClone(g.world.resources);
+  assert.equal(g.upgrade(b.id),undefined);
+  assert.match(g.message,new RegExp(`village level ${spec.tierGates[3]}`));
+  assert.deepEqual(g.world.resources,held);
+  g.state.vlevel=spec.tierGates[3];
+  const cost3=buildingCost(id,3,g.world,data);
+  // Missing any stage-three good refuses the entire basket.
+  g.world.resources.plate=cost3.plate-1;
+  const short=structuredClone(g.world.resources);
+  assert.equal(g.upgrade(b.id),undefined);
+  assert.equal(b.level,2);assert.deepEqual(g.world.resources,short);
+  g.world.resources.plate=9999;
+  const ready=structuredClone(g.world.resources);
+  g.upgrade(b.id);assert.equal(b.level,3);
+  for(const [k,v] of Object.entries(ready))assert.equal(g.world.resources[k],v-(cost3[k]||0));
+  assert.equal(b.hp,spec.tiers[2].hp);
+ }
+});
+
+test('H2: infrastructure warmth scales only while finished and living',()=>{
+ const expected={'stone-road':{carry:1,trade:0.02},'city-wall':{armor:0.02,heal:0.1}};
+ for(const [id,effects] of Object.entries(expected)){
+  const w=createWorld(data),base=auras(w,data),b=makeBuilding(id,2,2,data);
+  assert.deepEqual(data.buildings[id].flatAuras,effects);
+  w.buildings.push(b);
+  for(const stage of [1,2,3]){
+   b.level=stage;b.hp=data.buildings[id].tiers[stage-1].hp;
+   const a=auras(w,data);
+   for(const [k,v] of Object.entries(effects))assert.ok(Math.abs(a[k]-base[k]-v*stage)<1e-9,`${id} stage ${stage} ${k}`);
+  }
+  b.hp=0;assert.deepEqual(auras(w,data),base);
+  b.hp=100;b.remaining=5;assert.deepEqual(auras(w,data),base);
+ }
+});
+
+test('H2: both infrastructure projects round-trip all stages in existing saves',()=>{
+ for(const stage of [1,2,3]){
+  const g=fresh(10);
+  for(const [id,x] of [['stone-road',2],['city-wall',6]]){
+   const b=makeBuilding(id,x,2,data);b.level=stage;b.hp=data.buildings[id].tiers[stage-1].hp;
+   g.world.buildings.push(b);
+  }
+  assert.equal(validateSave(g.state,data),true);
+  const back=importSaveBlob(exportSave(g.state),data);
+  assert.equal(back.ok,true);
+  for(const id of ['stone-road','city-wall'])assert.equal(back.state.world.buildings.find(b=>b.type===id).level,stage);
+  assert.equal(back.state.version,VERSION);
+ }
 });
