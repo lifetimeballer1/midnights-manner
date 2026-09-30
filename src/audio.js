@@ -1,40 +1,46 @@
 import {isMuted, sharedAudioContext, sharedAudioOutput, unlock} from './systems/audio.js';
 
 /**
- * Context-reactive Minecraft/C418-style ambient score engine.
- * Switches tracks by game state (peace, night, raid, victory/dawn).
- * Includes a rare "money_right" tribute easter egg during calm play.
- * Routes through the shared audio bus so the global mute control works.
+ * High-performance procedural ambient score engine.
+ * Voice pooling, lookahead scheduling, procedural wind/rain, game-reactive tracks.
+ * Uses the shared audio bus so global mute still works.
  */
 export class AmbientScoreEngine {
   constructor() {
     this.ctx = null;
     this.masterGain = null;
-    this.filter = null;
+    this.feltFilter = null;
     this.delay = null;
     this.delayFeedback = null;
     this.delayFilter = null;
 
+    this.poolSize = 14;
+    this.voicePool = [];
+    this.poolReady = false;
+
+    this.ambiance = null;
+    this.noiseSrc = null;
+
     this.data = null;
     this.currentTrackKey = 'peace_day';
     this.phraseIndex = 0;
-    this.timer = null;
     this.isPlaying = false;
     this.started = false;
+    this.schedulerTimer = null;
+    this.nextPhraseTime = 0;
 
     this.easterEggActive = false;
-    this.rollTimer = null;
+    this.rollInterval = null;
     this.firstRollTimer = null;
   }
 
   _ensureGraph() {
-    // Ensure the shared context exists (creates it on first user gesture path).
     unlock();
     const ctx = sharedAudioContext();
     const output = sharedAudioOutput();
     if (!ctx || !output) return false;
 
-    if (this.ctx === ctx && this.masterGain) return true;
+    if (this.ctx === ctx && this.masterGain && this.poolReady) return true;
 
     this.ctx = ctx;
 
@@ -42,17 +48,15 @@ export class AmbientScoreEngine {
     this.masterGain.gain.setValueAtTime(isMuted() ? 0.0001 : 0.32, ctx.currentTime);
     this.masterGain.connect(output);
 
-    this.filter = ctx.createBiquadFilter();
-    this.filter.type = 'lowpass';
-    this.filter.frequency.setValueAtTime(1350, ctx.currentTime);
-    this.filter.Q.setValueAtTime(0.707, ctx.currentTime);
+    this.feltFilter = ctx.createBiquadFilter();
+    this.feltFilter.type = 'lowpass';
+    this.feltFilter.frequency.setValueAtTime(1300, ctx.currentTime);
+    this.feltFilter.Q.setValueAtTime(0.707, ctx.currentTime);
 
     this.delay = ctx.createDelay();
     this.delay.delayTime.setValueAtTime(0.44, ctx.currentTime);
-
     this.delayFeedback = ctx.createGain();
     this.delayFeedback.gain.setValueAtTime(0.26, ctx.currentTime);
-
     this.delayFilter = ctx.createBiquadFilter();
     this.delayFilter.type = 'lowpass';
     this.delayFilter.frequency.setValueAtTime(800, ctx.currentTime);
@@ -61,11 +65,82 @@ export class AmbientScoreEngine {
     this.delayFilter.connect(this.delayFeedback);
     this.delayFeedback.connect(this.delay);
     this.delayFilter.connect(this.masterGain);
+    this.feltFilter.connect(this.masterGain);
+    this.feltFilter.connect(this.delay);
 
-    this.filter.connect(this.masterGain);
-    this.filter.connect(this.delay);
-
+    this._initVoicePool();
+    this._initProceduralAmbiance();
+    this.poolReady = true;
     return true;
+  }
+
+  _initVoicePool() {
+    this.voicePool = [];
+    for (let i = 0; i < this.poolSize; i++) {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const filter = this.ctx.createBiquadFilter();
+
+      osc.type = 'triangle';
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(1400, this.ctx.currentTime);
+      gain.gain.setValueAtTime(0.0001, this.ctx.currentTime);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.feltFilter);
+
+      try { osc.start(); } catch {}
+
+      this.voicePool.push({ osc, gain, filter, busyUntil: 0 });
+    }
+  }
+
+  obtainVoice(time, duration) {
+    for (const v of this.voicePool) {
+      if (v.busyUntil <= time) {
+        v.busyUntil = time + duration + 0.05;
+        return v;
+      }
+    }
+    const oldest = this.voicePool.reduce((a, b) => (a.busyUntil < b.busyUntil ? a : b));
+    oldest.busyUntil = time + duration + 0.05;
+    return oldest;
+  }
+
+  _initProceduralAmbiance() {
+    const sampleRate = this.ctx.sampleRate;
+    const buffer = this.ctx.createBuffer(1, sampleRate * 2, sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+
+    const noiseSrc = this.ctx.createBufferSource();
+    noiseSrc.buffer = buffer;
+    noiseSrc.loop = true;
+
+    const windFilter = this.ctx.createBiquadFilter();
+    windFilter.type = 'lowpass';
+    windFilter.frequency.setValueAtTime(220, this.ctx.currentTime);
+    const windGain = this.ctx.createGain();
+    windGain.gain.setValueAtTime(0.04, this.ctx.currentTime);
+
+    const rainFilter = this.ctx.createBiquadFilter();
+    rainFilter.type = 'bandpass';
+    rainFilter.frequency.setValueAtTime(2400, this.ctx.currentTime);
+    rainFilter.Q.setValueAtTime(1.5, this.ctx.currentTime);
+    const rainGain = this.ctx.createGain();
+    rainGain.gain.setValueAtTime(0.0001, this.ctx.currentTime);
+
+    noiseSrc.connect(windFilter);
+    windFilter.connect(windGain);
+    windGain.connect(this.masterGain);
+    noiseSrc.connect(rainFilter);
+    rainFilter.connect(rainGain);
+    rainGain.connect(this.masterGain);
+
+    try { noiseSrc.start(); } catch {}
+    this.noiseSrc = noiseSrc;
+    this.ambiance = { windFilter, windGain, rainFilter, rainGain };
   }
 
   loadScore(scoreJson) {
@@ -82,32 +157,26 @@ export class AmbientScoreEngine {
     this.currentTrackKey = trackKey;
     this.phraseIndex = 0;
 
-    if (this.filter && this.ctx) {
-      const targetCutoff = this.data.tracks[trackKey].filterCutoff || 1350;
-      this.filter.frequency.setTargetAtTime(targetCutoff, this.ctx.currentTime, 1.2);
+    if (this.feltFilter && this.ctx) {
+      const targetCutoff = this.data.tracks[trackKey].filterCutoff || 1300;
+      this.feltFilter.frequency.setTargetAtTime(targetCutoff, this.ctx.currentTime, 1.2);
     }
   }
 
-  initTimerRolls() {
+  initEasterEggDirector() {
     this.clearRollTimers();
     this.firstRollTimer = setTimeout(() => {
-      this.attemptEasterEggRoll();
-      this.rollTimer = setInterval(() => this.attemptEasterEggRoll(), 120000);
+      this.attemptRoll();
+      this.rollInterval = setInterval(() => this.attemptRoll(), 120000);
     }, 300000);
   }
 
   clearRollTimers() {
-    if (this.firstRollTimer) {
-      clearTimeout(this.firstRollTimer);
-      this.firstRollTimer = null;
-    }
-    if (this.rollTimer) {
-      clearInterval(this.rollTimer);
-      this.rollTimer = null;
-    }
+    if (this.firstRollTimer) { clearTimeout(this.firstRollTimer); this.firstRollTimer = null; }
+    if (this.rollInterval) { clearInterval(this.rollInterval); this.rollInterval = null; }
   }
 
-  attemptEasterEggRoll() {
+  attemptRoll() {
     if (this.currentTrackKey !== 'peace_day' || this.easterEggActive) return;
     if (!this.data?.tracks?.money_right) return;
     if (Math.random() <= 0.25) {
@@ -117,6 +186,18 @@ export class AmbientScoreEngine {
   }
 
   updateGameState(state = {}) {
+    if (!this.ctx || !this.ambiance) return;
+    const now = this.ctx.currentTime;
+
+    if (state.weather === 'rain') {
+      this.ambiance.rainGain.gain.setTargetAtTime(0.07, now, 1.0);
+      this.ambiance.windFilter.frequency.setTargetAtTime(450, now, 1.5);
+    } else {
+      this.ambiance.rainGain.gain.setTargetAtTime(0.0001, now, 1.5);
+      const windTarget = state.isNight ? 160 : 220;
+      this.ambiance.windFilter.frequency.setTargetAtTime(windTarget, now, 2.0);
+    }
+
     if (state.inRaid || state.raidPending) {
       this.easterEggActive = false;
       this.setTrack('raid_siege');
@@ -145,76 +226,62 @@ export class AmbientScoreEngine {
     return 440 * Math.pow(2, semitonesFromA4 / 12);
   }
 
-  playVoice(freq, time, dur, vel, type = 'triangle', cutoff = 1350) {
-    if (!this.ctx || !this.filter || isMuted()) return;
-
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    const voiceFilter = this.ctx.createBiquadFilter();
-
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, time);
-
-    voiceFilter.type = 'lowpass';
-    voiceFilter.frequency.setValueAtTime(cutoff, time);
-
-    const attack = type === 'sine' ? 0.15 : 0.025;
-    gain.gain.setValueAtTime(0.0001, time);
-    gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, vel * 0.38), time + attack);
-    gain.gain.exponentialRampToValueAtTime(0.0001, time + dur * 0.95);
-
-    osc.connect(voiceFilter);
-    voiceFilter.connect(gain);
-    gain.connect(this.filter);
+  playPooledVoice(freq, time, dur, vel, type = 'triangle', cutoff = 1350) {
+    if (!this.poolReady || isMuted()) return;
+    const voice = this.obtainVoice(time, dur);
+    const { osc, gain, filter } = voice;
 
     try {
-      osc.start(time);
-      osc.stop(time + dur + 0.15);
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, time);
+      filter.frequency.setValueAtTime(cutoff, time);
+
+      const attack = type === 'sine' ? 0.12 : 0.025;
+      gain.gain.cancelScheduledValues(time);
+      gain.gain.setValueAtTime(0.0001, time);
+      gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, vel * 0.35), time + attack);
+      gain.gain.exponentialRampToValueAtTime(0.0001, time + dur * 0.95);
     } catch {}
   }
 
-  tick() {
+  schedule() {
     if (!this.isPlaying || !this.data?.tracks) return;
     if (!this._ensureGraph()) {
-      // Context not ready yet — retry shortly instead of dying silently.
-      this.timer = setTimeout(() => this.tick(), 250);
+      this.schedulerTimer = setTimeout(() => this.schedule(), 250);
       return;
     }
 
     const target = isMuted() ? 0.0001 : 0.32;
-    try {
-      this.masterGain.gain.setTargetAtTime(target, this.ctx.currentTime, 0.05);
-    } catch {}
+    try { this.masterGain.gain.setTargetAtTime(target, this.ctx.currentTime, 0.05); } catch {}
 
     const track = this.data.tracks[this.currentTrackKey];
     if (!track?.phrases?.length) return;
 
     const phrase = track.phrases[this.phraseIndex];
     const beatSec = 60 / (track.tempo || 48);
-    const now = this.ctx.currentTime + 0.05;
+    const startTime = Math.max(this.nextPhraseTime, this.ctx.currentTime + 0.05);
 
     if (phrase.bass) {
-      this.playVoice(this.noteToFreq(phrase.bass), now, phrase.bars * 4 * beatSec * 0.9, 0.55, 'sine', 350);
+      this.playPooledVoice(this.noteToFreq(phrase.bass), startTime, phrase.bars * 4 * beatSec * 0.9, 0.55, 'sine', 350);
     }
-
     if (Array.isArray(phrase.pad)) {
       phrase.pad.forEach(n => {
-        this.playVoice(this.noteToFreq(n), now + 0.08, phrase.bars * 4 * beatSec * 0.85, 0.22, 'sine', 700);
+        this.playPooledVoice(this.noteToFreq(n), startTime + 0.06, phrase.bars * 4 * beatSec * 0.85, 0.22, 'sine', 650);
       });
     }
-
     if (Array.isArray(phrase.melody)) {
       phrase.melody.forEach(m => {
-        const noteTime = now + (m.beat - 1) * beatSec;
+        const noteTime = startTime + (m.beat - 1) * beatSec;
         const dur = (m.dur || 2.0) * beatSec;
-        this.playVoice(this.noteToFreq(m.note), noteTime, dur, m.vel || 0.5, 'triangle', 1500);
+        this.playPooledVoice(this.noteToFreq(m.note), noteTime, dur, m.vel || 0.5, 'triangle', 1400);
       });
     }
 
-    const totalPhraseSec = phrase.bars * 4 * beatSec;
+    const phraseDuration = phrase.bars * 4 * beatSec;
     const restBars = track.restInterval ? track.restInterval[0] : 2;
-    const restSec = restBars * 4 * beatSec;
+    const restDuration = restBars * 4 * beatSec;
 
+    this.nextPhraseTime = startTime + phraseDuration + restDuration;
     this.phraseIndex = (this.phraseIndex + 1) % track.phrases.length;
 
     if (this.currentTrackKey === 'money_right' && this.phraseIndex === 0) {
@@ -222,12 +289,11 @@ export class AmbientScoreEngine {
       this.setTrack('peace_day');
     }
 
-    this.timer = setTimeout(() => this.tick(), (totalPhraseSec + restSec) * 1000);
+    const delayUntilNext = (phraseDuration + restDuration - 0.5) * 1000;
+    this.schedulerTimer = setTimeout(() => this.schedule(), Math.max(delayUntilNext, 100));
   }
 
-  /**
-   * @returns {boolean} true if playback is running
-   */
+  /** @returns {boolean} true if playback is running */
   start(scoreData = null) {
     if (scoreData) this.loadScore(scoreData);
     if (!this.data) return false;
@@ -240,11 +306,11 @@ export class AmbientScoreEngine {
       return false;
     }
 
-    // Always mark playing and schedule tick — tick retries if graph is not ready yet.
     if (this.isPlaying) return true;
     this.isPlaying = true;
-    this.initTimerRolls();
-    this.tick();
+    this.nextPhraseTime = 0;
+    this.initEasterEggDirector();
+    this.schedule();
     return true;
   }
 
@@ -253,12 +319,10 @@ export class AmbientScoreEngine {
     if (enabled && !isMuted()) {
       if (!this.isPlaying) {
         this.isPlaying = true;
-        this.initTimerRolls();
-        this.tick();
+        this.initEasterEggDirector();
+        this.schedule();
       } else if (this.masterGain && this.ctx) {
-        try {
-          this.masterGain.gain.setTargetAtTime(0.32, this.ctx.currentTime, 0.05);
-        } catch {}
+        try { this.masterGain.gain.setTargetAtTime(0.32, this.ctx.currentTime, 0.05); } catch {}
       }
     } else {
       this.stop(false);
@@ -267,15 +331,13 @@ export class AmbientScoreEngine {
 
   stop(fullStop = true) {
     this.isPlaying = false;
-    if (this.timer) {
-      clearTimeout(this.timer);
-      this.timer = null;
+    if (this.schedulerTimer) {
+      clearTimeout(this.schedulerTimer);
+      this.schedulerTimer = null;
     }
     this.clearRollTimers();
     if (this.masterGain && this.ctx) {
-      try {
-        this.masterGain.gain.setTargetAtTime(0.0001, this.ctx.currentTime, 0.2);
-      } catch {}
+      try { this.masterGain.gain.setTargetAtTime(0.0001, this.ctx.currentTime, 0.2); } catch {}
     }
     if (fullStop) {
       this.started = false;

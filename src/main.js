@@ -31,7 +31,6 @@ async function boot(){
  const ambience=new AmbiencePlayer(game),moodMemory={};
  music.setMood(soundtrackMood(game.world,data,{memory:moodMemory,vlevel:game.state.vlevel}));
 
- // Ambient score is preferred when available; fall back to MusicPlayer if it cannot start.
  let usingAmbient=false;
  if(ambientScore){
   const origStart=music.start.bind(music);
@@ -46,7 +45,6 @@ async function boot(){
     music.mood=typeof opts?.mood==='string'?opts.mood:music.mood;
     music.calm=Boolean(opts?.calm);
    }else{
-    // Ambient muted or unavailable — keep the proven theme player alive.
     usingAmbient=false;
     origStart(opts);
    }
@@ -79,6 +77,7 @@ async function boot(){
    isNight: Boolean(profile.night),
    isDawn: profile.phase === 'dawn' || mood === 'dawn',
    isVictory: Boolean(g.world?.victory || g.state?.victory || g.state?.phase === 'victory'),
+   weather: profile.weather || 'clear',
   };
  }
 
