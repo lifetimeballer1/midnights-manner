@@ -40,9 +40,15 @@ try{
  // fire() dispatches a real click on the live node instead of tapping coordinates.
  // Panel/tab buttons redraw every game tick, so CDP tap coords go stale; canvas
  // and map interactions keep using click()/tap() for true hit-testing.
- const fire=async selector=>{await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e||e.disabled)throw Error('Unfireable '+${JSON.stringify(selector)});e.click();})()`);await new Promise(r=>setTimeout(r,150));};
+  const fire=async selector=>{await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e||e.disabled)throw Error('Unfireable '+${JSON.stringify(selector)});e.click();})()`);await new Promise(r=>setTimeout(r,150));};
+  // U1 collapsible HUD: camera tools and the resource grid start collapsed.
+  // Expand them before use; helpers are idempotent for the rest of the run.
+  const ensureCamera=async ()=>{if(await evaluate('Boolean(document.querySelector("#camera-buttons")?.hidden)'))await fire('#camera-toggle');};
+  const ensureResources=async ()=>{if(!await evaluate('Boolean(document.querySelector("[data-resource=\\"wood\\"]")?.getClientRects().length)'))await fire('#resource-summary');};
  assert.equal(await evaluate('window.midnightsManner.paused'),true,'welcome pauses simulation');
- await click('#begin');await waitFor('window.midnightsManner.ready');
+  await click('#begin');await waitFor('window.midnightsManner.ready');
+  assert.equal(await evaluate('Boolean(document.querySelector("#camera-buttons")?.hidden)'),true,'camera tools collapse by default');
+  assert.ok(await evaluate('Boolean(document.querySelector("#resource-summary"))'),'resource summary chip present');
  const musicStarts=await evaluate('window.__audioProbe.starts');assert.ok(musicStarts>=12,'Enter village starts the generated score');
  let musicLevel;
  for(let i=0;i<30;i++){
@@ -77,7 +83,7 @@ try{
  // Touch wall rows on a phone: preview is free, confirm builds the line,
  // and the inspector upgrades the complete connected row with one action.
  await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:2,mobile:true});
- await new Promise(r=>setTimeout(r,200));await click('#recenter');
+ await new Promise(r=>setTimeout(r,200));await ensureCamera();await click('#recenter');
  await click('[data-tab="build"]');
  for(let i=0;i<3;i++){await click('[data-build="wall"]');if(await evaluate('document.querySelector("#placement-hint").textContent.startsWith("Palisade")'))break;await new Promise(r=>setTimeout(r,250));await click('[data-tab="build"]');}
  await waitFor('document.querySelector("#placement-hint").textContent.startsWith("Palisade")');
@@ -99,7 +105,7 @@ try{
  await screenshot('mobile-wall-upgrade');await click('[data-action="upgrade-row"][data-axis="x"]');
  assert.ok(await evaluate('window.midnightsManner.snapshot().world.buildings.filter(b=>b.type==="wall"&&b.y===3&&b.x>=7&&b.x<=9).every(b=>b.level===2)'),'row upgrade applies to all segments');
  await click('[data-action="close"]');
- await call('Emulation.setDeviceMetricsOverride',{width:1440,height:1100,deviceScaleFactor:1,mobile:false});await new Promise(r=>setTimeout(r,200));await click('#recenter');
+ await call('Emulation.setDeviceMetricsOverride',{width:1440,height:1100,deviceScaleFactor:1,mobile:false});await new Promise(r=>setTimeout(r,200));await ensureCamera();await click('#recenter');
  await click('[data-tab="troops"]');await click('[data-gear="cart"]');await click('[data-level]');
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[2].gear'),'cart','equipment applies');
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[0].level'),2,'training applies');
@@ -140,7 +146,7 @@ try{
  await screenshot('workplace');
  await click('#close-panel');
  // Resource identities, collection, search and every main menu on a phone.
- await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:2,mobile:true});await new Promise(r=>setTimeout(r,150));await click('#recenter');
+ await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:2,mobile:true});await new Promise(r=>setTimeout(r,150));await ensureCamera();await click('#recenter');
  await waitFor('window.midnightsManner.collectionBubbles().length > 0',1600);
  const bubbles=await evaluate('window.midnightsManner.collectionBubbles()');
  assert.ok(bubbles.every(b=>/(Wood|Food|Gold|Frostwood|Plate)(?: \+\d+| storage full)/.test(b.label)),'collection markers name their resources');
@@ -151,18 +157,18 @@ try{
  await tap({x:visiblePill.x+visiblePill.w/2,y:visiblePill.y+visiblePill.h/2});
  assert.ok((await evaluate(`window.midnightsManner.snapshot().world.buildings.find(b=>b.id===${JSON.stringify(visiblePill.id)}).harvestBonus`))<bonusBefore,'labeled bubble collects the right building');
  // Exercise orbit controls through actual phone touch and menu input.
- await click('#camera-menu');await click('#orbit-mode');await click('#camera-close');
+ await ensureCamera();await click('#camera-menu');await click('#orbit-mode');await click('#camera-close');
  const orbitBefore=await evaluate('window.midnightsManner.camera()');
  await call('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:180,y:470,id:1}]});
  await call('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:290,y:510,id:1}]});
  await call('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
  const orbitAfter=await evaluate('window.midnightsManner.camera()');assert.notEqual(orbitAfter.yaw,orbitBefore.yaw,'phone orbit changes heading');assert.notEqual(orbitAfter.pitch,orbitBefore.pitch,'phone orbit changes elevation');assert.equal(orbitAfter.x,orbitBefore.x,'orbit keeps the focus point');
- await click('#camera-menu');await click('#orbit-mode');
+ await ensureCamera();await click('#camera-menu');await click('#orbit-mode');
  for(const view of ['low','top','classic']){await click(`[data-view="${view}"]`);await screenshot('orbit-phone-'+view);}
  for(let i=0;i<16;i++)await click('#turn-right');
  const turned=await evaluate('window.midnightsManner.camera().yaw');assert.ok(Math.abs(turned-orbitAfter.yaw)<1e-6,'full 360 degree turn returns to heading');
  await click('#camera-reset');await click('#camera-close');
- await click('[data-resource="wood"]');assert.ok(await evaluate('document.querySelector("#panel").textContent.includes("Wood")'),'resource stores open');assert.ok(await evaluate('Boolean(document.querySelector("[data-collect-all]"))'),'collect-all offered in resource stores');await screenshot('polished-resources');await click('#close-panel');
+ await ensureResources();await click('[data-resource="wood"]');assert.ok(await evaluate('document.querySelector("#panel").textContent.includes("Wood")'),'resource stores open');assert.ok(await evaluate('Boolean(document.querySelector("[data-collect-all]"))'),'collect-all offered in resource stores');await screenshot('polished-resources');await click('#close-panel');
  await click('[data-tab="build"]');await screenshot('polished-build');await click('#panel-search');await call('Input.insertText',{text:'Wheat'});
  assert.equal(await evaluate('document.querySelectorAll("[data-build]").length'),1,'building search narrows cards');await click('#close-panel');
  await click('[data-tab="troops"]');await screenshot('polished-people');await click('#close-panel');
@@ -179,7 +185,7 @@ try{
   assert.equal(await evaluate('document.documentElement.scrollWidth > innerWidth'),false,`no overflow at ${width}`);
   assert.ok(await evaluate('[...document.querySelectorAll(".resource small")].every(e=>getComputedStyle(e).display!=="none")'),'resource names stay visible');
  }
- await call('Emulation.setDeviceMetricsOverride',{width:1440,height:1100,deviceScaleFactor:1,mobile:false});await new Promise(r=>setTimeout(r,150));await click('#recenter');
+ await call('Emulation.setDeviceMetricsOverride',{width:1440,height:1100,deviceScaleFactor:1,mobile:false});await new Promise(r=>setTimeout(r,150));await ensureCamera();await click('#recenter');
  await click('[data-tab="story"]');await click('[data-category="chapters"]');await waitFor('Boolean(document.querySelector(\'[data-mission="first-harvest"]\'))');await click('[data-mission="first-harvest"]');
  assert.ok(await evaluate('window.midnightsManner.snapshot().mission'),'expedition starts');
  await click('[data-tab="story"]');await click('[data-category="expeditions"]');await waitFor('Boolean(document.querySelector(\'#panel [data-home="true"]\'))');await click('#panel [data-home="true"]');assert.equal(await evaluate('window.midnightsManner.snapshot().mission'),null,'return restores home');
@@ -197,7 +203,7 @@ try{
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[0].level'),2,'level restored');
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[2].gear'),'cart','gear restored');
  await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:2,mobile:true});await new Promise(r=>setTimeout(r,200));
- await click('#recenter');
+ await ensureCamera();await click('#recenter');
  assert.equal(await evaluate('document.documentElement.scrollWidth > innerWidth || document.documentElement.scrollHeight > innerHeight'),false,'phone canvas fills viewport without scrolling');
  const before=await evaluate('window.midnightsManner.camera()');
  await call('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:170,y:350,id:1,radiusX:3,radiusY:3}]});
@@ -211,10 +217,10 @@ try{
  await call('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:pinchArea.x-90,y:pinchArea.y,id:1},{x:pinchArea.x+90,y:pinchArea.y,id:2}]});
  await call('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
  assert.ok((await evaluate('window.midnightsManner.camera().zoom'))>zoomBefore,'two fingers zoom');
- await click('#recenter');await screenshot('mobile');
+ await ensureCamera();await click('#recenter');await screenshot('mobile');
  await click('[data-tab="build"]');await screenshot('mobile-build');
  await click('#close-panel');
- await call('Emulation.setDeviceMetricsOverride',{width:844,height:390,deviceScaleFactor:2,mobile:true});await new Promise(r=>setTimeout(r,100));await click('#recenter');await screenshot('landscape');
+ await call('Emulation.setDeviceMetricsOverride',{width:844,height:390,deviceScaleFactor:2,mobile:true});await new Promise(r=>setTimeout(r,100));await ensureCamera();await click('#recenter');await screenshot('landscape');
  assert.equal(await evaluate('document.documentElement.scrollHeight > innerHeight'),false,'landscape has no scrolling');
  const perf=await evaluate('window.midnightsManner.frameReport()');
  assert.ok(perf&&perf.n>=10&&Number.isFinite(perf.avg)&&Number.isFinite(perf.p95),'frame telemetry stays live');
