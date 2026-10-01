@@ -4,17 +4,19 @@ import {readFile} from 'node:fs/promises';
 import {WorkSync} from '../src/systems/worksync.js';
 import {soundtrackMood} from '../src/systems/ambience.js';
 import {MusicPlayer, createPhrase} from '../src/music.js';
+import {trackSupportsMood, pickKeeperTrack} from '../src/audio.js';
 import {sfx, resetAudioPools, audioStats, toggleMute, isMuted} from '../src/systems/audio.js';
 
 const music = JSON.parse(await readFile(new URL('../data/music.json', import.meta.url)));
+const keepers = JSON.parse(await readFile(new URL('../data/ambient-score.json', import.meta.url)));
 const clear = {world: {daynight: {dayLength: 300, rainChance: 0, fogChance: 0}}};
 const buildings = n => Array.from({length: n}, (_, i) => ({type: 'cottage', hp: 9, remaining: 0, x: i, y: 0}));
 
- test('four new identities validate and phrase cleanly', () => {
-  assert.equal(music.themes.length, 18);
+ test('battle identities validate and phrase cleanly', () => {
+  assert.equal(music.themes.length, 5);
   const ids = new Set(music.themes.map(t => t.id));
-  assert.equal(ids.size, 18, 'theme ids stay unique');
-  for (const id of ['awakens', 'midnight_walls', 'aftermath', 'ascendant', 'ashen-choir', 'money_right']) {
+  assert.equal(ids.size, 5, 'theme ids stay unique');
+  for (const id of ['watchfire', 'iron_gate', 'midnight_walls', 'aftermath', 'ashen-choir']) {
     const theme = music.themes.find(t => t.id === id);
     assert.ok(theme, `${id} exists`);
     const phrase = createPhrase(theme, 0, false);
@@ -23,11 +25,12 @@ const buildings = n => Array.from({length: n}, (_, i) => ({type: 'cottage', hp: 
   }
 });
 
-test('new moods are claimed by exactly the right themes', () => {
+test('calm moods belong to keeper songs, battle moods to battle themes', () => {
   const supports = mood => music.themes.filter(t => Array.isArray(t.moods) && t.moods.includes(mood)).map(t => t.id);
-  assert.deepEqual(supports('dawn'), ['awakens']);
+  const keepersClaim = mood => Object.keys(keepers.tracks).filter(k => trackSupportsMood(keepers.tracks[k], mood));
+  assert.deepEqual(keepersClaim('dawn'), ['desert', 'honeyblock']);
+  assert.deepEqual(keepersClaim('prosperous'), ['orchestral', 'honeyblock']);
   assert.deepEqual(supports('aftermath'), ['aftermath']);
-  assert.deepEqual(supports('prosperous'), ['ascendant']);
   assert.ok(supports('danger').includes('midnight_walls'), 'raid music gains urgency');
 });
 
@@ -44,14 +47,12 @@ test('mood routing: dawn, prosperity, aftermath without breaking the old map', (
   assert.equal(soundtrackMood({elapsed: 60, buildings: [], enemies: [{hp: 5}]}, clear), 'danger', 'old calls without memory still work');
 });
 
-test('eligible-only theme picks stay deterministic on narrow pools', () => {
+test('eligible-only picks stay deterministic on narrow pools', () => {
   const player = new MusicPlayer(music);
   player.mood = 'aftermath';
   player.pickTheme();
   assert.equal(player.score.id, 'aftermath', 'aftermath has exactly one claimant');
-  player.mood = 'dawn';
-  player.pickTheme();
-  assert.equal(player.score.id, 'awakens', 'dawn has exactly one claimant');
+  assert.equal(pickKeeperTrack(keepers.tracks, 'dawn', 'desert', () => 0), 'honeyblock', 'dawn rotates keepers without repeats');
 });
 
 test('mute round-trips without sticking', () => {

@@ -1,3 +1,10 @@
+# Keeper soundtrack: six fixed songs replace the calm generative set
+
+- `data/ambient-score.json` now ships the six approved keepers (Money Right Full Cover, Grass Block Lullaby, Orchestral Luxury, Desert Temple, Honey Block Hymn, Nether Soul) with mood tags; calm moods rotate through them, hats stay quarter-or-sparser, Calm drops the drums.
+- `data/music.json` keeps only the five battle/celebration generative themes (watchfire, iron_gate, midnight_walls, aftermath, ashen-choir); the generative Money Right tribute is superseded by the fixed keeper. `main.js` routes calm moods to the keepers and danger/tension/aftermath plus the update celebration to the generative engine.
+- `src/audio.js` gains pooled drums (kick/snare/clap/soft-hat), music-box/string/choir voices, and pure testable helpers (`noteToFreq`, `grooveHits`, `trackSupportsMood`, `pickKeeperTrack`).
+- Review: full suite green, build green (616 precached). Browser capture/smoke still belong to CI.
+
 # Act XI J6: music + global-phone verification pass
 
 - Every theme (18/18, choir included) now pins Calm thinning, per-voice mix bounds, and master-gain ceiling in the multi-theme test — the measurable proxies for "songs sound good" on tiny speakers.

@@ -31,11 +31,18 @@ async function boot(){
  const ambience=new AmbiencePlayer(game),moodMemory={};
  music.setMood(soundtrackMood(game.world,data,{memory:moodMemory,vlevel:game.state.vlevel}));
 
+ // Calm moods play the keeper soundtrack (AmbientScoreEngine); battle moods
+ // stay on the legacy generative engine (music.json battle themes).
+ const CALM_MOODS=new Set(['day','night','dawn','weather','prosperous','calm','upbeat']);
+ const calmMood=mood=>CALM_MOODS.has(mood);
  let usingAmbient=false;
+ let playGenerative=()=>{}, playAmbient=()=>{};
  if(ambientScore){
   const origStart=music.start.bind(music);
-  music.start=function(opts){
+  playGenerative=opts=>{usingAmbient=false;ambient.stop();origStart(opts);};
+  playAmbient=opts=>{
    unlock();
+   ambient.calm=Boolean(opts?.calm??music.calm);
    const ok=ambient.start(ambientScore);
    if(ok){
     usingAmbient=true;
@@ -44,10 +51,12 @@ async function boot(){
     music.enabled=!isMuted();
     music.mood=typeof opts?.mood==='string'?opts.mood:music.mood;
     music.calm=Boolean(opts?.calm);
-   }else{
-    usingAmbient=false;
-    origStart(opts);
-   }
+   }else playGenerative(opts);
+  };
+  music.start=function(opts){
+   const mood=typeof opts?.mood==='string'?opts.mood:(music.mood||'day');
+   if(calmMood(mood)&&!music.celebrationHold)playAmbient(opts);
+   else playGenerative(opts);
   };
   const origSetEnabled=music.setEnabled.bind(music);
   music.setEnabled=function(enabled){
@@ -57,6 +66,24 @@ async function boot(){
    }else{
     origSetEnabled(enabled);
    }
+  };
+  const origSetCalm=music.setCalm.bind(music);
+  music.setCalm=function(calm){
+   origSetCalm(calm);
+   ambient.setCalm(calm);
+  };
+  const origStop=music.stop.bind(music);
+  music.stop=function(){
+   ambient.stop();
+   origStop();
+  };
+  const origCelebrate=music.celebrate.bind(music);
+  music.celebrate=function(ms){
+   const ok=origCelebrate(ms);
+   // The choir takes the stage alone: pause the keepers until the frame loop
+   // routes back to a calm mood after the celebration hold clears.
+   if(ok){usingAmbient=false;ambient.stop();}
+   return ok;
   };
  }
 
@@ -71,8 +98,9 @@ async function boot(){
  function stateFromWorld(g, d){
   const profile=ambienceProfile(g.world, d);
   const mood=soundtrackMood(g.world, d, {memory:moodMemory, vlevel:g.state.vlevel});
-  return {
-   inRaid: Boolean(profile.raid),
+   return {
+    mood,
+    inRaid: Boolean(profile.raid),
    raidPending: Boolean(profile.warning),
    isNight: Boolean(profile.night),
    isDawn: profile.phase === 'dawn' || mood === 'dawn',
@@ -88,7 +116,14 @@ async function boot(){
    while(accumulator>=.05){game.tick(.05);accumulator-=.05;}
    const mood=soundtrackMood(game.world,data,{memory:moodMemory,vlevel:game.state.vlevel});
    music.setMood(mood);
-   if(usingAmbient && ambient.started){
+   if(ambientScore){
+    // Route live: calm moods get the keepers, battle moods get the legacy
+    // generative themes. The celebration hold keeps the choir on stage.
+    const wantAmbient=calmMood(mood)&&!music.celebrationHold;
+    if(wantAmbient&&!usingAmbient)playAmbient({calm:music.calm,mood});
+    else if(!wantAmbient&&usingAmbient)playGenerative({calm:music.calm,mood});
+    else if(usingAmbient&&ambient.started)ambient.updateGameState(stateFromWorld(game, data));
+   }else if(usingAmbient && ambient.started){
     ambient.updateGameState(stateFromWorld(game, data));
    }
    ui.tick(dt);
