@@ -6,6 +6,8 @@ import {refinementEfficiency} from './logistics.js';
 // hand-hauled loads are player-driven and already visible as building
 // reserves; the panel says so in plain words instead of guessing.
 import {auras} from '../model.js';
+import {isWall} from './walls.js';
+import {buildingMaxHp} from './endgame.js';
 import {midgameRate, reserveMult} from './economy.js';
 import {refinerCrew, crewPower} from './crafting.js';
 import {mealCost, mealConfig, townMouths, supplyCost, territorySupplyCost, supplyBonus} from './food.js';
@@ -68,4 +70,38 @@ export function economyDashboard(world, data) {
     .filter(r => Math.abs(r.prod) > 1e-9 || Math.abs(r.use) > 1e-9)
     .sort((a, b) => Math.abs(b.net) - Math.abs(a.net) || (a.key < b.key ? -1 : 1));
   return {dayLength, rows: list};
+}
+
+// Settlement health snapshot (Living Kingdom Phase 8).
+// Pure math, read-only: living builder-role troops counted by builderTask
+// kind (else idle when taskless and orderless), plus the weakest living
+// wall/gate/rampart by hp/maxHp with its map side. Cached 5s per world.
+const healthCache = new WeakMap();
+export function settlementHealth(world, data) {
+  const bucket = Math.floor((world.elapsed || 0) / 5);
+  const hit = healthCache.get(world);
+  if (hit && hit.bucket === bucket) return hit.value;
+  const builders = {construction: 0, repair: 0, road: 0, idle: 0};
+  for (const u of world.troops || []) {
+    if (!u || u.hp <= 0) continue;
+    if (data.troops[u.type]?.role !== 'builder') continue;
+    const kind = u.builderTask?.kind;
+    if (kind === 'construction' || kind === 'repair' || kind === 'road') builders[kind]++;
+    else if (!u.builderTask && !u.order && !u.emergency && !u.expedition) builders.idle++;
+  }
+  let weakWall = null;
+  const cx = (data.world.width || 0) / 2, cy = (data.world.height || 0) / 2;
+  for (const b of world.buildings || []) {
+    if (!b || b.hp <= 0 || !isWall(b)) continue;
+    const max = buildingMaxHp(b, data);
+    if (!Number.isFinite(max) || max <= 0) continue;
+    const frac = b.hp / max;
+    if (weakWall && frac >= weakWall.frac) continue;
+    const size = data.buildings[b.type]?.size || 1;
+    const dx = (b.x + size / 2) - cx, dy = (b.y + size / 2) - cy;
+    weakWall = {id: b.id, type: b.type, side: Math.abs(dx) >= Math.abs(dy) ? (dx >= 0 ? 'E' : 'W') : (dy >= 0 ? 'S' : 'N'), frac};
+  }
+  const value = {builders, weakWall};
+  healthCache.set(world, {bucket, value});
+  return value;
 }
