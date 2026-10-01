@@ -35,6 +35,39 @@ export const JOB_XP_LEVELS = [0, 60, 180, 360, 600];
 export const JOB_XP_RATE = 1; // xp per second while posted at a live workplace
 export const JOB_LEVEL_BONUS = 0.08;
 
+// Earned titles (Phase 4): mastery made visible. Posted trades earn at
+// job level 5; builder and combat hands (no job posts) at troop level 15.
+// Titles ride the unit as a plain string — troops serialize wholesale, so
+// old-save veterans backfill on the next tick with no migration.
+export const TITLES = {
+  builder: 'Master Builder',
+  weaponsmith: 'Master Smith',
+  toolsmith: 'Master Smith',
+  armorer: 'Master Smith',
+  miner: 'Master Miner',
+  warrior: 'Veteran Guard',
+  archer: 'Veteran Guard',
+  warden: 'Veteran Guard',
+  pikewoman: 'Veteran Guard',
+  halberdier: 'Veteran Guard',
+  longbowman: 'Veteran Guard',
+};
+// One pass: awards newly earned titles, notifies once each, returns the
+// newly titled units. Idempotent — titled units never re-fire.
+export function tickTitles(world, data, notify = null) {
+  const titled = [];
+  for (const u of world?.troops || []) {
+    if (!u || u.hp <= 0 || u.title) continue;
+    const title = TITLES[u.type];
+    if (!title) continue;
+    const earned = data?.troops?.[u.type]?.job ? (u.jobLevel || 1) >= 5 : (u.level || 1) >= 15;
+    if (!earned) continue;
+    u.title = title;
+    titled.push(u);
+    if (notify) notify(`${u.name || 'A villager'} has earned the title of ${title}!`);
+  }
+  return titled;
+}
 export function hasTrait(unit, id) {
   return Array.isArray(unit?.traits) && unit.traits.includes(id);
 }
@@ -93,6 +126,7 @@ export function ensureIdentity(unit, data, roster, rand = Math.random) {
   if (!Number.isFinite(unit.jobXp) || unit.jobXp < 0) unit.jobXp = 0;
   unit.jobXp = Math.min(JOB_XP_LEVELS[JOB_XP_LEVELS.length - 1], unit.jobXp);
   unit.jobLevel = jobLevelForXp(unit.jobXp);
+  if (unit.title === undefined) unit.title = null;
   if (unit.manualPost === undefined) unit.manualPost = false;
   return unit;
 }
@@ -102,8 +136,9 @@ export function jobLevelForXp(xp) {
   return Math.min(level, JOB_XP_LEVELS.length);
 }
 // +8% job output per level past the first. Pure: old saves at level 1 read exactly 1.
+// A titled master works keener still: +5% on top.
 export function jobLevelMult(unit) {
-  return 1 + JOB_LEVEL_BONUS * ((unit?.jobLevel || 1) - 1);
+  return (1 + JOB_LEVEL_BONUS * ((unit?.jobLevel || 1) - 1)) * (unit?.title ? 1.05 : 1);
 }
 // Craft/shift output multiplier for a posted villager at a building type.
 export function traitOutputMult(unit, buildingType) {
