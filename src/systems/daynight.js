@@ -333,8 +333,12 @@ export function describeClock(world, data) {
   const bits = [`${phase.icon} ${phase.name}`, `${weather.icon} ${weather.name}`];
   const hints = [];
   if (phase.night) hints.push('raiders hit harder in the dark');
+  if (phase.night) hints.push('the posted watch hits harder after dark');
   if (weather.id === 'rain') hints.push('gathering quickens in the rain');
+  if (weather.id === 'rain') hints.push('Off-road slow in the mud — roads run clean');
+  if (weather.id === 'rain') hints.push('storms may bruise roofs — keep repairs ready');
   if (weather.id === 'fog') hints.push('raiders slow in the fog');
+  if (weather.id === 'fog') hints.push('ranged shots fly blind in the fog');
   if (phase.night && (world?.troops || []).some(u => u.hp > 0 && !u.workplace && !u.order && data?.troops?.[u.type]?.role !== 'combat' && data?.troops?.[u.type]?.role !== 'collector')) {
     hints.push('idle hands seek shelter');
   }

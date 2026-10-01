@@ -98,8 +98,9 @@ export function defenseStatus(world,data,unit){
  const b=world.buildings.find(b=>b.id===unit.defensePost),p=plans.get(world),name=data.buildings[b?.type]?.name||'post';
  if(unit.order)return 'Following your order';
  if(p?.reinforcing.has(unit.id))return 'Reinforcing a breach';
- if(plannedDefenseTarget(world,unit))return `Intercepting near ${name}`;
- return `${world.raidPending?'Mustering at':'Holding'} ${name}`;
+  if(plannedDefenseTarget(world,unit))return `Intercepting near ${name}`;
+  if(world.night===true&&!world.raidPending)return `Night watch at ${name}`;
+  return `${world.raidPending?'Mustering at':'Holding'} ${name}`;
 }
 export function defensePlanningMetrics(world){const p=plans.get(world);return {planningRuns:p?.planningRuns||0};}
 export function defenseRaidSummary(world){const p=plans.get(world);if(p)for(const b of world.buildings)if(b.hp<=0&&p.standing.has(b.id))p.breached.add(b.id);return {breaches:p?.breached?.size||0,responders:p?.responders?.size||0};}
