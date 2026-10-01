@@ -382,9 +382,10 @@ try{
  if(await evaluate('document.querySelector("#pause-overlay").hidden')){await click('#pause');await waitFor('!document.querySelector("#pause-overlay").hidden');}
  await waitFor('document.querySelector("#opt-update")?.getClientRects().length>0 && !document.querySelector("#opt-update").disabled');
  await click('#opt-update');
- await waitFor('document.querySelector("meta[name=game-build]")?.content==="browser-update-fixture" && !!window.midnightsManner');
+ await waitFor('document.querySelector("meta[name=game-build]")?.content==="browser-update-fixture" && !!window.midnightsManner && !document.querySelector("#title").hidden');
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[0].id'),savedUnit,'update preserves village');
- await click('#begin');await click('#pause');await click('#opt-refresh');
+ await fire('#begin');await waitFor('window.midnightsManner.ready && document.querySelector("#title").hidden');
+ await fire('#pause');await waitFor('!document.querySelector("#pause-overlay").hidden && document.querySelector("#opt-refresh").getClientRects().length>0 && !document.querySelector("#opt-refresh").disabled');await click('#opt-refresh');
  await waitFor('!!window.midnightsManner && !document.querySelector("#title").hidden');
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[0].id'),savedUnit,'ordinary in-app refresh preserves village');
  assert.deepEqual(errors,[],'no browser runtime errors');
