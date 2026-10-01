@@ -13,21 +13,48 @@ const runtime=new WeakMap(),recipes=new WeakMap();
 // old saves gain them default-on through automationSettings (additive only).
 export const POLICY_CATEGORIES=['walls','gates','towers','farms','mines','lumber','housing','storage','workshops','military','roads'];
 export const CATEGORY_OF={wall:'walls',gate:'gates',tower:'towers',archer_tower:'towers',ballista:'towers',farm:'farms',mine:'mines',lumber:'lumber',timber_yard:'lumber',sawmill:'lumber',cottage:'housing',longhouse:'housing',hall:'storage',storehouse:'storage','grand-granary':'storage',forge:'workshops',workshop:'workshops',smeltery:'workshops',barracks:'military'};
-const defaultPolicies=()=>Object.fromEntries(POLICY_CATEGORIES.map(c=>[c,{on:true,maxTier:6,priority:'normal'}]));
+export const POLICY_PRIORITIES=['low','normal','high'];
+const defaultPolicy=()=>({on:true,maxTier:6,priority:'normal'});
+const defaultPolicies=()=>Object.fromEntries(POLICY_CATEGORIES.map(c=>[c,defaultPolicy()]));
+export function sanitizePolicies(input){
+ const src=input&&typeof input==='object'&&!Array.isArray(input)?input:{};
+ const out={};
+ for(const c of POLICY_CATEGORIES){
+  const p=src[c];
+  if(!p||typeof p!=='object'||Array.isArray(p)){out[c]=defaultPolicy();continue;}
+  const on=typeof p.on==='boolean'?p.on:true;
+  let t=Math.floor(Number(p.maxTier));
+  if(!Number.isFinite(t))t=6;
+  t=Math.max(1,Math.min(6,t));
+  const priority=POLICY_PRIORITIES.includes(p.priority)?p.priority:'normal';
+  out[c]={on,maxTier:t,priority};
+ }
+ return out;
+}
+export function sanitizeReservePct(input){
+ if(!input||typeof input!=='object'||Array.isArray(input))return {};
+ const out={};
+ for(const [cat,bucket] of Object.entries(input)){
+  if(cat==='__proto__'||cat==='constructor'||cat==='prototype')continue;
+  if(!bucket||typeof bucket!=='object'||Array.isArray(bucket))continue;
+  const clean={};
+  for(const [res,raw] of Object.entries(bucket)){
+   if(res==='__proto__'||res==='constructor'||res==='prototype')continue;
+   const n=Math.floor(Number(raw));
+   if(!Number.isFinite(n))continue;
+   clean[res]=Math.max(0,Math.min(100,n));
+  }
+  if(Object.keys(clean).length)out[cat]=clean;
+ }
+ return out;
+}
 const defaults=()=>({autoUpgrade:false,autoUpgradeTypes:{},reserves:{},stockTarget:1,policies:defaultPolicies(),reservePct:{}});
 export function automationSettings(world){
  if(!world.automation)world.automation=defaults();
  const a=world.automation;
  if(!a.autoUpgradeTypes||typeof a.autoUpgradeTypes!=='object'||Array.isArray(a.autoUpgradeTypes))a.autoUpgradeTypes={};
- if(!a.policies||typeof a.policies!=='object'||Array.isArray(a.policies))a.policies=defaultPolicies();
- else for(const c of POLICY_CATEGORIES){
-  const p=a.policies[c];
-  if(!p||typeof p!=='object'||Array.isArray(p)){a.policies[c]={on:true,maxTier:6,priority:'normal'};continue;}
-  if(typeof p.on!=='boolean')p.on=true;
-  if(!Number.isFinite(Number(p.maxTier)))p.maxTier=6;
-  if(typeof p.priority!=='string')p.priority='normal';
- }
- if(!a.reservePct||typeof a.reservePct!=='object'||Array.isArray(a.reservePct))a.reservePct={};
+ a.policies=sanitizePolicies(a.policies);
+ a.reservePct=sanitizeReservePct(a.reservePct);
  return a;
 }
 const settings=w=>w.automation||defaults();

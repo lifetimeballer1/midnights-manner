@@ -5,6 +5,7 @@ import {normalizeTrails} from './systems/trails.js';
 import {ensureIdentity} from './systems/villagers.js';
 import {buildTiles} from './systems/biomes.js';
 import {mealDay} from './systems/food.js';
+import {sanitizePolicies,sanitizeReservePct} from './systems/automation.js';
 const KEY='midnights-manner-v2';
 const OLD_KEY='midnights-manner-v1';
 export const VERSION = 15;
@@ -32,7 +33,7 @@ function normalizeManagement(w,data){
  if(w.automation!==undefined){
   const c=w.automation&&typeof w.automation==='object'&&!Array.isArray(w.automation)?w.automation:{};
   const reserves={};for(const k of Object.keys(w.resources||{})){const n=c.reserves?.[k];if(Number.isFinite(n)&&n>=0)reserves[k]=Math.min(1e9,Math.floor(n));}
-  w.automation={autoUpgrade:c.autoUpgrade===true,reserves,stockTarget:Number.isFinite(c.stockTarget)?Math.max(0,Math.min(5,Math.floor(c.stockTarget))):1};
+  w.automation={autoUpgrade:c.autoUpgrade===true,reserves,stockTarget:Number.isFinite(c.stockTarget)?Math.max(0,Math.min(5,Math.floor(c.stockTarget))):1,policies:sanitizePolicies(c.policies),reservePct:sanitizeReservePct(c.reservePct)};
  }
  if(w.steward!==undefined){
   const c=w.steward&&typeof w.steward==='object'&&!Array.isArray(w.steward)?w.steward:{};
