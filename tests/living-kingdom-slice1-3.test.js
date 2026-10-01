@@ -5,6 +5,7 @@ import {Game} from '../src/game.js';
 import {makeBuilding} from '../src/model.js';
 import {recordTravel} from '../src/systems/trails.js';
 import {tickAutomation,automationSettings,autoUpgradeTypeEnabled} from '../src/systems/automation.js';
+import {chooseDestination} from '../src/systems/logistics.js';
 import {spendingAvailable} from '../src/systems/steward-budget.js';
 import {storageCap} from '../src/systems/storage.js';
 import {automationStores} from '../src/automation-ui.js';
@@ -46,4 +47,18 @@ test('LK slice: stores panel lists one policy row per category',()=>{
   automationSettings(g.state.world);
   const html=automationStores(g);
   for(const c of ['walls','gates','towers','farms','mines','lumber','housing','storage','workshops','military','roads'])assert.ok(html.includes(c),c+' row exists');
+});
+test('LK slice: finished granary attracts food trips',()=>{
+  const g=new Game(data);const w=g.state.world;
+  const farm=w.buildings.find(b=>b.type==='farm');
+  const gran=makeBuilding('grand-granary',7,4,data);gran.level=1;gran.remaining=0;w.buildings.push(gran);
+  const dest=chooseDestination(w,data,farm,'food');
+  assert.equal(dest.building.id,gran.id);
+});
+test('LK slice: unfinished granary does not attract food trips',()=>{
+  const g=new Game(data);const w=g.state.world;
+  const farm=w.buildings.find(b=>b.type==='farm');
+  const gran=makeBuilding('grand-granary',7,4,data);gran.level=1;gran.remaining=10;w.buildings.push(gran);
+  const dest=chooseDestination(w,data,farm,'food');
+  assert.notEqual(dest.building.id,gran.id);
 });

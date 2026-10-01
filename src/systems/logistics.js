@@ -24,10 +24,11 @@ function hub(b,d,key){return b.type==='hall'||(d.buildings[b.type]?.storage?.[ke
 export function chooseDestination(w,d,source,key,{s=state(w),consumerOnly=false}={}){
  if(!s.graph)index(w,d,s);if(!(centralRoom(w,d,key)>0)&&!consumerOnly)return null;
  const from=accessTile(s.graph,source,d);if(!from)return null;let best=null,bestScore=Infinity;
+ const granaryFinished=greatWorkTier(w,'grand-granary')>0;
  for(const b of s.candidates.get(key)||[]){if(b.id===source.id||!live(b))continue;const need=demand(b,d,key,s),isHub=hub(b,d,key);if(consumerOnly?!need:!isHub&&!need)continue;
   const point=accessTile(s.graph,b,d,from);if(!point)continue;const f=routeField(s.graph,w,point),distance=routeDistance(s.graph,f,from);if(!Number.isFinite(distance))continue;
   let busy=0;for(const j of s.jobs)if(j.destinationId===b.id)busy++;
-  const preferred=b.type==='grand-granary'&&['food','flour','bread'].includes(key)?2:b.type==='market-square'?1:0;
+  const preferred=b.type==='grand-granary'&&granaryFinished&&['food','flour','bread'].includes(key)?2:b.type==='market-square'?1:0;
   const score=distance+busy*3-Math.min(6,need*.25)-preferred;
   if(score<bestScore){bestScore=score;best={building:b,point,field:f,distance,need};}
  }
