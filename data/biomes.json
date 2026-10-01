@@ -10,7 +10,8 @@
       "props": [
         "grass",
         "stone",
-        "stump"
+        "stump",
+        "flowers"
       ]
     }
   },
@@ -41,7 +42,8 @@
       "props": [
         "reeds",
         "reeds",
-        "stone"
+        "stone",
+        "lilies"
       ]
     }
   },

@@ -28,8 +28,8 @@
    "use": "Forest scenery sample proving the conversion path"
   },
   "lily-small": {
-   "enabled": false,
-   "phase": 2,
+   "enabled": true,
+   "phase": 5,
    "pack": "Kenney Nature Kit 2.1",
    "creator": "Kenney",
    "license": "CC0",
@@ -39,8 +39,8 @@
    "use": "Pond decoration"
   },
   "lily-large": {
-   "enabled": false,
-   "phase": 2,
+   "enabled": true,
+   "phase": 5,
    "pack": "Kenney Nature Kit 2.1",
    "creator": "Kenney",
    "license": "CC0",
@@ -50,8 +50,8 @@
    "use": "Pond decoration"
   },
   "log": {
-   "enabled": false,
-   "phase": 2,
+   "enabled": true,
+   "phase": 5,
    "pack": "Kenney Nature Kit 2.1",
    "creator": "Kenney",
    "license": "CC0",
@@ -72,8 +72,8 @@
    "use": "Lumber workplace dressing"
   },
   "flower-red": {
-   "enabled": false,
-   "phase": 2,
+   "enabled": true,
+   "phase": 5,
    "pack": "Kenney Nature Kit 2.1",
    "creator": "Kenney",
    "license": "CC0",
@@ -83,8 +83,8 @@
    "use": "Cottage flowers"
   },
   "flower-yellow": {
-   "enabled": false,
-   "phase": 2,
+   "enabled": true,
+   "phase": 5,
    "pack": "Kenney Nature Kit 2.1",
    "creator": "Kenney",
    "license": "CC0",
@@ -94,8 +94,8 @@
    "use": "Cottage flowers"
   },
   "flower-purple": {
-   "enabled": false,
-   "phase": 2,
+   "enabled": true,
+   "phase": 5,
    "pack": "Kenney Nature Kit 2.1",
    "creator": "Kenney",
    "license": "CC0",
@@ -105,8 +105,8 @@
    "use": "Cottage flowers"
   },
   "rock-small-a": {
-   "enabled": false,
-   "phase": 2,
+   "enabled": true,
+   "phase": 5,
    "pack": "Kenney Nature Kit 2.1",
    "creator": "Kenney",
    "license": "CC0",
@@ -116,8 +116,8 @@
    "use": "Rocky patches"
   },
   "rock-small-d": {
-   "enabled": false,
-   "phase": 2,
+   "enabled": true,
+   "phase": 5,
    "pack": "Kenney Nature Kit 2.1",
    "creator": "Kenney",
    "license": "CC0",
@@ -127,8 +127,8 @@
    "use": "Rocky patches"
   },
   "bush": {
-   "enabled": false,
-   "phase": 2,
+   "enabled": true,
+   "phase": 5,
    "pack": "Kenney Nature Kit 2.1",
    "creator": "Kenney",
    "license": "CC0",
@@ -149,8 +149,8 @@
    "use": "Low vegetation"
   },
   "stone-small": {
-   "enabled": false,
-   "phase": 2,
+   "enabled": true,
+   "phase": 5,
    "pack": "Kenney Nature Kit 2.1",
    "creator": "Kenney",
    "license": "CC0",

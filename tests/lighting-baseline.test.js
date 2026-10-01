@@ -87,7 +87,9 @@ const CASES = [
 ];
 const ORBIT = {"faces":770,"day":"42c57ac0a58b0b8b","night":"0a922c280a83f28f","dawn":"33de588b650fcfbe"};
 // Canonical tool and outfit lineups at the mobile/gameplay zoom.
-const EQUIPMENT_BASELINE={"faces":2203,"raw":"ef3e4b4906c7d6cd","frozen":"8f0f9c4b7a9afc64","day":"3c03992669202caf","night":"7ea856c01a2b8986","dawn":"debdf98c5d542758"};
+// P3 deliberately adds quiver/belt/satchel/hem faces (villager readability);
+// shading formula verified drift-free at update time.
+const EQUIPMENT_BASELINE={"faces":2341,"raw":"e6cd55c6c3d6f72a","frozen":"1dbbb4708d698fc7","day":"a869672666d550a6","night":"5685c36eb6d438e5","dawn":"a6a9e2554ac4bc25"};
 
 test('baseline: canonical meshes keep their raw geometry and albedo', () => {
   const r = renderer();

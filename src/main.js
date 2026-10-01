@@ -21,10 +21,21 @@ async function boot(){
   if(res.ok) ambientScore=await res.json();
  }catch{}
 
- const sprites=[...Object.values(data.buildings).flatMap(b=>b.tiers.map(t=>t.sprite)),...Object.values(data.troops).map(t=>t.sprite),...Object.values(data.items).map(i=>i.sprite),'raider.png',...resourceSpriteNames];
+  const sprites=[...Object.values(data.buildings).flatMap(b=>b.tiers.map(t=>t.sprite)),...Object.values(data.troops).map(t=>t.sprite),...Object.values(data.items).map(i=>i.sprite),'raider.png',...resourceSpriteNames];
+  // Converted art meshes: only manifest-enabled entries load, and only once.
+  // Disabled entries cost nothing at runtime; missing files fall back silently.
+  const meshes={};
+  try{
+   const manifest=data['art-manifest'];
+   if(manifest)for(const [id,entry] of Object.entries(manifest.meshes||{})){
+    if(!entry?.enabled)continue;
+    try{const res=await fetch(new URL('../'+entry.file,import.meta.url));if(res.ok)meshes[id]=await res.json();}catch{}
+   }
+  }catch{}
  const images=Object.fromEntries(await Promise.all([...new Set(sprites)].map(name=>new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve([name,image]);image.onerror=()=>reject(Error(`Missing sprite: ${name}`));image.src=new URL(`../assets/sprites/${name}`,import.meta.url).href;}))));
- const canvas=document.querySelector('#world'),game=new Game(data),renderer=new Renderer(canvas,data,images);
- attachQuality(renderer);
+  const canvas=document.querySelector('#world'),game=new Game(data),renderer=new Renderer(canvas,data,images);
+  renderer.meshes=meshes;
+  attachQuality(renderer);
   const resize=()=>{const rect=canvas.getBoundingClientRect();renderer.resize(rect.width,rect.height,window.devicePixelRatio||1);};resize();renderer.fitVillage(game.world);
 
   const music=new MusicPlayer(data.music);

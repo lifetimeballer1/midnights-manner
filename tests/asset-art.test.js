@@ -20,8 +20,9 @@ function draw(mesh, zoom, yaw) {
   return {n, faces: s.faces};
 }
 
-test('manifest defaults every mesh to disabled (safe removal)', () => {
-  for (const id of Object.keys(data['art-manifest'].meshes)) assert.equal(artEnabled(data, id), false);
+test('manifest enables only gated meshes (safe removal = flip the flag)', () => {
+  const enabled = Object.entries(data['art-manifest'].meshes).filter(([, e]) => e.enabled).map(([id]) => id).sort();
+  assert.deepEqual(enabled, ['bush', 'flower-purple', 'flower-red', 'flower-yellow', 'lily-large', 'lily-small', 'log', 'rock-small-a', 'rock-small-d', 'stone-small']);
 });
 
 test('converted samples are valid selectable geometry through a full orbit', () => {
@@ -56,7 +57,7 @@ test('every manifest mesh is valid, grounded, budgeted and stays disabled', asyn
   const manifest = data['art-manifest'];
   let total = 0;
   for (const [id, entry] of Object.entries(manifest.meshes)) {
-    assert.equal(entry.enabled, false, id + ' ships disabled until its gate');
+    assert.equal(typeof entry.enabled, 'boolean', id + ' has an explicit flag');
     assert.equal(entry.license, 'CC0', id + ' license pinned');
     assert.ok(entry.source && entry.creator && entry.file, id + ' provenance');
     const mesh = JSON.parse(await readFile(new URL('../' + entry.file, import.meta.url)));

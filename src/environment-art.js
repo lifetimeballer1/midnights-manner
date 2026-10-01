@@ -1,5 +1,23 @@
 import {hash2} from './systems/biomes.js';
 import {regionById,isRegionClaimed} from './systems/expansion.js';
+import {artEnabled,drawMesh} from './asset-art.js';
+// Converted CC0 meshes replace or alternate with procedural props when their
+// manifest entry is enabled and the mesh doc was preloaded (renderer.meshes).
+// Missing/disabled meshes fall back to the original procedural geometry.
+const NATIVE_MESH={shrub:'bush',log:'log',rock:'rock-small-a',stone:'stone-small'};
+const FLOWERS=['flower-red','flower-yellow','flower-purple'],LILIES=['lily-small','lily-large'];
+export function convertedId(s,item){
+ const meshes=s.r?.meshes;
+ if(!meshes)return null;
+ let id=null;
+ if(item.kind==='flowers')id=FLOWERS[hash2(item.x,item.y,7)%FLOWERS.length];
+ else if(item.kind==='lilies')id=LILIES[hash2(item.x,item.y,13)%LILIES.length];
+ else if(NATIVE_MESH[item.kind]){
+  if(hash2(item.x,item.y,41)%2===0)return null; // alternate for variety
+  id=NATIVE_MESH[item.kind];
+ }
+ return id&&meshes[id]&&artEnabled(s.r?.data,id)?id:null;
+}
 
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function densityFor(config,claimed){
@@ -171,9 +189,15 @@ function frontierCamp(s,camp,faction){
  // The cookfire is small enough to read as occupancy, not a new lighting system.
  s.pyramid(x,y+.02,.08,.11,.22,'#e5a458',5);
 }
-function drawProp(s,item,seed,scorched=false,zoom=1.8){
+export function drawProp(s,item,seed,scorched=false,zoom=1.8){
  const x=item.x+.5,y=item.y+.5,j=(hash2(item.x+13,item.y+29,seed)%1000)/1000;
+ const conv=convertedId(s,item);
+ if(conv){drawMesh(s,s.r.meshes[conv],x,y);return;}
  const scale=.78+j*.35,cold=item.biome==='water'||item.biome==='unclaimed-fringe';
+ // New P5 kinds degrade gracefully without their meshes: flowers read as
+ // grass tufts, lilies as shoreline reeds.
+ if(item.kind==='flowers'){grass(s,x,y,scale);return;}
+ if(item.kind==='lilies'){reeds(s,x,y,scale);return;}
  const ash=scorched===true&&item.biome==='hills';
  if(item.kind==='landmark')return landmark(s,item,scorched===true&&item.landmark==='Ashen Crown');
  if(item.kind==='pine')return pine(s,x,y,scale,cold);

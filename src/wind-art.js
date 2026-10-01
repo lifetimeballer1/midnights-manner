@@ -7,9 +7,9 @@ export function addWindLife(s,world,time){
  const ambientCap=r.qualityCfg?.ambientCap??20, lightCap=r.qualityCfg?.lightCap??40;
  const leafCap=Math.min(18,ambientCap), bannerCap=Math.min(12,Math.max(4,Math.round(ambientCap*.6))), flameCap=Math.min(16,Math.max(6,Math.round(lightCap*.4)));
  for(const prop of r._livingScenery||[]){
-  if(leaves>=leafCap)break;if(!['grass','reeds','pine','shrub'].includes(prop.kind))continue;
+  if(leaves>=leafCap)break;if(!['grass','reeds','pine','shrub','flowers','lilies'].includes(prop.kind))continue;
   const x=prop.x+.5,y=prop.y+.5,p=r.project(x,y);if(p.x<-25||p.y<-60||p.x>r.width+25||p.y>r.height+30)continue;
-  const phase=seedOf(`${prop.x},${prop.y}`)*6.28,sway=Math.sin(time*.0015+phase)*.035*wind,z=prop.kind==='pine'?.9:prop.kind==='shrub'?.24:.2;s.owner=null;beam(s,[x,y,z],[x+.025+sway,y+sway*.3,z+.12],.024,prop.kind==='reeds'?'#b69a55':'#78965b');leaves++;
+  const phase=seedOf(`${prop.x},${prop.y}`)*6.28,sway=Math.sin(time*.0015+phase)*.035*wind,z=prop.kind==='pine'?.9:prop.kind==='shrub'?.24:.2;s.owner=null;beam(s,[x,y,z],[x+.025+sway,y+sway*.3,z+.12],.024,prop.kind==='reeds'||prop.kind==='lilies'?'#b69a55':prop.kind==='flowers'?'#c98a9a':'#78965b');leaves++;
  }
  for(const b of world.buildings){
   if(banners>=bannerCap)break;if(b.hp<=0||b.remaining>0||!['barracks','scout_post','market','market-square','longhouse','shieldwall-yard'].includes(b.type))continue;
