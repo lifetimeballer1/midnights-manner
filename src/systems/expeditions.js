@@ -12,6 +12,7 @@ import {grantCentral} from './storage.js';
 import {ensureIdentity} from './villagers.js';
 import {factionFor} from './tactics.js';
 import {sfx} from './audio.js';
+import {isHauling} from './logistics.js';
 import {
   findsTable, findChances, findsMult, pickArtifact, pickFrom, rescuePool,
   artifactList, MAX_INTEL_LOG, MAX_EXPEDITION_LOG, SCOUT_BONUS_CAP, SCOUT_BONUS_EACH
@@ -24,6 +25,50 @@ export function expeditionSpec(data, unit) {
 export function capable(data, unit) {
   const s = expeditionSpec(data, unit);
   return !!s && Number.isFinite(s.durationSec) && s.durationSec > 0 && !!s.yields;
+}
+
+// Standard ranging retains the old numbers. Additional plans are content,
+// not new professions; invalid entries never reach the dispatch controls.
+export function rangingPlans(data) {
+  const plans = [{id: 'standard', name: 'Woodland ranging', text: 'The familiar gathering trip.', durationMult: 1, yieldMult: 1, riskAdd: 0, intelMult: 1}];
+  for (const [id, p] of Object.entries(data?.artifacts?.rangingPlans || {})) {
+    if (id === 'standard' || !/^[a-z][a-z0-9-]*$/.test(id) || !p || typeof p.name !== 'string') continue;
+    if (!Number.isFinite(p.durationMult) || p.durationMult < 1 || p.durationMult > 2 ||
+        !Number.isFinite(p.yieldMult) || p.yieldMult <= 0 || p.yieldMult > p.durationMult ||
+        !Number.isFinite(p.riskAdd) || p.riskAdd < 0 || p.riskAdd > 0.1 ||
+        !Number.isFinite(p.intelMult) || p.intelMult < 1 || p.intelMult > p.durationMult) continue;
+    plans.push({...p, id});
+    if (plans.length >= 4) break;
+  }
+  return plans;
+}
+
+export function expeditionReason(world, data, unit) {
+  if (!unit || unit.hp <= 0) return 'This ranger needs to recover.';
+  if (!capable(data, unit)) return 'This profession does not range.';
+  if (unit.expedition) return 'Already ranging.';
+  if (world.raidPending || world.enemies?.some(e => e.hp > 0)) return 'Ranging waits until the raid is over.';
+  if (unit.emergency || unit.shelteredIn) return 'On emergency duty.';
+  if (unit.order) return 'Resume auto duties before dispatch.';
+  if (unit.carry > 0 || isHauling(unit)) return 'Finish the current delivery first.';
+  if (unit.builderTask) return 'Finish the current building task first.';
+  return null;
+}
+
+// The preview and dispatch share one quote. Risk is current-sky risk;
+// the sky at homecoming decides the actual mishap, as it always did.
+export function expeditionQuote(world, data, unit, planId = 'standard') {
+  const spec = expeditionSpec(data, unit);
+  const plan = rangingPlans(data).find(p => p.id === planId);
+  if (!spec || !plan) return null;
+  const yields = Object.fromEntries(Object.entries(spec.yields || {}).map(([k, v]) => [k, Math.max(0, Math.floor(v * plan.yieldMult))]));
+  return {planId, name: plan.name, text: plan.text, yields,
+    durationSec: Math.ceil(spec.durationSec * plan.durationMult),
+    baseRisk: Math.min(0.9, (spec.risk || 0) + plan.riskAdd),
+    risk: Math.min(0.9, (spec.risk || 0) + plan.riskAdd + skyRisk(world, data)),
+    intelMult: plan.intelMult,
+    intelChance: Math.min(1, findChances(data).intel * findsMult(data, unit) * plan.intelMult),
+    reason: expeditionReason(world, data, unit)};
 }
 
 // Nearest forest-biome tile center to the unit; falls back to the map
@@ -49,9 +94,10 @@ function homeOf(world, data) {
 
 // Send a capable idle unit ranging. Returns false for the incapable,
 // the fallen, or those already out.
-export function startExpedition(world, data, unit, rng = Math.random) {
-  if (!unit || unit.hp <= 0 || unit.expedition || !capable(data, unit)) return false;
-  const spec = expeditionSpec(data, unit);
+export function startExpedition(world, data, unit, rng = Math.random, planId = 'standard') {
+  if (expeditionReason(world, data, unit)) return false;
+  const quote = expeditionQuote(world, data, unit, planId);
+  if (!quote) return false;
   const entry = forestEdge(world, unit);
   unit.expedition = {
     phase: 'out',
@@ -60,12 +106,28 @@ export function startExpedition(world, data, unit, rng = Math.random) {
     entryY: entry.y,
     homeX: homeOf(world, data).x,
     homeY: homeOf(world, data).y,
-    duration: spec.durationSec,
-    yields: {...spec.yields},
-    risk: spec.risk || 0
+    duration: quote.durationSec,
+    yields: {...quote.yields},
+    risk: quote.baseRisk,
+    planId,
+    intelMult: quote.intelMult
   };
   unit.order = null;
   void rng;
+  return true;
+}
+
+// Recall pays only for completed gathering. No tablets, artifacts, rescues
+// or intel roll on an unfinished trip, and repeated recall cannot pay twice.
+export function recallExpedition(world, data, unit) {
+  const e = unit?.expedition;
+  if (!e || !['out', 'gather'].includes(e.phase)) return false;
+  const progress = e.phase === 'gather' && Number.isFinite(e.timer) && Number.isFinite(e.duration) && e.duration > 0 ? Math.max(0, Math.min(1, 1 - e.timer / e.duration)) : 0;
+  e.yields = Object.fromEntries(Object.entries(e.yields || {}).map(([k, v]) => [k, Math.floor(v * progress)]));
+  if (e.offgrid) { unit.x = e.entryX; unit.y = e.entryY; }
+  const home = homeOf(world, data);
+  e.homeX = home.x; e.homeY = home.y;
+  e.phase = 'back'; e.offgrid = false; e.recalled = true;
   return true;
 }
 
@@ -83,7 +145,7 @@ export function expeditionStatus(unit, data) {
         walk = Math.max(1, Math.ceil(Math.hypot(e.homeX - unit.x, e.homeY - unit.y) / speed));
       }
     } catch {}
-    return `Back in ~${walk}s`;
+    return `${e.recalled ? 'Recalled · ' : ''}Back in ~${walk}s`;
   }
   return null;
 }
@@ -110,12 +172,13 @@ export function rollReturn(world, data, unit, rng = Math.random) {
   const mult = findsMult(data, unit);
   const chances = findChances(data);
   const risk = Math.min(0.9, (e.risk || 0) + skyRisk(world, data));
+  if (e.recalled) return {yields: {...(e.yields || {})}, mishap: Object.values(e.yields || {}).some(v => v > 0) && risk > 0 && rng() < risk, salvage: 0, rescueType: null, artifactId: null, intel: null, discovery: null, recalled: true};
   const mishap = risk > 0 && rng() < risk;
   const rescueType = rng() < chances.rescue * mult ? pickFrom(rescuePool(data), rng) : null;
   const artifactId = rng() < chances.artifact * mult ? pickArtifact(world, data, rng) : null;
   let intel = null;
   const t = findsTable(data);
-  if (t && rng() < chances.intel * mult) {
+  if (t && rng() < Math.min(1, chances.intel * mult * (e.intelMult || 1))) {
     const faction = factionFor(data, (world?.wave || 0) + 1)?.name || 'Raiders';
     const template = pickFrom(t?.intel, rng) || '{faction} sign on the {road} — {detail}';
     const detail = pickFrom(t?.intelDetails, rng) || 'they will come sooner than the last time.';
@@ -158,10 +221,12 @@ export function applyReturn(world, state, data, unit, manifest, notify = () => {
       // Central storage caps (Phase 1): the haul banks what fits; the
       // rest waits on the ledgers (grants queue their overflow).
       grantCentral(world, data, k, amount, true);
+      lines.push(`+${amount} ${k}`);
       floatText(world, at.x, at.y, `+${amount} ${k}${manifest.mishap ? ' (mishap)' : ''}`, manifest.mishap ? '#e08a8a' : '#ffe9a8');
     }
   }
   if (manifest.mishap) lines.push('a mishap on the trail halved the haul');
+  if (manifest.recalled) lines.push('recalled early; unfinished finds were left in the woods');
   // Tech salvage feeds research progress, capped like the passive trickle.
   if (state && manifest.salvage > 0) {
     const r = state.research ??= {points: 0, completed: [], active: null};

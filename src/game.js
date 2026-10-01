@@ -27,7 +27,7 @@ import {ensureIdentity, tickVillagerJobs, tickTitles, autoAssign as autoAssignJo
 import {tickEconomy} from './systems/economy.js';
 import {depositCentral} from './systems/storage.js';
 import {tickRefine, tickCraft, startCraftOrder} from './systems/crafting.js';
-import {tickExpeditions,startExpedition} from './systems/expeditions.js';
+import {tickExpeditions,startExpedition,recallExpedition,expeditionReason,expeditionQuote} from './systems/expeditions.js';
 import {tickFrontierEvents,resolveFrontierEvent} from './systems/frontier-events.js';
 import {tickCombat,spawnRaid,activateAbility,raidSides} from './systems/combat.js';
 import {startMission,tickMission,finishMission,missionLockReason} from './systems/campaign.js';
@@ -527,12 +527,19 @@ export class Game {
  commandHold(id){const u=this.world.troops.find(t=>t.id===id);if(!u)return false;u.order={kind:'hold'};this.notify(`${this.data.troops[u.type].name} holding position.`);return true;}
  // Woodland expeditions (Phase 3): any profession with data `expedition`
  // ranges the treeline through the generic handler — never a troop id here.
- sendExpedition(id){
+ sendExpedition(id,planId='standard'){
   const u=this.world.troops.find(t=>t.id===id);if(!u)return false;
-  if(u.expedition)return this.notify('They are already ranging — watch the inspector for their return.'),false;
-  if(!this.data.troops[u.type]?.expedition)return this.notify('That calling does not range — foragers, woodcutters and wayfinders do.'),false;
-  if(startExpedition(this.world,this.data,u)){this.notify(`${this.data.troops[u.type].name} ranging into the treeline.`);return true;}
+  if(this.state.mission)return this.notify('Ranging waits at home — finish the campaign first.'),false;
+  const reason=expeditionReason(this.world,this.data,u);if(reason)return this.notify(reason),false;
+  const quote=expeditionQuote(this.world,this.data,u,planId);
+  if(startExpedition(this.world,this.data,u,Math.random,planId)){this.notify(`${u.name||this.data.troops[u.type].name} departed: ${quote.name}.`);return true;}
   return this.notify('They cannot range right now.'),false;
+ }
+ recallRanger(id){
+  if(this.state.mission)return this.notify('Return home before recalling woodland rangers.'),false;
+  const u=this.world.troops.find(t=>t.id===id);
+  if(!recallExpedition(this.world,this.data,u))return false;
+  this.notify(`${u.name||this.data.troops[u.type].name} recalled — completed gathering comes home; unfinished finds stay behind.`);return true;
  }
  clearOrder(id){const u=this.world.troops.find(t=>t.id===id);if(!u)return false;u.order=null;this.notify(`${this.data.troops[u.type].name} resuming duties.`);return true;}
  raid(count){if(this.state.mission)return this.notify('Campaign raids follow the mission timeline.');if(this.world.enemies.length||this.world.raidPending)return this.notify('A raid is already underway.');if(!this.world.buildings.some(b=>b.type==='hall'&&b.hp>0))return this.notify('Repair the manor before another raid.');

@@ -1,4 +1,8 @@
 {
+  "rangingPlans": {
+    "provisions": {"name": "Supply run", "text": "A longer gathering trip with a larger material haul.", "durationMult": 1.5, "yieldMult": 1.5, "riskAdd": 0.03, "intelMult": 1},
+    "survey": {"name": "Scout signs", "text": "Trade some materials for a better chance of raid intelligence.", "durationMult": 1.5, "yieldMult": 0.75, "riskAdd": 0.04, "intelMult": 1.5}
+  },
   "artifacts": [
     {
       "id": "cairn-compass",
