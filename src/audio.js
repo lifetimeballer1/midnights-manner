@@ -163,6 +163,13 @@ export class AmbientScoreEngine {
     }
   }
 
+  /** Prefer money_right; fall back to frontier_fortune if that key is all that exists. */
+  easterEggKey() {
+    if (this.data?.tracks?.money_right) return 'money_right';
+    if (this.data?.tracks?.frontier_fortune) return 'frontier_fortune';
+    return null;
+  }
+
   initEasterEggDirector() {
     this.clearRollTimers();
     this.firstRollTimer = setTimeout(() => {
@@ -178,10 +185,11 @@ export class AmbientScoreEngine {
 
   attemptRoll() {
     if (this.currentTrackKey !== 'peace_day' || this.easterEggActive) return;
-    if (!this.data?.tracks?.frontier_fortune) return;
+    const key = this.easterEggKey();
+    if (!key) return;
     if (Math.random() <= 0.25) {
       this.easterEggActive = true;
-      this.setTrack('frontier_fortune');
+      this.setTrack(key);
     }
   }
 
@@ -284,7 +292,8 @@ export class AmbientScoreEngine {
     this.nextPhraseTime = startTime + phraseDuration + restDuration;
     this.phraseIndex = (this.phraseIndex + 1) % track.phrases.length;
 
-    if (this.currentTrackKey === 'frontier_fortune' && this.phraseIndex === 0) {
+    const egg = this.easterEggKey();
+    if (egg && this.currentTrackKey === egg && this.phraseIndex === 0) {
       this.easterEggActive = false;
       this.setTrack('peace_day');
     }
