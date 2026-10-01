@@ -1,3 +1,11 @@
+## Free low-poly asset integration — 2026-10-01
+
+- Integrate seven reviewed Quaternius CC0 props into storage, resource workplaces, Longhouse/settlement seating and frontier rocks through the existing Canvas renderer.
+- Convert GLB sources offline; bake transforms, normalize ground pivots, simplify by material, match the existing palette, and retain source provenance.
+- Preserve procedural distant/budget fallbacks, tier details, selection ownership and all simulation/save systems.
+- Reject RG Poly Small Props Pack after its included license contradicted the page CC0 label with redistribution restrictions.
+- Add provenance, geometry, orbit-selection, fallback and tier regression checks; deliberately update five affected masterwork lighting baselines.
+
 ## 2026-10-01 — Working supply chains
 
 - Prioritize meals, recovery, cumulative construction baskets, needed gear, production targets and reserves; propagate shortages through staffed recipe chains. Age waiting jobs for fairness and choose reachable supply hubs.

@@ -66,6 +66,8 @@ const dayLight = canon(0.3), nightLight = canon(0.8), dawnLight = canon(0.01);
 // Living detail pass: functional props, circular cart wheels and gate guides.
 // V1 deliberately pins the new masterwork branches (citadel, grand
 // watchtower, great-work tier 6) so later phases diff them in review.
+// CC0 prop pass deliberately repins five masterwork cargo geometries; all
+// other structure, defense, equipment and lighting formula pins stay intact.
 const CASES = [
   ["hall-1","hall",1,207,"fbeff627beb772a4","06d7d28a22b0aaaf","9cb46ec8433be3bb","e955f4f6ab94a7f6"],
   ["hall-2","hall",2,267,"4aba687d05ec28f0","961d54243adfcccb","1adb9a33c51f4c74","1b67c461502c5766"],
@@ -78,12 +80,12 @@ const CASES = [
   ["tower-3","tower",3,72,"ebc9c087acf5f1e3","b10ea680d2afed94","c01b2692645a3315","7f68f3801e65e545"],
   ["sawmill-2","sawmill",2,151,"be4fd15e9d212d69","7cdf7b6e6718abb3","444862e660ad422e","b2a1b4609cd127db"],
   ["mill-2","mill",2,229,"86664e9121675515","cc6c6242ca4af88b","a7d93443ff0faf79","84db1b53162d41d2"],
-  ["citadel-4","manner-citadel",4,326,"80285b0420071f09","8f6fb0173043c8df","27b2403f053e6d5f","1b6ccddf32955a79"],
+  ["citadel-4","manner-citadel",4,418,"1047474d6e566a85","7e2d07fc14915b82","c18f1bf044480e49","98d09698fe88e9a1"],
   ["grand-watch-4","grand-watchtower",4,229,"12be0cec770346bb","d516eeebf2f879a4","bb5bb0cb31e71c25","4b2cf703e9575b93"],
-  ["stone-road-6","stone-road",6,241,"273d7832a2ab865b","1b0a41819a0c8830","615cc8bf9ff80111","4dd91d63df33b48e"],
-  ["city-wall-6","city-wall",6,254,"52d3a90450a8d5f7","525fc0036e24b49b","4a44a3f91c7a32a6","cfeabab551ad8a55"],
-  ["forge-quarter-6","forge-quarter",6,256,"a24b7e6aca4920b6","48463cc7bfc91ede","d4d57f41058287e6","d1e12418ecfc99c5"],
-  ["lantern-rows-6","lantern-rows",6,233,"f149fadec8b80afe","883ec008a2686c2d","b6398285bb89bbcd","218735e241ee6e21"],
+  ["stone-road-6","stone-road",6,406,"101ec1c683599c15","7260147591595cb4","4e3262c00bdbc287","53a9065ac746bbc8"],
+  ["city-wall-6","city-wall",6,419,"2f6de9c549d34dc9","16981a1f255c1ae9","b67403196b0f365b","d801ecbfb384d17e"],
+  ["forge-quarter-6","forge-quarter",6,421,"84ddb4409f271f76","b19f92a7043f0378","eeac67b85ef7da3a","efe022345e67ec90"],
+  ["lantern-rows-6","lantern-rows",6,398,"9a4b5d6adab2855c","bb95e11a6cc87f81","7c6c6a3a8fff6e4b","0d4a4ed367306e82"],
 ];
 const ORBIT = {"faces":770,"day":"42c57ac0a58b0b8b","night":"0a922c280a83f28f","dawn":"33de588b650fcfbe"};
 // Canonical tool and outfit lineups at the mobile/gameplay zoom.

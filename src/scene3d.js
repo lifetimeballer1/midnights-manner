@@ -2,6 +2,7 @@ import {addLogisticsMeshes,addRoadGeometry,drawLogisticsOverlay} from './logisti
 import {roadRevision} from './systems/roads.js';
 import {addLivingMechanisms} from './mechanical-art.js';
 import {addLivingProps} from './living-props.js';
+import {addExternalProp,addExternalWorkplace} from './external-art.js';
 import {addWindLife} from './wind-art.js';
 import {addTrailGeometry,trailRevision} from './systems/trails.js';
 // Original low-poly village geometry, projected by the shared orbit camera.
@@ -251,17 +252,20 @@ function workplaceDetails(s,b,n){
 }
 
 function detailCrate(s,x,y,z=.12,scale=1){
+ if(addExternalProp(s,'crate',x+.14*scale,y+.12*scale,z,.22*scale))return;
  const w=.28*scale,d=.24*scale,h=.22*scale;
  s.box(x,y,z,w,d,h,'#8d6844');
  s.box(x-.012,y-.012,z+h,w+.024,d+.024,.045,'#b88a55');
  s.box(x+w*.44,y-.018,z+.02,w*.12,d+.036,h+.06,'#604a39');
 }
 function detailBarrel(s,x,y,z=.12,scale=1){
+ if(addExternalProp(s,'barrel',x+.11*scale,y+.11*scale,z,.26*scale))return;
  const w=.22*scale,d=.22*scale,h=.34*scale;
  s.box(x,y,z,w,d,h,'#8a6646');
  for(const dz of [.04,h-.075])s.box(x-.012,y-.012,z+dz,w+.024,d+.024,.035,'#53544e');
 }
 function detailSack(s,x,y,z=.12,scale=1){
+ if(addExternalProp(s,'bag',x,y,z,.11*scale))return;
  s.pyramid(x,y,z,.12*scale,.2*scale,'#d5bf8f',6);
  s.box(x-.035*scale,y-.035*scale,z+.17*scale,.07*scale,.07*scale,.04*scale,'#8d7654');
 }
@@ -829,6 +833,7 @@ export function buildingModel(s,b,spec,world,time=0){
  if(b.id==null)return; // placement previews already have a clear ghost treatment
  buildingDetailLayer(s,b,spec);
  addLivingProps(s,b,spec);
+ addExternalWorkplace(s,b,spec);
  const x=b.x,y=b.y,n=spec.size;
  if(b.hp<=0){
   s.alpha=.95;

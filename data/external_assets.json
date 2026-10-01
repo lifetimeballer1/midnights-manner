@@ -1,0 +1,285 @@
+{
+  "schemaVersion": 1,
+  "assets": [
+    {
+      "id": "barrel",
+      "name": "Barrel",
+      "creator": "Quaternius",
+      "source": "Poly Pizza",
+      "originalPage": "https://poly.pizza/m/zjCQP1TAci",
+      "license": "CC0-1.0",
+      "licenseURL": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Made by Quaternius (CC0); adapted for Midnights Manner. Attribution voluntary.",
+      "sourceFile": "scripts/asset-sources/barrel.glb",
+      "downloadURL": "https://static.poly.pizza/df9e4b83-758a-4fc7-b311-70fc949ed7ff.glb",
+      "localFiles": [
+        "src/external-geometry.js",
+        "scripts/asset-sources/barrel.glb"
+      ],
+      "modifications": [
+        "glTF node transforms baked",
+        "Y-up converted to Z-up",
+        "ground-centered pivot and unit height",
+        "source material colors mapped to existing village flat palette",
+        "duplicate vertices welded",
+        "adjacent convex coplanar faces merged",
+        "unused normals, UVs, textures and PBR materials removed",
+        "quadric-error simplification by material",
+        "1/32-height vertex clustering",
+        "distance and shared face-budget fallback"
+      ],
+      "gameSystems": [
+        "workplace water/cargo props"
+      ],
+      "verifiedDate": "2026-10-01",
+      "licenseEvidence": {
+        "pageLabel": "CC0 1.0",
+        "creator": "Quaternius",
+        "includedRestrictions": "None; public-domain CC0 source listing."
+      },
+      "sourceSHA256": "acf56e7eb64e37ea4ab2a6b072dbbcfd315ba45a511bee141e5541421e2f2238"
+    },
+    {
+      "id": "crate",
+      "name": "Crate",
+      "creator": "Quaternius",
+      "source": "Poly Pizza",
+      "originalPage": "https://poly.pizza/m/3OEFd1AWfa",
+      "license": "CC0-1.0",
+      "licenseURL": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Made by Quaternius (CC0); adapted for Midnights Manner. Attribution voluntary.",
+      "sourceFile": "scripts/asset-sources/crate.glb",
+      "downloadURL": "https://static.poly.pizza/f5ed50d1-1317-4c50-befc-cda0380a6c9c.glb",
+      "localFiles": [
+        "src/external-geometry.js",
+        "scripts/asset-sources/crate.glb"
+      ],
+      "modifications": [
+        "glTF node transforms baked",
+        "Y-up converted to Z-up",
+        "ground-centered pivot and unit height",
+        "source material colors mapped to existing village flat palette",
+        "duplicate vertices welded",
+        "adjacent convex coplanar faces merged",
+        "unused normals, UVs, textures and PBR materials removed",
+        "quadric-error simplification by material",
+        "1/32-height vertex clustering",
+        "distance and shared face-budget fallback"
+      ],
+      "gameSystems": [
+        "storage and workplace props"
+      ],
+      "verifiedDate": "2026-10-01",
+      "licenseEvidence": {
+        "pageLabel": "CC0 1.0",
+        "creator": "Quaternius"
+      },
+      "sourceSHA256": "57031e1b6102dd9bec3e27e966655588d18c3fdede34232a6b6497ce57030a85"
+    },
+    {
+      "id": "bag",
+      "name": "Bag",
+      "creator": "Quaternius",
+      "source": "Poly Pizza",
+      "originalPage": "https://poly.pizza/m/VRfAODZ0Xk",
+      "license": "CC0-1.0",
+      "licenseURL": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Made by Quaternius (CC0); adapted for Midnights Manner. Attribution voluntary.",
+      "sourceFile": "scripts/asset-sources/bag.glb",
+      "downloadURL": "https://static.poly.pizza/5c18a372-e0fb-490f-aa90-8bdd04d7e92f.glb",
+      "localFiles": [
+        "src/external-geometry.js",
+        "scripts/asset-sources/bag.glb"
+      ],
+      "modifications": [
+        "glTF node transforms baked",
+        "Y-up converted to Z-up",
+        "ground-centered pivot and unit height",
+        "source material colors mapped to existing village flat palette",
+        "duplicate vertices welded",
+        "adjacent convex coplanar faces merged",
+        "unused normals, UVs, textures and PBR materials removed",
+        "quadric-error simplification by material",
+        "1/32-height vertex clustering",
+        "distance and shared face-budget fallback"
+      ],
+      "gameSystems": [
+        "farm and workplace sacks"
+      ],
+      "verifiedDate": "2026-10-01",
+      "licenseEvidence": {
+        "pageLabel": "CC0 1.0",
+        "creator": "Quaternius"
+      },
+      "sourceSHA256": "4f00b8e510b1f2f811b7f9fdbaef4a4acdb282c4cdf3363f8cc91462210aa959"
+    },
+    {
+      "id": "grain-sack",
+      "name": "Bag Open",
+      "creator": "Quaternius",
+      "source": "Poly Pizza",
+      "originalPage": "https://poly.pizza/m/rJuZexcuhU",
+      "license": "CC0-1.0",
+      "licenseURL": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Made by Quaternius (CC0); adapted for Midnights Manner. Attribution voluntary.",
+      "sourceFile": "scripts/asset-sources/grain-sack.glb",
+      "downloadURL": "https://static.poly.pizza/d80aaa87-23d8-4e45-83a2-5ffd22c36356.glb",
+      "localFiles": [
+        "src/external-geometry.js",
+        "scripts/asset-sources/grain-sack.glb"
+      ],
+      "modifications": [
+        "glTF node transforms baked",
+        "Y-up converted to Z-up",
+        "ground-centered pivot and unit height",
+        "source material colors mapped to existing village flat palette",
+        "duplicate vertices welded",
+        "adjacent convex coplanar faces merged",
+        "unused normals, UVs, textures and PBR materials removed",
+        "quadric-error simplification by material",
+        "1/32-height vertex clustering",
+        "distance and shared face-budget fallback"
+      ],
+      "gameSystems": [
+        "mill, bakery and granary supplies"
+      ],
+      "verifiedDate": "2026-10-01",
+      "licenseEvidence": {
+        "pageLabel": "CC0 1.0",
+        "creator": "Quaternius"
+      },
+      "sourceSHA256": "a8bd10aeb91889f0333a3998b0d4c89ff23cee013941c8972d0be7c922ad8163"
+    },
+    {
+      "id": "hay",
+      "name": "Hay",
+      "creator": "Quaternius",
+      "source": "Poly Pizza",
+      "originalPage": "https://poly.pizza/m/Yu8TOERkpw",
+      "license": "CC0-1.0",
+      "licenseURL": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Made by Quaternius (CC0); adapted for Midnights Manner. Attribution voluntary.",
+      "sourceFile": "scripts/asset-sources/hay.glb",
+      "downloadURL": "https://static.poly.pizza/8ab0043c-9a54-47b1-9b46-31b98d2f6ed8.glb",
+      "localFiles": [
+        "src/external-geometry.js",
+        "scripts/asset-sources/hay.glb"
+      ],
+      "modifications": [
+        "glTF node transforms baked",
+        "Y-up converted to Z-up",
+        "ground-centered pivot and unit height",
+        "source material colors mapped to existing village flat palette",
+        "duplicate vertices welded",
+        "adjacent convex coplanar faces merged",
+        "unused normals, UVs, textures and PBR materials removed",
+        "quadric-error simplification by material",
+        "1/32-height vertex clustering",
+        "distance and shared face-budget fallback"
+      ],
+      "gameSystems": [
+        "pasture and farm supplies"
+      ],
+      "verifiedDate": "2026-10-01",
+      "licenseEvidence": {
+        "pageLabel": "CC0 1.0",
+        "creator": "Quaternius"
+      },
+      "sourceSHA256": "a7b39cae2cbd0839647c23c597a4ff64cb3a1086529e78c0169614f4a42655ed"
+    },
+    {
+      "id": "bench",
+      "name": "Bench",
+      "creator": "Quaternius",
+      "source": "Poly Pizza",
+      "originalPage": "https://poly.pizza/m/jLxjFxFRpw",
+      "license": "CC0-1.0",
+      "licenseURL": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Made by Quaternius (CC0); adapted for Midnights Manner. Attribution voluntary.",
+      "sourceFile": "scripts/asset-sources/bench.glb",
+      "downloadURL": "https://static.poly.pizza/1361c268-20f7-4e73-a931-ce434c6b503e.glb",
+      "localFiles": [
+        "src/external-geometry.js",
+        "scripts/asset-sources/bench.glb"
+      ],
+      "modifications": [
+        "glTF node transforms baked",
+        "Y-up converted to Z-up",
+        "ground-centered pivot and unit height",
+        "source material colors mapped to existing village flat palette",
+        "duplicate vertices welded",
+        "adjacent convex coplanar faces merged",
+        "unused normals, UVs, textures and PBR materials removed",
+        "quadric-error simplification by material",
+        "1/32-height vertex clustering",
+        "distance and shared face-budget fallback"
+      ],
+      "gameSystems": [
+        "Longhouse, cottages, market and Great Works seating"
+      ],
+      "verifiedDate": "2026-10-01",
+      "licenseEvidence": {
+        "pageLabel": "CC0 1.0",
+        "creator": "Quaternius"
+      },
+      "sourceSHA256": "9e923fef29388cca35f8eb473e95bc5ef32fea733682e9e54b6b944e3c055204"
+    },
+    {
+      "id": "rock",
+      "name": "Rock",
+      "creator": "Quaternius",
+      "source": "Poly Pizza",
+      "originalPage": "https://poly.pizza/m/aCtxEoSLEZ",
+      "license": "CC0-1.0",
+      "licenseURL": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Made by Quaternius (CC0); adapted for Midnights Manner. Attribution voluntary.",
+      "sourceFile": "scripts/asset-sources/rock.glb",
+      "downloadURL": "https://static.poly.pizza/e3b3af15-07c2-499e-a20d-2d4040538cdd.glb",
+      "localFiles": [
+        "src/external-geometry.js",
+        "scripts/asset-sources/rock.glb"
+      ],
+      "modifications": [
+        "glTF node transforms baked",
+        "Y-up converted to Z-up",
+        "ground-centered pivot and unit height",
+        "source material colors mapped to existing village flat palette",
+        "duplicate vertices welded",
+        "adjacent convex coplanar faces merged",
+        "unused normals, UVs, textures and PBR materials removed",
+        "quadric-error simplification by material",
+        "1/32-height vertex clustering",
+        "distance and shared face-budget fallback"
+      ],
+      "gameSystems": [
+        "frontier scenery"
+      ],
+      "verifiedDate": "2026-10-01",
+      "licenseEvidence": {
+        "pageLabel": "CC0 1.0",
+        "creator": "Quaternius"
+      },
+      "sourceSHA256": "e8d38b0e194e2d5a0c081fe7944fe4c9dde95cc85f99b7fe9eade993af956eda"
+    }
+  ],
+  "skipped": [
+    {
+      "name": "RG Poly Small Props Pack",
+      "source": "https://rg-poly.itch.io/medieval-props-small-pack-low-poly",
+      "reason": "Included License.txt contradicts page CC0 with standalone redistribution restrictions; public repository compatibility unclear."
+    },
+    {
+      "name": "Complete buildings and rigged characters",
+      "reason": "Canvas renderer lacks a glTF/skin animation loader; retain procedural tier structures and existing job/tool animation."
+    },
+    {
+      "name": "Quaternius cart",
+      "reason": "Keep current animated cart, wheel pivots and loaded state rather than replacing with a static mesh."
+    },
+    {
+      "name": "Quaternius Tree",
+      "source": "https://poly.pizza/m/8qABc2Nslz",
+      "reason": "1366 source triangles and an unsuitable crown; existing procedural trees are cheaper and fit the village better."
+    }
+  ]
+}
