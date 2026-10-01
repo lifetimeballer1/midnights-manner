@@ -107,6 +107,7 @@ function demands(game){
 }
 function planCraft(game,cache){
  const {world:w,data:d}=game,need=demands(game);
+ cache.materialNeeds={};
  for(const b of w.buildings){
   if(!recipeList(d).some(([,it])=>it.craft.building===b.type))continue;
   let note='No equipment needed';
@@ -119,7 +120,7 @@ function planCraft(game,cache){
    if(!crew.length)note='Waiting for workers';
    else for(const [id,it] of recipeList(d)){
     if(it.craft.building!==b.type||!(need.get(id)>0))continue;
-    if(!canSpend(game,craftCost(it,crew),{purpose:'craft'})){note='Waiting for materials or reserves';continue;}
+    if(!canSpend(game,craftCost(it,crew),{purpose:'craft'})){note='Waiting for materials or reserves';for(const [k,n] of Object.entries(craftCost(it,crew)))cache.materialNeeds[k]=Math.max(cache.materialNeeds[k]||0,(w.resources[k]||0)+Math.max(0,n-spendingAvailable(game,k,{purpose:'craft'})));continue;}
     const result=startCraftOrder(w,d,b.id,id);
     if(result.ok){need.set(id,need.get(id)-1);note=`Crafting ${it.name}`;break;}
     note=result.error;
@@ -128,9 +129,12 @@ function planCraft(game,cache){
   cache.status.set(b.id,note);
  }
 }
+export function automationMaterialNeeds(world){return {...runtime.get(world)?.materialNeeds};}
+export function automationConstructionNeeds(world){return {...runtime.get(world)?.constructionNeeds};}
 const priority=(b,d)=>b.type==='hall'?0:isWall(b)||d.buildings[b.type]?.tiers[b.level-1]?.damage?1:2;
 function planBuilders(game,cache){
  const {world:w,data:d}=game,builders=w.troops.filter(u=>eligible(u,d));
+ cache.constructionNeeds={};
  for(const u of w.troops)delete u.builderTask;
  if(activeRaid(w))return;
  const repairs=w.buildings.filter(b=>b.remaining<=0&&b.hp<buildingMaxHp(b,d)).sort((a,b)=>priority(a,d)-priority(b,d)+(priority(a,d)===priority(b,d)?Number(!!w.steward?.enabled&&w.steward.districts?.some(x=>x.priority==='repair'&&x.buildingIds.includes(b.id)))-Number(!!w.steward?.enabled&&w.steward.districts?.some(x=>x.priority==='repair'&&x.buildingIds.includes(a.id))):0));
@@ -163,7 +167,7 @@ function planBuilders(game,cache){
   else if(game.locked(b.type)||spec.tierGates?.[b.level+1]>(game.state.vlevel||1))note='Village level or unlock required';
   else{
    const cost=b.type==='hall'?{wood:200*b.level,gold:150*b.level}:buildingCost(b.type,b.level+1,w,d);
-   if(!canSpend(game,cost,{purpose:'upgrade',buildingId:b.id}))note='Waiting for materials or reserves';
+   if(!canSpend(game,cost,{purpose:'upgrade',buildingId:b.id})){note='Waiting for materials or reserves';for(const [k,n] of Object.entries(cost))cache.constructionNeeds[k]=Math.max(cache.constructionNeeds[k]||0,(w.resources[k]||0)+Math.max(0,n-spendingAvailable(game,k,{purpose:'upgrade',buildingId:b.id})));}
    else{game.upgrade(b.id);if(b.remaining>0){note='Builders upgrading';for(const u of builders)u.builderTask={kind:'construction',target:b.id,working:false};cache.status.set(b.id,note);break;}}
   }
   cache.status.set(b.id,note);

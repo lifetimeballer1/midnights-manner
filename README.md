@@ -524,3 +524,11 @@ This is a shared-store logistics model: input deliveries improve modest throughp
 ### The Village Holds
 
 Defense posts now fill like jobs, civilians enter reachable shelters during raids, staffed equipment workshops craft the highest unlocked needed tier, and builders travel to repair and construction work. Opt-in automatic upgrades have a master switch, per-building tier limits and protected resource reserves. People, building inspectors and Stores expose the controls without adding navigation tiles. Raid summaries report breaches and responding defenders. Save v15 remains compatible; new settings are additive and transient shelter/routes restart safely. See [docs/VILLAGE-HOLDS.md](docs/VILLAGE-HOLDS.md) for behavior, budgets and verification limits.
+
+### Siege intelligence and group commands
+
+Home raiders now coordinate by approach side, probe exposed weak defenses, and use fresh breaches to advance. Army & People offers scoped Hold, Defend post, Rally & hold and Resume group duties commands. Enemy plans appear in the battle HUD and raid reports explain breach advances. Campaigns, bosses, balance curves and v15 saves retain their existing contracts. See [Siege and supply intelligence](docs/SIEGE-SUPPLY.md).
+
+### Working supply chains
+
+Haulers prioritize meal shortages, recovery, planned construction and equipment materials, including protected reserves. Staffed recipe chains pull demand toward raw ingredients; workshop inputs use reachable supply hubs, and full outputs stop unnecessary trips. Stores shows shortages, idle-workshop causes, delivery bottlenecks and project handling benefits. Shared-store accounting, manual collection, save v15 and existing hauling/path budgets remain intact. See [Siege and supply intelligence](docs/SIEGE-SUPPLY.md).
