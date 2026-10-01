@@ -1,0 +1,20 @@
+import {visualHauls,visualCaravans} from './systems/logistics.js';
+import {wheelMesh,beam} from './mechanical-art.js';
+import {greatWorkTier} from './systems/roads.js';
+const loads={wood:'#987046',frostwood:'#85b8bb',food:'#c8b579',flour:'#dfd0ad',bread:'#bd854b',gold:'#c9a260',plate:'#9ba6ad',lumber:'#ad8d64',rations:'#aa9970'};
+function cart(s,j){const u=j.unit,p=s.r.project(u.x,u.y,.2);if(p.x<-45||p.y<-45||p.x>s.r.width+45||p.y>s.r.height+45)return;
+ const angle=j.heading-Math.PI/2,co=Math.cos(angle),si=Math.sin(angle),x=u.x-Math.cos(j.heading)*.42,y=u.y-Math.sin(j.heading)*.42,proxy=Object.create(s);proxy.face=(v,c,split)=>s.face(v.map(([a,b,z])=>[x+a*co-b*si,y+a*si+b*co,z]),c,split);s.owner=null;
+ proxy.box(-.18,-.22,.18,.36,.44,.05,'#846344');for(const off of [-.18,.155])proxy.box(off,-.22,.23,.025,.44,.13,'#71553c');
+ if(s.r.cam.zoom>=1.2){for(const dx of [-.22,.22])wheelMesh(proxy,dx,0,.16,.13,s.r.calm?0:j.wheel);beam(proxy,[0,.22,.2],[0,.5,.25],.028,'#907251');}else for(const dx of [-.23,.19])proxy.box(dx,-.1,.06,.04,.2,.2,'#4e473b');
+ if(j.loaded){const color=loads[j.resource]||'#b7ac89';if(['wood','lumber','frostwood'].includes(j.resource)){for(let i=0;i<3;i++)proxy.box(-.13+i*.095,-.21,.25,.08,.42,.09,color);}else for(let i=0;i<3;i++)proxy.pyramid(-.09+(i%2)*.17,-.1+Math.floor(i/2)*.18,.24,.085,.16,color,5);}
+}
+export function addLogisticsMeshes(s,w){for(const j of visualHauls(w)){if(j.cart)cart(s,j);else if(j.loaded){const p=s.r.project(j.unit.x,j.unit.y,.35);if(p.x<0||p.y<0||p.x>s.r.width||p.y>s.r.height)continue;s.owner=null;s.box(j.unit.x-.09,j.unit.y-.08,.3,.18,.16,.13,loads[j.resource]||'#b7ac89');}}for(const j of visualCaravans(w))cart(s,j);}
+export function addRoadGeometry(s,w){let details=0;const network=greatWorkTier(w,'stone-road'),lamps=greatWorkTier(w,'lantern-rows');for(const [key,tier] of Object.entries(w.roads||{})){const [ix,iy]=key.split(',').map(Number),x=(ix+.5)/2,y=(iy+.5)/2,p=s.r.project(x,y);if(p.x<-40||p.y<-40||p.x>s.r.width+40||p.y>s.r.height+40)continue;const color=tier===2?'#aaa89a':'#9c8865';s.face([[x-.25,y-.25,.018],[x+.25,y-.25,.018],[x+.25,y+.25,.018],[x-.25,y+.25,.018]],color,false);
+ if(s.r.cam.zoom>=1.2){if(tier===2){s.face([[x-.23,y-.012,.02],[x+.23,y-.012,.02],[x+.23,y+.012,.02],[x-.23,y+.012,.02]],'#797e78',false);}else for(const off of [-.095,.095])s.face([[x-.22,y+off,.02],[x+.22,y+off,.02],[x+.22,y+off+.018,.02],[x-.22,y+off+.018,.02]],'#807357',false);}
+ if(details<32&&network>=4&&s.r.cam.zoom>=1.2&&(ix*13+iy*7)%29===0){s.box(x+.22,y+.2,.02,.03,.03,.38,'#766344');s.box(x+.14,y+.2,.32,.18,.025,.075,'#baa074');details++;if(lamps){s.emissive=.8;s.box(x+.205,y+.19,.39,.06,.06,.09,'#f7ce87');s.emissive=0;s.source([x+.235,y+.22,.43],null,.8,.35,'lantern');}else if(network>=6)s.box(x+.25,y+.2,.27,.1,.025,.12,'#6d7887');}
+ }}
+export function drawLogisticsOverlay(r,w){const mode=r.logisticsOverlay;if(!mode||mode==='off')return;const c=r.ctx;c.save();c.lineWidth=2;c.strokeStyle='#e1c384';c.globalAlpha=.6;
+ if(mode==='traffic'){let count=0;for(const [key,e] of Object.entries(w.trails||{})){if(e[0]<15||count>=256)continue;const [ix,iy]=key.split(',').map(Number),p=r.project((ix+.5)/2,(iy+.5)/2,.03);if(p.x<0||p.y<0||p.x>r.width||p.y>r.height)continue;c.globalAlpha=Math.min(.65,.2+e[0]/150);c.lineWidth=e[0]>45?4:2;c.beginPath();c.moveTo(p.x-3,p.y);c.lineTo(p.x+3,p.y);c.stroke();count++;}}
+ else if(mode==='storage'){let count=0;for(const b of w.buildings){if(count>=100)break;if(!r.data.buildings[b.type]?.storage||b.hp<=0)continue;const p=r.project(b.x+r.data.buildings[b.type].size/2,b.y+r.data.buildings[b.type].size/2,.15);if(p.x<0||p.y<0||p.x>r.width||p.y>r.height)continue;c.beginPath();c.ellipse(p.x,p.y,15*r.cam.zoom,8*r.cam.zoom,0,0,Math.PI*2);c.stroke();count++;}}
+ else for(const j of visualHauls(w)){const a=r.project(j.origin.x,j.origin.y,.04),b=r.project(j.target.x,j.target.y,.04),u=r.project(j.unit.x,j.unit.y,.5);c.setLineDash([4,5]);c.beginPath();c.moveTo(a.x,a.y);c.lineTo(b.x,b.y);c.stroke();c.setLineDash([]);c.beginPath();c.arc(u.x,u.y,4,0,Math.PI*2);c.stroke();}
+ c.restore();}

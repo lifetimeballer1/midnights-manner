@@ -1,3 +1,4 @@
+import {matureSettlement} from './settlement-fixture.mjs';
 // Dependency-free real-Chromium regression test. CI provides google-chrome.
 // Local usage: CHROME_BIN=/path/to/chrome npm run test:browser
 import {spawn,spawnSync} from 'node:child_process';
@@ -261,6 +262,30 @@ try{
  assert.equal(living.speed,1.11,'packed path bonus in real Chromium');
  for(const frame of living.frames){assert.ok(frame.faces<30000&&frame.staticFaces<30000,'crowded living village stays bounded');await writeFile('artifacts/living-browser-'+frame.tag+'.png',Buffer.from(frame.image,'base64'));delete frame.image;}
  console.log('Living detail browser review',living);
+
+ // Living settlement: actual Chromium, 390x844 at DPR 2, 150 villagers.
+ const settlement=await evaluate(`(async()=>{
+ const root='/midnights-manner/',names=['world','buildings','troops','items','abilities','quests','missions','biomes','expansion','calendar','conquest','endgame','factions'];
+ const d=Object.fromEntries(await Promise.all(names.map(async n=>[n,await(await fetch(root+'data/'+n+'.json')).json()])));
+ const [model,trails,logistics,crafting,economy,emergency,combat,clock,routing,{Renderer}]=await Promise.all(['model.js','systems/trails.js','systems/logistics.js','systems/crafting.js','systems/economy.js','systems/emergency.js','systems/combat.js','systems/daynight.js','systems/pathfinding.js','renderer.js'].map(n=>import(root+'src/'+n)));
+ const make=${matureSettlement.toString()},reports=[];const stat=a=>{const s=[...a].sort((a,b)=>a-b);return {average:a.reduce((a,b)=>a+b,0)/a.length,p50:s[Math.floor(s.length*.5)],p95:s[Math.floor(s.length*.95)]};};
+ for(const mode of ['day','night','rain','warning','raid']){
+  const w=make(d,{...model,...trails}),canvas=document.createElement('canvas'),r=new Renderer(canvas,d,{});r.resize(390,844,2);r.cam={x:19,y:13,zoom:1.1,yaw:Math.PI/4,pitch:.8};
+  for(let i=0;i<100;i++){w.elapsed+=.05;logistics.tickLogistics(w,d,.05);crafting.tickRefine(w,d,.05,true);}
+  for(let t=0;t<30000;t+=5){const p=clock.phaseAt(t,d),weather=clock.weatherAt(t,d).id;if(mode==='night'?p.night&&weather==='clear':mode==='rain'?weather==='rain':!p.night&&weather==='clear'){w.elapsed=t;break;}}
+  if(mode==='warning')w.raidPending={at:w.elapsed+30};if(mode==='raid')combat.spawnRaid(w,6,null,d,null);
+  const render=[],ticks=[],frames=[],heap=performance.memory?.usedJSHeapSize||null;
+  for(let i=0;i<40;i++){const frameStart=performance.now();let t=frameStart;emergency.tickEmergency(w,d,.05);economy.tickEconomy(w,d,.05);logistics.tickLogistics(w,d,.05);crafting.tickRefine(w,d,.05,true);combat.tickCombat(w,d,.05);w.elapsed+=.05;ticks.push(performance.now()-t);t=performance.now();r.draw(w,2000+i*50);if(i>=10){render.push(performance.now()-t);frames.push(performance.now()-frameStart);}}
+  const metrics=logistics.logisticsMetrics(w);if(metrics.activeJobs>24||metrics.visibleCarts>10||metrics.routeCache>48||metrics.intervalPathCalculations>8)throw Error('Unbounded settlement simulation');
+  if(r.sceneFaces.some(f=>f.vertices.some(v=>v.some(n=>!Number.isFinite(n)))))throw Error('Invalid logistics geometry');
+  reports.push({mode,phase:clock.phaseAt(w.elapsed,d).id,weather:clock.weatherAt(w.elapsed,d).id,viewport:[390,844],dpr:2,villagers:150,buildings:w.buildings.length,pendingOutputs:w.buildings.reduce((n,b)=>n+Object.values(b.outputReserve||{}).reduce((a,v)=>a+v,0),0),outputJobs:logistics.visualHauls(w).filter(j=>j.kind==='output').length,frameMs:stat(frames),renderMs:stat(render),tickMs:stat(ticks),heapDeltaBytes:heap?(performance.memory.usedJSHeapSize-heap):null,faces:r.sceneFaces.length,...metrics,...routing.movementMetrics(w),image:canvas.toDataURL('image/png').split(',')[1]});
+ }
+ return reports;
+})()`);
+ for(const report of settlement){await writeFile('artifacts/settlement-browser-'+report.mode+'.png',Buffer.from(report.image,'base64'));delete report.image;}
+ await writeFile('artifacts/settlement-browser-benchmark.json',JSON.stringify({environment:'Headless Chromium in CI; desktop CPU, not physical phone',reports:settlement},null,2));
+ console.log('Living settlement Chromium benchmark',settlement);
+ await ensureResources();await fire('[data-resource="wood"]');await waitFor('!!document.querySelector("[data-logistics-view]")');await fire('[data-logistics-view="traffic"]');await click('#close-panel');
 
  await click('[data-tab="troops"]');await click('[data-category="recruit"]');
  assert.ok((await evaluate('document.querySelectorAll("[data-recruit]").length'))>=20,'all professions retained');

@@ -1,3 +1,5 @@
+import {addLogisticsMeshes,addRoadGeometry,drawLogisticsOverlay} from './logistics-art.js';
+import {roadRevision} from './systems/roads.js';
 import {addLivingMechanisms} from './mechanical-art.js';
 import {addLivingProps} from './living-props.js';
 import {addWindLife} from './wind-art.js';
@@ -38,14 +40,14 @@ export function shade(hex,n,light,emissive=0,depth01=0,ao=1,local=0){
  return '#'+[value>>16,(value>>8)&255,value&255].map((v,i)=>{let c=Math.min(255,Math.round(v*(lit[i]+local*[1,.57,.22][i])*dim));if(fog>0)c=Math.round(c+(light.fogRGB[i]*255-c)*fog);return c.toString(16).padStart(2,'0');}).join('');
 }
 export class MeshScene {
- constructor(r){this.r=r;this.faces=[];this.sources=[];this.chimneys=[];this.doors=[];this.owner=null;this.alpha=1;this.depthBias=0;this.light=FALLBACK_LIGHT;this.emissive=0;this.fixture=false;this.basis=cameraBasis(r);}
+ constructor(r){this.r=r;this.faces=[];this.sources=[];this.chimneys=[];this.doors=[];this.owner=null;this.alpha=1;this.depthBias=0;this.light=FALLBACK_LIGHT;this.emissive=0;this.fixture=false;this.subdivision=.4;this.basis=cameraBasis(r);}
  source(position,direction=null,radius=1.25,power=.7,profile='generic'){
   if(this.alpha===1){const source={position,direction,radius,power,profile,owner:this.owner};source.phase=sourcePhase(source);this.sources.push(source);}
  }
  face(vertices,color,split=true){
   // Split broad roof/wall planes so chimneys and neighboring meshes occlude
   // correctly even at low camera angles (painter ordering uses face centers).
-  if(split&&vertices.length===4){const [a,b,c,d]=vertices,dist=(u,v)=>Math.hypot(...u.map((n,i)=>n-v[i])),nx=Math.ceil(dist(a,b)/.4),ny=Math.ceil(dist(a,d)/.4);if(nx*ny>1){const point=(u,v)=>a.map((n,i)=>(1-v)*((1-u)*n+u*b[i])+v*((1-u)*d[i]+u*c[i]));for(let i=0;i<nx;i++)for(let j=0;j<ny;j++)this.face([point(i/nx,j/ny),point((i+1)/nx,j/ny),point((i+1)/nx,(j+1)/ny),point(i/nx,(j+1)/ny)],color,false);return;}}
+  if(split&&vertices.length===4){const [a,b,c,d]=vertices,dist=(u,v)=>Math.hypot(...u.map((n,i)=>n-v[i])),nx=Math.ceil(dist(a,b)/this.subdivision),ny=Math.ceil(dist(a,d)/this.subdivision);if(nx*ny>1){const point=(u,v)=>a.map((n,i)=>(1-v)*((1-u)*n+u*b[i])+v*((1-u)*d[i]+u*c[i]));for(let i=0;i<nx;i++)for(let j=0;j<ny;j++)this.face([point(i/nx,j/ny),point((i+1)/nx,j/ny),point((i+1)/nx,(j+1)/ny),point(i/nx,(j+1)/ny)],color,false);return;}}
 
   const a=vertices[0],b=vertices[1],c=vertices[2],u=b.map((v,i)=>v-a[i]),v=c.map((v,i)=>v-a[i]);let n=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];const len=Math.hypot(...n);if(len<1e-8)return;n=n.map(x=>x/len);
   const B=this.basis;if(n[0]*B.s*B.v+n[1]*B.c*B.v+n[2]*B.p<=.00001)return;
@@ -818,10 +820,10 @@ export function buildingModel(s,b,spec,world,time=0){
 // fields; the static mesh cache keys on productionStage()/reserveReady() so
 // it only repaints when a step or the badge flips, never per reserve unit.
 export function productionStage(b,spec){
- if(!spec?.production||b.hp<=0||b.remaining>0)return -1;
+ if((!spec?.production&&!spec?.refine)||b.hp<=0||b.remaining>0)return -1;
  const level=Math.max(1,Math.floor(+b.level||1));
- const cap=Math.max(1,reserveCapacity(spec,level));
- const held=Number.isFinite(+b.harvestBonus)?Math.max(0,+b.harvestBonus):0;
+ const cap=spec.production?Math.max(1,reserveCapacity(spec,level)):96;
+ const held=spec.production?(Number.isFinite(+b.harvestBonus)?Math.max(0,+b.harvestBonus):0):Object.values(b.outputReserve||{}).reduce((a,n)=>a+n,0);
  return Math.min(3,Math.floor((held/cap)*4));
 }
 const PILES={
@@ -835,7 +837,7 @@ const PILES={
 function productionPile(s,b,spec){
  const stage=productionStage(b,spec);
  if(stage<=0)return;
- const n=spec.size,px=b.x+n*.78,py=b.y+n*.82,pile=PILES[spec.production]||PILES.wood;
+ const n=spec.size,px=b.x+n*.78,py=b.y+n*.82,pile=PILES[spec.production||Object.keys(spec.refine?.[0]?.out||{})[0]]||PILES.food;
  if(pile){const {a,b:c}=pile;
   if(pile.kind==='timber'){
    for(let i=0;i<stage;i++)s.box(px-.26+i*.16,py-.2,.1,.13,.4,.12,i%2?c:a);
@@ -859,26 +861,36 @@ export function drawVillage3D(r,world,time,light){const s=new MeshScene(r),W=r.d
  s.light=light||skyLightAt(world.elapsed,r.data,{calm:r.calm});
  // Large settlements keep outfit/weapon silhouettes but omit tiny face/trim meshes.
  s.characterDetail=world.troops.length+world.enemies.length<=64;
+ // Dense phone overviews retain silhouettes while coarsening only coplanar
+ // occlusion subdivisions. Close-up mechanisms/outfits stay unchanged.
+ s.subdivision=r.width<600&&world.troops.length+world.enemies.length>=96&&r.cam.zoom<1.6?.8:.4;
  s.dynamicDoors=true;
   // Project static meshes only when the camera, footprint, building state or
   // visible defense/production stage changes; moving gates quantize to four
   // steps and traps key only their armed state, never every cooldown tick.
-  const key=JSON.stringify([r.width,r.height,r.cx,r.cy,r.cam,W,H,r.claimedTileCount??-1,trailRevision(world),world.wave||0,world.buildings.map(b=>{const spec=r.data.buildings[b.type];return [b.id,b.type,b.x,b.y,b.level,b.hp<=0,b.remaining>0,productionStage(b,spec),spec?.production&&reserveReady(b,spec)?1:0,b.type==='gate'?gateLiftStage(r,b,world,time):0,b.type.includes('trap')?(trapArmed(b)?1:0):0];})]);
- if(r._meshStatic?.key===key){s.faces=r._meshStatic.faces.slice();s.sources=r._meshStatic.sources;s.chimneys=r._meshStatic.chimneys;s.doors=r._meshStatic.doors||[];}else{
+  const key=JSON.stringify([r.width,r.height,r.cx,r.cy,r.cam,W,H,s.subdivision,r.claimedTileCount??-1,roadRevision(world),world.wave||0,world.buildings.map(b=>{const spec=r.data.buildings[b.type];return [b.id,b.type,b.x,b.y,b.level,b.hp<=0,b.remaining>0,productionStage(b,spec),spec?.production&&reserveReady(b,spec)?1:0,b.type==='gate'?gateLiftStage(r,b,world,time):0,b.type.includes('trap')?(trapArmed(b)?1:0):0];})]);
+ if(r._meshStatic?.world===world&&r._meshStatic.key===key){s.faces=r._meshStatic.faces.slice();s.sources=r._meshStatic.sources;s.chimneys=r._meshStatic.chimneys;s.doors=r._meshStatic.doors||[];}else{
  // Border trees share depth sorting with the village, including reverse views.
  for(let i=-1;i<W+2;i++){s.owner=null;if(i%2)pine(s,i,-1.5,1.4+(i%3)*.22);if(i%3===0)pine(s,-1.5,((i%H)+H)%H,1.5);if(i%3===1)pine(s,W+1,i%H,1.6);if(i%4===0)pine(s,i,H+3,1.5);}
-  addTrailGeometry(s,world);
+  addRoadGeometry(s,world);
   addEnvironmentScenery(s,world,r.data);
   for(const b of world.buildings)buildingModel(s,b,r.data.buildings[b.type],world,time);
  prepareSourceLighting(s);
  prepareNearbyLight(s,world);
- r._meshStatic={key,faces:s.faces.slice(),sources:s.sources,chimneys:s.chimneys,doors:s.doors};
+ s.faces.sort((a,b)=>a.depth-b.depth);
+ r._meshStatic={world,key,faces:s.faces.slice(),sources:s.sources,chimneys:s.chimneys,doors:s.doors};
  }
+
+ // Trail growth rebuilds only its sparse ground layer, rather than every
+ // roof, window and prop in a mature settlement. Source wash stays shared.
+ const trailKey=key+'|'+trailRevision(world);
+ if(r._trailStatic?.world!==world||r._trailStatic.key!==trailKey){const ground=new MeshScene(r);ground.light=s.light;ground.sources=s.sources;addTrailGeometry(ground,world);prepareSourceLighting(ground);prepareNearbyLight(ground,world);ground.faces.sort((a,b)=>a.depth-b.depth);r._trailStatic={world,key:trailKey,faces:ground.faces};}
+ for(const face of r._trailStatic.faces)s.faces.push(face);
 
   r.sceneSources=s.sources; // Publish this frame before spill/bloom can return early.
   r._motionWorld=world;
   addLivingMechanisms(s,world,time);
-  addWindLife(s,world,time);
+  addWindLife(s,world,time);addLogisticsMeshes(s,world);
   for(const u of world.troops)if(!insideWorkplace(world,r.data,u))characterModel(s,u,r.data,time);for(const e of world.enemies)characterModel(s,e,r.data,time,true);
   if(r.placing&&r.hover){const source=world.buildings.find(b=>b.id===r.moving),ghosts=placementCells(r).map(p=>({type:r.placing,...p,level:source?.level||1,hp:1,remaining:1,id:null})),preview={buildings:[...world.buildings.filter(b=>b.id!==r.moving),...ghosts]};for(const b of ghosts)buildingModel(s,b,r.data.buildings[b.type],preview,time);}
  drawCelestialShadows(s);
@@ -889,5 +901,5 @@ export function drawVillage3D(r,world,time,light){const s=new MeshScene(r),W=r.d
  drawChimneyWisps(s,time);
  drawCelestialAir(r,s.light);
  drawGodRays(r,s.light,time);
- drawBuildingActivity(r,world,time);
+ drawBuildingActivity(r,world,time);drawLogisticsOverlay(r,world);
 }

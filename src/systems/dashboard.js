@@ -1,3 +1,4 @@
+import {refinementEfficiency} from './logistics.js';
 // Economy dashboard (Late-Game Economy Plan — Phase 7).
 // Pure math, read-only: passive output, hearth trickles, worked recipes
 // and the town table, all as per-second rates the panel turns into
@@ -41,7 +42,7 @@ export function economyDashboard(world, data) {
     const spec = data.buildings[b.type];
     const recipes = spec?.refine;
     if (!Array.isArray(recipes) || !recipes.length) continue;
-    const power = crewPower(refinerCrew(world, data, b));
+    const power = crewPower(refinerCrew(world, data, b))*refinementEfficiency(world,data,b);
     if (power <= 0) continue;
     const tier = spec.tiers?.[Math.max(0, (b.level || 1) - 1)];
     const mult = Number.isFinite(tier?.rateMultiplier) ? tier.rateMultiplier : 1;

@@ -189,7 +189,7 @@ test('PAT1: pinned campaign/conquest data and Ironshield end-to-end laws and led
 });
 
 test('PAT1: refused claims and old-save imports add no world fields or save version', () => {
-  assert.equal(VERSION,14);
+  assert.equal(VERSION,15);
   const g = game(), region = regionById(data.expansion,'whisperwood'); border(g,region);
   const before = exportSave(g.state), keys = Object.keys(g.world);
   assert.equal(g.expandClaim(region.rect.x,region.rect.y),false);

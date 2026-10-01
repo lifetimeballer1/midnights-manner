@@ -1,10 +1,12 @@
+import {normalizeOutputs} from './systems/refiner-output.js';
+import {normalizeRoads} from './systems/roads.js';
 import {normalizeTrails} from './systems/trails.js';
 import {ensureIdentity} from './systems/villagers.js';
 import {buildTiles} from './systems/biomes.js';
 import {mealDay} from './systems/food.js';
 const KEY='midnights-manner-v2';
 const OLD_KEY='midnights-manner-v1';
-export const VERSION = 14;
+export const VERSION = 15;
 // In-memory fallback when localStorage is missing (private mode, SSR, tests)
 // or full (quota). Saves still work for the session; persist() warns.
 const memFallback = new Map();
@@ -324,7 +326,13 @@ function migrateV13toV14(value, data) {
   value.version = 14;
   return value;
 }
-const MIGRATIONS = {1: migrateV1toV2, 2: migrateV2toV3, 3: migrateV3toV4, 4: migrateV4toV5, 5: migrateV5toV6, 6: migrateV6toV7, 7: migrateV7toV8, 8: migrateV8toV9, 9: migrateV9toV10, 10: migrateV10toV11, 11: migrateV11toV12, 12: migrateV12toV13, 13: migrateV13toV14};
+// v14 -> v15: permanent roads and additive workshop output buffers. Hauls are runtime reservations;
+// reserves and shared stores already save every real resource.
+function migrateV14toV15(value,data){
+ for(const w of [value.world,value.home])if(w){normalizeRoads(w,data);normalizeOutputs(w,data);}
+ value.version=15;return value;
+}
+const MIGRATIONS = {1: migrateV1toV2, 2: migrateV2toV3, 3: migrateV3toV4, 4: migrateV4toV5, 5: migrateV5toV6, 6: migrateV6toV7, 7: migrateV7toV8, 8: migrateV8toV9, 9: migrateV9toV10, 10: migrateV10toV11, 11: migrateV11toV12, 12: migrateV12toV13, 13: migrateV13toV14, 14: migrateV14toV15};
 export function migrate(value, data) {
   return migrateToLatest(value, data);
 }
@@ -350,7 +358,7 @@ export function peekVersion() {
   } catch { return null; }
 }
 export function validateSave(value, data) {
-  function valid(w){return w&&['wood','food','gold'].every(k=>Number.isFinite(w.resources?.[k])&&w.resources[k]>=0)&&Array.isArray(w.buildings)&&w.buildings.every(b=>data.buildings[b.type]&&Number.isInteger(b.level)&&b.level>=1&&b.level<=data.buildings[b.type].tiers.length&&Number.isFinite(b.hp)&&Number.isFinite(b.x)&&Number.isFinite(b.y))&&Array.isArray(w.troops)&&w.troops.every(t=>data.troops[t.type]&&data.items[t.gear]&&(!t.armor||data.items[t.armor])&&Number.isInteger(t.level)&&t.level>=1&&t.level<=data.troops[t.type].maxLevel&&Array.isArray(t.owned))&&Array.isArray(w.enemies)&&Array.isArray(w.effects);}
+  function valid(w){return w&&['wood','food','gold'].every(k=>Number.isFinite(w.resources?.[k])&&w.resources[k]>=0)&&Array.isArray(w.buildings)&&w.buildings.every(b=>data.buildings[b.type]&&(!b.outputReserve||(typeof b.outputReserve==='object'&&!Array.isArray(b.outputReserve)&&Object.entries(b.outputReserve).every(([k,n])=>data.buildings[b.type].refine?.some(r=>Object.hasOwn(r.out||{},k))&&Number.isFinite(n)&&n>=0)))&&Number.isInteger(b.level)&&b.level>=1&&b.level<=data.buildings[b.type].tiers.length&&Number.isFinite(b.hp)&&Number.isFinite(b.x)&&Number.isFinite(b.y))&&Array.isArray(w.troops)&&w.troops.every(t=>data.troops[t.type]&&data.items[t.gear]&&(!t.armor||data.items[t.armor])&&Number.isInteger(t.level)&&t.level>=1&&t.level<=data.troops[t.type].maxLevel&&Array.isArray(t.owned))&&Array.isArray(w.enemies)&&Array.isArray(w.effects);}
   if(!value||typeof value!=='object')return false;
   if(!valid(value.world)||!Array.isArray(value.completed)||!Array.isArray(value.unlocks))return false;
   if(value.mission&&(!valid(value.home)||!data.missions.some(m=>m.id===value.mission.id)))return false;
@@ -360,7 +368,7 @@ export function validateSave(value, data) {
 function supplyDefaults(value, data) {
   for (const w of [value.world, value.home]) {
     if (!w) continue;
-    normalizeTrails(w,data);
+    normalizeTrails(w,data);normalizeRoads(w,data);normalizeOutputs(w,data);
     if (typeof w.autoTrain !== 'boolean') w.autoTrain = false;
     if (typeof w.wellSupplied !== 'boolean') w.wellSupplied = false;
     if (!Number.isInteger(w.lastSupplyDay) || w.lastSupplyDay < 0) {

@@ -1,0 +1,8 @@
+// Shared by CPU Canvas benchmarks and the real-Chromium smoke fixture.
+export function matureSettlement(data,api){const {createWorld,makeBuilding,makeUnit,recordTravel}=api,w=createWorld(data);w.buildings=[];w.troops=[];w.elapsed=400;w.bounds={w:data.world.width,h:data.world.height};for(const t of w.tiles)t.claimed=true;w.resources={wood:1000,food:1000,gold:1000,lumber:300,flour:300,bread:200,frostwood:100,plate:100,rations:100,'feast-supplies':100};
+ const types=['hall','storehouse','grand-granary','farm','lumber','mine','sawmill','mill','bakery','forge-quarter','market-square','stone-road','lantern-rows','manor-gardens','barracks','cottage','longhouse','tower'];
+ for(let i=0;i<72;i++){const type=types[i%types.length],x=3+(i%12)*4,y=3+Math.floor(i/12)*5,b=makeBuilding(type,x,y,data,Math.min(6,data.buildings[type].tiers.length));b.id='settlement-b-'+i;b.harvestBonus=data.buildings[type].production?240:0;w.buildings.push(b);}
+ const professions=['builder','farmer','lumberjack','miner','sawyer','miller','warrior','archer'];for(let i=0;i<150;i++){const u=makeUnit(professions[i%professions.length],data);u.id='settlement-u-'+i;u.name='Citizen '+i;u.traits=i%3?['hard_worker']:['strong'];u.x=1.5+(i%40);u.y=1.5+Math.floor(i/40);const shop=w.buildings.find(b=>b.type===data.troops[u.type]?.job?.workplace);if(shop&&i%3){u.workplace=shop.id;u.manualPost=true;u.x=shop.x;u.y=shop.y+data.buildings[shop.type].size+.5;}w.troops.push(u);}
+ for(let i=0;i<250;i++){for(const y of [1.5,7.5,12.5,17.5,22.5,27.5,33.5])recordTravel(w,data,1.5,y,49.5,y);for(const x of [1.5,13.5,25.5,37.5,49.5])recordTravel(w,data,x,1.5,x,33.5);}
+ for(const [key,e] of Object.entries(w.trails))if(e[0]>=15)w.roads[key]=2;w.nextRaidAt=1e9;w.nextFrontierEventAt=1e9;return w;
+}
