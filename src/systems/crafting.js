@@ -74,7 +74,7 @@ function tierMult(building, data) {
 // One refiner tick: each data recipe converts input stores into output
 // stores, crew-scaled and tier-scaled, never spending what is not there
 // (partial progress, no debt). Returns what was made, for floaters/tests.
-export function tickRefine(world, data, dt, physical = false) {
+export function tickRefine(world, data, dt, physical = false, available = null) {
   if (!Number.isFinite(dt) || dt <= 0) return {};
   const made = {},held=physical?outputTotals(world):null;
   for (const b of world?.buildings || []) {
@@ -91,7 +91,7 @@ export function tickRefine(world, data, dt, physical = false) {
       let capped = runs;
       for (const [k, v] of Object.entries(r.in || {})) {
         if (!Number.isFinite(v) || v <= 0) { capped = 0; break; }
-        capped = Math.min(capped, (world.resources[k] || 0) / v);
+        capped = Math.min(capped, (available ? available(k) : (world.resources[k] || 0)) / v);
       }
       if (capped <= 0) continue;
       // Central storage caps (Phase 1): never make what the stores cannot

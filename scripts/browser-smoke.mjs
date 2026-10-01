@@ -310,6 +310,25 @@ try{
  await evaluate('window.prompt=()=>window.__automationSmoke.fixture');await fire('#opt-import');
  await evaluate('window.prompt=window.__automationSmoke.prompt');
  await ensureResources();await fire('[data-resource="wood"]');
+ await fire('[data-steward-toggle="enabled"]');
+ assert.equal(await evaluate('window.midnightsManner.snapshot().world.steward.enabled'),true,'Stores enables the village steward');
+ await waitFor('!!document.querySelector("[data-steward-goal=main]")');
+ await evaluate('(()=>{const select=document.querySelector("[data-steward-goal=main]");const option=[...select.options].find(o=>o.value&&JSON.parse(o.value).id==="project"&&JSON.parse(o.value).buildingId==="automation-forge");if(!option)throw new Error("Steward project choice missing");select.focus();select.value=option.value;select.dispatchEvent(new Event("change",{bubbles:true}));window.__automationSmoke.goalSelect=select;})()');
+ await new Promise(r=>setTimeout(r,650));
+ assert.ok(await evaluate('document.activeElement===window.__automationSmoke.goalSelect'),'periodic updates preserve goal selection focus');
+ assert.equal(await evaluate('window.midnightsManner.snapshot().world.steward.main.buildingId'),'automation-forge','main goal targets the selected workshop');
+ await evaluate('document.activeElement.blur()');
+ await fire('[data-steward-toggle="protectMeals"]');
+ assert.equal(await evaluate('window.midnightsManner.snapshot().world.steward.protectMeals'),false,'meal protection is configurable');
+ await evaluate('document.querySelector("[data-steward-details=budget]").open=true');
+ await new Promise(r=>setTimeout(r,650));
+ assert.ok(await evaluate('document.querySelector("[data-steward-details=budget]").open'),'budget details remain open across refresh');
+ assert.ok(await evaluate('document.documentElement.scrollWidth<=innerWidth+1'),'steward controls fit the phone viewport');
+ await fire('[data-steward-show="automation-forge"]');
+ await waitFor('!document.querySelector("#inspector").hidden&&document.querySelector("#inspector").textContent.includes("Forge")');
+ const stewardCamera=await evaluate('window.midnightsManner.camera()');
+ assert.ok(Number.isFinite(stewardCamera.x)&&Number.isFinite(stewardCamera.y),'Show goal centers the map');
+ await fire('#inspector [data-action="close"]');await ensureResources();await fire('[data-resource="wood"]');
  await fire('[data-automation-toggle="autoUpgrade"]');
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.automation.autoUpgrade'),true,'Stores toggles automatic upgrades');
  await evaluate('(()=>{const details=document.querySelector("[data-automation-reserves]");details.open=true;const input=details.querySelector("[data-automation-reserve=wood]");input.focus();input.value="321";input.dispatchEvent(new Event("change",{bubbles:true}));window.__automationSmoke.input=input;})()');
@@ -345,6 +364,8 @@ try{
  await call('Page.reload');await new Promise(r=>setTimeout(r,300));
  await waitFor('Boolean(window.midnightsManner)&&!document.querySelector("#title").hidden');
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.automation.reserves.wood'),321,'protected reserve survives browser reload');
+ assert.equal(await evaluate('window.midnightsManner.snapshot().world.steward.main.buildingId'),'automation-forge','steward goal survives browser reload');
+ assert.equal(await evaluate('window.midnightsManner.snapshot().world.steward.protectMeals'),false,'steward protection choice survives browser reload');
  // The browser global is recreated on reload: restore the original exported
  // save from the harness rather than changing the fixture or save version.
  await fire('#begin');await fire('#pause');
