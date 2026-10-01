@@ -5,7 +5,7 @@ import {survivalStatus} from './systems/raid-director.js';
 // only. Safe to unit-test in Node.
 import {currentQuest, questProgress, growthStatus} from './systems/village.js';
 import {missionLocked,missionDestination,missionRegionClaimed} from './systems/campaign.js';
-import {capable, expeditionSpec, expeditionStatus} from './systems/expeditions.js';
+import {capable, expeditionQuote, expeditionStatus} from './systems/expeditions.js';
 import {housing, XP_LEVELS} from './model.js';
 
 // Five main sections. 'market' (Grey Market trading) is intentionally NOT a
@@ -60,14 +60,15 @@ export function expeditionRoster(world, data) {
     if (!u || u.hp <= 0 || !capable(data, u)) continue;
     const name = u.name || data?.troops?.[u.type]?.name || u.type;
     if (u.expedition) {
-      out.push({id: u.id, type: u.type, name, status: expeditionStatus(u, data)});
+      out.push({id: u.id, type: u.type, name, status: expeditionStatus(u, data), planId: u.expedition.planId || 'standard', canRecall: ['out','gather'].includes(u.expedition.phase)});
     } else {
-      const spec = expeditionSpec(data, u) || {};
+      const spec = expeditionQuote(world, data, u) || {};
       idle.push({
         id: u.id, type: u.type, name,
         yields: {...(spec.yields || {})},
         durationSec: spec.durationSec || 0,
         risk: spec.risk || 0,
+        reason: spec.reason || null,
       });
     }
   }
@@ -128,8 +129,9 @@ export function computeNextAction(state, data) {
     return {kind:'frontier',label:`Claim ${card.destination.name}`,detail:`Chapter ${frontier.chapter}: ${frontier.name} waits beyond your border.`,goto:'chapters',missionId:frontier.id,destination:card.destination};
   }
   const roster = expeditionRoster(state?.world, data);
-  if (roster.idle.length) {
-    const u = roster.idle[0];
+  const ready = roster.idle.find(u => !u.reason);
+  if (ready) {
+    const u = ready;
     return {kind: 'expedition', label: `Send ${u.name} ranging`, detail: `Yields ${rewardText(u.yields)} · ~${u.durationSec}s`, goto: 'expeditions', unitId: u.id};
   }
   return {kind: 'market', label: 'Visit the Grey Market', detail: 'Three wagons trade each day, dawn to dawn.', goto: 'market'};
@@ -167,7 +169,7 @@ export function homeSummary(state, data) {
     raidCount: raidIncoming ? w.raidPending.count : raidActive ? w.enemies.length : 0,
     away: !!state?.mission,
     chaptersDone, chaptersTotal: cards.length,
-    ranging: roster.out.length, idleRangers: roster.idle.length,
+    ranging: roster.out.length, idleRangers: roster.idle.filter(u => !u.reason).length,
     next: computeNextAction(state, data),
   };
 }

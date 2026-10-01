@@ -1,4 +1,5 @@
 import {stewardStores,stewardBuilding,stewardChange,stewardClick,equipmentPins} from './steward-ui.js';
+import {rangingCards,rangingChange,rangingClick} from './ranging-ui.js';
 import {defenseChoice,defenseRally,rallyLabel,defenseWorkplace,buildingAutomation,automationStores,automationChange,automationClick} from './automation-ui.js';
 import {defensePostCapacity,defenseOccupants,defenseStatus} from './systems/defense-posts.js';
 import {logisticsMetrics,buildingLogistics} from './systems/logistics.js';
@@ -104,6 +105,7 @@ export class UI {
    if(action==='hold'&&this.selectedTroop)this.game.commandHold(this.selectedTroop);
    if(action==='resume'&&this.selectedTroop)this.game.clearOrder(this.selectedTroop);
    if(action==='expedition'&&this.selectedTroop)this.game.sendExpedition(this.selectedTroop);
+   if(action==='recall-expedition'&&this.selectedTroop)this.game.recallRanger(this.selectedTroop);
    if(action==='gear'){this.openPanel('troops');return;}
    if(action==='harvest')this.game.harvest(this.selected);
    if(action==='service')this.game.serviceArmor();
@@ -136,7 +138,7 @@ export class UI {
    if(b.dataset.reforge)this.game.reforge(b.dataset.reforge);
    if(b.dataset.ability)this.game.ability(b.dataset.unit,b.dataset.ability);
    if(b.dataset.goto){this.category=b.dataset.goto;this.lastPanel='';this.renderFilters();this.refresh();return;}
-   if(b.dataset.expedition){this.game.sendExpedition(b.dataset.expedition);this.lastPanel='';this.refresh();return;}
+   if(rangingClick(this.game,b)){this.lastPanel='';this.refresh();return;}
    if(b.dataset.mission){this.cancel();this.clearSelection();this.game.mission(b.dataset.mission);if(this.game.state.mission){this.closePanel();this.renderer.fitVillage(this.game.world);}}
    if(b.dataset.research)this.game.research(b.dataset.research);
    if(b.dataset.trade){this.game.trade(b.dataset.trade);}
@@ -156,7 +158,7 @@ export class UI {
    this.lastPanel='';this.refresh();
   };
   $('#inspector').onchange=e=>{if(stewardChange(this.game,e)||automationChange(this.game,e))this.refresh();};
-  this.panel.onchange=e=>{if(stewardChange(this.game,e)||automationChange(this.game,e)){this.lastPanel='';this.refresh();return;}const select=e.target.closest('select[data-assign]');if(select){this.game.assign(select.dataset.assign,select.value||null);this.refresh();}};
+  this.panel.onchange=e=>{if(rangingChange(this.game,e))return;if(stewardChange(this.game,e)||automationChange(this.game,e)){this.lastPanel='';this.refresh();return;}const select=e.target.closest('select[data-assign]');if(select){this.game.assign(select.dataset.assign,select.value||null);this.refresh();}};
   $('#raid-overlay').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.repairAll)this.game.repairAll();if(b.dataset.home){this.game.returnHome();this.renderer.fitVillage(this.game.world);}if(b.dataset.dismiss||b.dataset.repairAll)this.game.world.raidResult=null;this.refresh();};
   $('#battle-hud').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.openChest)this.game.openWarChest();if(b.dataset.home){this.game.returnHome();this.cancel();this.clearSelection();this.closePanel();this.renderer.fitVillage(this.game.world);}this.lastPanel='';this.refresh();};
   document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('#pause-overlay').hidden)this.closePause();else if(!$('#drawer').hidden)this.closePanel();else this.cancel();}if(e.key==='Tab')this.trapFocus(e);});
@@ -413,10 +415,9 @@ export class UI {
   const w=g.world,d=g.data;
   if(g.state.mission)return `<div class="panel-heading"><span>EXPEDITIONS · WOODLAND RANGING</span><span>paused away</span></div><div class="notice-board" aria-live="polite"><span>RANGING</span><p>Ranging waits at home — finish the expedition first. Campaign chapters march under their own banner, below the Campaign tab.</p></div><button class="adv-next-btn" data-home="true">Abandon expedition & return home</button><button class="adv-next-btn" data-goto="chapters">Return to the campaign →</button>`;
   const {out,idle}=expeditionRoster(w,d);
-  const outHtml=out.length?out.map(o=>{const spec=d.troops[o.type];return `<div class="adv-row"><span>${o.name}<small>${spec?.name||o.type} · ${o.status||'ranging'}</small></span><b>OUT</b></div>`;}).join(''):'<p class="adv-empty">No hands in the treeline. The woods keep their counsel.</p>';
-  const idleHtml=idle.length?idle.map(o=>{const spec=d.troops[o.type];const haul=Object.entries(o.yields).map(([k,v])=>`+${v} ${k}`).join(' · ');const riskPct=Math.round((o.risk||0)*100);return `<article class="adv-ranger"><div><b>${o.name}</b><small>${spec?.name||o.type} · hauls ${haul} · ~${o.durationSec}s · ${riskPct}% mishap</small></div><button data-expedition="${o.id}">Send →</button></article>`;}).join(''):'<p class="adv-empty">No idle rangers. Foragers, woodcutters and wayfinders range — fighters hold the walls.</p>';
-  return `<div class="panel-heading"><span>EXPEDITIONS · WOODLAND RANGING</span><span>${out.length} out · ${idle.length} ready</span></div>
-  <p class="adv-note">Rangers slip into the treeline and haul back wild goods. This is ranging — campaign chapters march under the Campaign tab.</p>${this.shelfLine(g)}
+  const {outHtml,idleHtml,ready}=rangingCards(g,{out,idle});
+  return `<div class="panel-heading"><span>EXPEDITIONS · WOODLAND RANGING</span><span>${out.length} out · ${ready} ready</span></div>
+  <p class="adv-note">Choose supplies or raid intelligence. Mishap risk follows the sky at return; travel adds time. Recall brings home completed gathering without unfinished finds. Campaign chapters remain under Campaign.</p>${this.shelfLine(g)}
   <div class="panel-heading"><span>OUT NOW</span></div><article class="adv-card">${outHtml}</article>${this.lastReturnCard(g)}
   <div class="panel-heading"><span>READY TO SEND</span></div>${idleHtml}`;
  }
@@ -529,7 +530,7 @@ export class UI {
  }
  renderInspector(){const g=this.game,d=g.data,w=g.world,el=$('#inspector');const u=w.troops.find(t=>t.id===this.selectedTroop),b=w.buildings.find(b=>b.id===this.selected);if((!u&&!b)||this.renderer.placing||!$('#drawer').hidden){el.hidden=true;return;}el.hidden=false;if(el.contains(document.activeElement)&&document.activeElement.matches('input,select,textarea'))return;
  const close='<button class="close-selection" data-action="close" aria-label="Clear selection">✕</button>';
- if(u){const spec=d.troops[u.type];const exp=expeditionStatus(u,d);const tline=(u.traits||[]).map(t=>TRAITS[t]?`${TRAITS[t].icon} ${TRAITS[t].name}`:'').filter(Boolean).join(' · ');el.innerHTML=`${close}<div class="inspector-head">${img(spec.sprite)}<div><span class="eyebrow">LEVEL ${u.level} · JOB ${u.jobLevel||1} · ${u.order?.kind?.toUpperCase()||'AUTO'}</span><h2>${u.name||spec.name}</h2>${titleChip(u)}<p>${spec.name}${tline?` · ${tline}`:''}</p><p>Tap ground to move · Tap an enemy to attack${exp?` · ${exp}`:''}${spec.role==='combat'?` · ${defenseStatus(w,d,u)}`:''}</p></div></div><div class="actions"><button data-action="hold">Hold position</button><button data-action="resume">Auto duties</button>${spec.expedition?`<button data-action="expedition" ${u.expedition?'disabled':''}>${u.expedition?exp:'Send expedition'}</button>`:''}<button class="gold-button" data-action="gear">Equipment</button></div>`;return;}
+ if(u){const spec=d.troops[u.type];const exp=expeditionStatus(u,d);const tline=(u.traits||[]).map(t=>TRAITS[t]?`${TRAITS[t].icon} ${TRAITS[t].name}`:'').filter(Boolean).join(' · ');el.innerHTML=`${close}<div class="inspector-head">${img(spec.sprite)}<div><span class="eyebrow">LEVEL ${u.level} · JOB ${u.jobLevel||1} · ${u.order?.kind?.toUpperCase()||'AUTO'}</span><h2>${u.name||spec.name}</h2>${titleChip(u)}<p>${spec.name}${tline?` · ${tline}`:''}</p><p>Tap ground to move · Tap an enemy to attack${exp?` · ${exp}`:''}${spec.role==='combat'?` · ${defenseStatus(w,d,u)}`:''}</p></div></div><div class="actions"><button data-action="hold">Hold position</button><button data-action="resume">Auto duties</button>${spec.expedition?`<button data-action="expedition" ${u.expedition?'disabled':''}>${u.expedition?exp:'Send expedition'}</button>`:''}${u.expedition&&['out','gather'].includes(u.expedition.phase)?'<button data-action="recall-expedition">Recall ranger</button>':''}<button class="gold-button" data-action="gear">Equipment</button></div>`;return;}
  const spec=d.buildings[b.type],tier=spec.tiers[b.level-1],max=b.level>=spec.tiers.length,upgradeCost=b.type==='hall'?{wood:200*b.level,gold:150*b.level}:buildingCost(b.type,b.level+1,w,d),maxHp=buildingMaxHp(b,d),repairCost=Math.ceil((maxHp-b.hp)/15);const hp=Math.max(0,b.hp/maxHp);
  // Phase 12 endless work: paragon reinforcement on max-tier fortifications,
  // renown bought at a standing hall. Both repeat forever.
