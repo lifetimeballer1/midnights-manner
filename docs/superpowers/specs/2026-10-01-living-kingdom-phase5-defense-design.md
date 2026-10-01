@@ -22,7 +22,7 @@ People panel + battle HUD (`src/ui.js:240-243`).
 - RALLY presets: balanced (default = current behavior exactly), gates, manor, walls,
   storage, reserve. Preset steers autoFill post weights only, never overrides manual posts.
   gates→gate posts; manor→hall; walls→gates+towers perimeter; storage→posts nearest
-  storehouse/grand-granary; reserve→hold 2 fastest fighters unposted at hall.
+  storehouse/grand-granary;   reserve→hold 2 fastest fighters unposted and available (no auto-muster; next autoFill recomputes).
 - Enemies: damaged wall discount (hp<66% −2, <33% −4) + valuable
   (grand-granary/storehouse/market/market-square −2). Small ints; distance dominates.
 - `world.defenseRally` string, default balanced; old saves default balanced.
