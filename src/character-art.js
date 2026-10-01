@@ -5,6 +5,7 @@ import {workPhase,strikeLift} from './work-motion.js';
 // no generated appearance is written into a villager or player save.
 import {phaseSeed} from './camera.js';
 import {RARITY_COLORS} from './rarity.js';
+import {drawLevelFlair, drawHitFlash} from './fx/level-flair.js';
 
 const wood='#987046',metal='#b7c8ca',leather='#624b37',brass='#dfba6a';
 const uniforms={
@@ -351,6 +352,8 @@ export function characterModel(s,u,data,time,enemy=false){
   }
   if(u.armor==='regalia')for(const dx of [-.1,0,.1])s.box(x+dx-.025,y+.05,.82+bob,.05,.05,.13,'#e8c673');
  }
- carriedLoad(s,u,troop,x,y+gait.swing*.12,detail);
+  carriedLoad(s,u,troop,x,y+gait.swing*.12,detail);
+  drawLevelFlair(s,u,x,y,bob,detail);
+  drawHitFlash(s,u,x,y,enemy,time);
  if(u.emergency)s.box(x-.07,y-.06,1.14,.14,.12,.08,u.emergency.kind==='heal'?'#8ad2ad':u.emergency.kind==='repair'?'#bcd4e8':'#e2c578');
 }
