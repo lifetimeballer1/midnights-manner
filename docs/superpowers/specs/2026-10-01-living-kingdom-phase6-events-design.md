@@ -23,7 +23,10 @@ no new event game, extend this director.
 - New optional entry fields: `when` {building, freeBeds, resourceBelow{key,amount},
   minWave} (all must hold; absent = no gate), `place` {near: building type, label},
   `cooldown` seconds (track `world.frontierEventSeen={id:at}`).
-- Region-less entries = village events, eligible anywhere once `when` holds.
+- Region-bound entries keep their region gate AND may carry `when`/`cooldown`/`place`.
+  Region-less entries (no `when` support for `survey` yet) are a follow-up, not this
+  slice — all 6 shipped entries are region+`when` hybrids. Harden `ui.js` card for
+  region-less before any such entry lands.
 - 6 new village events: merchant (market), refugees (freeBeds≥2), wounded scout
   (wave≥3), shortage (food below 3-day meal cost), discovery (survey≥25), apprentice
   (cottage + freeBeds≥1). Existing 9 entries untouched (no `when` = always eligible as now).
