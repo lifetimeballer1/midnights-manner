@@ -40,6 +40,7 @@ import {warChestById,warChestLevel,warChestMax,warChestTotal,warChestOpenable,wa
 import {beginFestival} from './systems/festivals.js';
 import {beginScout,scoutReason,assaultReason,applyAnnex,conquestLimitBonus,tribeOf} from './systems/conquest.js';
 import {sfx} from './systems/audio.js';
+import {rallyLabel} from './automation-ui.js';
 // Scheduled home raids: all timing and ceremony lines come from
 // data.world.homeRaids so balance and voice stay in JSON, not logic.
 function raidConfig(data) {
@@ -307,7 +308,7 @@ export class Game {
   setRally(id){
    if(this.state.mission||this.paused)return false;
    if(!setRallyPreset(this.world,id))return false;
-   this.persist();this.notify(`Rally preset: ${id}.`);return true;
+   this.persist();this.notify(`Rally preset: ${rallyLabel(id)}.`);return true;
   }
  setSteward(key,value){
   if(this.state.mission||this.paused||!['enabled','protectMeals','protectRepairs','autoEquip','queueEnabled'].includes(key))return false;

@@ -335,7 +335,7 @@ export function describeClock(world, data) {
   if (phase.night) hints.push('raiders hit harder in the dark');
   if (phase.night) hints.push('the posted watch hits harder after dark');
   if (weather.id === 'rain') hints.push('gathering quickens in the rain');
-  if (weather.id === 'rain') hints.push('Off-road slow in the mud — roads run clean');
+  if (weather.id === 'rain') hints.push('Off-road slow in the mud — roads run clean, trails half it');
   if (weather.id === 'rain') hints.push('storms may bruise roofs — keep repairs ready');
   if (weather.id === 'fog') hints.push('raiders slow in the fog');
   if (weather.id === 'fog') hints.push('ranged shots fly blind in the fog');
