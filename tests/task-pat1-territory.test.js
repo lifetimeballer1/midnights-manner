@@ -155,9 +155,9 @@ test('PAT1: victory permanently stops territory patrols, including a saved pendi
 
  test('PAT1: pinned campaign/conquest data and Ironshield end-to-end laws and ledgers stay unchanged', () => {
   // SHA-256 of parsed pre-PAT1 HEAD data; runnable without Git history in CI.
-  // J1 appends ix-ashen-crown + the Ashen Warlord additively; J2 orders the arc 34-36 with the crown at 39; J3 branches at shared chapter 37; J4 reconverges at 38 — deliberate pin update.
+  // J1 appends ix-ashen-crown + the Ashen Warlord additively; J2 orders the arc 34-36 with the crown at 39; J3 branches at shared chapter 37; J4 reconverges at 38; G1 adds scorched-ridge theme to the crown map — deliberate pin update.
   const hash = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
-  assert.equal(hash(data.missions),'1ac25f579f6cdfa72c33f3f854474694db00b34b1fdb3989d62ed01bec56f96f');
+  assert.equal(hash(data.missions),'a013e941f9297654c319668f82e6913289b1bc5613af63b2cfeb13648e84875e');
   assert.equal(hash(data.conquest),'2f61ee3b3a3977aaa59896de45879f448bc1f59d1172eaaec67091f741942cae');
   for (const choice of ['outpost','settlement','dismantle']) {
     const modern = game(), old = game(legacy); old.state = structuredClone(modern.state);

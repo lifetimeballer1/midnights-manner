@@ -4363,6 +4363,7 @@
     "map": {
       "biome": "hills",
       "seed": 3401,
+      "theme": "scorched-ridge",
       "tiles": [
         {
           "x": 12,

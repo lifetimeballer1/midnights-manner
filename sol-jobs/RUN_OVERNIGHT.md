@@ -19,3 +19,13 @@ Rule: commit per task. If usage runs out, next session runs: git log -3, git dif
 ### SOL-V1 (paste to Sol)
 Add close-zoom detail in src/scene3d.js masterworkDetails() 385-555 for manner-citadel + grand-watchtower + richer stone-road/city-wall/forge-quarter/lantern-rows tiers. Tier-growing props only, existing palette, no sim/save/aura change. Suppress ghosts/unfinished/ruins, zoom<1.2 off, calm freeze. Run node scripts/architecture-preview.mjs, update tests/building-detail-pass.test.js + lighting-baseline digests deliberately, npm.cmd test + npm.cmd run build green, commit.
 ### SOL-V2 / SOL-P1 in queue — boss releases after V1 green.
+
+## GPT overnight (gpt-6.1-sol via opencode)
+- J5 audit: ledger/meshkey/smoke filter verified; gaps: ch39 hills generic not scorched, no burn-remains geometry, no backfill of clearedCamps on replay, finale clears no camp.
+- G1 scorched-ridge mission theme DONE: map.theme scorched-ridge + ash tint in environment-art, hills reused, 988 pass 0 fail, build green (616 precached), commit `G1 scorched-ridge theme`.
+- G2 burned-remains markers: renderer-only spent-fire geometry on cleared camp tiles, mesh-keyed, calm-safe.
+  - Verify: npm.cmd test + build green, commit per task no push.
+- G3 replay backfill: first-victory-only preserved, replay of already-cleared prerequisite writes missing clearedCamps additively, no reward change.
+  - Verify: npm.cmd test + build green, commit per task no push.
+- Resume: git log -3, git diff --stat, continue NEXT.
+- Cmd: opencode run -m opencode/gpt-6.1-sol --dir <repo> --title <task> "<one task brief>".
