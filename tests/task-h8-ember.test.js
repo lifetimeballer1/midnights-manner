@@ -17,10 +17,10 @@ const data = Object.fromEntries(await Promise.all(
     .map(async n => [n, JSON.parse(await readFile(new URL(`../data/${n}.json`, import.meta.url)))])));
 const tribe = 'ember';
 const mission = id => data.missions.find(m => m.id === id);
-const baseline = {conquest: {...data.conquest,
+ const baseline = {conquest: {...data.conquest,
     tribes:data.conquest.tribes.filter(t => t.id !== tribe),
-    leaders:data.conquest.leaders.filter(l => !['ember-cindral','grey-sovereign'].includes(l.id))},
-  missions:data.missions.filter(m => m.tribe !== tribe && !['grey-dawn-gathers','grey-dawn-muster','grey-dawn-road','grey-dawn-crown'].includes(m.id))};
+    leaders:data.conquest.leaders.filter(l => !['ember-cindral','grey-sovereign','ashen-warlord'].includes(l.id))},
+  missions:data.missions.filter(m => m.tribe !== tribe && !['grey-dawn-gathers','grey-dawn-muster','grey-dawn-road','grey-dawn-crown','ix-ashen-crown','ix-ashen-wake','ix-whisper-snare','ix-starwatch-veil','ix-slag-fire','ix-ember-works','ix-pale-pavilion'].includes(m.id))};
 test('H8: H7 git-show fingerprints preserve every earlier tribe, leader and mission entry', () => {
   // JSON fingerprints taken from git show 2af7e95:data/{conquest,missions}.json.
   // Pins keep this proof runnable in shallow CI checkouts without Git history.
@@ -54,11 +54,11 @@ function annexBoth(g, choice = 'outpost') {
 }
 
 test('H8: chapters 27-29 chain from Pale Host, use hills maps and escalating baskets', () => {
-  assert.equal(Math.max(...data.missions.map(m => Number(m.chapter))), 33, 'H12 completes the finale at chapter 33');
+  assert.equal(Math.max(...data.missions.map(m => Number(m.chapter))), 39, 'J2 orders the Act XI arc to chapter 39');
   const t = data.conquest.tribes[3];
   assert.equal(t.id, tribe); assert.equal(t.color, '#d8793c');
   assert.deepEqual(t.require, {vlevel: 11, renown: 6, barracksTier: 3, troops: 14});
-  assert.equal(data.missions.length, 34);
+  assert.equal(data.missions.length, 41);
   let previous = 'palehost-court', rewards = {};
   for (const [i, id] of [...t.preliminaries.map(p => p.id), t.assault].entries()) {
     const m = mission(id);

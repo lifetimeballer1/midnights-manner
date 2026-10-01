@@ -1051,6 +1051,71 @@
       "moods": [
         "prosperous"
       ]
+    },
+    {
+      "id": "ashen-choir",
+      "name": "Ashen Choir",
+      "bpm": 70,
+      "rootHz": 73.416,
+      "bars": 4,
+      "pulsesPerBar": 6,
+      "scale": [
+        0,
+        2,
+        3,
+        5,
+        7,
+        9,
+        10
+      ],
+      "progression": [
+        [
+          0,
+          3,
+          7,
+          10
+        ],
+        [
+          -4,
+          0,
+          3,
+          7
+        ],
+        [
+          5,
+          9,
+          12,
+          14
+        ],
+        [
+          -2,
+          2,
+          5,
+          9
+        ]
+      ],
+      "melodySlots": [
+        0,
+        2,
+        4
+      ],
+      "calmMelodySlots": [
+        0
+      ],
+      "voices": {
+        "bass": 0.095,
+        "pad": 0.11,
+        "pluck": 0.09
+      },
+      "gain": 0.72,
+      "echo": {
+        "seconds": 0.3,
+        "gain": 0.14
+      },
+      "moods": [
+        "day",
+        "night"
+      ]
     }
   ]
 }

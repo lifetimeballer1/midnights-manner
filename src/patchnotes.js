@@ -47,9 +47,10 @@ export function unseenEntries(feed,seen){
  if(seen==null||!versionParts(seen).length)return [...feed];
  return feed.filter(e=>compareVersions(e.version,seen)>0);
 }
-export class PatchNotes{
- constructor(game,ui,{doc=document,peekSave=null}={}){
-  this.game=game;this.ui=ui;this.doc=doc;
+ export class PatchNotes{
+  constructor(game,ui,{doc=document,peekSave=null,onFresh=null}={}){
+   this.game=game;this.ui=ui;this.doc=doc;
+   this.onFresh=typeof onFresh==='function'?onFresh:null;
   this.peekSave=peekSave||(()=>{try{return peekVersion();}catch{return null;}});
   this.feed=normalizeFeed(game?.data?.updates);
   this.overlay=doc.querySelector('#news-overlay');
@@ -131,8 +132,8 @@ export class PatchNotes{
    // Fresh villages never saw an old version: mark quietly, no modal.
    if(!hadSave){this.close();return;}
   }
-  const unseen=unseenEntries(this.feed,this.seen());
-  if(unseen.length)this.open(unseen);
+   const unseen=unseenEntries(this.feed,this.seen());
+   if(unseen.length){this.open(unseen);try{this.onFresh?.(unseen);}catch{}}
  }
  updateBadge(){
   if(!this.newsButton)return;

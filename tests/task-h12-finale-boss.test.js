@@ -14,8 +14,8 @@ const data = Object.fromEntries(await Promise.all(
 import {bossSpec, bossFor, bossTick} from '../src/systems/endgame.js';
 const id = 'grey-dawn-crown';
 const mission = data.missions.find(m => m.id === id);
-const baseline = {...data, missions:data.missions.filter(m => m.id !== id),
-  conquest:{...data.conquest, leaders:data.conquest.leaders.filter(l => l.id !== 'grey-sovereign')}};
+ const baseline = {...data, missions:data.missions.filter(m => m.id !== id && m.id !== 'ix-ashen-crown' && m.id !== 'ix-ashen-wake' && m.id !== 'ix-whisper-snare' && m.id !== 'ix-starwatch-veil' && m.id !== 'ix-slag-fire' && m.id !== 'ix-ember-works' && m.id !== 'ix-pale-pavilion'),
+  conquest:{...data.conquest, leaders:data.conquest.leaders.filter(l => !['grey-sovereign','ashen-warlord'].includes(l.id))}};
 const tribes = ['ironshield','thornband','cinder','palehost','ember'];
 function ready(d = data) {
   const g = new Game(d);
@@ -36,10 +36,10 @@ test('H12: pins preserve all 33 earlier missions, five leaders and every conques
   assert.equal(hash(data.conquest.tribes), '36489cbcf51f49178b7dde19ae3c26dbed9d397088808182e7c17c035a3ee59b');
 });
 
-test('H12: chapter 33 chains from the Grey Road and completes the 34-mission campaign', () => {
-  assert.equal(data.missions.length, 34);
-  assert.equal(Math.max(...data.missions.map(m => Number(m.chapter))), 33);
-  assert.equal(data.conquest.leaders.length, 6);
+ test('H12: chapter 33 chains from the Grey Road and the campaign now runs 41 missions to chapter 39', () => {
+  assert.equal(data.missions.length, 41);
+  assert.equal(Math.max(...data.missions.map(m => Number(m.chapter))), 39);
+  assert.equal(data.conquest.leaders.length, 7);
   assert.equal(mission.name, 'The Grey Dawn Crown');
   assert.equal(mission.chapter, '33'); assert.equal(mission.act, 'X');
   assert.equal(mission.giver, 'Sorrel the watcher');

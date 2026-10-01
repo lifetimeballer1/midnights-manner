@@ -33,6 +33,41 @@ test('unlock chain: all chapters grant something real, nothing dead or doubled',
       assert.deepEqual(m.rewards, {gold:8000,lumber:4500,plate:1200,frostwood:800});
       continue;
     }
+    if (m.id === 'ix-ashen-crown') {
+      assert.deepEqual(m.unlocks, []);
+      assert.deepEqual(m.rewards, {gold:9000,lumber:5000,plate:1400,frostwood:900});
+      continue;
+    }
+    if (m.id === 'ix-ashen-wake') {
+      assert.deepEqual(m.unlocks, []);
+      assert.deepEqual(m.rewards, {gold:6000,lumber:3200,plate:900,frostwood:550});
+      continue;
+    }
+    if (m.id === 'ix-whisper-snare') {
+      assert.deepEqual(m.unlocks, []);
+      assert.deepEqual(m.rewards, {gold:6500,lumber:3600,plate:1000,frostwood:600});
+      continue;
+    }
+    if (m.id === 'ix-starwatch-veil') {
+      assert.deepEqual(m.unlocks, []);
+      assert.deepEqual(m.rewards, {gold:7000,lumber:4000,plate:1100,frostwood:700});
+      continue;
+    }
+    if (m.id === 'ix-slag-fire') {
+      assert.deepEqual(m.unlocks, []);
+      assert.deepEqual(m.rewards, {gold:7500,lumber:4200,plate:1200,frostwood:750});
+      continue;
+    }
+    if (m.id === 'ix-ember-works') {
+      assert.deepEqual(m.unlocks, []);
+      assert.deepEqual(m.rewards, {gold:7500,lumber:4300,plate:1250,frostwood:750});
+      continue;
+    }
+    if (m.id === 'ix-pale-pavilion') {
+      assert.deepEqual(m.unlocks, []);
+      assert.deepEqual(m.rewards, {gold:8000,lumber:4500,plate:1300,frostwood:800});
+      continue;
+    }
     assert.ok(Array.isArray(m.unlocks) && m.unlocks.length > 0, `${m.id} grants an unlock`);
     for (const id of m.unlocks) {
       assert.ok(data.buildings[id] || data.items[id] || data.troops[id], `${m.id} unlock ${id} resolves`);

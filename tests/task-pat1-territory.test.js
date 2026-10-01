@@ -153,11 +153,12 @@ test('PAT1: victory permanently stops territory patrols, including a saved pendi
   recovery.state.mission = {status:'active'}; assert.equal(directorPatrol(recovery.state,data),null);
 });
 
-test('PAT1: pinned campaign/conquest data and Ironshield end-to-end laws and ledgers stay unchanged', () => {
+ test('PAT1: pinned campaign/conquest data and Ironshield end-to-end laws and ledgers stay unchanged', () => {
   // SHA-256 of parsed pre-PAT1 HEAD data; runnable without Git history in CI.
+  // J1 appends ix-ashen-crown + the Ashen Warlord additively; J2 orders the arc 34-36 with the crown at 39; J3 branches at shared chapter 37; J4 reconverges at 38 — deliberate pin update.
   const hash = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
-  assert.equal(hash(data.missions),'de6295df2134ae8e1acd4f05f1e304469cf3711f3d74d8ebf54cce5f84d628df');
-  assert.equal(hash(data.conquest),'38a3b232e41f7099b533a9a044a016b05ea7642848be103bd0aa86f02540fbf3');
+  assert.equal(hash(data.missions),'1ac25f579f6cdfa72c33f3f854474694db00b34b1fdb3989d62ed01bec56f96f');
+  assert.equal(hash(data.conquest),'2f61ee3b3a3977aaa59896de45879f448bc1f59d1172eaaec67091f741942cae');
   for (const choice of ['outpost','settlement','dismantle']) {
     const modern = game(), old = game(legacy); old.state = structuredClone(modern.state);
     for (const level of [1,11]) {

@@ -177,6 +177,36 @@
         }
       }
     }
+,
+    {
+      "id": "ashen-warlord",
+      "name": "The Ashen Warlord",
+      "title": "Crown of the Five Fires",
+      "hpBase": 2900,
+      "hpPerWave": 150,
+      "dmgBase": 98,
+      "dmgPerWave": 6,
+      "speed": 0.6,
+      "range": 1.5,
+      "wallDamage": 4,
+      "mechanics": {
+        "slam": {
+          "damage": 78,
+          "radius": 1.8,
+          "everySec": 7
+        },
+        "summon": {
+          "role": "breaker",
+          "count": 2,
+          "everySec": 18,
+          "cap": 6
+        },
+        "enrage": {
+          "hpFrac": 0.3,
+          "dmgMult": 1.5
+        }
+      }
+    }
   ],
   "annex": [
     {

@@ -3485,5 +3485,993 @@
     "requires": [
       "grey-dawn-road"
     ]
+  },
+  {
+    "id": "ix-ashen-wake",
+    "name": "The Ashen Wake",
+    "chapter": "34",
+    "act": "XI",
+    "beat": "The Crown is broken but its embers walk; Sorrel reads the first ash-fall drifting over the Muster Fields.",
+    "giver": "Sorrel the watcher",
+    "description": "Ember survivors scatter from Crown Ridge toward the Marches. Hold the muster ground through three horns and cut down their vanguard.",
+    "timeLimit": 420,
+    "troopLimit": 10,
+    "launchCost": {
+      "food": 9000,
+      "bread": 1800,
+      "lumber": 5500,
+      "plate": 800,
+      "gold": 5000
+    },
+    "objectives": [
+      {
+        "kind": "defeat",
+        "amount": 20
+      },
+      {
+        "kind": "survive",
+        "seconds": 240
+      }
+    ],
+    "startingResources": {
+      "wood": 380,
+      "food": 240,
+      "gold": 180
+    },
+    "map": {
+      "biome": "plains",
+      "seed": 3402,
+      "tiles": [
+        {
+          "x": 12,
+          "y": 5,
+          "biome": "plains",
+          "landmark": "Muster Fields",
+          "claimed": true
+        }
+      ],
+      "buildings": [
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "tower",
+          "x": 6,
+          "y": 6
+        },
+        {
+          "type": "archer_tower",
+          "x": 6,
+          "y": 9
+        },
+        {
+          "type": "ballista",
+          "x": 8,
+          "y": 10
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 6
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 7
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 8
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 9
+        },
+        {
+          "type": "oathstone",
+          "x": 8,
+          "y": 5
+        },
+        {
+          "type": "barracks",
+          "x": 8,
+          "y": 2
+        }
+      ],
+      "troops": [
+        "oathsworn",
+        "halberdier",
+        "pikewoman",
+        "longbowman",
+        "archer",
+        "builder",
+        "miner"
+      ]
+    },
+    "raids": [
+      {
+        "at": 40,
+        "count": 7
+      },
+      {
+        "at": 140,
+        "count": 9
+      },
+      {
+        "at": 240,
+        "count": 11
+      }
+    ],
+    "scaling": {
+      "hp": 37,
+      "damage": 7.2
+    },
+    "rewards": {
+      "gold": 6000,
+      "lumber": 3200,
+      "plate": 900,
+      "frostwood": 550
+    },
+    "unlocks": [],
+    "ceremony": {
+      "warning": "Sorrel reads ash on the wind: three horns of Ember survivors on the Muster Fields, hungry and leaderless. Hold the ground and cut the vanguard down.",
+      "victory": "The vanguard breaks on the muster ground. Prisoners talk of five camp-fires in the wilds — Thornband snares first, under the northern pines.",
+      "defeat": "The survivors slip through toward the Marches. Sorrel holds the muster ground; fill the war chest and meet the next horns ready."
+    },
+    "requires": [
+      "grey-dawn-crown"
+    ]
+  },
+  {
+    "id": "ix-whisper-snare",
+    "name": "The Whisper Snare",
+    "chapter": "35",
+    "act": "XI",
+    "beat": "Thornband snares tighten along the northern road; the Cut-Camp under the pines must burn.",
+    "giver": "Sorrel the watcher",
+    "description": "Push into Whisperwood forest and burn out the Thornband Cut-Camp. Break three horns under the pines and stand the muster.",
+    "timeLimit": 450,
+    "troopLimit": 10,
+    "launchCost": {
+      "food": 9500,
+      "bread": 1900,
+      "lumber": 6000,
+      "plate": 900,
+      "gold": 5500
+    },
+    "objectives": [
+      {
+        "kind": "defeat",
+        "amount": 22
+      },
+      {
+        "kind": "survive",
+        "seconds": 270
+      }
+    ],
+    "startingResources": {
+      "wood": 380,
+      "food": 240,
+      "gold": 180
+    },
+    "map": {
+      "biome": "forest",
+      "seed": 3403,
+      "tiles": [
+        {
+          "x": 12,
+          "y": 5,
+          "biome": "forest",
+          "landmark": "Whisperwood",
+          "claimed": true
+        }
+      ],
+      "buildings": [
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "tower",
+          "x": 6,
+          "y": 6
+        },
+        {
+          "type": "archer_tower",
+          "x": 6,
+          "y": 9
+        },
+        {
+          "type": "ballista",
+          "x": 8,
+          "y": 10
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 6
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 7
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 8
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 9
+        },
+        {
+          "type": "oathstone",
+          "x": 8,
+          "y": 5
+        },
+        {
+          "type": "barracks",
+          "x": 8,
+          "y": 2
+        }
+      ],
+      "troops": [
+        "oathsworn",
+        "halberdier",
+        "pikewoman",
+        "longbowman",
+        "archer",
+        "builder",
+        "miner"
+      ]
+    },
+    "raids": [
+      {
+        "at": 40,
+        "count": 8
+      },
+      {
+        "at": 150,
+        "count": 10
+      },
+      {
+        "at": 250,
+        "count": 11
+      }
+    ],
+    "scaling": {
+      "hp": 37,
+      "damage": 7.3
+    },
+    "rewards": {
+      "gold": 6500,
+      "lumber": 3600,
+      "plate": 1000,
+      "frostwood": 600
+    },
+    "unlocks": [],
+    "ceremony": {
+      "warning": "Sorrel marks the pines: the Cut-Camp that watched the northern road now sets snares for muster columns. Three horns in the Whisperwood — burn the camp out.",
+      "victory": "The Cut-Camp burns. Thornband lookouts flee east toward the ridge, where pale cloth flies over Starwatch and the Host keeps its low fires.",
+      "defeat": "The snares hold the column off. Sorrel falls back to the road; fill the war chest and cut the pines lane by lane."
+    },
+    "requires": [
+      "ix-ashen-wake"
+    ]
+  },
+  {
+    "id": "ix-starwatch-veil",
+    "name": "The Starwatch Veil",
+    "chapter": "36",
+    "act": "XI",
+    "beat": "Pale cloth on the ridge; the Host keeps low fires and watches every approach.",
+    "giver": "Sorrel the watcher",
+    "description": "Climb Starwatch Ridge and tear the Pale Host Watch from its cliffs. Break three horns in the thin air and stand the muster.",
+    "timeLimit": 450,
+    "troopLimit": 10,
+    "launchCost": {
+      "food": 10000,
+      "bread": 2000,
+      "lumber": 6500,
+      "plate": 1000,
+      "gold": 6000
+    },
+    "objectives": [
+      {
+        "kind": "defeat",
+        "amount": 24
+      },
+      {
+        "kind": "survive",
+        "seconds": 270
+      }
+    ],
+    "startingResources": {
+      "wood": 380,
+      "food": 240,
+      "gold": 180
+    },
+    "map": {
+      "biome": "hills",
+      "seed": 3404,
+      "tiles": [
+        {
+          "x": 12,
+          "y": 5,
+          "biome": "hills",
+          "landmark": "Starwatch Ridge",
+          "claimed": true
+        }
+      ],
+      "buildings": [
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "tower",
+          "x": 6,
+          "y": 6
+        },
+        {
+          "type": "archer_tower",
+          "x": 6,
+          "y": 9
+        },
+        {
+          "type": "ballista",
+          "x": 8,
+          "y": 10
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 6
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 7
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 8
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 9
+        },
+        {
+          "type": "oathstone",
+          "x": 8,
+          "y": 5
+        },
+        {
+          "type": "barracks",
+          "x": 8,
+          "y": 2
+        }
+      ],
+      "troops": [
+        "oathsworn",
+        "halberdier",
+        "pikewoman",
+        "longbowman",
+        "archer",
+        "builder",
+        "miner"
+      ]
+    },
+    "raids": [
+      {
+        "at": 40,
+        "count": 8
+      },
+      {
+        "at": 150,
+        "count": 10
+      },
+      {
+        "at": 250,
+        "count": 12
+      }
+    ],
+    "scaling": {
+      "hp": 38,
+      "damage": 7.4
+    },
+    "rewards": {
+      "gold": 7000,
+      "lumber": 4000,
+      "plate": 1100,
+      "frostwood": 700
+    },
+    "unlocks": [],
+    "ceremony": {
+      "warning": "Sorrel glasses the ridge: white cloth below the skyline, low fires, watched approaches. The Pale Host Watch has never been stormed — be the first.",
+      "victory": "The Watch falls and its cloth burns like small suns. South along the old march road the Cinder slag-lines glow, and Ember works smoke behind them.",
+      "defeat": "The ridge keeps its veil. Sorrel leads the column down by dark; fill the war chest and climb again with heavier horns."
+    },
+    "requires": [
+      "ix-whisper-snare"
+    ]
+  },
+  {
+    "id": "ix-slag-fire",
+    "name": "The Slag-Fire Lines",
+    "chapter": "37",
+    "act": "XI",
+    "beat": "Cinder slag-lines glow along the old march road; the road-camp's heavy rack must come down.",
+    "giver": "Sorrel the watcher",
+    "description": "Break the Cinder Clan road-camp on the Ashfall March. Three horns among the slag-lines — or slip past to the Ember works instead.",
+    "timeLimit": 480,
+    "troopLimit": 10,
+    "launchCost": {
+      "food": 10500,
+      "bread": 2100,
+      "lumber": 6800,
+      "plate": 1100,
+      "gold": 6200
+    },
+    "objectives": [
+      {
+        "kind": "defeat",
+        "amount": 26
+      },
+      {
+        "kind": "survive",
+        "seconds": 300
+      }
+    ],
+    "startingResources": {
+      "wood": 380,
+      "food": 240,
+      "gold": 180
+    },
+    "map": {
+      "biome": "hills",
+      "seed": 3405,
+      "tiles": [
+        {
+          "x": 12,
+          "y": 5,
+          "biome": "hills",
+          "landmark": "Slag Lines",
+          "claimed": true
+        }
+      ],
+      "buildings": [
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "tower",
+          "x": 6,
+          "y": 6
+        },
+        {
+          "type": "archer_tower",
+          "x": 6,
+          "y": 9
+        },
+        {
+          "type": "ballista",
+          "x": 8,
+          "y": 10
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 6
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 7
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 8
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 9
+        },
+        {
+          "type": "oathstone",
+          "x": 8,
+          "y": 5
+        },
+        {
+          "type": "barracks",
+          "x": 8,
+          "y": 2
+        }
+      ],
+      "troops": [
+        "oathsworn",
+        "halberdier",
+        "pikewoman",
+        "longbowman",
+        "archer",
+        "builder",
+        "miner"
+      ]
+    },
+    "raids": [
+      {
+        "at": 40,
+        "count": 8
+      },
+      {
+        "at": 150,
+        "count": 10
+      },
+      {
+        "at": 250,
+        "count": 12
+      }
+    ],
+    "scaling": {
+      "hp": 38,
+      "damage": 7.4
+    },
+    "rewards": {
+      "gold": 7500,
+      "lumber": 4200,
+      "plate": 1200,
+      "frostwood": 750
+    },
+    "unlocks": [],
+    "ceremony": {
+      "warning": "Sorrel counts the slag-lines: a heavy timber rack, a blackened firepit, and breakers built for long stays. Three horns on the March — or strike the Ember works and let the slag-lines wait.",
+      "victory": "The road-camp falls and its rack burns. Behind the smoke the Ember Legion works hammer on, red canvas over stacked supplies.",
+      "defeat": "The slag-lines hold. Sorrel pulls the column off the March; fill the war chest and return — or try the Ember works instead."
+    },
+    "requires": [
+      "ix-starwatch-veil"
+    ]
+  },
+  {
+    "id": "ix-ember-works",
+    "name": "The Ember Works",
+    "chapter": "37",
+    "act": "XI",
+    "beat": "Red canvas over stacked supplies; the Legion's field workshop must go quiet.",
+    "giver": "Sorrel the watcher",
+    "description": "Storm the Ember Legion works on the Ashfall March. Three horns among the red canvas — or break the Cinder slag-lines instead.",
+    "timeLimit": 480,
+    "troopLimit": 10,
+    "launchCost": {
+      "food": 10500,
+      "bread": 2100,
+      "lumber": 6800,
+      "plate": 1100,
+      "gold": 6200
+    },
+    "objectives": [
+      {
+        "kind": "defeat",
+        "amount": 26
+      },
+      {
+        "kind": "survive",
+        "seconds": 300
+      }
+    ],
+    "startingResources": {
+      "wood": 380,
+      "food": 240,
+      "gold": 180
+    },
+    "map": {
+      "biome": "hills",
+      "seed": 3406,
+      "tiles": [
+        {
+          "x": 12,
+          "y": 5,
+          "biome": "hills",
+          "landmark": "Ember Works",
+          "claimed": true
+        }
+      ],
+      "buildings": [
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "tower",
+          "x": 6,
+          "y": 6
+        },
+        {
+          "type": "archer_tower",
+          "x": 6,
+          "y": 9
+        },
+        {
+          "type": "ballista",
+          "x": 8,
+          "y": 10
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 6
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 7
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 8
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 9
+        },
+        {
+          "type": "oathstone",
+          "x": 8,
+          "y": 5
+        },
+        {
+          "type": "barracks",
+          "x": 8,
+          "y": 2
+        }
+      ],
+      "troops": [
+        "oathsworn",
+        "halberdier",
+        "pikewoman",
+        "longbowman",
+        "archer",
+        "builder",
+        "miner"
+      ]
+    },
+    "raids": [
+      {
+        "at": 40,
+        "count": 8
+      },
+      {
+        "at": 150,
+        "count": 10
+      },
+      {
+        "at": 250,
+        "count": 12
+      }
+    ],
+    "scaling": {
+      "hp": 38,
+      "damage": 7.5
+    },
+    "rewards": {
+      "gold": 7500,
+      "lumber": 4300,
+      "plate": 1250,
+      "frostwood": 750
+    },
+    "unlocks": [],
+    "ceremony": {
+      "warning": "Sorrel studies the red canvas: carts, timber frames, a field workshop feeding the whole March. Three horns at the works — or break the Cinder slag-lines and let the works wait.",
+      "victory": "The works go quiet and their canvas burns. South lies the salt grass of the Pale Coast, where pale banners stand in ceremonial rows.",
+      "defeat": "The works hold their yard. Sorrel pulls the column off the March; fill the war chest and return — or try the slag-lines instead."
+    },
+    "requires": [
+      "ix-starwatch-veil"
+    ]
+  },
+  {
+    "id": "ix-pale-pavilion",
+    "name": "The Pale Pavilion",
+    "chapter": "38",
+    "act": "XI",
+    "beat": "Pale banners stand in precise rows above the salt grass; the Shore Pavilion keeps its ceremonial order — until tonight.",
+    "giver": "Sorrel the watcher",
+    "description": "Storm the Pale Court Shore Pavilion on the Pale Coast. Three horns among the salt grass, then the scorched ridge and the Warlord.",
+    "timeLimit": 480,
+    "troopLimit": 10,
+    "launchCost": {
+      "food": 11000,
+      "bread": 2200,
+      "lumber": 7000,
+      "plate": 1200,
+      "gold": 6500
+    },
+    "objectives": [
+      {
+        "kind": "defeat",
+        "amount": 28
+      },
+      {
+        "kind": "survive",
+        "seconds": 300
+      }
+    ],
+    "startingResources": {
+      "wood": 380,
+      "food": 240,
+      "gold": 180
+    },
+    "map": {
+      "biome": "plains",
+      "seed": 3407,
+      "tiles": [
+        {
+          "x": 12,
+          "y": 5,
+          "biome": "plains",
+          "landmark": "Pale Coast",
+          "claimed": true
+        }
+      ],
+      "buildings": [
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "tower",
+          "x": 6,
+          "y": 6
+        },
+        {
+          "type": "archer_tower",
+          "x": 6,
+          "y": 9
+        },
+        {
+          "type": "ballista",
+          "x": 8,
+          "y": 10
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 6
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 7
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 8
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 9
+        },
+        {
+          "type": "oathstone",
+          "x": 8,
+          "y": 5
+        },
+        {
+          "type": "barracks",
+          "x": 8,
+          "y": 2
+        }
+      ],
+      "troops": [
+        "oathsworn",
+        "halberdier",
+        "pikewoman",
+        "longbowman",
+        "archer",
+        "builder",
+        "miner"
+      ]
+    },
+    "raids": [
+      {
+        "at": 40,
+        "count": 8
+      },
+      {
+        "at": 150,
+        "count": 11
+      },
+      {
+        "at": 250,
+        "count": 12
+      }
+    ],
+    "scaling": {
+      "hp": 38,
+      "damage": 7.5
+    },
+    "rewards": {
+      "gold": 8000,
+      "lumber": 4500,
+      "plate": 1300,
+      "frostwood": 800
+    },
+    "unlocks": [],
+    "ceremony": {
+      "warning": "Sorrel walks the salt grass: pale banners in precise rows, supplies by rank, a camp with ceremonial order. Three horns at the pavilion — either March road earned the way here.",
+      "victory": "The pavilion falls silent and its banners burn. North rises the scorched ridge, and on it the Ashen Warlord waits for the full muster.",
+      "defeat": "The ceremonial rows hold. Sorrel pulls the column back to the Marches; fill the war chest and storm the salt grass again."
+    },
+    "requires": [],
+    "requiresAny": [
+      "ix-slag-fire",
+      "ix-ember-works"
+    ]
+  },
+  {
+    "id": "ix-ashen-crown",
+    "name": "The Ashen Crown",
+    "chapter": "39",
+    "act": "XI",
+    "beat": "Beyond the broken Dawn the five camp-fires burn as one; the Ashen Warlord holds the scorched ridge and dares the Manner to take it.",
+    "giver": "Sorrel the watcher",
+    "description": "Beyond the Muster Fields the Warlord holds the scorched Ashen Crown. Break four horns heavier than the Dawn, stand the full muster, and bring down the Crown of the Five Fires.",
+    "timeLimit": 450,
+    "troopLimit": 10,
+    "launchCost": {
+      "food": 11000,
+      "bread": 2200,
+      "lumber": 7000,
+      "plate": 1200,
+      "gold": 6500
+    },
+    "objectives": [
+      {
+        "kind": "defeat",
+        "amount": 32
+      },
+      {
+        "kind": "survive",
+        "seconds": 360
+      }
+    ],
+    "startingResources": {
+      "wood": 380,
+      "food": 240,
+      "gold": 180
+    },
+    "map": {
+      "biome": "hills",
+      "seed": 3401,
+      "tiles": [
+        {
+          "x": 12,
+          "y": 5,
+          "biome": "hills",
+          "landmark": "Ashen Crown",
+          "claimed": true
+        }
+      ],
+      "buildings": [
+        {
+          "type": "hall",
+          "x": 9,
+          "y": 7
+        },
+        {
+          "type": "tower",
+          "x": 6,
+          "y": 6
+        },
+        {
+          "type": "archer_tower",
+          "x": 6,
+          "y": 9
+        },
+        {
+          "type": "ballista",
+          "x": 8,
+          "y": 10
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 6
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 7
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 8
+        },
+        {
+          "type": "stonewall",
+          "x": 5,
+          "y": 9
+        },
+        {
+          "type": "oathstone",
+          "x": 8,
+          "y": 5
+        },
+        {
+          "type": "barracks",
+          "x": 8,
+          "y": 2
+        }
+      ],
+      "troops": [
+        "oathsworn",
+        "halberdier",
+        "pikewoman",
+        "longbowman",
+        "archer",
+        "builder",
+        "miner"
+      ]
+    },
+    "raids": [
+      {
+        "at": 60,
+        "count": 8
+      },
+      {
+        "at": 150,
+        "count": 10
+      },
+      {
+        "at": 230,
+        "count": 12
+      },
+      {
+        "at": 300,
+        "count": 14,
+        "boss": "ashen-warlord",
+        "herald": "The ridge burns black — THE ASHEN WARLORD takes the field at wave {wave}! Five fires, one crown — hold!"
+      }
+    ],
+    "scaling": {
+      "hp": 38,
+      "damage": 7.5
+    },
+    "rewards": {
+      "gold": 9000,
+      "lumber": 5000,
+      "plate": 1400,
+      "frostwood": 900
+    },
+    "unlocks": [],
+    "ceremony": {
+      "warning": "Sorrel marks the scorched ridge: four horns heavier than the Dawn, the Warlord at the fourth, and no oathstone to hide behind — only the full muster and the war chest.",
+      "victory": "The Ashen Warlord falls. Five camp-fires gutter out along the frontier and the Manner takes the scorched crown. Sorrel charts the ridge under a new name: the Ashen Crown, first light of Act XI.",
+      "defeat": "The Warlord holds the scorched ridge. Sorrel pulls the muster back past the Marches; fill the war chest and return with heavier horns."
+    },
+    "requires": [
+      "ix-pale-pavilion"
+    ]
   }
 ]
