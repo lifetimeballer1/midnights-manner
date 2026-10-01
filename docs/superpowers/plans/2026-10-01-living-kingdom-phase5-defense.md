@@ -23,6 +23,7 @@
 - Modify `src/systems/defense-posts.js:7-40` — RALLY table, setRally, autoFill weights, reserve holdback.
 - Modify `src/systems/tactics.js:48-61` — weak-wall + valuable discounts.
 - Modify `src/automation-ui.js:6-11`, `src/ui.js:240-243` — rally control (B only).
+- Bridge (B): `src/game.js` `setRally` validate+persist+notify plumbing.
 - Create `tests/living-kingdom-phase5-defense.test.js`.
 
 ---
