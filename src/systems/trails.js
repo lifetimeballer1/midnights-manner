@@ -54,7 +54,7 @@ export function addTrailGeometry(s,world){
   const stage=trailStage(strength(e,world.elapsed||0));if(!stage)continue;
   const [ix,iy]=key.split(',').map(Number),x=(ix+.5)/SCALE,y=(iy+.5)/SCALE,p=s.r.project(x,y);
   if(p.x<-40||p.y<-40||p.x>s.r.width+40||p.y>s.r.height+40)continue;
-  const seed=((ix*31+iy*17)%13)/13,r=.16+stage*.033,color=['','#7f8159','#8c7654','#a08c68'][stage];
+  const seed=((ix*31+iy*17)%13)/13,r=.16+stage*.033,color=['','#7f8159','#8c7654','#9c8865'][stage];
   s.face(Array.from({length:8},(_,i)=>{const a=i*Math.PI/4,rad=r*(.91+((i*7+seed*13)%5)*.035);return [x+Math.cos(a)*rad,y+Math.sin(a)*rad,.013];}),color,false);
   for(const [dx,dy] of [[1,0],[0,1],[1,1],[-1,1]]){
    if(trailStage(strength(world.trails[`${ix+dx},${iy+dy}`],world.elapsed||0))<1)continue;
