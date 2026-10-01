@@ -35,6 +35,38 @@ export function hotspotAt(dataWorld,x,y){
    return !!region&&!isRegionClaimed(world,region);
   });
  }
+function burnRemains(s,camp){
+  // G2: cold spent-fire marker where a frontier camp burned. Stone ring +
+  // ash bed + charred ends only — no tent, banner or flame (live camps keep
+  // the cookfire pyramid). Static boxes, no time/anim (calm-safe).
+  const x=camp.x+.5,y=camp.y+.5;
+  s.box(x-.24,y-.2,.02,.48,.4,.05,'#6b6a66');
+  s.box(x-.08,y-.07,.03,.16,.14,.04,'#575653');
+  for(let i=0;i<6;i++){
+    const a=i*Math.PI/3,rx=x+Math.cos(a)*.3,ry=y+Math.sin(a)*.24;
+    s.box(rx-.05,ry-.05,.03,.1,.1,.09,i%2?'#6f7270':'#8a8d88');
+  }
+  s.box(x-.22,y-.05,.04,.34,.09,.08,'#2f2b28');
+  s.box(x-.05,y+.08,.04,.09,.3,.07,'#3a3532');
+  s.box(x+.08,y-.16,.03,.12,.1,.12,'#4a4440');
+}
+export function burnedRemains(world,data){
+  // G2: cleared home camps that leave a spent-fire marker. Mirrors the
+  // visibleFrontierCamps filter inverted on the ledger: a camp qualifies
+  // only once its assault chapter is won and while its region stays
+  // unclaimed. Home sheet only (expeditions excluded by tile count);
+  // worlds without the ledger (old saves) leave no remains.
+  if(!Array.isArray(world?.tiles)||world.tiles.length!==(data?.world?.width||0)*(data?.world?.height||0))return [];
+  const camps=Array.isArray(data?.world?.frontierCamps)?data.world.frontierCamps:[];
+  const cleared=Array.isArray(world?.clearedCamps)?world.clearedCamps:[];
+  if(!cleared.length)return [];
+  return camps.filter(camp=>{
+    if(!camp.clearedBy||!cleared.includes(camp.clearedBy))return false;
+    if((world.wave||0)<(camp.minWave||0))return false;
+    const region=regionById(data?.expansion,camp.region);
+    return !!region&&!isRegionClaimed(world,region);
+  });
+}
 export function occupiedTileKeys(world,data){
  const out=new Set();
  for(const b of world?.buildings||[]){
@@ -182,8 +214,20 @@ export function addEnvironmentScenery(scene,world,data){
   if(p.x<-120||p.x>r.width+120||p.y<-140||p.y>r.height+100)continue;
   const faction=(data?.world?.enemyFactions||[]).find(f=>f.id===camp.faction);
   scene.owner={kind:'faction-camp',id:camp.id,name:camp.name,faction:camp.faction,x:camp.x,y:camp.y};
-  frontierCamp(scene,camp,faction);drawn++;
- }
- scene.owner=oldOwner;scene.alpha=oldAlpha;
+   frontierCamp(scene,camp,faction);drawn++;
+  }
+  // G2 burned remains: spent-fire markers on cleared tiles, sharing the
+  // scenery budget and LOD gating (far overviews stay quiet). Mesh-keyed
+  // via the clearedCamps ledger entry in scene3d, so a burn rebuilds once.
+  for(const camp of burnedRemains(world,data)){
+   if(drawn>=max)break;
+   if(zoom<.75)continue;
+   if(zoom<1.2&&(hash2(camp.x,camp.y,seed+613)&1))continue;
+   const p=r.project(camp.x+.5,camp.y+.5);
+   if(p.x<-120||p.x>r.width+120||p.y<-140||p.y>r.height+100)continue;
+   scene.owner={kind:'burned-remains',id:camp.id,name:camp.name,faction:camp.faction,x:camp.x,y:camp.y};
+   burnRemains(scene,camp);drawn++;
+  }
+  scene.owner=oldOwner;scene.alpha=oldAlpha;
  return drawn;
 }
