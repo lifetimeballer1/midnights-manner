@@ -10,6 +10,18 @@ export const SOURCE_PROFILES=Object.freeze({
  trap:{falloff:1.85,reach:.70,push:0,alpha:.31,maxAlpha:.31,inner:'255,199,89',mid:'241,126,47',edge:'195,67,30',midStop:.27,midFade:.50,flicker:.18,freq:.014,cone:null}
 });
 export function sourceProfile(source){return SOURCE_PROFILES[source?.profile]||SOURCE_PROFILES.generic;}
+// V2 civic light identity — one glow color + motion channel per great-work
+// type for the state-derived cues in building-activity.js. Presentation only:
+// cached sources, simulation, saves and auras never read this table.
+export const CIVIC_CUES=Object.freeze({
+ 'manner-citadel':{light:'242,201,110',channel:'rustle',kind:'pennant'},
+ 'grand-watchtower':{light:'255,190,110',channel:'creak',kind:'pulse'},
+ 'stone-road':{light:'215,201,164',channel:'cart',kind:'drift'},
+ 'city-wall':{light:'174,187,187',channel:'door',kind:'step'},
+ 'forge-quarter':{light:'232,136,63',channel:'bellows',kind:'rise'},
+ 'lantern-rows':{light:'255,213,139',channel:'oven',kind:'pulse'}
+});
+export function civicCueFor(type){return CIVIC_CUES[type]||null;}
 export function sourcePhase(source){
  if(Number.isFinite(source?.phase))return source.phase;
  let h=2166136261;
