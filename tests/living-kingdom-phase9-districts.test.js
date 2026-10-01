@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createWorld,makeBuilding} from '../src/model.js';
 import {districtKindOf,districtGrid,settlementTopology} from '../src/systems/logistics.js';
+import {roadImportance} from '../src/systems/roads.js';
+import {eventAnchor} from '../src/systems/frontier-events.js';
+import {ambienceProfile} from '../src/systems/ambience.js';
 const data=Object.fromEntries(await Promise.all(['world','troops','items','abilities','buildings','missions','quests'].map(async n=>[n,JSON.parse(await readFile(new URL(`../data/${n}.json`,import.meta.url)))])));
 test('districts: farm cluster reads farming, old keys untouched',()=>{
   const w=createWorld(data);
@@ -54,4 +57,32 @@ test('districts: civic/market keys, 30s cache bucketing, detached returns',()=>{
   t2.cells.length=0;
   assert.ok(settlementTopology(w,data).districts.civic.length>0);
   assert.ok(settlementTopology(w,data).cells.length>0);
+});
+test('districts consumers: road +2 wear-equiv on industrial cell, quiet cell unchanged',()=>{
+  const w=createWorld(data);
+  w.buildings=[];
+  w.buildings.push(makeBuilding('mine',2,2,data),makeBuilding('forge',4,3,data));
+  w.trails={'4,4':[10,0],'40,40':[10,0]};
+  assert.equal(roadImportance(w,data,'4,4'),12);
+  assert.equal(roadImportance(w,data,'40,40'),10);
+});
+test('districts consumers: anchor tie-break prefers the near-type district cell',()=>{
+  const w=createWorld(data);
+  w.buildings=[];
+  const far=makeBuilding('farm',0,4,data);
+  const near=makeBuilding('farm',12,6,data);
+  const pair=makeBuilding('farm',14,6,data);
+  w.buildings.push(far,near,pair);
+  const anchor=eventAnchor(w,data,{place:{near:'farm'}});
+  assert.equal(anchor?.id,near.id);
+});
+test('districts consumers: work kinds sort district-dominant first, quiet still sounds',()=>{
+  const w=createWorld(data);
+  w.buildings=[];
+  w.buildings.push(makeBuilding('sawmill',20,20,data),makeBuilding('farm',2,2,data),makeBuilding('farm',4,3,data));
+  assert.deepEqual(ambienceProfile(w,data).work,['farm','farm','chop']);
+  const q=createWorld(data);
+  q.buildings=[];
+  q.buildings.push(makeBuilding('sawmill',20,20,data),makeBuilding('farm',2,2,data));
+  assert.deepEqual(ambienceProfile(q,data).work,['chop','farm']);
 });

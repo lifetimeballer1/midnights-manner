@@ -1,6 +1,7 @@
 import {hash2} from './biomes.js';
 import {isRegionClaimed,regionById} from './expansion.js';
 import {centralRoom} from './storage.js';
+import {districtGrid,districtKindOf} from './logistics.js';
 import {housing,center as buildingCenter} from '../model.js';
 
 const resources = value => value && typeof value==='object' ? value : {};
@@ -67,6 +68,8 @@ export function eventConditionsMet(event,state,data){
 // closest to the village center, or the first candidate when no center
 // reads. Events without `place.near` anchor on the first living finished
 // building; a village with none standing anchors nowhere.
+// Phase 9B: nearest-first stays primary; exact ties break toward the
+// candidate standing in the `place.near` type's district kind.
 export function eventAnchor(world,data,event){
  const alive=(world?.buildings||[]).filter(b=>b&&b.hp>0&&!(b.remaining>0));
  if(!alive.length)return null;
@@ -77,12 +80,22 @@ export function eventAnchor(world,data,event){
  const bounds=world?.bounds;
  const c=bounds&&Number.isFinite(bounds.w)&&Number.isFinite(bounds.h)?{x:bounds.w/2,y:bounds.h/2}:null;
  if(!c)return pool[0];
+ let want=null,cellOf=null;
+ try{
+  want=near?districtKindOf(near):null;
+  if(want)cellOf=new Map(districtGrid(world,data).cells.map(cl=>[cl.cy*4096+cl.cx,cl.kind]));
+ }catch{want=null;cellOf=null;}
  let best=pool[0],bd=Infinity;
  for(const b of pool){
   let p;
   try{p=buildingCenter(b,data);}catch{p={x:b.x,y:b.y};}
   const d=Math.hypot(p.x-c.x,p.y-c.y);
-  if(d<bd){bd=d;best=b;}
+  if(d<bd-1e-9){bd=d;best=b;}
+  else if(cellOf&&Math.abs(d-bd)<=1e-9){
+   const cur=cellOf.get(Math.floor(best.y/6)*4096+Math.floor(best.x/6))??null;
+   const cand=cellOf.get(Math.floor(b.y/6)*4096+Math.floor(b.x/6))??null;
+   if(cand===want&&cur!==want)best=b;
+  }
  }
  return best;
 }

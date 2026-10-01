@@ -24,6 +24,26 @@ export function roadQuote(w,d,seed,tier=1){
 export function buildRoad(w,d,seed,tier=1){const q=roadQuote(w,d,seed,tier);if(q.error)return {ok:false,error:q.error};for(const [k,n] of Object.entries(q.cost))if((w.resources[k]||0)<n)return {ok:false,error:'Not enough stores for this road.'};for(const [k,n] of Object.entries(q.cost))w.resources[k]-=n;w.roads??={};for(const k of q.cells)w.roads[k]=tier;revisions.set(w,roadRevision(w)+1);return {ok:true,count:q.cells.length};}
 // Living Kingdom slice 1: cached scorer for builder road jobs. Trail wear
 // today; destination-choice weighting belongs to a later task.
-export function roadImportance(w,d,key){const e=w.trails?.[key];return (e?.[0]||0);}
+// District bonus (Phase 9B): +2 wear-equiv on industrial/market/farming
+// cells — formally unparks the wear-only ruling for sounding districts.
+// Local mirror of the logistics kind map (verbatim): logistics imports
+// roads, so importing districtGrid back would cycle. Single-cell majority
+// read, no cache needed — cheap at the 2s automation cadence.
+const DISTRICT_KINDS=[['farming',/^(farm|mill|bakery|granary|pasture|grove|whisper-grove|frostgrove|pond|deephole|blackwater-weir)$/],['industrial',/^(mine|forge|forge-quarter|smeltery|armory|sawmill|lumber|timber_yard|mason_yard|tannery|butchery|workshop|emberglass)$/],['military',/^(barracks|fletcher|shieldwall-yard|tower|archer_tower|ballista|wall|stonewall|city-wall|rampart|gate|grand-watchtower)$/],['market',/^(market|market-square|storehouse|grand-granary)$/],['residential',/^(cottage|longhouse|gardens|manor-gardens)$/],['civic',/^(chapel|sunken-chapel|schoolroom|scriptorium|scout_post|bell-tower|bellcote|dawn-gate|monument|oathstone|moon-dial|cairnfield|hall)$/]];
+function districtCellKindAt(w,x,y){
+ const cx=Math.floor(x/6),cy=Math.floor(y/6),counts=new Map();
+ for(const b of w.buildings||[]){
+  if(!(b&&b.hp>0)||b.remaining>0)continue;
+  if(Math.floor(b.x/6)!==cx||Math.floor(b.y/6)!==cy)continue;
+  let kind=null;
+  for(const [k,re] of DISTRICT_KINDS)if(re.test(b.type)){kind=k;break;}
+  if(!kind)continue;
+  counts.set(kind,(counts.get(kind)||0)+1);
+ }
+ let kind=null,count=0;
+ for(const [k,n] of counts)if(n>count){count=n;kind=k;}
+ return count>=2?kind:null;
+}
+export function roadImportance(w,d,key){const e=w.trails?.[key],wear=(e?.[0]||0);if(typeof key!=='string'||!/^\d+,\d+$/.test(key))return wear;const [ix,iy]=key.split(',').map(Number),kind=districtCellKindAt(w,(ix+.5)/2,(iy+.5)/2);return wear+((kind==='industrial'||kind==='market'||kind==='farming')?2:0);}
 export function busyRoutes(w,limit=4,d=null){const rev=infrastructureRevision(w),cached=routeLists.get(w);if(cached&&cached.rev===rev&&cached.limit===limit)return cached.out;const candidates=[];for(const [key] of Object.entries(w.trails||{})){const wear=roadImportance(w,d,key);if(wear<15||(w.roads?.[key]||0)===2)continue;if(d){const [ix,iy]=key.split(',').map(Number),x=(ix+.5)/2,y=(iy+.5)/2;if(w.buildings.some(b=>b.hp>0&&b.type!=='gate'&&b.type!=='trap'&&x>=b.x&&x<b.x+d.buildings[b.type].size&&y>=b.y&&y<b.y+d.buildings[b.type].size))continue;}const row={key,wear,road:w.roads?.[key]||0};let i=0;while(i<candidates.length&&candidates[i].wear>=row.wear)i++;candidates.splice(i,0,row);if(candidates.length>64)candidates.pop();}const out=[];for(const row of candidates){const [x,y]=row.key.split(',').map(Number);if(out.some(r=>{const [a,b]=r.key.split(',').map(Number);return Math.hypot(x-a,y-b)<8;}))continue;if(d&&roadQuote(w,d,row.key,row.road?2:1).error)continue;out.push(row);if(out.length>=limit)break;}routeLists.set(w,{rev,limit,out});return out;}
 export function infrastructureRevision(w){return `${trailRevision(w)}:${roadRevision(w)}`;}

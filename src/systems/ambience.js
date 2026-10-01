@@ -1,5 +1,6 @@
 import {isMuted,sharedAudioContext,sharedAudioOutput,sfx,pumpScheduled} from './audio.js';
 import {phaseAt,weatherAt} from './daynight.js';
+import {districtGrid} from './logistics.js';
 
 // Sparse procedural ambience for the living village. Everything is synthesized
 // through WebAudio so the game stays lightweight and carries no licensed audio.
@@ -16,11 +17,28 @@ const WORK_TYPES={
 function standingBuildings(world){
  return Array.isArray(world?.buildings)?world.buildings.filter(b=>b&&b.hp>0&&!(b.remaining>0)):[];
 }
-function workKinds(world){
+function workKinds(world,data){
  const kinds=[];
  for(const b of standingBuildings(world)){
   for(const [kind,types] of Object.entries(WORK_TYPES))if(types.has(b.type)){kinds.push(kind);break;}
  }
+ // District voice (Phase 9B): the dominant sounding district's work kind
+ // leads. Sort only — quiet districts still sound, nothing is filtered.
+ try{
+  const cells=districtGrid(world,data).cells;
+  let dom=null;
+  for(const cl of cells){if(!cl.kind)continue;if(!dom||cl.count>dom.count)dom=cl;}
+  if(dom){
+   const tally=new Map();
+   for(const b of standingBuildings(world)){
+    if(Math.floor(b.x/6)!==dom.cx||Math.floor(b.y/6)!==dom.cy)continue;
+    for(const [kind,types] of Object.entries(WORK_TYPES))if(types.has(b.type)){tally.set(kind,(tally.get(kind)||0)+1);break;}
+   }
+   let lead=null,leadN=0;
+   for(const [k,n] of tally)if(n>leadN){leadN=n;lead=k;}
+   if(lead)kinds.sort((a,b)=>(a===lead?0:1)-(b===lead?0:1));
+  }
+ }catch{}
  return kinds;
 }
 
@@ -34,7 +52,7 @@ export function ambienceProfile(world,data){
   night:Boolean(phase.night),
   weather:weather?.id||'clear',
   settlement:buildings.length,
-  work:workKinds(world),
+  work:workKinds(world,data),
   raid:Boolean(world?.inRaid)||(Array.isArray(world?.enemies)&&world.enemies.some(e=>e&&e.hp>0)),
   warning:Boolean(world?.raidPending),
  };
