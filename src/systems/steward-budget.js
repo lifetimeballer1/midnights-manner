@@ -2,6 +2,7 @@
 // cached plan and current stores, so two workshops cannot spend the same funds.
 import {mealCost} from './food.js';
 import {buildingMaxHp} from './endgame.js';
+import {storageCap} from './storage.js';
 const plans=new WeakMap();
 const amount=n=>Number.isFinite(Number(n))?Math.max(0,Number(n)):0;
 const manual=(w,k)=>amount(w.automation?.reserves?.[k]);
@@ -49,8 +50,21 @@ export function budgetSnapshot(game){
  }
  return {enabled,rows,resources};
 }
+// Living Kingdom slice 2: % reserve per category. Percent of
+// storageCap(world,data,resource) for automation.reservePct[category][res],
+// default 0%. Uncapped resources and missing data resolve to zero so legacy
+// behavior is unchanged. The purpose carries the category ('road' aliases
+// 'roads'); unknown purposes simply have no pct entry.
+function pctReserveFloor(w,d,resource,purpose){
+ const cat=purpose==='road'?'roads':purpose;
+ const pct=Number(w.automation?.reservePct?.[cat]?.[resource]);
+ if(!(pct>0)||!d)return 0;
+ const cap=storageCap(w,d,resource);
+ if(!Number.isFinite(cap))return 0;
+ return cap*pct/100;
+}
 export function spendingAvailable(gameOrWorld,resource,{purpose='craft',buildingId}={}){
- const w=gameOrWorld.world||gameOrWorld,owned=amount(w.resources?.[resource]),floor=manual(w,resource);
+ const w=gameOrWorld.world||gameOrWorld,d=gameOrWorld?.data,owned=amount(w.resources?.[resource]),floor=Math.max(manual(w,resource),pctReserveFloor(w,d,resource,purpose));
  if(!w.steward?.enabled)return Math.max(0,owned-floor);
  const rows=plans.get(w)||[];
  // An operation can use its own basket and lower-priority funds. Unrelated

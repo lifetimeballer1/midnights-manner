@@ -9,15 +9,40 @@ import {supplyBonus} from './food.js';
 import {canSpend,spendingAvailable} from './steward-budget.js';
 import {RARITY_ORDER,refinerCrew,craftCost,startCraftOrder,stockCount} from './crafting.js';
 const runtime=new WeakMap(),recipes=new WeakMap();
-const defaults=()=>({autoUpgrade:false,autoUpgradeTypes:{},reserves:{},stockTarget:1});
+// Living Kingdom slice 2: settlement policies. Eleven automation categories;
+// old saves gain them default-on through automationSettings (additive only).
+export const POLICY_CATEGORIES=['walls','gates','towers','farms','mines','lumber','housing','storage','workshops','military','roads'];
+export const CATEGORY_OF={wall:'walls',gate:'gates',tower:'towers',archer_tower:'towers',ballista:'towers',farm:'farms',mine:'mines',lumber:'lumber',timber_yard:'lumber',sawmill:'lumber',cottage:'housing',longhouse:'housing',hall:'storage',storehouse:'storage','grand-granary':'storage',forge:'workshops',workshop:'workshops',smeltery:'workshops',barracks:'military'};
+const defaultPolicies=()=>Object.fromEntries(POLICY_CATEGORIES.map(c=>[c,{on:true,maxTier:6,priority:'normal'}]));
+const defaults=()=>({autoUpgrade:false,autoUpgradeTypes:{},reserves:{},stockTarget:1,policies:defaultPolicies(),reservePct:{}});
 export function automationSettings(world){
  if(!world.automation)world.automation=defaults();
- if(!world.automation.autoUpgradeTypes||typeof world.automation.autoUpgradeTypes!=='object'||Array.isArray(world.automation.autoUpgradeTypes))world.automation.autoUpgradeTypes={};
- return world.automation;
+ const a=world.automation;
+ if(!a.autoUpgradeTypes||typeof a.autoUpgradeTypes!=='object'||Array.isArray(a.autoUpgradeTypes))a.autoUpgradeTypes={};
+ if(!a.policies||typeof a.policies!=='object'||Array.isArray(a.policies))a.policies=defaultPolicies();
+ else for(const c of POLICY_CATEGORIES){
+  const p=a.policies[c];
+  if(!p||typeof p!=='object'||Array.isArray(p)){a.policies[c]={on:true,maxTier:6,priority:'normal'};continue;}
+  if(typeof p.on!=='boolean')p.on=true;
+  if(!Number.isFinite(Number(p.maxTier)))p.maxTier=6;
+  if(typeof p.priority!=='string')p.priority='normal';
+ }
+ if(!a.reservePct||typeof a.reservePct!=='object'||Array.isArray(a.reservePct))a.reservePct={};
+ return a;
 }
 const settings=w=>w.automation||defaults();
 export function autoUpgradeTypeEnabled(world,type,building=null){
- const byType=settings(world).autoUpgradeTypes;
+ const s=settings(world),cat=CATEGORY_OF[type];
+ if(cat){
+  const pol=s.policies?.[cat];
+  if(pol===false)return false;
+  if(pol&&typeof pol==='object'){
+   if(pol.on===false)return false;
+   const max=Number(pol.maxTier);
+   if(building&&Number.isFinite(max)&&building.level>=max)return false;
+  }
+ }
+ const byType=s.autoUpgradeTypes;
  if(byType&&Object.hasOwn(byType,type))return !!byType[type];
  return !!building?.autoUpgrade;
 }
