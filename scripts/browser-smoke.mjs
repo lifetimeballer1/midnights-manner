@@ -208,7 +208,12 @@ try{
  await click('#pause');await fire('#opt-news');await waitFor('!document.querySelector("#news-overlay").hidden');
  assert.ok(await evaluate('document.querySelectorAll(".news-entry").length>=3'),'notice board lists patch notes');
  await screenshot('whats-new');await fire('#news-close');await waitFor('document.querySelector("#news-overlay").hidden');
- assert.equal(await evaluate('window.midnightsManner.snapshot().seenUpdatesVersion'),'0.3.0','dismissing the board marks the version seen');
+  // seenUpdatesVersion mirrors PatchNotes.close() -> latestVersion(feed);
+  // derive it from the shipped feed (entries[0] is newest), not a hardcoded pin.
+  let expectedSeen=null;
+  try{expectedSeen=await evaluate(`(async()=>{const r=await fetch('/midnights-manner/data/updates.json');if(!r.ok)throw Error('no feed');const j=await r.json();const v=j?.entries?.[0]?.version;if(typeof v!=='string'||!v)throw Error('no version');return v;})()`);}catch{}
+  if(!expectedSeen){try{expectedSeen=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8')).version;}catch{}}
+  assert.equal(await evaluate('window.midnightsManner.snapshot().seenUpdatesVersion'),expectedSeen,'dismissing the board marks the version seen');
  await click('#resume');
  await call('Page.reload');await waitFor('Boolean(window.midnightsManner)');await click('#begin');
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[0].level'),2,'level restored');
