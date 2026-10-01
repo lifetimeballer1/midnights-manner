@@ -1,3 +1,41 @@
+# Act XI J6: music + global-phone verification pass
+
+- Every theme (18/18, choir included) now pins Calm thinning, per-voice mix bounds, and master-gain ceiling in the multi-theme test — the measurable proxies for "songs sound good" on tiny speakers.
+- Celebration hygiene pinned: the 5-minute duck disarms on stop with no leaked timer or hold.
+- Perf neutrality pinned: clearing the whole frontier costs exactly one static rebuild per burn and ends camp-free; all prior face/effect/voice caps hold untouched, and Act XI adds zero per-frame work (data + one short mesh-key join).
+- Review: full suite green, build green. Browser capture/smoke still belong to CI (no Chrome on this box).
+
+# Act XI J5: burned camps stay down (clearedBy ledger + mesh key)
+
+- Five `frontierCamps` name their assault chapter via additive `clearedBy`; `finishMission` first-clears write `world.clearedCamps` on the home world (lazy — old saves without the field show every camp, no migration, no version bump).
+- `visibleFrontierCamps` drops burned camps (claim/wave gates unchanged; expedition maps never showed them anyway; camp smoke follows the same filter for free).
+- The static mesh key gains the cleared signature so a burn rebuilds once instead of lingering; clock still never rebuilds.
+- Review: 4 new J5 checks (mapping, visibility/old-save default, once-only ledger + defeat writes nothing, mesh rebuild). No balance, combat, or save-schema changes.
+
+# Act XI J4: the pavilion reconverges the diamond + camp epilogues
+
+- Chapter 38 `ix-pale-pavilion` (Pale Coast plains mirror): `requires: []` + `requiresAny: [ix-slag-fire, ix-ember-works]` — either March road opens it, reusing the coin-and-cinder gate with no code. Defeat 28 + survive 300, horns 8/11/12.
+- `ix-ashen-crown` rewired from the temp Grey Dawn gate onto `ix-pale-pavilion`; the arc reads 34→39 end to end.
+- All five `frontierCamps` carry chapter epilogues (35/36/37/37/38); ids, regions, waves, geometry untouched.
+- Review: historical fingerprints preserved; totals move 40→41 missions, max chapter stays 39.
+
+# Act XI J3: the branch (slag-fire / ember-works)
+
+- Shared chapter 37 diamond off `ix-starwatch-veil`: `ix-slag-fire` (Slag Lines hills) and `ix-ember-works` (Ember Works hills, new seed) both run defeat 26 + survive 300 with 8/10/12 horns. Either road presses on; the J4 pavilion reconverges them.
+- Review: historical fingerprints preserved by excluding both additive entries; totals move 38→40 missions, max chapter stays 39, crown still closes the card list.
+
+# Act XI J2: the first assaults (wake, whisper, starwatch)
+
+- Three prequel chapters chain into the crown: 34 `ix-ashen-wake` (plains Muster Fields, defeat 20 + survive 240, horns 7/9/11), 35 `ix-whisper-snare` (Whisperwood forest mirror, 22 + 270s, 8/10/11), 36 `ix-starwatch-veil` (Starwatch Ridge hills mirror, 24 + 270s, 8/10/12). Baskets and scaling escalate past the Grey Dawn road.
+- `ix-ashen-crown` moves to chapter 39 so the cards read in story order; its gate still opens off `grey-dawn-crown` until J4 lands the pavilion and rewires it (pinned as a temp gate in the J1 test).
+- Review: historical fingerprints preserved by excluding the three additive entries; totals move 35→38 missions, max chapter 34→39.
+
+# Act XI J1: the Ashen Crown finale + update celebration song
+
+- New chapter 39 `ix-ashen-crown` (Act XI, requires `ix-pale-pavilion` after the J4 rewire): defeat 32 + survive 360 on a scorched hills ridge, four horns at 8/10/12/14 with the new Ashen Warlord (`conquest.json` leader: 2900 hp base, faster summon clock) — out-stats the Grey Sovereign in every number.
+- New original soul-choir theme `ashen-choir` (generative WebAudio, no assets): the update board forces it once when fresh 0.4.0 notes auto-show, then it settles to 25% volume after 5 minutes. Combat/mood urgency still wins; mute/Calm/voice caps untouched.
+- `data/updates.json` 0.4.0 entry announces Act XI; saves stay additive, no migration.
+- Review: historical mission/leader fingerprints preserved by excluding the additive entries (verified byte-identical); totals move 34→41 missions, max chapter 33→39, 6→7 leaders, 17→18 themes with the main-side bonus track.
 ## 2026-09-30 — Ambient soundtrack safety + performance sync
 
 - Keep the legacy `data/music.json` theme score intact as the fallback used by `MusicPlayer`; the ambient engine continues to load only `data/ambient-score.json`.

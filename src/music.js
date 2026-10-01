@@ -6,6 +6,12 @@ const USE_MULTI_THEMES=true;
 const PHRASES_PER_SONG=5;
 // Silence between themes so notes never overlap across songs (ms).
 const THEME_GAP_MS=420;
+// Celebration: after a game update lands, the update board forces the
+// original soul-choir theme once, then it settles to 25% after 5 minutes.
+// Original generative theme only — no licensed audio, no assets.
+const CELEBRATE_THEME_ID='ashen-choir';
+const CELEBRATE_DUCK_MS=300000;
+const CELEBRATE_DUCK_LEVEL=0.25;
 
 const DEFAULT_SCALE=[0,2,3,5,7,9,10];
 const DEFAULT_PROGRESSION=[[0,3,7,10],[5,9,12,14],[-2,2,5,9],[-5,0,2,5]];
@@ -75,21 +81,26 @@ export class MusicPlayer{
   this.themeIndex=0;
   this.phrasesInSong=0;
   this.switchTimer=null;
-  this.mood='day';
-  this.pendingMoodSwitch=false;
+   this.mood='day';
+   this.pendingMoodSwitch=false;
+   this.celebrateTimer=null;this.celebrationHold=false;
+   this.pendingCelebrate=false;this.celebrateIndex=-1;this.pendingDuckMs=CELEBRATE_DUCK_MS;
   this.entered=false;this.enabled=false;this.playing=false;this.calm=false;this.phrase=0;this.lastPitch=31;this.activePhrase=null;this.timer=null;this.sources=new Set();this.context=null;this.output=null;this.delay=null;this.echo=null;
  }
  /**
   * Pick a theme. Returns true if the active theme actually changed.
   * On start, any of the pool; later calls re-roll randomly.
   */
- pickTheme(forceIndex){
-  if(!USE_MULTI_THEMES||this.themes.length<2){
-   const same=this.themeIndex===0&&this.score===this.themes[0];
-   this.score=this.themes[0];this.themeIndex=0;this.phrasesInSong=0;
-   return !same;
-  }
-  let next;
+  pickTheme(forceIndex){
+   if(!USE_MULTI_THEMES||this.themes.length<2){
+    const same=this.themeIndex===0&&this.score===this.themes[0];
+    this.score=this.themes[0];this.themeIndex=0;this.phrasesInSong=0;
+    return !same;
+   }
+   // Celebration hold: the update song keeps the stage (no random
+   // re-roll) until it ducks to 25% or combat/mood moves it.
+   if(this.celebrationHold&&!Number.isInteger(forceIndex)&&this.score?.id===CELEBRATE_THEME_ID)return false;
+   let next;
   if(Number.isInteger(forceIndex)&&forceIndex>=0&&forceIndex<this.themes.length)next=forceIndex;
   else{
    const eligible=this.themes.map((theme,index)=>themeSupports(theme,this.mood)?index:-1).filter(index=>index>=0);
@@ -102,12 +113,43 @@ export class MusicPlayer{
   this.phrasesInSong=0;
   return changed;
  }
- start({calm=false,mood=this.mood}={}){
-  this.entered=true;this.calm=Boolean(calm);this.mood=typeof mood==='string'&&mood?mood:'day';this.pendingMoodSwitch=false;
-  // On open: randomly choose one of the songs that fits the current world mood.
-  this.pickTheme();
-  this.setEnabled(!isMuted());
- }
+  start({calm=false,mood=this.mood}={}){
+   this.entered=true;this.calm=Boolean(calm);this.mood=typeof mood==='string'&&mood?mood:'day';this.pendingMoodSwitch=false;
+   // On open: randomly choose one of the songs that fits the current world mood —
+   // unless an update celebration is already queued, which takes the stage.
+   if(this.pendingCelebrate&&this.celebrateIndex>=0){this.pendingCelebrate=false;this.pickTheme(this.celebrateIndex);this.armCelebrateTimer(this.pendingDuckMs);}
+   else this.pickTheme();
+   this.setEnabled(!isMuted());
+  }
+  /**
+   * Force the update celebration song now (or queue it when called before
+   * start). After `duckAfterMs` it settles to 25% volume. Returns false when
+   * the celebration theme is missing so callers can silently skip.
+   */
+  celebrate(duckAfterMs=CELEBRATE_DUCK_MS){
+   const index=this.themes.findIndex(t=>t?.id===CELEBRATE_THEME_ID);
+   if(index<0)return false;
+   const delay=Number.isFinite(duckAfterMs)&&duckAfterMs>=0?duckAfterMs:CELEBRATE_DUCK_MS;
+   if(!this.entered){this.pendingCelebrate=true;this.celebrateIndex=index;this.pendingDuckMs=delay;return true;}
+   const changed=this.pickTheme(index);
+   if(this.playing&&changed)this.transitionToTheme();
+   this.celebrationHold=true;
+   this.armCelebrateTimer(delay);
+   return true;
+  }
+  armCelebrateTimer(delayMs){
+   if(this.celebrateTimer!==null){clearTimeout(this.celebrateTimer);this.celebrateTimer=null;}
+   this.celebrateTimer=setTimeout(()=>{
+    this.celebrateTimer=null;this.celebrationHold=false;
+    try{
+     if(this.output&&this.playing&&this.context){
+      const base=bounded(this.score?.gain,.7,0,1);
+      this.output.gain.setTargetAtTime(base*CELEBRATE_DUCK_LEVEL,this.context.currentTime,1.0);
+     }
+    }catch{}
+   },delayMs);
+   if(this.celebrateTimer?.unref)this.celebrateTimer.unref();
+  }
  setEnabled(enabled){this.enabled=Boolean(enabled)&&!isMuted();if(!this.enabled){this.stopPlayback();return;}if(this.entered&&!this.playing)this.play();}
  setCalm(calm){this.calm=Boolean(calm);}
  setMood(mood){
@@ -116,7 +158,7 @@ export class MusicPlayer{
   this.mood=next;
   if(!themeSupports(this.score,next))this.pendingMoodSwitch=true;
  }
- stop(){this.entered=false;this.enabled=false;this.stopPlayback();}
+  stop(){this.entered=false;this.enabled=false;this.pendingCelebrate=false;this.stopPlayback();}
  play(){
   // Guard: never stack a second graph on top of an active one.
   if(this.playing)return;
@@ -178,9 +220,11 @@ export class MusicPlayer{
   try{source.start(start);}catch{finish();return;}
   try{source.stop(end+.035);}catch{try{source.stop(this.context.currentTime+.12);}catch{}}
  }
- stopPlayback(){
-  if(this.timer!==null)clearTimeout(this.timer);this.timer=null;
-  if(this.switchTimer!==null){clearTimeout(this.switchTimer);this.switchTimer=null;}
+  stopPlayback(){
+   if(this.timer!==null)clearTimeout(this.timer);this.timer=null;
+   if(this.switchTimer!==null){clearTimeout(this.switchTimer);this.switchTimer=null;}
+   if(this.celebrateTimer!==null){clearTimeout(this.celebrateTimer);this.celebrateTimer=null;}
+   this.celebrationHold=false;
   const context=this.context,output=this.output,delay=this.delay,echo=this.echo;
   if(context&&this.activePhrase){const elapsed=context.currentTime-this.activePhrase.start,heard=this.activePhrase.notes.filter(note=>note.voice==='pluck'&&note.time<=elapsed).at(-1);if(heard)this.lastPitch=heard.semitone;}
   this.activePhrase=null;

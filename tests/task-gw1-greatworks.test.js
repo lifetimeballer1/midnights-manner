@@ -46,8 +46,9 @@ test('GW1: exactly two additive projects preserve earlier buildings and campaign
   assert.equal(hash(JSON.stringify(earlier)),'d512d232c2753032b0ccf61c03d6a70659f3624744e75c6df5ecbfce5f3c84d3');
  assert.equal(hash(JSON.stringify(data.buildings['dawn-gate'])),'00d6157bcb7d5e00372e02318c3f8ee8626e85584e6e263c38cdb179626ce0f0');
   // Raw-file pins normalize line endings: Windows checkouts use CRLF, CI uses LF.
+  // J1 appends ix-ashen-crown + the Ashen Warlord additively; J2 orders the arc 34-36 with the crown at 39; J3 branches at shared chapter 37; J4 reconverges at 38 — deliberate pin update.
   const raw=async url=>(await readFile(url,'utf8')).replace(/\r\n?/g,'\n');
-  for(const [file,pin] of Object.entries({conquest:'985617d5cd71b269a1de1c1a944654b24506ac63be3f6acf75839aab73b7839e',missions:'664776326e07a6efe2e3dd6c3b806456544d4b097db3ddcbc74575b8fa240a75'})){
+  for(const [file,pin] of Object.entries({conquest:'348c44debdf8cc91dd7b165edd27c98640ff94550aa183f28cf7e04f299ace23',missions:'c13e0c240e8339dfaf60ab89f2d43c71b9895803b093644b3c77a5aebd1012c0'})){
    assert.equal(hash(await raw(new URL(`../data/${file}.json`,import.meta.url))),pin);
   }
   // Renown stays optional; the future project hook stays an unwired comment.

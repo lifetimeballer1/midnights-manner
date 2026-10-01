@@ -22,15 +22,19 @@ export function hotspotAt(dataWorld,x,y){
  const sites=Array.isArray(dataWorld?.hotspots)?dataWorld.hotspots:[];
  return sites.find(site=>site?.x===x&&site?.y===y)||null;
 }
-export function visibleFrontierCamps(world,data){
- if(!Array.isArray(world?.tiles)||world.tiles.length!==(data?.world?.width||0)*(data?.world?.height||0))return [];
- const camps=Array.isArray(data?.world?.frontierCamps)?data.world.frontierCamps:[];
- return camps.filter(camp=>{
-  if((world.wave||0)<(camp.minWave||0))return false;
-  const region=regionById(data?.expansion,camp.region);
-  return !!region&&!isRegionClaimed(world,region);
- });
-}
+ export function visibleFrontierCamps(world,data){
+  if(!Array.isArray(world?.tiles)||world.tiles.length!==(data?.world?.width||0)*(data?.world?.height||0))return [];
+  const camps=Array.isArray(data?.world?.frontierCamps)?data.world.frontierCamps:[];
+  const cleared=Array.isArray(world?.clearedCamps)?world.clearedCamps:[];
+  return camps.filter(camp=>{
+   if((world.wave||0)<(camp.minWave||0))return false;
+   // Act XI (J5): a burned camp stays down once its assault chapter is won.
+   // Worlds without the additive ledger (old saves) show every camp.
+   if(camp.clearedBy&&cleared.includes(camp.clearedBy))return false;
+   const region=regionById(data?.expansion,camp.region);
+   return !!region&&!isRegionClaimed(world,region);
+  });
+ }
 export function occupiedTileKeys(world,data){
  const out=new Set();
  for(const b of world?.buildings||[]){

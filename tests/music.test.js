@@ -179,12 +179,19 @@ test('multi-theme music resolves the expanded original soundtrack',async()=>{
  assert.ok(themes.length>=12,'twelve theme songs are available');
  const ids=themes.map(t=>t.id);
  assert.ok(ids.includes('ember')&&ids.includes('grove')&&ids.includes('haze')&&ids.includes('lattice'),'ember, grove, haze, and lattice themes present');
- for(const theme of themes){
-  const phrase=engine.createPhrase(theme,0,false);
-  assert.ok(phrase.notes.length>0&&phrase.duration>0,`theme ${theme.id} generates a playable phrase`);
-  const melody=phrase.notes.filter(n=>n.voice==='pluck');
-  assert.ok(melody.every(n=>theme.scale.includes((n.semitone%12+12)%12)),`theme ${theme.id} stays in its scale`);
- }
+  for(const theme of themes){
+   const phrase=engine.createPhrase(theme,0,false);
+   assert.ok(phrase.notes.length>0&&phrase.duration>0,`theme ${theme.id} generates a playable phrase`);
+   const melody=phrase.notes.filter(n=>n.voice==='pluck');
+   assert.ok(melody.every(n=>theme.scale.includes((n.semitone%12+12)%12)),`theme ${theme.id} stays in its scale`);
+   // J6 global-phone pass: every song thins under Calm and ships a sane mix —
+   // voices inside the engine's 0.005-0.2 lane, master gain at or below 0.75.
+   const calm=engine.createPhrase(theme,0,true).notes.filter(n=>n.voice==='pluck');
+   assert.ok(calm.length<melody.length,`theme ${theme.id} thins its melody under Calm`);
+   for(const [voice,level] of Object.entries(theme.voices||{}))
+    assert.ok(level>=0.005&&level<=0.2,`theme ${theme.id} voice ${voice} stays mixable`);
+   assert.ok(theme.gain>0&&theme.gain<=0.75,`theme ${theme.id} master gain stays unclipped`);
+  }
 });
 
 test('MusicPlayer picks a random theme on start and can re-roll',async()=>{
@@ -218,7 +225,30 @@ test('music mood selection stays inside matching theme groups',async()=>{
  }finally{if(previousWindow!==undefined)globalThis.window=previousWindow;}
 });
 
-test('expanded SFX exposes workplace and combat cues',()=>{
- for(const name of ['workChop','workPick','workHammer','arrow','blade','footstep','gate','warning','research','fail'])
-  assert.equal(typeof sfx[name],'function',name+' cue is available');
-});
+ test('expanded SFX exposes workplace and combat cues',()=>{
+  for(const name of ['workChop','workPick','workHammer','arrow','blade','footstep','gate','warning','research','fail'])
+   assert.equal(typeof sfx[name],'function',name+' cue is available');
+ });
+
+ test('update celebration plays the choir, then settles to a quarter volume',async()=>{
+  const {engine,data}=await loadMusic(),previousWindow=globalThis.window,wasMuted=isMuted();
+  const {sharedAudioOutput}=await import('../src/systems/audio.js');
+  let player=null;
+  globalThis.window={AudioContext:FakeAudioContext};
+  try{
+   if(wasMuted)toggleMute();
+   player=new engine.MusicPlayer(data);
+   assert.equal(player.celebrate(30),true,'celebration queues before start');
+   player.start();
+   assert.equal(player.score.id,'ashen-choir','the update song takes the stage');
+   assert.ok(player.playing&&player.output,'celebration is audible');
+   assert.ok(player.output.connections.includes(sharedAudioOutput()),'celebration routes into the shared bus');
+   await new Promise(resolve=>setTimeout(resolve,80));
+   assert.ok(player.output,'celebration still holds the stage');
+   assert.ok(Math.abs(player.output.gain.value-0.72*0.25)<0.001,`choir settles to 25% (got ${player.output.gain.value})`);
+  }finally{
+   player?.stop();
+   if(isMuted()!==wasMuted)toggleMute();
+   if(previousWindow===undefined)delete globalThis.window;else globalThis.window=previousWindow;
+  }
+ });

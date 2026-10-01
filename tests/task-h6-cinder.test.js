@@ -41,11 +41,11 @@ function annexBoth(g, choice = 'outpost') {
 }
 
 test('H6: chapters 21-23 chain from Thornband, use hills maps and escalating baskets', () => {
-  assert.equal(Math.max(...data.missions.map(m => Number(m.chapter))), 33, 'H12 completes the finale at chapter 33');
+  assert.equal(Math.max(...data.missions.map(m => Number(m.chapter))), 39, 'J2 orders the Act XI arc to chapter 39');
   const t = data.conquest.tribes[1];
   assert.equal(t.id, tribe); assert.equal(t.color, '#c76b43');
   assert.deepEqual(t.require, {vlevel: 10, renown: 4, barracksTier: 3, troops: 12});
-  assert.equal(data.missions.length, 34);
+  assert.equal(data.missions.length, 41);
   let previous = 'thornband-hold', rewards = {};
   for (const [i, id] of [...t.preliminaries.map(p => p.id), t.assault].entries()) {
     const m = mission(id);

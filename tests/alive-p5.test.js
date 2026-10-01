@@ -10,11 +10,11 @@ const music = JSON.parse(await readFile(new URL('../data/music.json', import.met
 const clear = {world: {daynight: {dayLength: 300, rainChance: 0, fogChance: 0}}};
 const buildings = n => Array.from({length: n}, (_, i) => ({type: 'cottage', hp: 9, remaining: 0, x: i, y: 0}));
 
-test('four new identities validate and phrase cleanly', () => {
-  assert.equal(music.themes.length, 16);
+ test('four new identities validate and phrase cleanly', () => {
+  assert.equal(music.themes.length, 18);
   const ids = new Set(music.themes.map(t => t.id));
-  assert.equal(ids.size, 16, 'theme ids stay unique');
-  for (const id of ['awakens', 'midnight_walls', 'aftermath', 'ascendant']) {
+  assert.equal(ids.size, 18, 'theme ids stay unique');
+  for (const id of ['awakens', 'midnight_walls', 'aftermath', 'ascendant', 'ashen-choir', 'money_right']) {
     const theme = music.themes.find(t => t.id === id);
     assert.ok(theme, `${id} exists`);
     const phrase = createPhrase(theme, 0, false);

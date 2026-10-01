@@ -1050,7 +1050,8 @@
       "y": 14,
       "minWave": 1,
       "name": "Thornband Cut-Camp",
-      "text": "Fresh-cut stakes, hide tents, and a low cookfire sit under the pines. Thornband lookouts use this camp to watch the northern road."
+      "clearedBy": "ix-whisper-snare",
+      "text": "Fresh-cut stakes, hide tents, and a low cookfire sit under the pines. Thornband lookouts use this camp to watch the northern road. Burned out in chapter 35 — its lookouts fled east toward the ridge."
     },
     {
       "id": "pale-starwatch",
@@ -1060,7 +1061,8 @@
       "y": 2,
       "minWave": 3,
       "name": "Pale Host Watch",
-      "text": "White cloth tied below the ridge marks a quiet roadside camp. Its fires stay low and every approach is carefully watched."
+      "clearedBy": "ix-starwatch-veil",
+      "text": "White cloth tied below the ridge marks a quiet roadside camp. Its fires stay low and every approach is carefully watched. Stormed in chapter 36 — its white cloth burned like small suns."
     },
     {
       "id": "cinder-ashfall",
@@ -1070,7 +1072,8 @@
       "y": 27,
       "minWave": 5,
       "name": "Cinder Clan Road-Camp",
-      "text": "A heavy timber rack and a blackened firepit sit beside the old march road. The camp is built for long stays, not a single night."
+      "clearedBy": "ix-slag-fire",
+      "text": "A heavy timber rack and a blackened firepit sit beside the old march road. The camp is built for long stays, not a single night. Broken in chapter 37 down one road of the diamond."
     },
     {
       "id": "ember-ashfall",
@@ -1080,7 +1083,8 @@
       "y": 30,
       "minWave": 8,
       "name": "Ember Legion Works",
-      "text": "Red canvas shelters carts, timber frames, and stacked supplies. The site feels more like a field workshop than a temporary camp."
+      "clearedBy": "ix-ember-works",
+      "text": "Red canvas shelters carts, timber frames, and stacked supplies. The site feels more like a field workshop than a temporary camp. Stormed in chapter 37 down the other road."
     },
     {
       "id": "pale-court-coast",
@@ -1090,7 +1094,8 @@
       "y": 40,
       "minWave": 12,
       "name": "Pale Court Shore Pavilion",
-      "text": "Pale banners stand in precise rows above the salt grass. Supplies are arranged by rank, giving the whole camp a ceremonial order."
+      "clearedBy": "ix-pale-pavilion",
+      "text": "Pale banners stand in precise rows above the salt grass. Supplies are arranged by rank, giving the whole camp a ceremonial order. Left silent in chapter 38 when the pavilion fell."
     }
   ],
   "daynight": {
