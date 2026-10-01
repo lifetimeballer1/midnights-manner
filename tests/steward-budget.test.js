@@ -41,3 +41,10 @@ test('automatic refining preserves shared plans while legacy refinement stays un
  tickRefine(g.world,data,1,false,k=>spendingAvailable(g,k,{purpose:'refine'}));assert.equal(g.world.resources.wood,100);
  delete g.world.steward;tickRefine(g.world,data,1);assert.ok(g.world.resources.wood<100);
 });
+
+test('queued goals share one allocation and remaining plans preserve queue priority',()=>{
+ const g=fixture();g.world.steward.protectMeals=false;g.world.steward.protectRepairs=false;
+ refreshStewardBudget(g,[{slot:'main',label:'Main project',buildingId:'a',cost:{wood:60}}],[{id:'same',label:'Same upgrade',buildingId:'a',cost:{wood:60}},{id:'next',label:'Next build',cost:{wood:30}},{id:'last',label:'Later build',cost:{wood:30}}]);
+ const b=budgetSnapshot(g);assert.equal(b.resources.wood.planned,120);assert.equal(b.rows.filter(r=>r.buildingId==='a').length,1);assert.equal(b.rows.some(r=>r.id==='queue:same'),false);
+ assert.equal(spendingAvailable(g,'wood',{purpose:'queue',buildingId:'queue:next'}),40);assert.equal(spendingAvailable(g,'wood',{purpose:'queue',buildingId:'queue:last'}),10);assert.equal(spendingAvailable(g,'wood',{purpose:'craft'}),0);
+});

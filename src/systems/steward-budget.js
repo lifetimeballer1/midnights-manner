@@ -7,7 +7,7 @@ const amount=n=>Number.isFinite(Number(n))?Math.max(0,Number(n)):0;
 const manual=(w,k)=>amount(w.automation?.reserves?.[k]);
 const costCopy=cost=>Object.fromEntries(Object.entries(cost||{}).map(([k,n])=>[k,amount(n)]).filter(([,n])=>n>0));
 export function invalidateStewardBudget(world){plans.delete(world);}
-export function refreshStewardBudget(game,goals=[]){
+export function refreshStewardBudget(game,goals=[],queue=[]){
  const {world:w,data:d}=game;
  if(!w.steward?.enabled){plans.delete(w);return;}
  const rows=[];
@@ -22,6 +22,11 @@ export function refreshStewardBudget(game,goals=[]){
   // A repair goal is already protected by the settlement repair basket.
   if(g.action==='repair'&&w.steward.protectRepairs!==false)continue;
   rows.push({id:`goal:${g.slot}`,label:g.label,purpose:g.action==='repair'?'repair':'upgrade',buildingId:g.buildingId,slot:g.slot,cost:costCopy(g.cost)});
+ }
+ for(const entry of queue.slice(0,12)){
+  if(entry.status==='Complete'||!Object.keys(entry.cost||{}).length)continue;
+  if(entry.buildingId&&goals.some(g=>g.status!=='Complete'&&g.action!=='repair'&&g.buildingId===entry.buildingId&&Object.keys(g.cost||{}).length))continue;
+  rows.push({id:`queue:${entry.id}`,label:entry.label,purpose:'queue',buildingId:`queue:${entry.id}`,cost:costCopy(entry.cost)});
  }
  plans.set(w,rows);
 }

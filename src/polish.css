@@ -175,3 +175,10 @@ body.hud-army-collapsed #game .army-rail{display:none}
 #game .steward-issue p{font-size:13px;margin:0}
 #game .steward-building{margin-top:10px}
 #game .steward-building .steward-issue{background:#f0e3c5;color:#3a2c18}
+#game .steward-controls details>label,#game .steward-building>label{display:grid;gap:5px;margin:8px 0;min-width:0;font-size:13px}
+#game .steward-controls :is(input,select),#game .steward-building select{min-height:44px;min-width:0;width:100%;max-width:100%;box-sizing:border-box;font-size:16px}
+#game .steward-controls input{padding:7px;border:1px solid #99744b;border-radius:7px;background:#fff8e7;color:#3a2c18}
+#game .steward-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:7px;min-width:0}
+#game .steward-actions button{min-height:44px;flex:1 1 100px;white-space:normal;overflow-wrap:anywhere}
+#game .steward-anchor{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+#game .steward-anchor label{display:grid;gap:4px;font-size:13px}

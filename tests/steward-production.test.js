@@ -1,0 +1,18 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {refreshProduction,productionSnapshot,refinePolicy} from '../src/systems/steward-production.js';
+import {refreshStewardBudget} from '../src/systems/steward-budget.js';
+import {tickRefine} from '../src/systems/crafting.js';
+const data={world:{townMeal:{foodPerVillager:0,breadPerVillager:1}},buildings:{mill:{refine:[{in:{food:2},out:{flour:1},perSec:1}],tiers:[{rateMultiplier:1}],size:1},bakery:{refine:[{in:{flour:1},out:{bread:1},perSec:1}],tiers:[{rateMultiplier:1}],size:1}},troops:{miller:{job:{workplace:'mill'}},baker:{job:{workplace:'bakery'}}}};
+function game(){return {data,world:{buildings:[],troops:[],resources:{food:100,flour:0,bread:0},gathered:{},steward:{enabled:true,protectMeals:true,protectRepairs:false}},state:{mission:null}};}
+test('production target plan includes actual meal and bounded upstream needs, detached snapshots',()=>{const g=game();g.world.troops=[{hp:1}];refreshProduction(g);const s=productionSnapshot(g);assert.equal(s.targets.bread,1);assert.equal(s.targets.flour,1);assert.equal(s.targets.food,2);s.targets.bread=100;s.rows[0].sources.push('mutated');assert.equal(productionSnapshot(g).targets.bread,1);});
+test('manual targets manage only chosen outputs and policies honor current held goods',()=>{const g=game();g.world.steward.protectMeals=false;g.world.steward.productionTargets={bread:5};refreshProduction(g);const policy=refinePolicy(g);assert.equal(policy.limitRuns({},data.buildings.bakery.refine[0],10,{bread:3}),2);g.world.resources.bread=2;assert.equal(policy.limitRuns({},data.buildings.bakery.refine[0],10,{bread:3}),0);assert.equal(policy.limitRuns({},{out:{unknown:1}},10,{}),10);});
+test('production protects shared goal funds and disabled policy preserves callable fifth argument',()=>{const g=game();g.world.steward.protectMeals=false;refreshStewardBudget(g,[{slot:'main',label:'Goal',cost:{food:70}}]);refreshProduction(g);assert.equal(refinePolicy(g).available('food'),30);g.world.steward.enabled=false;refreshProduction(g);assert.equal(refinePolicy(g),null);assert.equal(productionSnapshot(g).enabled,false);});
+test('recipe quota scales actual refining and spends no more than target',()=>{const g=game();g.world.steward.protectMeals=false;g.world.steward.productionTargets={flour:2};g.world.buildings=[{id:'m',type:'mill',level:1,hp:1,remaining:0,x:0,y:0}];g.world.troops=[{type:'miller',hp:1,workplace:'m',traits:[]}];refreshProduction(g);tickRefine(g.world,data,20,false,refinePolicy(g));assert.equal(g.world.resources.flour,2);assert.equal(g.world.resources.food,96);tickRefine(g.world,data,20,false,refinePolicy(g));assert.equal(g.world.resources.food,96);});
+test('supply district refiner gets scarce inputs first using cached stable building order',()=>{
+ const g=game();g.world.steward.protectMeals=false;g.world.steward.productionTargets={flour:10};g.world.resources.food=2;
+ g.world.buildings=[{id:'first',type:'mill',level:1,hp:1,remaining:0,x:0,y:0},{id:'supply',type:'mill',level:1,hp:1,remaining:0,x:2,y:0}];
+ g.world.troops=g.world.buildings.map(b=>({type:'miller',hp:1,workplace:b.id,traits:[]}));g.world.steward.districts=[{id:'s',priority:'supply',buildingIds:['supply']}];refreshProduction(g);
+ const policy=refinePolicy(g);assert.deepEqual(policy.buildings.map(b=>b.id),['supply','first']);assert.equal(refinePolicy(g).buildings,policy.buildings);
+ tickRefine(g.world,data,1,true,policy);assert.equal(g.world.resources.food,0);assert.equal(g.world.buildings[1].outputReserve.flour,1);assert.equal(g.world.buildings[0].outputReserve,undefined);assert.deepEqual(g.world.buildings.map(b=>b.id),['first','supply']);
+});

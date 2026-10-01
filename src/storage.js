@@ -1,3 +1,4 @@
+import {stewardExtras} from './systems/steward-settings.js';
 import {normalizeOutputs} from './systems/refiner-output.js';
 import {normalizeRoads} from './systems/roads.js';
 import {normalizeTrails} from './systems/trails.js';
@@ -49,7 +50,7 @@ function normalizeManagement(w,data){
    return {id:g.id,buildingId:b.id,targetTier:g.targetTier,baseline:Number.isFinite(g.baseline)?Math.max(1,Math.min(g.targetTier,g.baseline)):Math.max(1,g.targetTier-1)};
   };
   const seen=new Set(),unique=g=>{const goal=clean(g);if(!goal)return null;const key=goal.buildingId||'tribe:'+goal.tribeId;if(seen.has(key))return null;seen.add(key);return goal;};
-  w.steward={enabled:c.enabled===true,protectMeals:c.protectMeals!==false,protectRepairs:c.protectRepairs!==false,main:unique(c.main),secondary:(Array.isArray(c.secondary)?c.secondary.slice(0,2):[]).map(unique)};
+  w.steward={...stewardExtras(c,w,data),enabled:c.enabled===true,protectMeals:c.protectMeals!==false,protectRepairs:c.protectRepairs!==false,main:unique(c.main),secondary:(Array.isArray(c.secondary)?c.secondary.slice(0,2):[]).map(unique)};
  }
  const ids=new Set(w.buildings.map(b=>b.id));
  for(const b of w.buildings){
@@ -58,6 +59,7 @@ function normalizeManagement(w,data){
  }
  for(const u of w.troops){
   delete u.shelteredIn;delete u.builderTask;delete u.defenseIntent;
+  for(const key of ['manualGear','manualArmor'])if(u[key]!==undefined&&typeof u[key]!=='boolean')delete u[key];
   if(u.defensePost!=null&&(!ids.has(u.defensePost)||data.troops[u.type].role!=='combat')){delete u.defensePost;delete u.manualDefensePost;}
   if(u.manualDefensePost!==undefined&&typeof u.manualDefensePost!=='boolean')delete u.manualDefensePost;
  }

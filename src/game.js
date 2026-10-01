@@ -1,4 +1,8 @@
-import {spendingAvailable} from './systems/steward-budget.js';
+import {refinePolicy} from './systems/steward-production.js';
+import {enqueueConstruction,removeConstruction,moveConstruction} from './systems/steward-construction.js';
+import {captureBlueprint,blueprintQuote,applyBlueprint,removeBlueprint} from './systems/steward-blueprints.js';
+import {createDistrict,updateDistrict,removeDistrict} from './systems/steward-districts.js';
+import {spendingAvailable,canSpend} from './systems/steward-budget.js';
 import {tickSteward,refreshSteward} from './systems/steward.js';
 import {setGoal,clearGoal} from './systems/steward-goals.js';
 import {tickDefensePosts,assignDefensePost,defenseRaidSummary} from './systems/defense-posts.js';
@@ -301,9 +305,35 @@ export class Game {
   u.order=null;this.persist();this.notify(buildingId?'Defense post assigned.':'Fighter held in reserve.');return true;
  }
  setSteward(key,value){
-  if(this.state.mission||this.paused||!['enabled','protectMeals','protectRepairs'].includes(key))return false;
+  if(this.state.mission||this.paused||!['enabled','protectMeals','protectRepairs','autoEquip','queueEnabled'].includes(key))return false;
   this.world.steward??={enabled:false,main:null,secondary:[],protectMeals:true,protectRepairs:true};
   this.world.steward[key]=!!value;refreshSteward(this);this.persist();return true;
+ }
+ setProductionTarget(resource,amount){
+  if(this.state.mission||this.paused||!Object.hasOwn(this.world.resources,resource)||!Number.isFinite(Number(amount)))return false;
+  this.world.steward??={enabled:false,main:null,secondary:[],protectMeals:true,protectRepairs:true};
+  this.world.steward.productionTargets??={};this.world.steward.productionTargets[resource]=Math.max(0,Math.min(100000,Math.floor(Number(amount))));
+  refreshSteward(this);this.persist();return true;
+ }
+ setEquipmentPin(unitId,slot,pinned){
+  if(this.state.mission||this.paused||!['main','armor'].includes(slot))return false;
+  const u=this.world.troops.find(t=>t.id===unitId);if(!u)return false;
+  u[slot==='armor'?'manualArmor':'manualGear']=!!pinned;this.persist();return true;
+ }
+ enqueueConstruction(input){return this._stewardAction(enqueueConstruction,input);}
+ removeConstruction(id){return this._stewardAction(removeConstruction,id);}
+ moveConstruction(id,direction){return this._stewardAction(moveConstruction,id,direction);}
+ createDistrict(input){return this._stewardAction(createDistrict,input);}
+ updateDistrict(id,patch){return this._stewardAction(updateDistrict,id,patch);}
+ removeDistrict(id){return this._stewardAction(removeDistrict,id);}
+ captureBlueprint(name,buildingIds){return this._stewardAction(captureBlueprint,name,buildingIds);}
+ previewBlueprint(id,x,y){return blueprintQuote(this,id,x,y);}
+ applyBlueprint(id,x,y){return this._stewardAction(applyBlueprint,id,x,y);}
+ removeBlueprint(id){return this._stewardAction(removeBlueprint,id);}
+ _stewardAction(action,...args){
+  if(this.state.mission||this.paused)return {ok:false,error:'Resume the home village to change its plans.'};
+  const result=action(this,...args);if(!result.ok){if(result.error)this.notify(result.error);return result;}
+  refreshSteward(this);this.persist();return result;
  }
  setStewardGoal(slot,goal){
   if(this.state.mission||this.paused)return false;
@@ -387,16 +417,16 @@ export class Game {
   while(this.autoTrainTimer>=5-1e-9){
    this.autoTrainTimer=Math.max(0,this.autoTrainTimer-5);
    for(const u of this.world.troops){
-    if(u.level<this.data.troops[u.type].maxLevel)this.level(u.id,{silent:true});
+    if(u.level<this.data.troops[u.type].maxLevel)this.level(u.id,{silent:true,automatic:true});
    }
   }
  }
- level(id,{silent=false}={}){const u=this.world.troops.find(t=>t.id===id);if(!u||u.level>=this.data.troops[u.type].maxLevel)return;const curve=u.level>=5?1.5:1;
+ level(id,{silent=false,automatic=false}={}){const u=this.world.troops.find(t=>t.id===id);if(!u||u.level>=this.data.troops[u.type].maxLevel)return;const curve=u.level>=5?1.5:1;
   // Tam's tutoring (Act VII): hands posted at a teaching workplace train
   // cheaper — data `tutorDiscount` on the building spec, generic.
   let tutor=0;const post=u.workplace&&this.world.buildings.find(b=>b.id===u.workplace);
   if(post&&post.hp>0&&post.remaining<=0)tutor=this.data.buildings[post.type]?.tutorDiscount||0;
-  const cost=Object.fromEntries(Object.entries(this.data.troops[u.type].levelCost).map(([k,v])=>[k,Math.ceil(v*u.level*curve*(1-tutor))]));if(!pay(this.world.resources,cost)){if(!silent)this.notify('Not enough food or gold to train.');return;}u.level++;u.hp=stats(u,this.data).hp;this.dirty=true;if(!silent)this.notify(`Level ${u.level} reached${u.level%5===0?' — new ability unlocked!':'.'}`);}
+  const cost=Object.fromEntries(Object.entries(this.data.troops[u.type].levelCost).map(([k,v])=>[k,Math.ceil(v*u.level*curve*(1-tutor))]));if(automatic&&this.world.steward?.enabled&&!canSpend(this,cost,{purpose:'training'}))return;if(!pay(this.world.resources,cost)){if(!silent)this.notify('Not enough food or gold to train.');return;}u.level++;u.hp=stats(u,this.data).hp;this.dirty=true;if(!silent)this.notify(`Level ${u.level} reached${u.level%5===0?' — new ability unlocked!':'.'}`);}
  promote(id,targetType){
   const u=this.world.troops.find(t=>t.id===id);if(!u)return this.notify('That villager is gone.');
   const opts=promotionOptions(this.world,this.data,u);
@@ -453,7 +483,8 @@ export class Game {
   for(const u of this.world.troops)u.armorWear=0;
   this.notify('The yard rang all day — every worn plate bright again, every strap true.');return true;
  }
- equip(id,itemId){const u=this.world.troops.find(t=>t.id===id),item=this.data.items[itemId];if(!u||!item||!item.roles.includes(u.type)||this.locked(itemId))return;
+ equip(id,itemId,{automatic=false}={}){const u=this.world.troops.find(t=>t.id===id),item=this.data.items[itemId];if(!u||!item||!item.roles.includes(u.type)||this.locked(itemId))return;
+  if(automatic&&(this.paused||this.state.mission||!this.world.steward?.enabled||!this.world.steward?.autoEquip||this.world.raidPending||this.world.enemies.some(e=>e.hp>0)||u.hp<=0||u.order||u.expedition||u.emergency||u.shelteredIn||u[item.slot==='armor'?'manualArmor':'manualGear']))return false;
   // Roster-gated steel (Oathkeeper Armor): no oathbound Warden on the
   // rolls, no sale — the armor knows its own. Unit-gated mantle
   // (Regalia): only the named Moonwarden may wear it. Data, never ids.
@@ -467,7 +498,7 @@ export class Game {
   const shopName = item.craft?.building ? (this.data.buildings[item.craft.building]?.name || 'the forge') : 'the forge';
   const takeStock = list => {
     if (list.includes(itemId)) return true;
-    if (item.craftOnly) {
+    if (item.craftOnly || automatic) {
       if ((this.world.stock?.[itemId] || 0) <= 0) return false;
       this.world.stock[itemId]--;
     } else if (!pay(this.world.resources, item.cost)) return false;
@@ -476,9 +507,9 @@ export class Game {
   };
   if(item.slot==='armor'){
    u.armorOwned=u.armorOwned||[];
-   if(!u.armorOwned.includes(itemId)){if(!takeStock(u.armorOwned))return this.notify(item.craftOnly?`${item.name} must be forged at ${shopName} first — queue it there.`:'Not enough resources for this armor.');}u.armor=itemId;this.notify(`${item.name} fitted as armor.`);return;
+   if(!u.armorOwned.includes(itemId)){if(!takeStock(u.armorOwned))return this.notify(item.craftOnly?`${item.name} must be forged at ${shopName} first — queue it there.`:'Not enough resources for this armor.');}u.armor=itemId;if(!automatic){u.manualArmor=true;this.notify(`${item.name} fitted as armor.`);}return true;
   }
-  if(!u.owned.includes(itemId)){if(!takeStock(u.owned))return this.notify(item.craftOnly?`${item.name} must be forged at ${shopName} first — queue it there.`:'Not enough resources for this equipment.');}u.gear=itemId;this.notify(`${item.name} equipped.`);}
+  if(!u.owned.includes(itemId)){if(!takeStock(u.owned))return this.notify(item.craftOnly?`${item.name} must be forged at ${shopName} first — queue it there.`:'Not enough resources for this equipment.');}u.gear=itemId;if(!automatic){u.manualGear=true;this.notify(`${item.name} equipped.`);}return true;}
  ability(id,ability){const u=this.world.troops.find(t=>t.id===id);if(u){const def=this.data.abilities[ability];const ok=activateAbility(this.world,this.data,u,ability);this.notify(ok?(def?.effect==='heal'?'Rallying light restores nearby allies.':`${def?.name||'Ability'} unleashed.`):'Ability is not ready.');}}
  commandMove(id,x,y){const u=this.world.troops.find(t=>t.id===id);if(!u||u.hp<=0||!Number.isInteger(x)||!Number.isInteger(y)||x<0||y<0||x>=this.data.world.width||y>=this.data.world.height)return false;if(blocked(this.world,this.data,x,y,true)||!nextStep(this.world,this.data,u,{x:x+.5,y:y+.5},.65,false,true)){this.notify('No clear path. Choose open ground.');return false;}u.order={kind:'move',x:x+.5,y:y+.5};this.notify(`${this.data.troops[u.type].name} moving.`);return true;}
  commandAttack(id,enemyId){const u=this.world.troops.find(t=>t.id===id);if(!u||!enemyId)return false;if(this.data.troops[u.type].role!=='combat')return void this.notify('Only fighters take attack orders.'),false;u.order={kind:'attack',targetId:enemyId};this.notify(`${this.data.troops[u.type].name} attacking!`);return true;}
@@ -683,7 +714,7 @@ export class Game {
   // Phase 7 identity backfill: old saves and mission rosters gain names,
   // traits and job ledgers lazily — additive defaults, never a wipe.
   for(const w of [this.world,this.state.home]){if(!w)continue;for(const u of w.troops||[])ensureIdentity(u,this.data,w.troops);}
-  this.world.elapsed+=dt;tickTrails(this.world);this.tickClock();if(!this.state.mission){tickTownMeal(this.world,this.data,m=>this.notify(m));tickTownSupply(this.world,this.data,m=>this.notify(m));}if(!this.state.mission)tickFrontierEvents(this.state,this.data,m=>this.notify(m));tickResearch(this.state,this.data,dt,m=>this.notify(m));if(!this.state.mission)tickDefensePosts(this.world,this.data,dt);if(!this.state.mission)tickSteward(this,dt);tickEmergency(this.world,this.data,dt);tickVillagerJobs(this.world,this.data,dt);const filled=autoFillTick(this.world,this.data,dt);if(filled&&(this.world.elapsed-(this.world.lastAutoFillNote||0)>60)){this.world.lastAutoFillNote=this.world.elapsed;this.notify(`${filled} jobless worker${filled>1?'s':''} took ${filled>1?'open posts':'an open post'} on their own — traits matched, locks respected.`);}tickEconomy(this.world,this.data,dt);if(!this.state.mission)tickAutomation(this,dt);if(!this.state.mission)tickLogistics(this.world,this.data,dt);tickRefine(this.world,this.data,dt,!this.state.mission,!this.state.mission&&this.world.steward?.enabled?k=>spendingAvailable(this,k,{purpose:'refine'}):null);for(const c of tickCraft(this.world,this.data,dt)){const name=this.data.items[c.item]?.name||c.item;this.notify(`${name} finished — fit it from the People panel.`);}tickExpeditions(this.world,this.data,dt,Math.random,{state:this.state,notify:m=>this.notify(m)});tickCombat(this.world,this.data,dt);tickVillage(this.state,this.data,dt,m=>this.notify(m));const before=this.state.mission?.status;tickMission(this.state,this.data);if(this.state.mission?.herald){this.notify(this.state.mission.herald);this.state.mission.herald=null;}
+  this.world.elapsed+=dt;tickTrails(this.world);this.tickClock();if(!this.state.mission){tickTownMeal(this.world,this.data,m=>this.notify(m));tickTownSupply(this.world,this.data,m=>this.notify(m));}if(!this.state.mission)tickFrontierEvents(this.state,this.data,m=>this.notify(m));tickResearch(this.state,this.data,dt,m=>this.notify(m));if(!this.state.mission)tickDefensePosts(this.world,this.data,dt);if(!this.state.mission)tickSteward(this,dt);tickEmergency(this.world,this.data,dt);tickVillagerJobs(this.world,this.data,dt);const filled=autoFillTick(this.world,this.data,dt);if(filled&&(this.world.elapsed-(this.world.lastAutoFillNote||0)>60)){this.world.lastAutoFillNote=this.world.elapsed;this.notify(`${filled} jobless worker${filled>1?'s':''} took ${filled>1?'open posts':'an open post'} on their own — traits matched, locks respected.`);}tickEconomy(this.world,this.data,dt);if(!this.state.mission)tickAutomation(this,dt);if(!this.state.mission)tickLogistics(this.world,this.data,dt);tickRefine(this.world,this.data,dt,!this.state.mission,!this.state.mission&&this.world.steward?.enabled?(refinePolicy(this)||((k)=>spendingAvailable(this,k,{purpose:'refine'}))):null);for(const c of tickCraft(this.world,this.data,dt)){const name=this.data.items[c.item]?.name||c.item;this.notify(`${name} finished — fit it from the People panel.`);}tickExpeditions(this.world,this.data,dt,Math.random,{state:this.state,notify:m=>this.notify(m)});tickCombat(this.world,this.data,dt);tickVillage(this.state,this.data,dt,m=>this.notify(m));const before=this.state.mission?.status;tickMission(this.state,this.data);if(this.state.mission?.herald){this.notify(this.state.mission.herald);this.state.mission.herald=null;}
   if(raided&&!this.world.enemies.length&&!this.world.raidPending&&this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)){const recovered=warChestRecovery(this.world,this.data);spendWarChest(this.world);const kills=this.world.raidKills??0,loot=this.world.raidLoot??0;
    const damaged=this.world.buildings.filter(b=>b.hp<buildingMaxHp(b,this.data));
    const repairWood=damaged.reduce((n,b)=>n+Math.ceil((buildingMaxHp(b,this.data)-b.hp)/15),0);
