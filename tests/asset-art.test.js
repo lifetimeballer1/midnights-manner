@@ -51,3 +51,23 @@ test('samples sit on the ground at tile scale', () => {
     assert.ok(b.z1 - b.z0 <= 1.7 && b.x1 - b.x0 <= 2, 'tile-scale footprint');
   }
 });
+
+test('every manifest mesh is valid, grounded, budgeted and stays disabled', async () => {
+  const manifest = data['art-manifest'];
+  let total = 0;
+  for (const [id, entry] of Object.entries(manifest.meshes)) {
+    assert.equal(entry.enabled, false, id + ' ships disabled until its gate');
+    assert.equal(entry.license, 'CC0', id + ' license pinned');
+    assert.ok(entry.source && entry.creator && entry.file, id + ' provenance');
+    const mesh = JSON.parse(await readFile(new URL('../' + entry.file, import.meta.url)));
+    assert.ok(mesh.faces.length > 0 && mesh.faces.length <= 300, id + ' bounded');
+    total += mesh.faces.length;
+    const b = meshBounds(mesh);
+    assert.ok(b.z0 >= -0.01 && b.z1 - b.z0 <= 1.7, id + ' grounded/tile-scale');
+    for (const yaw of [0, Math.PI]) {
+      const {faces} = draw(mesh, 1.65, yaw);
+      assert.ok(faces.every(f => /^#[0-9a-f]{6}$/i.test(f.color) && f.points.every(p => Number.isFinite(p.x) && Number.isFinite(p.y))), id + ' projects cleanly');
+    }
+  }
+  assert.ok(total < 6000, `library total ${total} faces fits budget`);
+});

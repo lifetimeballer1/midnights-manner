@@ -1,31 +1,383 @@
 {
-  "version": 1,
-  "note": "Converted CC0 mesh registry. All entries default disabled until their rollout phase passes its gate. Removal = set enabled:false or revert the phase commit; the game falls back to original procedural meshes. Source archives stay outside assets/.",
-  "licenses": {
-    "CC0": "https://creativecommons.org/publicdomain/zero/1.0/"
+ "version": 1,
+ "note": "Converted CC0 mesh registry. All entries default disabled until their rollout phase passes its gate. Removal = set enabled:false or revert the phase commit; the game falls back to original procedural meshes. Source archives stay outside assets/.",
+ "licenses": {
+  "CC0": "https://creativecommons.org/publicdomain/zero/1.0/"
+ },
+ "meshes": {
+  "anvil": {
+   "enabled": false,
+   "phase": 1,
+   "pack": "Quaternius Fantasy Props MegaKit (Standard, 94 free models)",
+   "creator": "Quaternius",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/fantasy-props-megakit",
+   "sourceObj": "Exports/OBJ/Anvil.obj",
+   "file": "assets/meshes/anvil.json",
+   "use": "Forge/smithy workplace prop sample proving the conversion path"
   },
-  "meshes": {
-    "anvil": {
-      "enabled": false,
-      "phase": 1,
-      "pack": "Quaternius Fantasy Props MegaKit (Standard, 94 free models)",
-      "creator": "Quaternius",
-      "license": "CC0",
-      "source": "https://opengameart.org/content/fantasy-props-megakit",
-      "sourceObj": "Exports/OBJ/Anvil.obj",
-      "file": "assets/meshes/anvil.json",
-      "use": "Forge/smithy workplace prop sample proving the conversion path"
-    },
-    "tree-simple": {
-      "enabled": false,
-      "phase": 1,
-      "pack": "Kenney Nature Kit 2.1 (330+ objects)",
-      "creator": "Kenney",
-      "license": "CC0",
-      "source": "https://opengameart.org/content/nature-kit",
-      "sourceObj": "Models/OBJ format/tree_simple.obj",
-      "file": "assets/meshes/tree-simple.json",
-      "use": "Forest scenery sample proving the conversion path"
-    }
+  "tree-simple": {
+   "enabled": false,
+   "phase": 1,
+   "pack": "Kenney Nature Kit 2.1 (330+ objects)",
+   "creator": "Kenney",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/nature-kit",
+   "sourceObj": "Models/OBJ format/tree_simple.obj",
+   "file": "assets/meshes/tree-simple.json",
+   "use": "Forest scenery sample proving the conversion path"
+  },
+  "lily-small": {
+   "enabled": false,
+   "phase": 2,
+   "pack": "Kenney Nature Kit 2.1",
+   "creator": "Kenney",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/nature-kit",
+   "sourceObj": "Models/OBJ format/lily_small.obj",
+   "file": "assets/meshes/lily-small.json",
+   "use": "Pond decoration"
+  },
+  "lily-large": {
+   "enabled": false,
+   "phase": 2,
+   "pack": "Kenney Nature Kit 2.1",
+   "creator": "Kenney",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/nature-kit",
+   "sourceObj": "Models/OBJ format/lily_large.obj",
+   "file": "assets/meshes/lily-large.json",
+   "use": "Pond decoration"
+  },
+  "log": {
+   "enabled": false,
+   "phase": 2,
+   "pack": "Kenney Nature Kit 2.1",
+   "creator": "Kenney",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/nature-kit",
+   "sourceObj": "Models/OBJ format/log.obj",
+   "file": "assets/meshes/log.json",
+   "use": "Fallen timber"
+  },
+  "log-stack": {
+   "enabled": false,
+   "phase": 2,
+   "pack": "Kenney Nature Kit 2.1",
+   "creator": "Kenney",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/nature-kit",
+   "sourceObj": "Models/OBJ format/log_stack.obj",
+   "file": "assets/meshes/log-stack.json",
+   "use": "Lumber workplace dressing"
+  },
+  "flower-red": {
+   "enabled": false,
+   "phase": 2,
+   "pack": "Kenney Nature Kit 2.1",
+   "creator": "Kenney",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/nature-kit",
+   "sourceObj": "Models/OBJ format/flower_redA.obj",
+   "file": "assets/meshes/flower-red.json",
+   "use": "Cottage flowers"
+  },
+  "flower-yellow": {
+   "enabled": false,
+   "phase": 2,
+   "pack": "Kenney Nature Kit 2.1",
+   "creator": "Kenney",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/nature-kit",
+   "sourceObj": "Models/OBJ format/flower_yellowB.obj",
+   "file": "assets/meshes/flower-yellow.json",
+   "use": "Cottage flowers"
+  },
+  "flower-purple": {
+   "enabled": false,
+   "phase": 2,
+   "pack": "Kenney Nature Kit 2.1",
+   "creator": "Kenney",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/nature-kit",
+   "sourceObj": "Models/OBJ format/flower_purpleC.obj",
+   "file": "assets/meshes/flower-purple.json",
+   "use": "Cottage flowers"
+  },
+  "rock-small-a": {
+   "enabled": false,
+   "phase": 2,
+   "pack": "Kenney Nature Kit 2.1",
+   "creator": "Kenney",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/nature-kit",
+   "sourceObj": "Models/OBJ format/rock_smallA.obj",
+   "file": "assets/meshes/rock-small-a.json",
+   "use": "Rocky patches"
+  },
+  "rock-small-d": {
+   "enabled": false,
+   "phase": 2,
+   "pack": "Kenney Nature Kit 2.1",
+   "creator": "Kenney",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/nature-kit",
+   "sourceObj": "Models/OBJ format/rock_smallD.obj",
+   "file": "assets/meshes/rock-small-d.json",
+   "use": "Rocky patches"
+  },
+  "bush": {
+   "enabled": false,
+   "phase": 2,
+   "pack": "Kenney Nature Kit 2.1",
+   "creator": "Kenney",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/nature-kit",
+   "sourceObj": "Models/OBJ format/plant_bush.obj",
+   "file": "assets/meshes/bush.json",
+   "use": "Low vegetation"
+  },
+  "bush-small": {
+   "enabled": false,
+   "phase": 2,
+   "pack": "Kenney Nature Kit 2.1",
+   "creator": "Kenney",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/nature-kit",
+   "sourceObj": "Models/OBJ format/plant_bushSmall.obj",
+   "file": "assets/meshes/bush-small.json",
+   "use": "Low vegetation"
+  },
+  "stone-small": {
+   "enabled": false,
+   "phase": 2,
+   "pack": "Kenney Nature Kit 2.1",
+   "creator": "Kenney",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/nature-kit",
+   "sourceObj": "Models/OBJ format/stone_smallB.obj",
+   "file": "assets/meshes/stone-small.json",
+   "use": "Shore/path stones"
+  },
+  "roof-gable": {
+   "enabled": false,
+   "phase": 2,
+   "pack": "Kenney Fantasy Town Kit 2.0",
+   "creator": "Kenney",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/fantasy-town-kit",
+   "sourceObj": "Models/OBJ format/roof-gable.obj",
+   "file": "assets/meshes/roof-gable.json",
+   "use": "Cottage/hall roof upgrade"
+  },
+  "roof-window": {
+   "enabled": false,
+   "phase": 2,
+   "pack": "Kenney Fantasy Town Kit 2.0",
+   "creator": "Kenney",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/fantasy-town-kit",
+   "sourceObj": "Models/OBJ format/roof-window.obj",
+   "file": "assets/meshes/roof-window.json",
+   "use": "Roof dormer detail"
+  },
+  "shutters": {
+   "enabled": false,
+   "phase": 2,
+   "pack": "Kenney Fantasy Town Kit 2.0",
+   "creator": "Kenney",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/fantasy-town-kit",
+   "sourceObj": "Models/OBJ format/wall-wood-window-shutters.obj",
+   "file": "assets/meshes/shutters.json",
+   "use": "Window detail"
+  },
+  "wood-door": {
+   "enabled": false,
+   "phase": 2,
+   "pack": "Kenney Fantasy Town Kit 2.0",
+   "creator": "Kenney",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/fantasy-town-kit",
+   "sourceObj": "Models/OBJ format/wall-wood-door.obj",
+   "file": "assets/meshes/wood-door.json",
+   "use": "Entrance detail"
+  },
+  "chimney": {
+   "enabled": false,
+   "phase": 2,
+   "pack": "Kenney Fantasy Town Kit 2.0",
+   "creator": "Kenney",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/fantasy-town-kit",
+   "sourceObj": "Models/OBJ format/chimney.obj",
+   "file": "assets/meshes/chimney.json",
+   "use": "Smoke-stack detail (anchors lighting)"
+  },
+  "stairs-stone": {
+   "enabled": false,
+   "phase": 2,
+   "pack": "Kenney Fantasy Town Kit 2.0",
+   "creator": "Kenney",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/fantasy-town-kit",
+   "sourceObj": "Models/OBJ format/stairs-stone.obj",
+   "file": "assets/meshes/stairs-stone.json",
+   "use": "Entrance steps"
+  },
+  "overhang": {
+   "enabled": false,
+   "phase": 2,
+   "pack": "Kenney Fantasy Town Kit 2.0",
+   "creator": "Kenney",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/fantasy-town-kit",
+   "sourceObj": "Models/OBJ format/overhang.obj",
+   "file": "assets/meshes/overhang.json",
+   "use": "Market stall canopy detail"
+  },
+  "fence": {
+   "enabled": false,
+   "phase": 2,
+   "pack": "Kenney Fantasy Town Kit 2.0",
+   "creator": "Kenney",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/fantasy-town-kit",
+   "sourceObj": "Models/OBJ format/balcony-wall-fence.obj",
+   "file": "assets/meshes/fence.json",
+   "use": "Paddock borders"
+  },
+  "town-lantern": {
+   "enabled": false,
+   "phase": 2,
+   "pack": "Kenney Fantasy Town Kit 2.0",
+   "creator": "Kenney",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/fantasy-town-kit",
+   "sourceObj": "Models/OBJ format/lantern.obj",
+   "file": "assets/meshes/town-lantern.json",
+   "use": "Street lantern (light anchor)"
+  },
+  "workbench": {
+   "enabled": false,
+   "phase": 2,
+   "pack": "Quaternius Fantasy Props MegaKit (Standard)",
+   "creator": "Quaternius",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/fantasy-props-megakit",
+   "sourceObj": "Exports/OBJ/Workbench.obj",
+   "file": "assets/meshes/workbench.json",
+   "use": "Smithy/workshop prop"
+  },
+  "dummy": {
+   "enabled": false,
+   "phase": 2,
+   "pack": "Quaternius Fantasy Props MegaKit (Standard)",
+   "creator": "Quaternius",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/fantasy-props-megakit",
+   "sourceObj": "Exports/OBJ/Dummy.obj",
+   "file": "assets/meshes/dummy.json",
+   "use": "Barracks training prop"
+  },
+  "weapon-stand": {
+   "enabled": false,
+   "phase": 2,
+   "pack": "Quaternius Fantasy Props MegaKit (Standard)",
+   "creator": "Quaternius",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/fantasy-props-megakit",
+   "sourceObj": "Exports/OBJ/WeaponStand.obj",
+   "file": "assets/meshes/weapon-stand.json",
+   "use": "Barracks/armory prop"
+  },
+  "crate": {
+   "enabled": false,
+   "phase": 2,
+   "pack": "Quaternius Fantasy Props MegaKit (Standard)",
+   "creator": "Quaternius",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/fantasy-props-megakit",
+   "sourceObj": "Exports/OBJ/Crate_Wooden.obj",
+   "file": "assets/meshes/crate.json",
+   "use": "Storage/market prop"
+  },
+  "barrel": {
+   "enabled": false,
+   "phase": 2,
+   "pack": "Quaternius Fantasy Props MegaKit (Standard)",
+   "creator": "Quaternius",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/fantasy-props-megakit",
+   "sourceObj": "Exports/OBJ/Barrel.obj",
+   "file": "assets/meshes/barrel.json",
+   "use": "Storage/market prop"
+  },
+  "crate-apple": {
+   "enabled": false,
+   "phase": 2,
+   "pack": "Quaternius Fantasy Props MegaKit (Standard)",
+   "creator": "Quaternius",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/fantasy-props-megakit",
+   "sourceObj": "Exports/OBJ/FarmCrate_Apple.obj",
+   "file": "assets/meshes/crate-apple.json",
+   "use": "Farm produce prop"
+  },
+  "crate-carrot": {
+   "enabled": false,
+   "phase": 2,
+   "pack": "Quaternius Fantasy Props MegaKit (Standard)",
+   "creator": "Quaternius",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/fantasy-props-megakit",
+   "sourceObj": "Exports/OBJ/FarmCrate_Carrot.obj",
+   "file": "assets/meshes/crate-carrot.json",
+   "use": "Farm produce prop"
+  },
+  "book-stand": {
+   "enabled": false,
+   "phase": 2,
+   "pack": "Quaternius Fantasy Props MegaKit (Standard)",
+   "creator": "Quaternius",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/fantasy-props-megakit",
+   "sourceObj": "Exports/OBJ/BookStand.obj",
+   "file": "assets/meshes/book-stand.json",
+   "use": "School/scriptorium prop"
+  },
+  "lantern-wall": {
+   "enabled": false,
+   "phase": 2,
+   "pack": "Quaternius Fantasy Props MegaKit (Standard)",
+   "creator": "Quaternius",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/fantasy-props-megakit",
+   "sourceObj": "Exports/OBJ/Lantern_Wall.obj",
+   "file": "assets/meshes/lantern-wall.json",
+   "use": "Wall lantern (light anchor)"
+  },
+  "torch-metal": {
+   "enabled": false,
+   "phase": 2,
+   "pack": "Quaternius Fantasy Props MegaKit (Standard)",
+   "creator": "Quaternius",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/fantasy-props-megakit",
+   "sourceObj": "Exports/OBJ/Torch_Metal.obj",
+   "file": "assets/meshes/torch-metal.json",
+   "use": "Gate/wall torch (light anchor)"
+  },
+  "pennant": {
+   "enabled": false,
+   "phase": 2,
+   "pack": "Kenney Castle Kit",
+   "creator": "Kenney",
+   "license": "CC0",
+   "source": "https://opengameart.org/content/castle-kit",
+   "sourceObj": "Models/OBJ format/flag-pennant.obj",
+   "file": "assets/meshes/pennant.json",
+   "use": "Faction banner cloth"
   }
+ }
 }

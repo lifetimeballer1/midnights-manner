@@ -12,7 +12,7 @@ import {AmbientScoreEngine} from './audio.js';
 import {attachQuality} from './fx/quality.js';
 
 async function boot(){
- const names=['world','troops','items','abilities','buildings','missions','quests','levels','rumors','names','legends','calendar','traders','biomes','expansion','updates','artifacts','endgame','music','festivals','conquest'];
+ const names=['world','troops','items','abilities','buildings','missions','quests','levels','rumors','names','legends','calendar','traders','biomes','expansion','updates','artifacts','endgame','music','festivals','conquest','art-manifest'];
  const data=Object.fromEntries(await Promise.all(names.map(async name=>{const response=await fetch(new URL(`../data/${name}.json`,import.meta.url));if(!response.ok)throw Error(`Could not load ${name}`);return [name,await response.json()];})));
 
  let ambientScore=null;
