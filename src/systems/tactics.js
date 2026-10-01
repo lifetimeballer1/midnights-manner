@@ -1,7 +1,7 @@
 import {distance,center} from '../model.js';
 import {blocked,move} from './pathfinding.js';
 import {isWall} from './walls.js';
-import {bossSpec} from './endgame.js';
+import {bossSpec,buildingMaxHp} from './endgame.js';
 import {plannedDefenseTarget} from './defense-posts.js';
 export function factionFor(data,wave,vlevel=1) {
  // Endgame courts only answer seasoned villages: a minLevel gate keeps
@@ -54,7 +54,12 @@ export function enemyBuildingTarget(world,data,enemy) {
  for(const b of world.buildings){
   if(b.hp<=0||b.type==='trap')continue;
   const c=center(b,data);
-  const s=distance(enemy,c)-(role.wallDamage>1&&isWall(b)?3:0)-(b.type==='gate'?2:0);
+  let s=distance(enemy,c)-(role.wallDamage>1&&isWall(b)?3:0)-(b.type==='gate'?2:0);
+  if(isWall(b)){
+   const max=buildingMaxHp(b,data)||1,frac=b.hp/max;
+   s-=(frac<0.33?4:frac<0.66?2:0);
+  }
+  if(b.type==='grand-granary'||b.type==='storehouse'||b.type==='market'||b.type==='market-square')s-=2;
   if(s<bestScore){bestScore=s;best=b;}
  }
  return best;

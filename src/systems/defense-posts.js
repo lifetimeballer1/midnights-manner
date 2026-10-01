@@ -5,6 +5,11 @@ import {isWall} from './walls.js';
 // Home-only planner; transient routes, targets and clocks never enter saves.
 const plans=new WeakMap();
 const capacities={hall:3,gate:2,tower:2,archer_tower:2,'grand-watchtower':2};
+const RALLY_WEIGHTS={balanced:{},gates:{gate:-30},manor:{hall:-30},walls:{gate:-20,tower:-20,archer_tower:-20},storage:{anchor:'storage'},reserve:{hold:2}};
+export function setRally(world,id){
+ if(!Object.hasOwn(RALLY_WEIGHTS,id))return false;
+ world.defenseRally=id;return true;
+}
 export function defensePostCapacity(b,data){
  return b&&b.hp>0&&!(b.remaining>0)&&data.buildings[b.type]?capacities[b.type]||0:0;
 }
@@ -20,23 +25,37 @@ export function assignDefensePost(world,data,unit,buildingId,manual=true){
 }
 function free(u,data){return u.hp>0&&!u.expedition&&!u.order&&!u.emergency&&data.troops[u.type]?.role==='combat';}
 function autoFill(world,data,p){
+ const rally=RALLY_WEIGHTS[world.defenseRally]??RALLY_WEIGHTS.balanced;
  const posts=world.buildings.filter(b=>defensePostCapacity(b,data));
  const occupied=new Map();
  for(const u of world.troops){
   const post=p.buildings.get(u.defensePost);
   if(u.defensePost&&(!post||(!u.manualDefensePost&&!world.raidPending&&!world.enemies.some(e=>e.hp>0)&&!defensePostCapacity(post,data)))){u.defensePost=null;u.manualDefensePost=false;}
   if(u.defensePost&&u.hp>0&&!u.expedition)occupied.set(u.defensePost,(occupied.get(u.defensePost)||0)+1);
- }
- for(const u of world.troops){
-  if(!free(u,data)||u.defensePost||u.manualDefensePost)continue;
-  const ranged=stats(u,data).range>2;let best=null,bestScore=Infinity;
-  for(const b of posts){if((occupied.get(b.id)||0)>=defensePostCapacity(b,data))continue;
-   const preferred=ranged?b.type.includes('tower'):b.type==='gate';
-   const score=(preferred?0:b.type==='hall'?40:80)+distance(u,center(b,data));
-   if(score<bestScore){best=b;bestScore=score;}
   }
-  if(best){u.defensePost=best.id;u.manualDefensePost=false;occupied.set(best.id,(occupied.get(best.id)||0)+1);}
- }
+  // Reserve holdback: fastest N stay free for muster via existing movement when raidActive.
+  let held=new Set();
+  if(rally.hold>0){
+   held=new Set(world.troops.filter(u=>!u.defensePost&&!u.manualDefensePost&&free(u,data)).sort((a,b)=>stats(b,data).speed-stats(a,data).speed).slice(0,rally.hold).map(u=>u.id));
+  }
+  // Storage anchor: distance to nearest storehouse/grand-granary replaces distance-to-post.
+  let storageAnchor=null;
+  if(rally.anchor==='storage'){
+   const stores=world.buildings.filter(b=>b.hp>0&&!(b.remaining>0)&&(b.type==='storehouse'||b.type==='grand-granary')).map(b=>center(b,data));
+   if(stores.length)storageAnchor=stores;
+  }
+  for(const u of world.troops){
+   if(!free(u,data)||u.defensePost||u.manualDefensePost||held.has(u.id))continue;
+   const ranged=stats(u,data).range>2;let best=null,bestScore=Infinity;
+   for(const b of posts){if((occupied.get(b.id)||0)>=defensePostCapacity(b,data))continue;
+    const preferred=ranged?b.type.includes('tower'):b.type==='gate';
+    const w=rally[b.type],weight=typeof w==='number'?w:0;
+    const dist=storageAnchor?Math.min(...storageAnchor.map(c=>distance(u,c))):distance(u,center(b,data));
+    const score=(preferred?0:b.type==='hall'?40:80)+weight+dist;
+    if(score<bestScore){best=b;bestScore=score;}
+   }
+   if(best){u.defensePost=best.id;u.manualDefensePost=false;occupied.set(best.id,(occupied.get(best.id)||0)+1);}
+  }
 }
 function plan(world,data,p){
  p.buildings=new Map(world.buildings.map(b=>[b.id,b]));
