@@ -1,0 +1,410 @@
+{
+  "baselineCommit": "3ae9e04b82e69d288262bae41fe397731c413d32",
+  "recordedAt": "2026-10-01T04:34:46.283417+00:00",
+  "environment": "Node + optional CPU Canvas in container; full Game.tick; not physical iPhone or Safari",
+  "command": "CANVAS_MODULE=/absolute/path/to/@napi-rs/canvas/index.js node scripts/defense-benchmark.mjs",
+  "method": "Serial isolated processes. Original HEAD archive and working update use the same script, fixed xorshift seed 0x5eed per mode, full Game.tick, 100 ticks of initial simulation, 120 rendered frames with first 20 excluded; 100 measured frames per mode. Baseline stubs defensePlanningMetrics because defense posts did not exist.",
+  "configuration": {
+    "viewport": [
+      390,
+      844
+    ],
+    "dpr": 2,
+    "villagers": 150,
+    "buildings": 72,
+    "simulationDtSeconds": 0.05,
+    "autoUpgrade": true,
+    "autoCraft": true,
+    "protectedReserves": {
+      "wood": 500,
+      "food": 500,
+      "gold": 500
+    },
+    "stockTarget": 1
+  },
+  "limitations": [
+    "CPU Canvas in a container is not WebKit, Safari, a physical iPhone, GPU rendering or a thermal endurance test. Timings must not be converted into an iPhone FPS guarantee.",
+    "One fixed-seed run per version; garbage collection and host load cause variance. Small percentage differences are inconclusive without repeated device tests.",
+    "Fixture buildings are max tier and there are no staffed forge/armory buildings. Automation planners run, but active upgrade and equipment queues are covered by simulation tests rather than this rendering fixture.",
+    "Heap deltas include garbage collection and are not retained memory measurements.",
+    "Shelter arrival is represented: final updated warning has 15 sheltered civilians and raid has 6. Raids produce different world states under coordinated defense, so final mesh counts naturally differ."
+  ],
+  "comparison": [
+    {
+      "mode": "day",
+      "frameMs": {
+        "average": {
+          "before": 71.04579360999996,
+          "after": 69.20726735,
+          "percentChange": -2.59
+        },
+        "p50": {
+          "before": 66.67216899999949,
+          "after": 64.96618299999955,
+          "percentChange": -2.56
+        },
+        "p95": {
+          "before": 111.04663999999957,
+          "after": 108.26802400000088,
+          "percentChange": -2.5
+        }
+      },
+      "tickMs": {
+        "average": {
+          "before": 2.678358610000005,
+          "after": 2.8306329199999753,
+          "percentChange": 5.69
+        },
+        "p50": {
+          "before": 2.0888539999996283,
+          "after": 2.1451179999999113,
+          "percentChange": 2.69
+        },
+        "p95": {
+          "before": 4.10548800000015,
+          "after": 6.884222000000591,
+          "percentChange": 67.68
+        }
+      },
+      "renderMs": {
+        "average": {
+          "before": 68.36743499999994,
+          "after": 66.37663443000002,
+          "percentChange": -2.91
+        },
+        "p50": {
+          "before": 63.72480799999903,
+          "after": 62.73526099999981,
+          "percentChange": -1.55
+        },
+        "p95": {
+          "before": 108.70126700000037,
+          "after": 105.5483490000006,
+          "percentChange": -2.9
+        }
+      },
+      "movementSearches": {
+        "before": 49,
+        "after": 69
+      }
+    },
+    {
+      "mode": "warning",
+      "frameMs": {
+        "average": {
+          "before": 73.04900424999981,
+          "after": 75.67860277000005,
+          "percentChange": 3.6
+        },
+        "p50": {
+          "before": 73.02526600000056,
+          "after": 75.17296100000021,
+          "percentChange": 2.94
+        },
+        "p95": {
+          "before": 84.56606099999772,
+          "after": 89.13212799999928,
+          "percentChange": 5.4
+        }
+      },
+      "tickMs": {
+        "average": {
+          "before": 2.2968449099999817,
+          "after": 2.775072929999933,
+          "percentChange": 20.82
+        },
+        "p50": {
+          "before": 1.8204590000004828,
+          "after": 2.1828330000007554,
+          "percentChange": 19.91
+        },
+        "p95": {
+          "before": 6.605955000000904,
+          "after": 6.832302999999229,
+          "percentChange": 3.43
+        }
+      },
+      "renderMs": {
+        "average": {
+          "before": 70.75215933999984,
+          "after": 72.90352984000012,
+          "percentChange": 3.04
+        },
+        "p50": {
+          "before": 70.5553719999989,
+          "after": 72.04067599999871,
+          "percentChange": 2.11
+        },
+        "p95": {
+          "before": 81.44867499999964,
+          "after": 86.51800199999889,
+          "percentChange": 6.22
+        }
+      },
+      "movementSearches": {
+        "before": 130,
+        "after": 38
+      }
+    },
+    {
+      "mode": "raid",
+      "frameMs": {
+        "average": {
+          "before": 86.16004662000014,
+          "after": 82.51852805999992,
+          "percentChange": -4.23
+        },
+        "p50": {
+          "before": 83.89662300000055,
+          "after": 82.22092399999747,
+          "percentChange": -2.0
+        },
+        "p95": {
+          "before": 105.27098300000216,
+          "after": 98.74891099999877,
+          "percentChange": -6.2
+        }
+      },
+      "tickMs": {
+        "average": {
+          "before": 9.597118409999894,
+          "after": 4.50309673999971,
+          "percentChange": -53.08
+        },
+        "p50": {
+          "before": 5.106120000000374,
+          "after": 3.8441810000003898,
+          "percentChange": -24.71
+        },
+        "p95": {
+          "before": 19.563388999999006,
+          "after": 9.037328000002162,
+          "percentChange": -53.8
+        }
+      },
+      "renderMs": {
+        "average": {
+          "before": 76.56292821000025,
+          "after": 78.0154313200002,
+          "percentChange": 1.9
+        },
+        "p50": {
+          "before": 75.97488900000099,
+          "after": 78.35394899999665,
+          "percentChange": 3.13
+        },
+        "p95": {
+          "before": 87.81478499999866,
+          "after": 90.03859200000079,
+          "percentChange": 2.53
+        }
+      },
+      "movementSearches": {
+        "before": 3700,
+        "after": 1419
+      }
+    }
+  ],
+  "baseline": [
+    {
+      "mode": "day",
+      "viewport": [
+        390,
+        844
+      ],
+      "dpr": 2,
+      "villagers": 150,
+      "buildings": 72,
+      "frames": 100,
+      "frameMs": {
+        "average": 71.04579360999996,
+        "p50": 66.67216899999949,
+        "p95": 111.04663999999957
+      },
+      "tickMs": {
+        "average": 2.678358610000005,
+        "p50": 2.0888539999996283,
+        "p95": 4.10548800000015
+      },
+      "renderMs": {
+        "average": 68.36743499999994,
+        "p50": 63.72480799999903,
+        "p95": 108.70126700000037
+      },
+      "heapDeltaBytes": 147319832,
+      "faces": 7217,
+      "sheltered": 0,
+      "postedFighters": 0,
+      "planningRuns": 0,
+      "movementSearches": 49,
+      "movementIntervalSearches": 0
+    },
+    {
+      "mode": "warning",
+      "viewport": [
+        390,
+        844
+      ],
+      "dpr": 2,
+      "villagers": 150,
+      "buildings": 72,
+      "frames": 100,
+      "frameMs": {
+        "average": 73.04900424999981,
+        "p50": 73.02526600000056,
+        "p95": 84.56606099999772
+      },
+      "tickMs": {
+        "average": 2.2968449099999817,
+        "p50": 1.8204590000004828,
+        "p95": 6.605955000000904
+      },
+      "renderMs": {
+        "average": 70.75215933999984,
+        "p50": 70.5553719999989,
+        "p95": 81.44867499999964
+      },
+      "heapDeltaBytes": -40833784,
+      "faces": 8315,
+      "sheltered": 0,
+      "postedFighters": 0,
+      "planningRuns": 0,
+      "movementSearches": 130,
+      "movementIntervalSearches": 0
+    },
+    {
+      "mode": "raid",
+      "viewport": [
+        390,
+        844
+      ],
+      "dpr": 2,
+      "villagers": 150,
+      "buildings": 72,
+      "frames": 100,
+      "frameMs": {
+        "average": 86.16004662000014,
+        "p50": 83.89662300000055,
+        "p95": 105.27098300000216
+      },
+      "tickMs": {
+        "average": 9.597118409999894,
+        "p50": 5.106120000000374,
+        "p95": 19.563388999999006
+      },
+      "renderMs": {
+        "average": 76.56292821000025,
+        "p50": 75.97488900000099,
+        "p95": 87.81478499999866
+      },
+      "heapDeltaBytes": -12385496,
+      "faces": 8752,
+      "sheltered": 0,
+      "postedFighters": 0,
+      "planningRuns": 0,
+      "movementSearches": 3700,
+      "movementIntervalSearches": 786
+    }
+  ],
+  "updated": [
+    {
+      "mode": "day",
+      "viewport": [
+        390,
+        844
+      ],
+      "dpr": 2,
+      "villagers": 150,
+      "buildings": 72,
+      "frames": 100,
+      "frameMs": {
+        "average": 69.20726735,
+        "p50": 64.96618299999955,
+        "p95": 108.26802400000088
+      },
+      "tickMs": {
+        "average": 2.8306329199999753,
+        "p50": 2.1451179999999113,
+        "p95": 6.884222000000591
+      },
+      "renderMs": {
+        "average": 66.37663443000002,
+        "p50": 62.73526099999981,
+        "p95": 105.5483490000006
+      },
+      "heapDeltaBytes": 168762584,
+      "faces": 7367,
+      "sheltered": 0,
+      "postedFighters": 20,
+      "planningRuns": 3,
+      "movementSearches": 69,
+      "movementIntervalSearches": 0
+    },
+    {
+      "mode": "warning",
+      "viewport": [
+        390,
+        844
+      ],
+      "dpr": 2,
+      "villagers": 150,
+      "buildings": 72,
+      "frames": 100,
+      "frameMs": {
+        "average": 75.67860277000005,
+        "p50": 75.17296100000021,
+        "p95": 89.13212799999928
+      },
+      "tickMs": {
+        "average": 2.775072929999933,
+        "p50": 2.1828330000007554,
+        "p95": 6.832302999999229
+      },
+      "renderMs": {
+        "average": 72.90352984000012,
+        "p50": 72.04067599999871,
+        "p95": 86.51800199999889
+      },
+      "heapDeltaBytes": 19425312,
+      "faces": 8505,
+      "sheltered": 15,
+      "postedFighters": 20,
+      "planningRuns": 3,
+      "movementSearches": 38,
+      "movementIntervalSearches": 0
+    },
+    {
+      "mode": "raid",
+      "viewport": [
+        390,
+        844
+      ],
+      "dpr": 2,
+      "villagers": 150,
+      "buildings": 72,
+      "frames": 100,
+      "frameMs": {
+        "average": 82.51852805999992,
+        "p50": 82.22092399999747,
+        "p95": 98.74891099999877
+      },
+      "tickMs": {
+        "average": 4.50309673999971,
+        "p50": 3.8441810000003898,
+        "p95": 9.037328000002162
+      },
+      "renderMs": {
+        "average": 78.0154313200002,
+        "p50": 78.35394899999665,
+        "p95": 90.03859200000079
+      },
+      "heapDeltaBytes": 23628416,
+      "faces": 8905,
+      "sheltered": 6,
+      "postedFighters": 20,
+      "planningRuns": 14,
+      "movementSearches": 1419,
+      "movementIntervalSearches": 168
+    }
+  ]
+}

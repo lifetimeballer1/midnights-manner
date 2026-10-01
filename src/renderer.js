@@ -11,6 +11,7 @@ import {drawVillage3D,pointInPolygon} from './scene3d.js';
 import {weatherAt,skyLightAt,phaseAt} from './systems/daynight.js';
 import {drawAtmosphere} from './atmosphere-art.js';
 import {insideWorkplace} from './systems/villagers.js';
+import {isSheltered} from './systems/shelter.js';
 import {trackStride, footstepFor, surfaceAt} from './systems/footsteps.js';
 // Wood-framed status bars: pure geometry so the frame math is unit-tested;
 // the draw call only paints the three rects. Fill color stays caller-owned
@@ -56,7 +57,7 @@ export class Renderer {
   for(const [key,wear] of this.wornGround)if(now-wear.last>=300)this.wornGround.delete(key);
   const seen=new Set();
   for(const u of world.troops||[]){
-   if(u.hp<=0||!Number.isFinite(u.x)||!Number.isFinite(u.y))continue;
+   if(u.hp<=0||isSheltered(world,this.data,u)||!Number.isFinite(u.x)||!Number.isFinite(u.y))continue;
    seen.add(u.id);
    const prev=this._wearActors.get(u.id),dx=prev?u.x-prev.x:0,dy=prev?u.y-prev.y:0,dist=Math.hypot(dx,dy);
    if(!prev){this._wearActors.set(u.id,{x:u.x,y:u.y,tile:null,marked:false});continue;}
@@ -102,6 +103,12 @@ export class Renderer {
  }
   draw(world,time){
    (this.lightingStats??={}).unitShadows=0;
+   // Resolve indoor visibility once per frame, sharing it with meshes,
+   // shadows, labels and footsteps. Never retain it across simulation ticks.
+   const visibleUnits=this._visibleUnits??=[];visibleUnits.length=0;
+   const visibleIds=this._visibleUnitIds??=new Set();visibleIds.clear();
+   for(const u of world.troops)if(!isSheltered(world,this.data,u)&&!insideWorkplace(world,this.data,u)){visibleUnits.push(u);visibleIds.add(u.id);}
+   this._visibleWorld=world;
    const c=this.ctx;c.setTransform(this.dpr,0,0,this.dpr,0,0);c.clearRect(0,0,this.width,this.height);this.recordFrame(time);c.fillStyle='#29472f';c.fillRect(0,0,this.width,this.height);c.imageSmoothingEnabled=false;this.hitAreas=[];setListener({zoom:this.cam.zoom});this.trackTransitions(world,time);const didShake=!this.calm&&this.shake>.2;
   if(didShake){c.save();c.translate((Math.random()-.5)*this.shake,(Math.random()-.5)*this.shake);this.shake*=.88;}
   const W=this.data.world.width,H=this.data.world.height;
@@ -164,16 +171,20 @@ export class Renderer {
    for(const b of world.buildings){const spec=this.data.buildings[b.type];if(!spec)continue;const n=spec.size;
     if(!inViewport(this,[[b.x,b.y],[b.x+n,b.y],[b.x+n,b.y+n],[b.x,b.y+n]].map(([x,y])=>this.project(x+ox,y+oy,.01))))continue;
     c.beginPath();[[b.x,b.y],[b.x+n,b.y],[b.x+n,b.y+n],[b.x,b.y+n]].forEach(([x,y],i)=>{const p=this.project(x+ox,y+oy,.01);i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y);});c.closePath();c.fill();}
-   for(const u of [...world.troops.filter(u=>!insideWorkplace(world,this.data,u)),...world.enemies]){if(!unitShadowVisible(this,u))continue;this.lightingStats.unitShadows++;const p=this.project(u.x+ox,u.y+oy,.01),rz=13*this.cam.zoom;c.beginPath();c.ellipse(p.x,p.y,rz,rz*.42,0,0,Math.PI*2);c.fill();}}
+   for(const roster of [visibleUnits,world.enemies])for(const u of roster){if(!unitShadowVisible(this,u))continue;this.lightingStats.unitShadows++;const p=this.project(u.x+ox,u.y+oy,.01),rz=13*this.cam.zoom;c.beginPath();c.ellipse(p.x,p.y,rz,rz*.42,0,0,Math.PI*2);c.fill();}}
   if(this.placing&&this.hover){const cells=placementCells(this),valid=cells.every(p=>canPlace(world,this.data,this.placing,p.x,p.y,this.moving));const size=this.data.buildings[this.placing].size;for(const p of cells)for(let y=0;y<size;y++)for(let x=0;x<size;x++)this.diamond(p.x+x,p.y+y,valid?'#69a06bcc':'#c05a4ecc',valid?'#fff6d8':'#ffe3dc');}
   else if(this.hover&&this.grid)this.diamond(this.hover.x,this.hover.y,'#f2ecb988','#fff3c0');
   const ring=(x,y,radius)=>{c.beginPath();for(let i=0;i<=64;i++){const a=i*Math.PI/32,p=this.project(x+Math.cos(a)*radius,y+Math.sin(a)*radius,.02);if(i)c.lineTo(p.x,p.y);else c.moveTo(p.x,p.y);}c.stroke();};
   const selected=world.buildings.find(b=>b.id===this.selection);const defense=selected?this.data.buildings[selected.type]:this.placing?this.data.buildings[this.placing]:null;
   const tier=defense?.tiers[(selected?.level||1)-1];if(tier?.damage&&(selected||this.hover)){const pos=selected?center(selected,this.data):{x:this.hover.x+defense.size/2,y:this.hover.y+defense.size/2};c.save();c.strokeStyle='#f2e2a8';c.lineWidth=1.5;c.setLineDash([6,4]);ring(pos.x,pos.y,tier.range);c.restore();}
   drawAtmosphere(this,world,time,weather,{sceneChimneys:true});
-  drawVillage3D(this,world,time,sky);
+  drawVillage3D(this,world,time,sky,visibleUnits);
   this.collectionSceneObstacles=[];
-  const drawables=[...world.buildings.map(b=>({kind:'building',value:b,depth:this.depth(b.x+this.data.buildings[b.type].size/2,b.y+this.data.buildings[b.type].size/2)})),...world.troops.filter(t=>!insideWorkplace(world,this.data,t)).map(t=>({kind:'unit',value:t,depth:this.depth(t.x,t.y)})),...world.enemies.map(e=>({kind:'enemy',value:e,depth:this.depth(e.x,e.y)}))].sort((a,b)=>a.depth-b.depth);
+  const drawables=[];
+  for(const b of world.buildings){const n=this.data.buildings[b.type].size;drawables.push({kind:'building',value:b,depth:this.depth(b.x+n/2,b.y+n/2)});}
+  for(const u of visibleUnits)drawables.push({kind:'unit',value:u,depth:this.depth(u.x,u.y)});
+  for(const e of world.enemies)drawables.push({kind:'enemy',value:e,depth:this.depth(e.x,e.y)});
+  drawables.sort((a,b)=>a.depth-b.depth);
   for(const {kind,value:b} of drawables){
    if(kind==='building'){
     const spec=this.data.buildings[b.type],cp=center(b,this.data),baseSize=spec.size===2?79:51,size=baseSize*this.cam.zoom;
@@ -349,7 +360,7 @@ export class Renderer {
     // Footsteps: stride accumulates from real position deltas — hidden
     // indoor workers and the fallen never earn a step. Save untouched.
     try{
-     if(u.hp>0&&!u.expedition&&!insideWorkplace(world,this.data,u)){
+     if(u.hp>0&&!u.expedition&&(this._visibleWorld===world?this._visibleUnitIds.has(u.id):!isSheltered(world,this.data,u)&&!insideWorkplace(world,this.data,u))){
       if(!this._strideActors)this._strideActors=new Map();
       const side=trackStride(this._strideActors,u,time);
       if(side)footstepFor(u,side,surfaceAt(world,this.data,u.x,u.y),this.cam.zoom);

@@ -25,9 +25,28 @@ function storeSet(k, v) {
   try { memFallback.set(k, v); lastSaveFallback = true; return 'memory'; }
   catch { lastSaveFallback = true; return 'none'; }
 }
+// Routes, interior occupancy and builder motion are recomputed after loading.
+function managementReplacer(key,value){return ['shelteredIn','builderTask','defenseIntent'].includes(key)?undefined:value;}
+function normalizeManagement(w,data){
+ if(w.automation!==undefined){
+  const c=w.automation&&typeof w.automation==='object'&&!Array.isArray(w.automation)?w.automation:{};
+  const reserves={};for(const k of Object.keys(w.resources||{})){const n=c.reserves?.[k];if(Number.isFinite(n)&&n>=0)reserves[k]=Math.min(1e9,Math.floor(n));}
+  w.automation={autoUpgrade:c.autoUpgrade===true,reserves,stockTarget:Number.isFinite(c.stockTarget)?Math.max(0,Math.min(5,Math.floor(c.stockTarget))):1};
+ }
+ const ids=new Set(w.buildings.map(b=>b.id));
+ for(const b of w.buildings){
+  for(const k of ['autoCraft','autoUpgrade'])if(b[k]!==undefined&&typeof b[k]!=='boolean')delete b[k];
+  if(b.autoUpgradeMaxTier!==undefined){if(Number.isFinite(b.autoUpgradeMaxTier))b.autoUpgradeMaxTier=Math.max(1,Math.min(data.buildings[b.type].tiers.length,Math.floor(b.autoUpgradeMaxTier)));else delete b.autoUpgradeMaxTier;}
+ }
+ for(const u of w.troops){
+  delete u.shelteredIn;delete u.builderTask;delete u.defenseIntent;
+  if(u.defensePost!=null&&(!ids.has(u.defensePost)||data.troops[u.type].role!=='combat')){delete u.defensePost;delete u.manualDefensePost;}
+  if(u.manualDefensePost!==undefined&&typeof u.manualDefensePost!=='boolean')delete u.manualDefensePost;
+ }
+}
 export function save(game) {
   let payload = '';
-  try { payload = JSON.stringify({...game, version: VERSION}); }
+  try { payload = JSON.stringify({...game, version: VERSION},managementReplacer); }
   catch { return false; }
   const where = storeSet(KEY, payload);
   return where !== 'none';
@@ -368,7 +387,7 @@ export function validateSave(value, data) {
 function supplyDefaults(value, data) {
   for (const w of [value.world, value.home]) {
     if (!w) continue;
-    normalizeTrails(w,data);normalizeRoads(w,data);normalizeOutputs(w,data);
+    normalizeTrails(w,data);normalizeRoads(w,data);normalizeOutputs(w,data);normalizeManagement(w,data);
     if (typeof w.autoTrain !== 'boolean') w.autoTrain = false;
     if (typeof w.wellSupplied !== 'boolean') w.wellSupplied = false;
     if (!Number.isInteger(w.lastSupplyDay) || w.lastSupplyDay < 0) {
@@ -400,7 +419,7 @@ export function load(data) {
 // bad blobs fail with a readable message, and imports run the same
 // versioned migrations as local loads.
 export function exportSave(state) {
-  try { return JSON.stringify({...state, version: VERSION}); }
+  try { return JSON.stringify({...state, version: VERSION},managementReplacer); }
   catch { return null; }
 }
 export function importSaveBlob(text, data) {

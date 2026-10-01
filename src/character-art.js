@@ -213,7 +213,7 @@ function enemyRoleSilhouette(s,u,x,y,bob,detail,coat){
 export function workMotionFor(u,troop,time,calm=false){
  if(calm||!u||u.hp<=0||u.expedition||u.order)return 0;
  if((u.animation||0)>0)return Math.sin(u.animation*14)*.12;
- const repair=u.emergency?.kind==='repair';
+ const repair=u.emergency?.kind==='repair'||!!u.builderTask?.working;
  const posted=!!u.workplace&&troop?.role!=='combat'&&!u.emergency;
  const collecting=posted&&troop?.role==='collector'&&u.phase==='gather'&&(u.carry||0)>0;
  const stationed=posted&&troop?.role!=='collector';

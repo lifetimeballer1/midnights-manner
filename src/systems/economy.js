@@ -80,10 +80,19 @@ export function tickEconomy(world,data,dt) {
  // Perf: one aura per tick shared with builderBonuses (was two full passes).
  const aura=auras(world,data);
  const bonus=builderBonuses(world,data,aura);
+ const siteSpeed=new Map();
+ for(const u of world.troops){
+  const task=u.builderTask;
+  if(u.hp>0&&task?.kind==='construction'&&task.working&&!u.order&&!u.emergency)siteSpeed.set(task.target,(siteSpeed.get(task.target)||0)+((data.items[u.gear]?.stats.buildSpeed||1)-1));
+ }
  for(const b of world.buildings) {
   if(b.hp<=0)continue;
   if(b.remaining>0&&(world.raidPending||world.enemies.some(e=>e.hp>0)))continue;
-  if(b.remaining>0){b.remaining=Math.max(0,b.remaining-dt*bonus.speed);continue;}
+  if(b.remaining>0){
+   // Base construction keeps legacy pacing; equipment bonuses need builders
+   // physically working here once home automation has assigned real tasks.
+   const speed=1+aura.build+(siteSpeed.get(b.id)||0);
+   b.remaining=Math.max(0,b.remaining-dt*(world.automation?speed:bonus.speed));continue;}
   const spec=data.buildings[b.type];
   // Rested nodes breathe back; worked nodes visibly drain below.
   if (b.maxReserve && b.reserve < b.maxReserve) b.reserve = Math.min(b.maxReserve, b.reserve + b.maxReserve * REGEN_FRACTION * dt);
@@ -113,7 +122,7 @@ export function tickEconomy(world,data,dt) {
  }
  const hall=world.buildings.find(b=>b.type==='hall'&&b.hp>0);if(!hall)return;
  for(const u of world.troops) {
-  if(u.hp<=0||u.emergency||isHauling(u))continue;
+  if(u.hp<=0||u.emergency||u.builderTask||isHauling(u))continue;
   const spec=data.troops[u.type];
   // Ranging hands (Phase 3 expeditions) walk their own road — the
   // expedition handler moves them, never the economy loop.

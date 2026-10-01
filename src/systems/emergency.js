@@ -1,3 +1,4 @@
+import {beginShelterTick,isSheltered,releaseShelter,shelterVillager} from './shelter.js';
 import {supplyBonus} from './food.js';
 import {center,distance,stats} from '../model.js';
 import {move} from './pathfinding.js';
@@ -16,14 +17,15 @@ export function tickEmergency(world,data,dt) {
  // tie-break the stable sorts returned.
  const foes=world.enemies.filter(e=>e.hp>0);
  const active=!!world.raidPending||foes.length>0;
- const shelters=world.buildings.filter(b=>b.hp>0&&b.remaining<=0&&(b.type==='hall'||data.buildings[b.type].housing)).map(b=>({b,c:center(b,data)}));
- const safeShelters=shelters.filter(s=>!danger(foes,s.c,4));
+ beginShelterTick(world);
  const bCenters=new Map();
  const bCenter=b=>{let c=bCenters.get(b);if(!c){c=center(b,data);bCenters.set(b,c);}return c;};
  const maxHp=new Map();
  const maxOf=t=>{let m=maxHp.get(t);if(m===undefined){m=stats(t,data).hp;maxHp.set(t,m);}return m;};
  for(const u of world.troops){
-  if(!active||u.hp<=0||u.expedition||data.troops[u.type].role==='combat'){delete u.emergency;continue;}
+  if(!active||u.hp<=0||u.expedition||data.troops[u.type].role==='combat'){releaseShelter(u);delete u.emergency;continue;}
+  if(isSheltered(world,data,u)){u.emergency={kind:'shelter',target:u.shelteredIn};continue;}
+  if(u.shelteredIn)releaseShelter(u);
   u.emergency={kind:'shelter'};
   const s=stats(u,data),spec=data.troops[u.type];
   // Phase 7 temperament: Cowardly flees early (4 tiles) and fast (+30%),
@@ -31,10 +33,12 @@ export function tickEmergency(world,data,dt) {
   const fleeAt=fleeRadius(u),fleeSpeed=s.speed*fleeSpeedMult(u);
   let nearest=null,nearestD=Infinity;
   for(const e of foes){const d=distance(u,e);if(d<nearestD){nearestD=d;nearest=e;}}
-  if(nearest&&distance(u,nearest)<fleeAt){retreat(world,data,u,nearest,fleeSpeed,dt);continue;}
+  if(nearest&&distance(u,nearest)<fleeAt){releaseShelter(u);retreat(world,data,u,nearest,fleeSpeed,dt);continue;}
   // Cowardly healers run for shelter instead of tending the field.
   const job=(spec.emergency==='heal'&&hasTrait(u,'cowardly'))?null:spec.emergency;
-  if(job==='repair'&&world.resources.wood>0){
+  const reserve=world.automation?.reserves?.wood;
+  const availableWood=Math.max(0,world.resources.wood-(Number.isFinite(reserve)?Math.max(0,reserve):0));
+  if(job==='repair'&&availableWood>0){
    // Every wall line counts: palisades, stone, ramparts and gatehouses
    // all read as walls, so builders mend the whole perimeter. Brave
    // builders mend closer to the fighting (2.5 tiles); the timid keep 3.5.
@@ -48,8 +52,8 @@ export function tickEmergency(world,data,dt) {
     const d=distance(u,cc);
     if(d<bestD){bestD=d;b=cand;}
    }
-   if(b){u.emergency={kind:'repair',target:b.id};if(move(world,data,u,center(b,data),fleeSpeed,dt,data.buildings[b.type].size/2+.7,true,true)){
-    const hp=Math.min(6*(1+supplyBonus(world,data,'repair'))*dt,data.buildings[b.type].tiers[b.level-1].hp-b.hp,world.resources.wood*15);b.hp+=hp;world.resources.wood=Math.max(0,world.resources.wood-hp/15);
+   if(b){releaseShelter(u);u.emergency={kind:'repair',target:b.id};if(move(world,data,u,center(b,data),fleeSpeed,dt,data.buildings[b.type].size/2+.7,true,true)){
+    const hp=Math.min(6*(1+supplyBonus(world,data,'repair'))*dt,data.buildings[b.type].tiers[b.level-1].hp-b.hp,availableWood*15);b.hp+=hp;world.resources.wood=Math.max(0,world.resources.wood-hp/15);
    }continue;}
   }
   if(job==='heal'){
@@ -62,11 +66,8 @@ export function tickEmergency(world,data,dt) {
     const f=t.hp/m;
     if(f<bestF){bestF=f;ally=t;}
    }
-   if(ally){u.emergency={kind:'heal',target:ally.id};if(move(world,data,u,ally,fleeSpeed,dt,1.8,true,true))ally.hp=Math.min(maxOf(ally),ally.hp+3*dt);continue;}
+   if(ally){releaseShelter(u);u.emergency={kind:'heal',target:ally.id};if(move(world,data,u,ally,fleeSpeed,dt,1.8,true,true))ally.hp=Math.min(maxOf(ally),ally.hp+3*dt);continue;}
   }
-  // Prefer the nearest safe living home; route around enemy positions.
-  let shelter=null,shelterD=Infinity;
-  for(const cand of safeShelters){const d=distance(u,cand.c);if(d<shelterD){shelterD=d;shelter=cand.b;}}
-  if(shelter){u.emergency.target=shelter.id;move(world,data,u,center(shelter,data),fleeSpeed,dt,data.buildings[shelter.type].size/2+.7,true,true);}
+  shelterVillager(world,data,u,fleeSpeed,dt);
  }
 }

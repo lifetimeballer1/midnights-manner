@@ -702,3 +702,12 @@ Vignette/moon-glow/day-grade stay dynamic overlays (not baked) so the cached bui
 - Added insight from the manor and assigned scholars, resource costs, prerequisite validation and raid/campaign pauses.
 - Preserved legacy progression and saves; research provides another route to content rather than removing campaign rewards.
 - Verified 329 unit tests and production build; added mobile research navigation/screenshot to browser suite.
+
+## The Village Holds
+
+- Home gate/tower/hall defense jobs, automatic staffing, manual locks, local target commitment and breach reserves; fixed ranged retreat being canceled by same-tick approach.
+- Reachable civilian shelter interiors with live destruction checks and preserved cargo/orders; hidden residents stop rendering and cannot be hostile targets.
+- Staffed highest-tier equipment automation with bounded demand, worker availability, protected reserves and retained manual queues.
+- Builder repair/construction work and opt-in per-building upgrades with master control and tier limits.
+- Compact mobile management controls, raid summaries and additive portable-save sanitization.
+- Shared exterior roster and bounded planning; repeatable CPU benchmark. Physical iPhone validation remains unperformed.
