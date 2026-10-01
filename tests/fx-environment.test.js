@@ -6,7 +6,7 @@ function mockRenderer(buildings = [], zoom = 1.65, calm = true) {
   const rects = [];
   return {
     rects,
-    ctx: { fillStyle: '', strokeStyle: '', lineWidth: 1, fillRect(...a) { rects.push(a); }, beginPath() {}, moveTo() {}, quadraticCurveTo() {}, stroke() {} },
+    ctx: { fillStyle: '', strokeStyle: '', lineWidth: 1, fillRect(...a) { rects.push(a); }, fill() {}, ellipse() {}, beginPath() {}, moveTo() {}, quadraticCurveTo() {}, stroke() {} },
     cam: { zoom },
     calm,
     data: { buildings: { pond: { size: 1 }, deephole: { size: 1 } } },

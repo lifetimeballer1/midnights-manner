@@ -168,7 +168,7 @@ export class Renderer {
   // smudge away from the key light. The offset swings with the sun/moon arc
   // and the alpha follows the key intensity: one polygon per body, no blur,
   // no texture — a live depth cue for free.
-  {const lx=sky.keyDir[0],ly=sky.keyDir[1],ln=Math.hypot(lx,ly)||1,len=.42*Math.min(1,sky.keyI/.26),ox=-lx/ln*len,oy=-ly/ln*len,alpha=Math.max(.06,Math.min(.22,sky.keyI*.75));
+  {const lx=sky.keyDir[0],ly=sky.keyDir[1],lz=sky.keyDir[2]??1,lh=Math.hypot(lx,ly)||1,tan=Math.max(.2,(lz||1)/lh),len=Math.max(.3,Math.min(2.5,.5/tan*Math.min(1,sky.keyI/.26))),ox=-lx/lh*len,oy=-ly/lh*len,alpha=Math.max(.06,Math.min(.22,sky.keyI*.75));
    c.fillStyle=`rgba(18,24,16,${alpha})`;
    for(const b of world.buildings){const spec=this.data.buildings[b.type];if(!spec)continue;const n=spec.size;
     if(!inViewport(this,[[b.x,b.y],[b.x+n,b.y],[b.x+n,b.y+n],[b.x,b.y+n]].map(([x,y])=>this.project(x+ox,y+oy,.01))))continue;
@@ -182,7 +182,7 @@ export class Renderer {
   drawAtmosphere(this,world,time,weather,{sceneChimneys:true});
   drawVillage3D(this,world,time,sky,visibleUnits);
   drawBuildingStates(this,world,time);
-  drawEnvironmentFx(this,world,time);
+  drawEnvironmentFx(this,world,time,{sky,weather});
   this.collectionSceneObstacles=[];
   const drawables=[];
   for(const b of world.buildings){const n=this.data.buildings[b.type].size;drawables.push({kind:'building',value:b,depth:this.depth(b.x+n/2,b.y+n/2)});}

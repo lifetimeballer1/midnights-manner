@@ -1,7 +1,7 @@
 // Environment dynamics: pond glints + distant birds. Screen-space,
 // deterministic, Calm-aware, hard-capped for phones. Static meshes stay
 // untouched (cache-safe); these read as sun and life on top.
-export function drawEnvironmentFx(r, world, time) {
+export function drawEnvironmentFx(r, world, time, opts = {}) {
   const c = r.ctx;
   // Pond glints: 3-frame shimmer per pond, frozen frame under Calm.
   const frame = r.calm ? 0 : Math.floor(time / 400) % 3;
@@ -18,6 +18,20 @@ export function drawEnvironmentFx(r, world, time) {
     c.fillStyle = 'rgba(166,219,240,0.8)';
     c.fillRect(gx, p.y - 2, 6 - frame, 1.5);
     glints++;
+  }
+  // Drifting cloud shadows by day: three soft blobs at ~0.12 alpha on
+  // clear skies, frozen under Calm. No composite ops (Safari-safe).
+  const phase = opts.sky?.phase?.id || opts.phase || 'day';
+  const rainy = !!opts.weather?.streaks || (opts.weather?.id || '') === 'rain';
+  if (!r.calm && (phase === 'day' || phase === 'dawn') && !rainy && r.cam.zoom < 1.6) {
+    c.fillStyle = 'rgba(24,48,40,0.12)';
+    for (let i = 0; i < 3; i++) {
+      const bx = ((time * .008 * (1 + i * .2) + i * 430) % (r.width + 360)) - 180;
+      const by = r.height * (0.3 + i * 0.18);
+      c.beginPath();
+      c.ellipse(bx, by, 120 + i * 30, 44 + i * 8, 0, 0, Math.PI * 2);
+      c.fill();
+    }
   }
   // Distant birds: two strokes crossing only when zoomed out and in motion.
   if (r.calm || r.cam.zoom > 0.9) return;
