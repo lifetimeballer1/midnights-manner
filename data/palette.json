@@ -1,0 +1,23 @@
+{
+  "_comment": "Central albedo source for meshes + previews. 40 colors. Generators read this file; never hardcode hex in mesh code. Missing mids interpolate. Light: top-left; top=ramp+1, left=base, right=ramp-1.",
+  "meta": { "version": 1, "seed": 1337, "maxColors": 40, "count": 40 },
+  "ramps": {
+    "ink": ["#1a1424", "#2b2036"],
+    "grass": ["#1f3a2b", "#2f5d3a", "#4a8c42", "#7bb34f", "#b5d86a"],
+    "earth": ["#3b2a22", "#6b4a32", "#9a6e45"],
+    "wood": ["#3f281f", "#6e4429", "#a0652f"],
+    "stone": ["#2c3140", "#525a6e", "#7d869e", "#aab1c4"],
+    "thatch": ["#7a5a28", "#e3c06a"],
+    "roofTile": ["#4a1f2c", "#b9533f"],
+    "slate": ["#2e3a52", "#7a8db0"],
+    "water": ["#1b3560", "#2d68a0", "#58a4d4"],
+    "clothCrimson": ["#6e1428", "#b3263e"],
+    "clothBlue": ["#1f3566", "#3b5fa8"],
+    "clothGold": ["#9c6f1a", "#e8b93a"],
+    "skin": ["#8a5a3c", "#c68c5e", "#f0c394"],
+    "lightEmber": ["#ff9a3c"],
+    "lightLantern": ["#ffd98a"],
+    "lightMoon": ["#8fb4ff"],
+    "raiders": ["#3a1d2e", "#d2442f"]
+  }
+}

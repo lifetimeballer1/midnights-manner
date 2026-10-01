@@ -9,6 +9,7 @@ import {unlock, isMuted} from './systems/audio.js';
 import {AmbiencePlayer, ambienceProfile, soundtrackMood} from './systems/ambience.js';
 import {MusicPlayer} from './music.js';
 import {AmbientScoreEngine} from './audio.js';
+import {attachQuality} from './fx/quality.js';
 
 async function boot(){
  const names=['world','troops','items','abilities','buildings','missions','quests','levels','rumors','names','legends','calendar','traders','biomes','expansion','updates','artifacts','endgame','music','festivals','conquest'];
@@ -23,6 +24,7 @@ async function boot(){
  const sprites=[...Object.values(data.buildings).flatMap(b=>b.tiers.map(t=>t.sprite)),...Object.values(data.troops).map(t=>t.sprite),...Object.values(data.items).map(i=>i.sprite),'raider.png',...resourceSpriteNames];
  const images=Object.fromEntries(await Promise.all([...new Set(sprites)].map(name=>new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve([name,image]);image.onerror=()=>reject(Error(`Missing sprite: ${name}`));image.src=new URL(`../assets/sprites/${name}`,import.meta.url).href;}))));
  const canvas=document.querySelector('#world'),game=new Game(data),renderer=new Renderer(canvas,data,images);
+ attachQuality(renderer);
   const resize=()=>{const rect=canvas.getBoundingClientRect();renderer.resize(rect.width,rect.height,window.devicePixelRatio||1);};resize();renderer.fitVillage(game.world);
 
   const music=new MusicPlayer(data.music);
@@ -90,6 +92,7 @@ async function boot(){
   const ui=new UI(game,renderer,music);new MapInput(canvas,renderer,ui);new GameUpdates(game);new PatchNotes(game,ui,{onFresh:()=>{try{music.celebrate();}catch{}}});
   new ResizeObserver(resize).observe(canvas);
  try{if(new URLSearchParams(location.search).has('perf')){const badge=document.createElement('div');badge.id='perf';document.body.appendChild(badge);setInterval(()=>{const r=renderer.frameReport();if(r)badge.textContent='frame avg '+r.avg+'ms · p50 '+r.p50+'ms · p95 '+r.p95+'ms · n='+r.n+' · faces '+r.faces+' · '+(renderer.staticLayer?'cached':'uncached');},500);}}catch{}
+ try{if(new URLSearchParams(location.search).has('meshes')){const badge=document.createElement('div');badge.id='meshes';document.body.appendChild(badge);setInterval(()=>{const r=renderer.frameReport();badge.textContent='buildings '+Object.keys(data.buildings).length+' · troops '+Object.keys(data.troops).length+' · items '+Object.keys(data.items).length+' · quality '+renderer.quality+' · faces '+(r?.faces||0);},500);}}catch{}
 
  window.addEventListener('pointerdown',()=>unlock(),{passive:true});window.addEventListener('keydown',()=>unlock());
  let last=performance.now(),accumulator=0;
@@ -129,6 +132,7 @@ async function boot(){
    ui.tick(dt);
    if(ui.started)ambience.tick();
    renderer.draw(game.world,now);
+   try{const r=renderer.frameReport();if(r&&renderer.autoDegrade)renderer.autoDegrade(r.avg,now);}catch{}
   }
   requestAnimationFrame(frame);
  }
