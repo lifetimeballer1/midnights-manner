@@ -271,14 +271,14 @@ try{
  const make=${matureSettlement.toString()},reports=[];const stat=a=>{const s=[...a].sort((a,b)=>a-b);return {average:a.reduce((a,b)=>a+b,0)/a.length,p50:s[Math.floor(s.length*.5)],p95:s[Math.floor(s.length*.95)]};};
  for(const mode of ['day','night','rain','warning','raid']){
   const w=make(d,{...model,...trails}),canvas=document.createElement('canvas'),r=new Renderer(canvas,d,{});r.resize(390,844,2);r.cam={x:19,y:13,zoom:1.1,yaw:Math.PI/4,pitch:.8};
-  for(let i=0;i<100;i++){w.elapsed+=.05;logistics.tickLogistics(w,d,.05);crafting.tickRefine(w,d,.05);}
+  for(let i=0;i<100;i++){w.elapsed+=.05;logistics.tickLogistics(w,d,.05);crafting.tickRefine(w,d,.05,true);}
   for(let t=0;t<30000;t+=5){const p=clock.phaseAt(t,d),weather=clock.weatherAt(t,d).id;if(mode==='night'?p.night&&weather==='clear':mode==='rain'?weather==='rain':!p.night&&weather==='clear'){w.elapsed=t;break;}}
   if(mode==='warning')w.raidPending={at:w.elapsed+30};if(mode==='raid')combat.spawnRaid(w,6,null,d,null);
   const render=[],ticks=[],frames=[],heap=performance.memory?.usedJSHeapSize||null;
-  for(let i=0;i<40;i++){const frameStart=performance.now();let t=frameStart;emergency.tickEmergency(w,d,.05);economy.tickEconomy(w,d,.05);logistics.tickLogistics(w,d,.05);crafting.tickRefine(w,d,.05);combat.tickCombat(w,d,.05);w.elapsed+=.05;ticks.push(performance.now()-t);t=performance.now();r.draw(w,2000+i*50);if(i>=10){render.push(performance.now()-t);frames.push(performance.now()-frameStart);}}
+  for(let i=0;i<40;i++){const frameStart=performance.now();let t=frameStart;emergency.tickEmergency(w,d,.05);economy.tickEconomy(w,d,.05);logistics.tickLogistics(w,d,.05);crafting.tickRefine(w,d,.05,true);combat.tickCombat(w,d,.05);w.elapsed+=.05;ticks.push(performance.now()-t);t=performance.now();r.draw(w,2000+i*50);if(i>=10){render.push(performance.now()-t);frames.push(performance.now()-frameStart);}}
   const metrics=logistics.logisticsMetrics(w);if(metrics.activeJobs>24||metrics.visibleCarts>10||metrics.routeCache>48||metrics.intervalPathCalculations>8)throw Error('Unbounded settlement simulation');
   if(r.sceneFaces.some(f=>f.vertices.some(v=>v.some(n=>!Number.isFinite(n)))))throw Error('Invalid logistics geometry');
-  reports.push({mode,phase:clock.phaseAt(w.elapsed,d).id,weather:clock.weatherAt(w.elapsed,d).id,viewport:[390,844],dpr:2,villagers:150,buildings:w.buildings.length,frameMs:stat(frames),renderMs:stat(render),tickMs:stat(ticks),heapDeltaBytes:heap?(performance.memory.usedJSHeapSize-heap):null,faces:r.sceneFaces.length,...metrics,...routing.movementMetrics(w),image:canvas.toDataURL('image/png').split(',')[1]});
+  reports.push({mode,phase:clock.phaseAt(w.elapsed,d).id,weather:clock.weatherAt(w.elapsed,d).id,viewport:[390,844],dpr:2,villagers:150,buildings:w.buildings.length,pendingOutputs:w.buildings.reduce((n,b)=>n+Object.values(b.outputReserve||{}).reduce((a,v)=>a+v,0),0),outputJobs:logistics.visualHauls(w).filter(j=>j.kind==='output').length,frameMs:stat(frames),renderMs:stat(render),tickMs:stat(ticks),heapDeltaBytes:heap?(performance.memory.usedJSHeapSize-heap):null,faces:r.sceneFaces.length,...metrics,...routing.movementMetrics(w),image:canvas.toDataURL('image/png').split(',')[1]});
  }
  return reports;
 })()`);

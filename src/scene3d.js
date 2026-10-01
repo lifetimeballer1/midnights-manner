@@ -820,10 +820,10 @@ export function buildingModel(s,b,spec,world,time=0){
 // fields; the static mesh cache keys on productionStage()/reserveReady() so
 // it only repaints when a step or the badge flips, never per reserve unit.
 export function productionStage(b,spec){
- if(!spec?.production||b.hp<=0||b.remaining>0)return -1;
+ if((!spec?.production&&!spec?.refine)||b.hp<=0||b.remaining>0)return -1;
  const level=Math.max(1,Math.floor(+b.level||1));
- const cap=Math.max(1,reserveCapacity(spec,level));
- const held=Number.isFinite(+b.harvestBonus)?Math.max(0,+b.harvestBonus):0;
+ const cap=spec.production?Math.max(1,reserveCapacity(spec,level)):96;
+ const held=spec.production?(Number.isFinite(+b.harvestBonus)?Math.max(0,+b.harvestBonus):0):Object.values(b.outputReserve||{}).reduce((a,n)=>a+n,0);
  return Math.min(3,Math.floor((held/cap)*4));
 }
 const PILES={
@@ -837,7 +837,7 @@ const PILES={
 function productionPile(s,b,spec){
  const stage=productionStage(b,spec);
  if(stage<=0)return;
- const n=spec.size,px=b.x+n*.78,py=b.y+n*.82,pile=PILES[spec.production]||PILES.wood;
+ const n=spec.size,px=b.x+n*.78,py=b.y+n*.82,pile=PILES[spec.production||Object.keys(spec.refine?.[0]?.out||{})[0]]||PILES.food;
  if(pile){const {a,b:c}=pile;
   if(pile.kind==='timber'){
    for(let i=0;i<stage;i++)s.box(px-.26+i*.16,py-.2,.1,.13,.4,.12,i%2?c:a);

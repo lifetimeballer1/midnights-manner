@@ -14,33 +14,33 @@
       "buildings": 72,
       "frames": 30,
       "frameMs": {
-        "average": 69.77856286666672,
-        "p50": 67.364912,
-        "p95": 85.68913100000009
+        "average": 81.54254409999996,
+        "p50": 76.86561699999993,
+        "p95": 113.92825799999991
       },
       "renderMs": {
-        "average": 67.84822683333334,
-        "p50": 65.63717400000019,
-        "p95": 84.47067500000003
+        "average": 79.0216273666666,
+        "p50": 74.37934399999995,
+        "p95": 112.04771699999992
       },
       "tickMs": {
-        "average": 2.2567140500000433,
-        "p50": 1.3340570000000298,
-        "p95": 12.667479000000014
+        "average": 2.9336291749999477,
+        "p50": 1.6188360000001012,
+        "p95": 15.849346999999966
       },
-      "heapDeltaBytes": 144675000,
+      "heapDeltaBytes": 177859760,
       "faces": 7259,
-      "activeJobs": 6,
-      "visibleCarts": 6,
+      "activeJobs": 8,
+      "visibleCarts": 8,
       "routeCache": 32,
       "pathCalculations": 32,
       "intervalPathCalculations": 8,
       "delivered": 0,
-      "blocked": 11,
+      "blocked": 12,
       "roads": 968,
-      "trails": 1042,
+      "trails": 1060,
       "caravans": 0,
-      "movementSearches": 17,
+      "movementSearches": 18,
       "movementIntervalSearches": 0
     },
     {
@@ -56,33 +56,33 @@
       "buildings": 72,
       "frames": 30,
       "frameMs": {
-        "average": 68.46616663333343,
-        "p50": 68.19607999999971,
-        "p95": 75.64801800000077
+        "average": 105.86146396666688,
+        "p50": 99.41466400000172,
+        "p95": 162.2895239999998
       },
       "renderMs": {
-        "average": 66.94244450000015,
-        "p50": 66.74235599999975,
-        "p95": 71.86338700000033
+        "average": 103.37635100000013,
+        "p50": 98.11018700000022,
+        "p95": 145.27141500000107
       },
       "tickMs": {
-        "average": 1.5944872499998837,
-        "p50": 1.2000499999994645,
-        "p95": 4.4588650000005146
+        "average": 2.5469947499999988,
+        "p50": 1.49319000000105,
+        "p95": 11.27705700000115
       },
-      "heapDeltaBytes": 3076760,
+      "heapDeltaBytes": 38823824,
       "faces": 7259,
-      "activeJobs": 6,
-      "visibleCarts": 6,
+      "activeJobs": 8,
+      "visibleCarts": 8,
       "routeCache": 32,
       "pathCalculations": 32,
       "intervalPathCalculations": 8,
       "delivered": 0,
-      "blocked": 11,
+      "blocked": 12,
       "roads": 968,
-      "trails": 1042,
+      "trails": 1060,
       "caravans": 0,
-      "movementSearches": 17,
+      "movementSearches": 18,
       "movementIntervalSearches": 0
     },
     {
@@ -98,34 +98,34 @@
       "buildings": 72,
       "frames": 30,
       "frameMs": {
-        "average": 65.1070034666666,
-        "p50": 64.11937699999908,
-        "p95": 72.52394899999854
+        "average": 84.93971209999994,
+        "p50": 76.02696500000093,
+        "p95": 137.25849499999822
       },
       "renderMs": {
-        "average": 63.61669469999991,
-        "p50": 62.82625000000007,
-        "p95": 71.54225099999894
+        "average": 83.20559079999984,
+        "p50": 74.32505700000183,
+        "p95": 134.8236939999988
       },
       "tickMs": {
-        "average": 1.4164390749999256,
-        "p50": 1.0912589999988995,
-        "p95": 2.34059200000047
+        "average": 1.8780127750000246,
+        "p50": 1.2558510000017122,
+        "p95": 6.586346000000049
       },
-      "heapDeltaBytes": 114320248,
+      "heapDeltaBytes": 13766208,
       "faces": 7259,
-      "activeJobs": 6,
-      "visibleCarts": 6,
+      "activeJobs": 8,
+      "visibleCarts": 8,
       "routeCache": 32,
       "pathCalculations": 32,
       "intervalPathCalculations": 8,
       "delivered": 0,
-      "blocked": 11,
+      "blocked": 12,
       "roads": 968,
-      "trails": 1042,
+      "trails": 1060,
       "caravans": 0,
-      "movementSearches": 17,
-      "movementIntervalSearches": 17
+      "movementSearches": 18,
+      "movementIntervalSearches": 18
     },
     {
       "mode": "warning",
@@ -140,21 +140,21 @@
       "buildings": 72,
       "frames": 30,
       "frameMs": {
-        "average": 67.61780553333362,
-        "p50": 66.56400099999883,
-        "p95": 77.14432300000044
+        "average": 78.0535044333336,
+        "p50": 75.81822600000305,
+        "p95": 93.23504099999991
       },
       "renderMs": {
-        "average": 65.34134233333353,
-        "p50": 64.85168699999849,
-        "p95": 71.73772000000099
+        "average": 75.59772573333345,
+        "p50": 72.8051149999992,
+        "p95": 89.34726299999966
       },
       "tickMs": {
-        "average": 2.474840600000152,
-        "p50": 1.5426250000018626,
-        "p95": 10.528573999999935
+        "average": 2.7076373500002773,
+        "p50": 1.8214939999998023,
+        "p95": 10.068317000001116
       },
-      "heapDeltaBytes": 76860344,
+      "heapDeltaBytes": 4794184,
       "faces": 7900,
       "activeJobs": 0,
       "visibleCarts": 0,
@@ -162,11 +162,11 @@
       "pathCalculations": 32,
       "intervalPathCalculations": 8,
       "delivered": 0,
-      "blocked": 12,
+      "blocked": 15,
       "roads": 968,
-      "trails": 1127,
+      "trails": 1125,
       "caravans": 0,
-      "movementSearches": 110,
+      "movementSearches": 109,
       "movementIntervalSearches": 0
     },
     {
@@ -182,21 +182,21 @@
       "buildings": 72,
       "frames": 30,
       "frameMs": {
-        "average": 73.32936136666662,
-        "p50": 73.37754800000039,
-        "p95": 85.99207700000261
+        "average": 85.7637107333337,
+        "p50": 80.1058809999995,
+        "p95": 122.96488500000123
       },
       "renderMs": {
-        "average": 67.59611803333355,
-        "p50": 65.15524300000106,
-        "p95": 81.4691980000025
+        "average": 79.54639706666713,
+        "p50": 74.7504820000031,
+        "p95": 114.81085899999744
       },
       "tickMs": {
-        "average": 6.3143620250001735,
-        "p50": 5.079399999998714,
-        "p95": 15.414738999999827
+        "average": 6.818980400000418,
+        "p50": 5.016702000000805,
+        "p95": 17.242816999998468
       },
-      "heapDeltaBytes": 31420360,
+      "heapDeltaBytes": 102974352,
       "faces": 8149,
       "activeJobs": 0,
       "visibleCarts": 0,
@@ -204,11 +204,11 @@
       "pathCalculations": 32,
       "intervalPathCalculations": 8,
       "delivered": 0,
-      "blocked": 12,
+      "blocked": 15,
       "roads": 968,
-      "trails": 1215,
+      "trails": 1211,
       "caravans": 0,
-      "movementSearches": 1786,
+      "movementSearches": 1785,
       "movementIntervalSearches": 0
     }
   ]

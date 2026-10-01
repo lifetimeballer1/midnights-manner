@@ -60,17 +60,17 @@ export function reserveNotifyAt(spec, level = 1) {
 // Worth collecting by hand: any whole unit on a finished, living producer.
 // Taps and Collect buttons use this so small drips are never stranded.
 export function reserveCollectible(building,spec){
- return !!building && !!spec?.production && building.hp>0 && !(building.remaining>0) && Math.floor(building.harvestBonus||0)>=1;
+ return !!building && building.hp>0 && !(building.remaining>0) && ((!!spec?.production&&Math.floor(building.harvestBonus||0)>=1)||Object.values(building.outputReserve||{}).some(n=>Math.floor(n)>=1));
 }
 // One predicate for every "ready" announcement: bubbles and badges only.
 // Finished, living production buildings holding at least notifyAt.
 export function reserveReady(building,spec){
  const lvl = Number.isFinite(+building?.level) ? +building.level : 1;
- return reserveCollectible(building,spec) && Math.floor(building.harvestBonus||0)>=reserveNotifyAt(spec, lvl);
+ return !!spec?.production && reserveCollectible(building,spec) && Math.floor(building.harvestBonus||0)>=reserveNotifyAt(spec, lvl);
 }
 export function collectionTotals(world,data){
  const totals={};
- for(const b of world.buildings){const key=data.buildings[b.type]?.production;if(!key||b.hp<=0||b.remaining>0)continue;const amount=Math.floor(b.harvestBonus||0);if(amount>0)totals[key]=(totals[key]||0)+amount;}
+ for(const b of world.buildings){if(b.hp<=0||b.remaining>0)continue;const key=data.buildings[b.type]?.production,amount=Math.floor(b.harvestBonus||0);if(key&&amount>0)totals[key]=(totals[key]||0)+amount;for(const [key,n] of Object.entries(b.outputReserve||{}))if(n>=1)totals[key]=(totals[key]||0)+Math.floor(n);}
  return totals;
 }
 // Compact amount for the crowded-mode summary chip (1.2k, 14k, …).

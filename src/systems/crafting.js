@@ -1,4 +1,5 @@
 import {refinementEfficiency,consumeSupply} from './logistics.js';
+import {OUTPUT_CAP,outputAmount,outputTotals,holdOutput} from './refiner-output.js';
 // Phase 8 — Production chains and crafting.
 // Refiner buildings (Sawmill, Gristmill) turn raw stores into refined
 // goods through posted crews; the Emberforge and Wardarmory work queued
@@ -73,9 +74,9 @@ function tierMult(building, data) {
 // One refiner tick: each data recipe converts input stores into output
 // stores, crew-scaled and tier-scaled, never spending what is not there
 // (partial progress, no debt). Returns what was made, for floaters/tests.
-export function tickRefine(world, data, dt) {
+export function tickRefine(world, data, dt, physical = false) {
   if (!Number.isFinite(dt) || dt <= 0) return {};
-  const made = {};
+  const made = {},held=physical?outputTotals(world):null;
   for (const b of world?.buildings || []) {
     if (!b || b.hp <= 0 || b.remaining > 0) continue;
     const recipes = data?.buildings?.[b.type]?.refine;
@@ -97,7 +98,8 @@ export function tickRefine(world, data, dt) {
       // take — the run scales down so the raw input waits for room.
       for (const [k, v] of Object.entries(r.out || {})) {
         if (!Number.isFinite(v) || v <= 0) continue;
-        const room = centralRoom(world, data, k);
+        const room = Math.max(0,centralRoom(world, data, k)-(held?.[k]||0));
+        if(physical)capped=Math.min(capped,Math.max(0,OUTPUT_CAP-outputAmount(b,k))/v);
         if (Number.isFinite(room)) capped = Math.min(capped, room / v);
       }
       if (capped <= 0) continue;
@@ -105,8 +107,9 @@ export function tickRefine(world, data, dt) {
       for (const [k, v] of Object.entries(r.in || {})) world.resources[k] = (world.resources[k] || 0) - v * capped;
       for (const [k, v] of Object.entries(r.out || {})) {
         if (!Number.isFinite(v) || v <= 0) continue;
-        world.resources[k] = (world.resources[k] || 0) + v * capped;
-        world.gathered[k] = (world.gathered[k] || 0) + v * capped;
+        if(physical){holdOutput(world,b,k,v*capped);held[k]=(held[k]||0)+v*capped;}
+        else{world.resources[k] = (world.resources[k] || 0) + v * capped;
+        world.gathered[k] = (world.gathered[k] || 0) + v * capped;}
         made[k] = (made[k] || 0) + v * capped;
       }
     }

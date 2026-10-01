@@ -4,6 +4,7 @@
 // Store -> workshop runs carry supply signals against that shared balance;
 // signals affect modest throughput, never mint/spend an inventory copy.
 import {stats,center} from '../model.js';
+import {outputAmount,bankOutput,fallbackOutputs} from './refiner-output.js';
 import {hasTrait} from './villagers.js';
 import {centralRoom,depositCentral,storageCap} from './storage.js';
 import {recordTravel,trailMultiplier} from './trails.js';
@@ -34,17 +35,18 @@ export function chooseDestination(w,d,source,key,{s=state(w),consumerOnly=false}
 }
 function nearWork(w,d,s,point,key){let mult=1;for(const b of s.byId.values()){if(!live(b)||Math.hypot(center(b,d).x-point.x,center(b,d).y-point.y)>8)continue;if(b.type==='grand-granary'&&['food','flour','bread','rations'].includes(key))mult=Math.max(mult,1+.03*b.level);if(b.type==='forge-quarter'&&['wood','gold','lumber','plate','frostwood'].includes(key))mult=Math.max(mult,1+.025*b.level);if(b.type==='market-square')mult=Math.max(mult,1+.015*b.level);}return Math.min(1.2,mult);}
 function cancel(s,j){if(j.unit)assignments.delete(j.unit);const i=s.jobs.indexOf(j);if(i>=0)s.jobs.splice(i,1);}
+function sourceAmount(w,source,key,kind){return kind==='output'?outputAmount(source,key):kind==='reserve'?source.harvestBonus||0:w.resources[key]||0;}
 function createJob(w,d,s,source,key,kind='reserve',destination=null){
  if(s.jobs.length>=LOGISTICS_LIMITS.jobs||s.jobs.some(j=>j.sourceId===source.id&&j.resource===key&&j.kind===kind))return false;
  const dest=destination||chooseDestination(w,d,source,key,{s,consumerOnly:kind==='supply'});if(!dest)return false;
  const origin=accessTile(s.graph,source,d,dest.point);if(!origin)return false;const field=routeField(s.graph,w,origin);if(!field)return false;
  let unit=null,best=Infinity;for(const u of w.troops){if(!canHaul(u,w,d)||assignments.has(u))continue;const n=routeDistance(s.graph,field,u);if(n<best){best=n;unit=u;}}
- if(!unit)return false;const carry=24*(hasTrait(unit,'strong')?1.25:1),amount=Math.min(carry,kind==='reserve'?source.harvestBonus||0:w.resources[key]||0);if(amount<1)return false;
+ if(!unit)return false;const carry=24*(hasTrait(unit,'strong')?1.25:1),amount=Math.min(carry,sourceAmount(w,source,key,kind));if(amount<1)return false;
  const cart=amount>=18&&s.jobs.filter(j=>j.cart).length<LOGISTICS_LIMITS.carts;
  const j={id:++s.serial,kind,sourceId:source.id,destinationId:dest.building.id,source,destination:dest.building,resource:key,amount,unit,assignedUnit:unit.id,phase:'pickup',origin,target:dest.point,originField:field,targetField:dest.field,distance:dest.distance,cart,loaded:false,wheel:0,heading:0,pause:0,age:0,revision:s.signature};s.jobs.push(j);assignments.set(unit,j);s.links.set(source.id,{destinationId:dest.building.id,distance:dest.distance});return true;
 }
 function plan(w,d,s){index(w,d,s);s.blocked=0;s.efficiencies.clear();
- const count=w.buildings.length;for(let i=0;i<count;i++){const b=w.buildings[(s.producerCursor+i)%count];if(!live(b))continue;const key=d.buildings[b.type].production;if(key&&(b.harvestBonus||0)>=4){if(!createJob(w,d,s,b,key))s.blocked++;}}s.producerCursor=count?(s.producerCursor+7)%count:0;
+ const count=w.buildings.length;for(let i=0;i<count;i++){const b=w.buildings[(s.producerCursor+i)%count];if(!live(b))continue;const key=d.buildings[b.type].production;if(key&&(b.harvestBonus||0)>=4){if(!createJob(w,d,s,b,key))s.blocked++;}for(const key of Object.keys(b.outputReserve||{}))if(outputAmount(b,key)>=4&&!createJob(w,d,s,b,key,'output'))s.blocked++;}s.producerCursor=count?(s.producerCursor+7)%count:0;
  // Only one supply trip per workshop/key; crews keep their assigned posts.
  for(const b of w.buildings){if(!live(b)||!s.crew.get(b.id))continue;for(const r of d.buildings[b.type]?.refine||[])for(const key of Object.keys(r.in||{})){if(demand(b,d,key,s)<1||s.jobs.some(j=>j.kind==='supply'&&j.destinationId===b.id&&j.resource===key))continue;let source=null,min=Infinity;const to=center(b,d);for(const h of s.candidates.get(key)||[]){if(h.id===b.id||!hub(h,d,key)||!live(h))continue;const dist=Math.hypot(center(h,d).x-to.x,center(h,d).y-to.y);if(dist<min){min=dist;source=h;}}if(source){const origin=accessTile(s.graph,source,d),point=accessTile(s.graph,b,d,origin||to);if(!point||!origin)continue;const f=routeField(s.graph,w,point),distance=routeDistance(s.graph,f,origin);if(Number.isFinite(distance))createJob(w,d,s,source,key,'supply',{building:b,point,field:f,distance});}}}
 }
@@ -59,20 +61,23 @@ export function tickLogistics(w,d,dt){if(!(dt>0)||!Number.isFinite(dt))return;co
   if(alarm||!s.units.has(u)||!canHaul(u,w,d)||!live(j.source)||!live(j.destination)||j.age>180){cancel(s,j);continue;}
   if(j.revision!==s.signature){cancel(s,j);continue;}
   if(j.phase==='pickup'){if(walk(w,d,s,j,j.origin,j.originField,dt)){j.phase='load';j.pause=.8;}}
-  else if(j.phase==='load'){j.pause-=dt*(hasTrait(u,'hard_worker')?1.12:1)*nearWork(w,d,s,j.origin,j.resource);if(j.pause<=0){j.amount=Math.min(j.amount,j.kind==='reserve'?j.source.harvestBonus||0:w.resources[j.resource]||0);if(j.amount<1){cancel(s,j);continue;}j.loaded=true;j.phase='delivery';j.waypoint=null;}}
+  else if(j.phase==='load'){j.pause-=dt*(hasTrait(u,'hard_worker')?1.12:1)*nearWork(w,d,s,j.origin,j.resource);if(j.pause<=0){j.amount=Math.min(j.amount,sourceAmount(w,j.source,j.resource,j.kind));if(j.amount<1){cancel(s,j);continue;}j.loaded=true;j.phase='delivery';j.waypoint=null;}}
   else if(j.phase==='delivery'){if(walk(w,d,s,j,j.target,j.targetField,dt)){j.phase='unload';j.pause=.8;}}
   else{j.pause-=dt*(hasTrait(u,'hard_worker')?1.12:1)*nearWork(w,d,s,j.target,j.resource);if(j.pause>0)continue;
    if(j.kind==='reserve'){const amount=Math.min(j.amount,j.source.harvestBonus||0),result=depositCentral(w,d,j.resource,amount);j.source.harvestBonus=Math.max(0,(j.source.harvestBonus||0)-result.banked);s.delivered+=result.banked;if(result.banked>0)supply(s,j.destination,j.resource,result.banked,w.elapsed||0);}
+   else if(j.kind==='output'){const result=bankOutput(w,d,j.source,j.resource,j.amount);s.delivered+=result.banked;if(result.banked>0)supply(s,j.destination,j.resource,result.banked,w.elapsed||0);}
    else supply(s,j.destination,j.resource,Math.min(j.amount,w.resources[j.resource]||0),w.elapsed||0);
    cancel(s,j);
   }
  }
+ // Fallback is periodic, never a per-frame building/job cross scan.
+ if(s.clock===0)for(const b of w.buildings)if(b.outputReserve)fallbackOutputs(w,d,b,s.jobs.some(j=>j.kind==='output'&&j.sourceId===b.id));
  tickCaravans(w,d,s,dt,alarm);
 }
 export function refinementEfficiency(w,d,b){const s=states.get(w);if(!s?.graph)return 1;let distance=0,n=0,delivered=0;const cached=s.efficiencies.get(b.id);for(const r of d.buildings[b.type]?.refine||[])for(const key of Object.keys(r.in||{})){if(!cached){let min=Infinity;const p=center(b,d);for(const h of s.candidates.get(key)||[])if(h.id!==b.id&&hub(h,d,key)&&live(h)){const q=center(h,d);min=Math.min(min,Math.hypot(p.x-q.x,p.y-q.y));}if(Number.isFinite(min)){distance+=min;n++;}}const token=s.supply.get(b.id)?.[key];if(token&&(w.elapsed||0)-token.at<30&&token.amount>0)delivered++;}
  let base=cached;if(base===undefined){const dist=n?distance/n:0,benefit=nearWork(w,d,s,center(b,d),'wood')-1;base=1-Math.max(0,dist-8)*.005+benefit*.3;s.efficiencies.set(b.id,base);}return Math.max(.85,Math.min(1.15,base+(delivered?.06:0)));}
 export function consumeSupply(w,b,inputs,runs){const keys=states.get(w)?.supply.get(b.id);if(keys)for(const [k,v] of Object.entries(inputs||{}))if(keys[k])keys[k].amount=Math.max(0,keys[k].amount-v*runs);}
-export function buildingLogistics(w,d,b){const s=states.get(w),link=s?.links.get(b.id);let incoming=0,outgoing=0,total=0;for(const j of s?.jobs||[]){if(j.destinationId===b.id){incoming++;total+=j.distance;}if(j.sourceId===b.id)outgoing++;}const dest=link&&s.byId.get(link.destinationId);return {destination:dest?d.buildings[dest.type].name:null,distance:link?.distance||0,incoming,outgoing,average:incoming?total/incoming:0,efficiency:refinementEfficiency(w,d,b),reserve:b.harvestBonus||0};}
+export function buildingLogistics(w,d,b){const s=states.get(w),link=s?.links.get(b.id);let incoming=0,outgoing=0,total=0;for(const j of s?.jobs||[]){if(j.destinationId===b.id){incoming++;total+=j.distance;}if(j.sourceId===b.id)outgoing++;}const dest=link&&s.byId.get(link.destinationId);return {destination:dest?d.buildings[dest.type].name:null,distance:link?.distance||0,incoming,outgoing,average:incoming?total/incoming:0,efficiency:refinementEfficiency(w,d,b),reserve:b.harvestBonus||0,outputs:{...b.outputReserve}};}
 // Future Warfront consumers get values, never mutable runtime jobs/maps.
 export function settlementTopology(w,d){const districts={industrial:[],food:[],residential:[],trade:[],military:[]},hubs=[],gates=[];for(const b of w.buildings){if(!live(b))continue;const spec=d.buildings[b.type];if(spec.storage)hubs.push(b.id);if(b.type==='gate')gates.push(b.id);const type=b.type;if(/mine|forge|smelt|armory|sawmill/.test(type))districts.industrial.push(b.id);if(/farm|mill|bakery|granary|pasture/.test(type))districts.food.push(b.id);if(/cottage|longhouse|chapel|gardens|hall/.test(type))districts.residential.push(b.id);if(/market/.test(type))districts.trade.push(b.id);if(/barrack|fletcher|shield|tower|gate/.test(type))districts.military.push(b.id);}
  const intersections=[],roads=Object.entries(w.roads||{}).map(([key,tier])=>({key,tier}));for(const r of roads){const [x,y]=r.key.split(',').map(Number);let neighbors=0;for(const k of [`${x+1},${y}`,`${x-1},${y}`,`${x},${y+1}`,`${x},${y-1}`])if(w.roads[k])neighbors++;if(neighbors>=3)intersections.push(r.key);}return {hubs,gates,districts,roads,intersections,primaryRoads:Object.entries(w.trails||{}).filter(([,e])=>e[0]>=45).map(([key,e])=>({key,wear:e[0],tier:w.roads?.[key]||0})),routes:(states.get(w)?.jobs||[]).map(j=>({sourceId:j.sourceId,destinationId:j.destinationId,resource:j.resource,distance:j.distance}))};}
