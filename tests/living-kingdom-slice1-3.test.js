@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {Game} from '../src/game.js';
-import {createWorld,makeBuilding,makeUnit} from '../src/model.js';
+import {makeBuilding} from '../src/model.js';
 import {recordTravel} from '../src/systems/trails.js';
 import {tickAutomation} from '../src/systems/automation.js';
 const data=Object.fromEntries(await Promise.all(['world','buildings','troops','items','abilities','missions','quests'].map(async n=>[n,JSON.parse(await readFile(new URL(`../data/${n}.json`,import.meta.url)))])));
@@ -13,7 +13,6 @@ test('LK slice: idle builder takes gated road job, raids pause it',()=>{
   w.resources={...w.resources,wood:1000,gold:1000,lumber:1000};
   const b=w.troops.find(u=>data.troops[u.type]?.role==='builder');
   assert.ok(b,'needs a builder');
-  g.paused=false;
   tickAutomation(g,0.1);
   assert.equal(typeof b.builderTask?.kind,'string');
   assert.equal(b.builderTask.kind,'road');

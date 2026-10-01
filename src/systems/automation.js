@@ -131,6 +131,8 @@ export function tickAutomation(game,dt){
     const arrived=move(w,d,u,{x:(sx+.5)/2,y:(sy+.5)/2},stats(u,d).speed,dt,.7,false,true);
     u.builderTask.working=arrived;
     if(!arrived)continue;
+    const arrivalQuote=roadQuote(w,d,u.builderTask.seed,u.builderTask.tier);
+    if(arrivalQuote.error||!canSpend(game,arrivalQuote.cost,{purpose:'road'})){delete u.builderTask;continue;}
     const done=buildRoad(w,d,u.builderTask.seed,u.builderTask.tier);
     let next=null;
     if(done.ok)for(const row of busyRoutes(w,4,d)){
