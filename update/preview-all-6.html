@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>6 Tracks — Keepers #1 #2 #3 #5 #6</title>
+<style>body{font-family:system-ui,sans-serif;max-width:700px;margin:32px auto;padding:0 16px;background:#141a2b;color:#f0e8d5}button{font-size:16px;padding:10px 14px;margin:6px 6px 6px 0;cursor:pointer;border-radius:8px;border:1px solid #555;background:#232c47;color:#f0e8d5}button.active{background:#c98a2b;color:#141a2b;font-weight:700}#status{margin-top:14px;min-height:24px;color:#ffd98a}.num{font-weight:800;color:#ffd98a}small{color:#9aa3b8}</style>
+</head>
+<body>
+<h1>6 Tracks — <span class="num">#1 #2 #3 #5 #6</span> keepers, #4 new</h1>
+<p><small>#1 keeper · #2 KEEPER · #3 KEEPER · #4 Desert Temple NEW · #5 KEEPER · #6 KEEPER</small></p>
+<div id="btns"></div>
+<button id="stop">■ Stop</button>
+<div id="status">Pick a number to play.</div>
+<script>
+const TRACKS = {
+1:{title:"Money Right (Full Cover) — KEEPER",tempo:74,groove:"boom",phrases:[
+{"bars":2,"bass":"F#1","pad":["F#2","A2","C#3"],"melody":[{"beat":1.0,"note":"C#5","dur":1.0,"vel":0.65},{"beat":2.5,"note":"B4","dur":0.5,"vel":0.55},{"beat":3.0,"note":"A4","dur":0.5,"vel":0.55},{"beat":3.5,"note":"G#4","dur":0.5,"vel":0.50},{"beat":4.0,"note":"F#4","dur":2.0,"vel":0.70},{"beat":5.0,"note":"E4","dur":1.0,"vel":0.60},{"beat":6.5,"note":"F#4","dur":1.5,"vel":0.65}]},
+{"bars":2,"bass":"E1","pad":["E2","G#2","B2"],"melody":[{"beat":1.0,"note":"A4","dur":1.0,"vel":0.60},{"beat":2.0,"note":"G#4","dur":1.0,"vel":0.55},{"beat":3.0,"note":"F#4","dur":1.0,"vel":0.65},{"beat":4.0,"note":"E4","dur":1.0,"vel":0.60},{"beat":5.0,"note":"F#4","dur":3.0,"vel":0.75}]},
+{"bars":2,"bass":"F#1","pad":["F#2","A2","C#3"],"melody":[{"beat":1.0,"note":"F#4","dur":0.5,"vel":0.55},{"beat":1.5,"note":"F#4","dur":0.5,"vel":0.50},{"beat":2.0,"note":"F#4","dur":0.5,"vel":0.55},{"beat":2.5,"note":"A4","dur":0.5,"vel":0.65},{"beat":3.5,"note":"F#4","dur":0.5,"vel":0.60},{"beat":4.0,"note":"E4","dur":1.0,"vel":0.60},{"beat":5.0,"note":"F#4","dur":0.5,"vel":0.55},{"beat":5.5,"note":"F#4","dur":0.5,"vel":0.50},{"beat":6.0,"note":"F#4","dur":0.5,"vel":0.55},{"beat":6.5,"note":"A4","dur":0.5,"vel":0.65},{"beat":7.5,"note":"F#4","dur":0.5,"vel":0.60},{"beat":8.0,"note":"E4","dur":1.0,"vel":0.60}]},
+{"bars":2,"bass":"D1","pad":["D2","F#2","A2","C#3"],"melody":[{"beat":1.0,"note":"F#4","dur":0.5,"vel":0.60},{"beat":1.5,"note":"A4","dur":0.5,"vel":0.65},{"beat":2.0,"note":"B4","dur":0.5,"vel":0.70},{"beat":2.5,"note":"C#5","dur":0.5,"vel":0.75},{"beat":3.5,"note":"B4","dur":0.5,"vel":0.65},{"beat":4.0,"note":"A4","dur":1.0,"vel":0.60},{"beat":6.0,"note":"F#4","dur":2.0,"vel":0.65}]},
+{"bars":2,"bass":"F#1","pad":["F#2","A2","C#3"],"melody":[{"beat":1.0,"note":"F#4","dur":0.5,"vel":0.70},{"beat":1.5,"note":"A4","dur":0.5,"vel":0.75},{"beat":2.0,"note":"B4","dur":0.5,"vel":0.75},{"beat":2.5,"note":"C#5","dur":0.5,"vel":0.85},{"beat":3.0,"note":"C#5","dur":0.5,"vel":0.80},{"beat":3.5,"note":"B4","dur":0.5,"vel":0.75},{"beat":4.0,"note":"A4","dur":0.5,"vel":0.70},{"beat":4.5,"note":"F#4","dur":2.5,"vel":0.85}]},
+{"bars":2,"bass":"E1","pad":["E2","G#2","B2"],"melody":[{"beat":1.0,"note":"E4","dur":0.5,"vel":0.65},{"beat":1.5,"note":"E4","dur":0.5,"vel":0.65},{"beat":2.0,"note":"A4","dur":0.5,"vel":0.75},{"beat":2.5,"note":"A4","dur":0.5,"vel":0.75},{"beat":3.0,"note":"G#4","dur":0.5,"vel":0.70},{"beat":3.5,"note":"F#4","dur":0.5,"vel":0.65},{"beat":4.0,"note":"E4","dur":0.5,"vel":0.65},{"beat":4.5,"note":"F#4","dur":2.5,"vel":0.80}]}]},
+2:{title:"Grass Block Lullaby — KEEPER",tempo:70,groove:"calm",box:true,phrases:[
+{"bars":4,"bass":"C2","pad":["C3","E3","G3","B3"],"melody":[{"beat":3.0,"note":"E5","dur":3.0,"vel":0.42},{"beat":8.0,"note":"G5","dur":4.0,"vel":0.38}]},
+{"bars":4,"bass":"A1","pad":["A2","C3","E3","G3"],"melody":[{"beat":3.0,"note":"A4","dur":3.0,"vel":0.42},{"beat":9.0,"note":"C5","dur":4.0,"vel":0.4}]},
+{"bars":4,"bass":"F1","pad":["F2","A2","C3","E3"],"melody":[{"beat":2.0,"note":"C5","dur":3.0,"vel":0.42},{"beat":7.0,"note":"A4","dur":3.0,"vel":0.4},{"beat":11.0,"note":"F4","dur":4.0,"vel":0.38}]},
+{"bars":4,"bass":"G1","pad":["G2","B2","D3","G3"],"melody":[{"beat":4.0,"note":"D5","dur":3.5,"vel":0.42},{"beat":10.0,"note":"B4","dur":4.0,"vel":0.4}]}]},
+3:{title:"Orchestral Luxury (strings) — KEEPER",tempo:92,groove:"lush",strings:true,phrases:[
+{"bars":2,"bass":"D2","pad":["D3","F3","A3","D4"],"melody":[{"beat":1.0,"note":"A4","dur":1.5,"vel":0.6},{"beat":3.5,"note":"F4","dur":1.0,"vel":0.6},{"beat":5.5,"note":"E4","dur":2.0,"vel":0.62}]},
+{"bars":2,"bass":"Bb1","pad":["Bb2","D3","F3"],"melody":[{"beat":1.0,"note":"F4","dur":1.5,"vel":0.6},{"beat":4.0,"note":"D4","dur":1.5,"vel":0.6},{"beat":6.5,"note":"C4","dur":1.0,"vel":0.58}]},
+{"bars":2,"bass":"F1","pad":["F2","A2","C3","F3"],"melody":[{"beat":1.0,"note":"C5","dur":1.5,"vel":0.62},{"beat":3.5,"note":"A4","dur":1.0,"vel":0.6},{"beat":5.5,"note":"G4","dur":2.0,"vel":0.6}]},
+{"bars":2,"bass":"C2","pad":["C3","E3","G3"],"melody":[{"beat":1.0,"note":"G4","dur":1.0,"vel":0.6},{"beat":3.0,"note":"E4","dur":1.0,"vel":0.6},{"beat":5.0,"note":"D4","dur":3.0,"vel":0.65}]}]},
+4:{title:"Desert Temple — NEW",tempo:69,groove:"calm",box:true,phrases:[
+{"bars":4,"bass":"E2","pad":["E3","G#3","B3"],"melody":[{"beat":3.0,"note":"B4","dur":3.0,"vel":0.44},{"beat":8.0,"note":"G#4","dur":3.5,"vel":0.42},{"beat":12.0,"note":"E4","dur":3.5,"vel":0.4}]},
+{"bars":4,"bass":"C#2","pad":["C#3","E3","G#3"],"melody":[{"beat":2.0,"note":"G#4","dur":3.0,"vel":0.44},{"beat":7.0,"note":"E4","dur":3.0,"vel":0.42},{"beat":11.0,"note":"C#4","dur":4.0,"vel":0.4}]},
+{"bars":4,"bass":"A1","pad":["A2","C#3","E3"],"melody":[{"beat":2.0,"note":"C#5","dur":3.0,"vel":0.43},{"beat":7.0,"note":"A4","dur":3.0,"vel":0.42},{"beat":11.0,"note":"E4","dur":4.0,"vel":0.4}]},
+{"bars":4,"bass":"B1","pad":["B2","D#3","F#3"],"melody":[{"beat":4.0,"note":"D#5","dur":3.0,"vel":0.44},{"beat":8.0,"note":"C#5","dur":3.0,"vel":0.43},{"beat":12.0,"note":"B4","dur":3.5,"vel":0.42}]}]},
+5:{title:"Honey Block Hymn — KEEPER",tempo:71,groove:"calm",box:true,choir:true,phrases:[
+{"bars":4,"bass":"Bb1","pad":["Bb2","D3","F3","Bb3"],"melody":[{"beat":2.0,"note":"D5","dur":3.0,"vel":0.44},{"beat":7.0,"note":"F5","dur":3.0,"vel":0.42},{"beat":12.0,"note":"D5","dur":3.5,"vel":0.4}]},
+{"bars":4,"bass":"G1","pad":["G2","Bb2","D3"],"melody":[{"beat":3.0,"note":"Bb4","dur":3.0,"vel":0.44},{"beat":8.0,"note":"D5","dur":3.0,"vel":0.43},{"beat":12.0,"note":"G4","dur":3.5,"vel":0.4}]},
+{"bars":4,"bass":"Eb2","pad":["Eb3","G3","Bb3"],"melody":[{"beat":2.0,"note":"Bb4","dur":3.0,"vel":0.44},{"beat":6.0,"note":"G4","dur":3.0,"vel":0.42},{"beat":11.0,"note":"Eb4","dur":4.0,"vel":0.4}]},
+{"bars":4,"bass":"F1","pad":["F2","A2","C3","F3"],"melody":[{"beat":4.0,"note":"A4","dur":3.0,"vel":0.44},{"beat":8.0,"note":"C5","dur":3.0,"vel":0.43},{"beat":12.0,"note":"F4","dur":3.5,"vel":0.42}]}]},
+6:{title:"Nether Soul — KEEPER",tempo:73,groove:"soulcalm",box:true,phrases:[
+{"bars":4,"bass":"G1","pad":["G2","Bb2","D3"],"melody":[{"beat":1.5,"note":"D5","dur":2.5,"vel":0.45},{"beat":5.0,"note":"Bb4","dur":2.5,"vel":0.43},{"beat":9.0,"note":"G4","dur":2.5,"vel":0.43},{"beat":12.0,"note":"F4","dur":3.0,"vel":0.4}]},
+{"bars":4,"bass":"Eb2","pad":["Eb3","G3","Bb3"],"melody":[{"beat":2.0,"note":"Bb4","dur":2.5,"vel":0.44},{"beat":6.0,"note":"G4","dur":2.5,"vel":0.43},{"beat":10.0,"note":"Eb4","dur":4.0,"vel":0.4}]},
+{"bars":4,"bass":"Bb1","pad":["Bb2","D3","F3"],"melody":[{"beat":1.5,"note":"D5","dur":2.5,"vel":0.44},{"beat":5.0,"note":"C5","dur":2.5,"vel":0.43},{"beat":9.0,"note":"Bb4","dur":2.5,"vel":0.43},{"beat":12.0,"note":"A4","dur":3.0,"vel":0.4}]},
+{"bars":4,"bass":"F1","pad":["F2","A2","C3"],"melody":[{"beat":3.0,"note":"A4","dur":2.5,"vel":0.44},{"beat":7.0,"note":"C5","dur":2.5,"vel":0.43},{"beat":11.0,"note":"F4","dur":4.0,"vel":0.4}]}]}
+};
+class Engine {
+  constructor(){this.ctx=new (window.AudioContext||window.webkitAudioContext)();this.out=this.ctx.createGain();this.out.gain.value=0.9;this.out.connect(this.ctx.destination);this.n=1;this.i=0;this.t=null;this.on=false;}
+  f(n){const N=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];const m=String(n).match(/^([A-G][#b]?)([0-8])$/);if(!m)return 440;let s=m[1],o=+m[2];if(s.includes('b'))s=N[(N.indexOf(s[0])-1+12)%12];return 440*Math.pow(2,((N.indexOf(s)-9)+(o-4)*12)/12);}
+  tone(f,t,d,v,c=1500,ty='triangle',atk=0.025){const o=this.ctx.createOscillator(),g=this.ctx.createGain(),fl=this.ctx.createBiquadFilter();o.type=ty;o.frequency.value=f;fl.type='lowpass';fl.frequency.value=c;g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(Math.max(0.0011,v*0.38),t+atk);g.gain.exponentialRampToValueAtTime(0.0001,t+d*0.95);o.connect(fl);fl.connect(g);g.connect(this.out);o.start(t);o.stop(t+d+0.15);}
+  musicbox(f,t,d,v){this.tone(f,t,d*1.4,v*0.8,2200,'sine',0.01);}
+  strings(fs,t,d){fs.forEach(f=>{this.tone(f,t,d,0.16,1200,'sawtooth',0.5);this.tone(f/2,t,d,0.10,800,'triangle',0.4);});}
+  choir(fs,t,d){fs.forEach(f=>{[0,4,7].forEach(iv=>{const ff=f*Math.pow(2,iv/12);this.tone(ff,t,d,0.08,1800,'triangle',0.4);});});}
+  kick(t,v=0.9){const o=this.ctx.createOscillator(),g=this.ctx.createGain();o.type='sine';o.frequency.setValueAtTime(120,t);o.frequency.exponentialRampToValueAtTime(40,t+0.22);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(0.0001,t+0.26);o.connect(g);g.connect(this.out);o.start(t);o.stop(t+0.04);}
+  snare(t,v=0.5){const o=this.ctx.createOscillator(),g=this.ctx.createGain();o.type='triangle';o.frequency.value=190;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(0.0001,t+0.16);o.connect(g);g.connect(this.out);o.start(t);o.stop(t+0.2);}
+  hat(t){const o=this.ctx.createOscillator(),g=this.ctx.createGain(),f=this.ctx.createBiquadFilter();o.type='triangle';o.frequency.value=6000;f.type='lowpass';f.frequency.value=4000;g.gain.setValueAtTime(0.025,t);g.gain.exponentialRampToValueAtTime(0.0001,t+0.025);o.connect(f);f.connect(g);g.connect(this.out);o.start(t);o.stop(t+0.04);}
+  drums(groove,now,bs,bars){
+    if(groove==="lush"){[1,5].forEach(b=>this.kick(now+(b-1)*bs,0.7));[2,4,6,8].forEach(b=>this.snare(now+(b-1)*bs,0.35));for(let b=1;b<=8;b+=2)this.hat(now+(b-1)*bs);}
+    else if(groove==="calm"){[1,9].forEach(b=>this.kick(now+(b-1)*bs,0.5));[5,13].forEach(b=>this.snare(now+(b-1)*bs,0.22));[1,5,9,13].forEach(b=>this.hat(now+(b-1)*bs));}
+    else if(groove==="soulcalm"){[1,10.6].forEach(b=>this.kick(now+(b-1)*bs,0.55));[5,13].forEach(b=>this.snare(now+(b-1)*bs,0.28));for(let b=1;b<=16;b+=4)this.hat(now+(b-1)*bs);}
+    else{[1,4,6.5].forEach(b=>this.kick(now+(b-1)*bs));[2,4,6,8].forEach(b=>this.snare(now+(b-1)*bs));for(let b=1;b<=8;b+=1)this.hat(now+(b-1)*bs);}
+  }
+  tick(){if(!this.on)return;const T=TRACKS[this.n],bs=60/T.tempo,ph=T.phrases[this.i],now=this.ctx.currentTime+0.06;
+    this.tone(this.f(ph.bass),now,ph.bars*4*bs*0.9,0.45,350,'sine',0.15);
+    if(T.strings) this.strings(ph.pad.map(n=>this.f(n)),now+0.08,ph.bars*4*bs*0.85);
+    else if(T.choir) this.choir(ph.pad.map(n=>this.f(n)),now+0.08,ph.bars*4*bs*0.85);
+    else ph.pad.forEach(n=>this.tone(this.f(n),now+0.08,ph.bars*4*bs*0.85,0.18,700,'sine',0.2));
+    if(T.box) ph.melody.forEach(m=>this.musicbox(this.f(m.note),now+(m.beat-1)*bs,(m.dur||1)*bs,m.vel||0.4));
+    else ph.melody.forEach(m=>this.tone(this.f(m.note),now+(m.beat-1)*bs,(m.dur||1)*bs,m.vel||0.5,1500,'triangle',0.025));
+    this.drums(T.groove||"boom",now,bs,ph.bars);
+    document.getElementById('status').textContent='▶ #'+this.n+' '+T.title+' — phrase '+(this.i+1)+'/'+T.phrases.length;
+    document.querySelectorAll('#btns button').forEach(x=>x.classList.toggle('active',+x.dataset.n===this.n));
+    this.i=(this.i+1)%T.phrases.length;this.t=setTimeout(()=>this.tick(),ph.bars*4*bs*1000);}
+}
+let e=null;const btns=document.getElementById('btns');
+Object.keys(TRACKS).forEach(n=>{const b=document.createElement('button');b.textContent='#'+n+' '+TRACKS[n].title;b.dataset.n=n;b.onclick=async()=>{if(e){e.on=false;clearTimeout(e.t);}e=new Engine();if(e.ctx.state==='suspended')await e.ctx.resume();e.n=+n;e.i=0;e.on=true;e.tick();};btns.appendChild(b);});
+document.getElementById('stop').onclick=()=>{if(e){e.on=false;clearTimeout(e.t);}document.getElementById('status').textContent='Stopped. Pick a number.';};
+</script>
+</body>
+</html>

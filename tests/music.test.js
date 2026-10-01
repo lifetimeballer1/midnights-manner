@@ -174,11 +174,11 @@ test('sound effects share a master output that the sound setting can mute',()=>{
  }
 });
 
-test('multi-theme music resolves the expanded original soundtrack',async()=>{
- const {engine,themes}=await loadMusic();
- assert.ok(themes.length>=12,'twelve theme songs are available');
- const ids=themes.map(t=>t.id);
- assert.ok(ids.includes('ember')&&ids.includes('grove')&&ids.includes('haze')&&ids.includes('lattice'),'ember, grove, haze, and lattice themes present');
+test('multi-theme music resolves the battle soundtrack',async()=>{
+  const {engine,themes}=await loadMusic();
+  assert.ok(themes.length>=5,'five battle theme songs are available');
+  const ids=themes.map(t=>t.id);
+  assert.ok(ids.includes('iron_gate')&&ids.includes('midnight_walls')&&ids.includes('watchfire')&&ids.includes('aftermath')&&ids.includes('ashen-choir'),'battle, tension, aftermath and celebration themes present');
   for(const theme of themes){
    const phrase=engine.createPhrase(theme,0,false);
    assert.ok(phrase.notes.length>0&&phrase.duration>0,`theme ${theme.id} generates a playable phrase`);
@@ -199,7 +199,7 @@ test('MusicPlayer picks a random theme on start and can re-roll',async()=>{
  delete globalThis.window;
  try{
   const player=new engine.MusicPlayer(data);
-  assert.ok(player.themes.length>=12,'player loads the expanded theme pool');
+   assert.ok(player.themes.length>=5,'player loads the battle theme pool');
   player.start({calm:true});
   assert.ok(player.score&&player.score.id,'start selects a score');
   const first=player.themeIndex;
@@ -219,9 +219,9 @@ test('music mood selection stays inside matching theme groups',async()=>{
   assert.ok(player.score.moods.includes('night'),'night mood selects a night-capable theme');
   player.setMood('danger');player.pickTheme();
   assert.ok(player.score.moods.includes('danger'),'danger mood selects a danger-capable theme');
-  player.setMood('weather');player.pickTheme();
-  assert.ok(player.score.moods.includes('weather'),'weather mood selects a weather-capable theme');
-  player.stop();
+   player.setMood('weather');player.pickTheme();
+   assert.ok(player.score&&player.score.id,'weather mood falls back to a battle theme (keepers own the calm weather)');
+   player.stop();
  }finally{if(previousWindow!==undefined)globalThis.window=previousWindow;}
 });
 

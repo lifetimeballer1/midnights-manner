@@ -1,180 +1,362 @@
 {
-  "defaultTrack": "peace_day",
+  "defaultTrack": "money_right",
   "tracks": {
-    "peace_day": {
-      "title": "Sunlight on the Timber",
-      "tempo": 48,
+    "money_right": {
+      "title": "Money Right (Full Cover)",
+      "tempo": 74,
       "style": "felt-piano",
-      "filterCutoff": 1300,
-      "restInterval": [4, 8],
+      "filterCutoff": 1400,
+      "restInterval": [0, 0],
+      "groove": "boom",
+      "moods": ["day"],
+      "phrases": [
+        {
+          "bars": 2,
+          "bass": "F#1",
+          "pad": ["F#2", "A2", "C#3"],
+          "melody": [
+            { "beat": 1.0, "note": "C#5", "dur": 1.0, "vel": 0.65 },
+            { "beat": 2.5, "note": "B4", "dur": 0.5, "vel": 0.55 },
+            { "beat": 3.0, "note": "A4", "dur": 0.5, "vel": 0.55 },
+            { "beat": 3.5, "note": "G#4", "dur": 0.5, "vel": 0.50 },
+            { "beat": 4.0, "note": "F#4", "dur": 2.0, "vel": 0.70 },
+            { "beat": 5.0, "note": "E4", "dur": 1.0, "vel": 0.60 },
+            { "beat": 6.5, "note": "F#4", "dur": 1.5, "vel": 0.65 }
+          ]
+        },
+        {
+          "bars": 2,
+          "bass": "E1",
+          "pad": ["E2", "G#2", "B2"],
+          "melody": [
+            { "beat": 1.0, "note": "A4", "dur": 1.0, "vel": 0.60 },
+            { "beat": 2.0, "note": "G#4", "dur": 1.0, "vel": 0.55 },
+            { "beat": 3.0, "note": "F#4", "dur": 1.0, "vel": 0.65 },
+            { "beat": 4.0, "note": "E4", "dur": 1.0, "vel": 0.60 },
+            { "beat": 5.0, "note": "F#4", "dur": 3.0, "vel": 0.75 }
+          ]
+        },
+        {
+          "bars": 2,
+          "bass": "F#1",
+          "pad": ["F#2", "A2", "C#3"],
+          "melody": [
+            { "beat": 1.0, "note": "F#4", "dur": 0.5, "vel": 0.55 },
+            { "beat": 1.5, "note": "F#4", "dur": 0.5, "vel": 0.50 },
+            { "beat": 2.0, "note": "F#4", "dur": 0.5, "vel": 0.55 },
+            { "beat": 2.5, "note": "A4", "dur": 0.5, "vel": 0.65 },
+            { "beat": 3.5, "note": "F#4", "dur": 0.5, "vel": 0.60 },
+            { "beat": 4.0, "note": "E4", "dur": 1.0, "vel": 0.60 },
+            { "beat": 5.0, "note": "F#4", "dur": 0.5, "vel": 0.55 },
+            { "beat": 5.5, "note": "F#4", "dur": 0.5, "vel": 0.50 },
+            { "beat": 6.0, "note": "F#4", "dur": 0.5, "vel": 0.55 },
+            { "beat": 6.5, "note": "A4", "dur": 0.5, "vel": 0.65 },
+            { "beat": 7.5, "note": "F#4", "dur": 0.5, "vel": 0.60 },
+            { "beat": 8.0, "note": "E4", "dur": 1.0, "vel": 0.60 }
+          ]
+        },
+        {
+          "bars": 2,
+          "bass": "D1",
+          "pad": ["D2", "F#2", "A2", "C#3"],
+          "melody": [
+            { "beat": 1.0, "note": "F#4", "dur": 0.5, "vel": 0.60 },
+            { "beat": 1.5, "note": "A4", "dur": 0.5, "vel": 0.65 },
+            { "beat": 2.0, "note": "B4", "dur": 0.5, "vel": 0.70 },
+            { "beat": 2.5, "note": "C#5", "dur": 0.5, "vel": 0.75 },
+            { "beat": 3.5, "note": "B4", "dur": 0.5, "vel": 0.65 },
+            { "beat": 4.0, "note": "A4", "dur": 1.0, "vel": 0.60 },
+            { "beat": 6.0, "note": "F#4", "dur": 2.0, "vel": 0.65 }
+          ]
+        },
+        {
+          "bars": 2,
+          "bass": "F#1",
+          "pad": ["F#2", "A2", "C#3"],
+          "melody": [
+            { "beat": 1.0, "note": "F#4", "dur": 0.5, "vel": 0.70 },
+            { "beat": 1.5, "note": "A4", "dur": 0.5, "vel": 0.75 },
+            { "beat": 2.0, "note": "B4", "dur": 0.5, "vel": 0.75 },
+            { "beat": 2.5, "note": "C#5", "dur": 0.5, "vel": 0.85 },
+            { "beat": 3.0, "note": "C#5", "dur": 0.5, "vel": 0.80 },
+            { "beat": 3.5, "note": "B4", "dur": 0.5, "vel": 0.75 },
+            { "beat": 4.0, "note": "A4", "dur": 0.5, "vel": 0.70 },
+            { "beat": 4.5, "note": "F#4", "dur": 2.5, "vel": 0.85 }
+          ]
+        },
+        {
+          "bars": 2,
+          "bass": "E1",
+          "pad": ["E2", "G#2", "B2"],
+          "melody": [
+            { "beat": 1.0, "note": "E4", "dur": 0.5, "vel": 0.65 },
+            { "beat": 1.5, "note": "E4", "dur": 0.5, "vel": 0.65 },
+            { "beat": 2.0, "note": "A4", "dur": 0.5, "vel": 0.75 },
+            { "beat": 2.5, "note": "A4", "dur": 0.5, "vel": 0.75 },
+            { "beat": 3.0, "note": "G#4", "dur": 0.5, "vel": 0.70 },
+            { "beat": 3.5, "note": "F#4", "dur": 0.5, "vel": 0.65 },
+            { "beat": 4.0, "note": "E4", "dur": 0.5, "vel": 0.65 },
+            { "beat": 4.5, "note": "F#4", "dur": 2.5, "vel": 0.80 }
+          ]
+        }
+      ]
+    },
+    "grassblock": {
+      "title": "Grass Block Lullaby",
+      "tempo": 70,
+      "style": "felt-piano",
+      "filterCutoff": 1200,
+      "restInterval": [0, 0],
+      "groove": "calm",
+      "box": true,
+      "moods": ["night", "calm"],
       "phrases": [
         {
           "bars": 4,
           "bass": "C2",
-          "pad": ["C3", "G3", "D4", "E4"],
+          "pad": ["C3", "E3", "G3", "B3"],
           "melody": [
-            { "beat": 2.0, "note": "G4", "dur": 2.5, "vel": 0.55 },
-            { "beat": 4.0, "note": "B4", "dur": 1.5, "vel": 0.45 },
-            { "beat": 5.5, "note": "D5", "dur": 3.0, "vel": 0.65 },
-            { "beat": 8.0, "note": "E5", "dur": 4.0, "vel": 0.50 }
+            { "beat": 3.0, "note": "E5", "dur": 3.0, "vel": 0.42 },
+            { "beat": 8.0, "note": "G5", "dur": 4.0, "vel": 0.38 }
           ]
         },
-        {
-          "bars": 4,
-          "bass": "D2",
-          "pad": ["D3", "A3", "F#4"],
-          "melody": [
-            { "beat": 1.5, "note": "F#5", "dur": 2.5, "vel": 0.55 },
-            { "beat": 3.5, "note": "E5", "dur": 2.0, "vel": 0.45 },
-            { "beat": 5.0, "note": "B4", "dur": 3.5, "vel": 0.60 },
-            { "beat": 8.5, "note": "A4", "dur": 4.0, "vel": 0.40 }
-          ]
-        },
-        {
-          "bars": 4,
-          "bass": "G2",
-          "pad": ["G3", "D4", "B4"],
-          "melody": [
-            { "beat": 1.0, "note": "D5", "dur": 2.5, "vel": 0.60 },
-            { "beat": 3.0, "note": "B4", "dur": 2.0, "vel": 0.50 },
-            { "beat": 5.5, "note": "A4", "dur": 3.0, "vel": 0.45 },
-            { "beat": 9.0, "note": "G4", "dur": 6.0, "vel": 0.70 }
-          ]
-        }
-      ]
-    },
-    "money_right": {
-      "title": "Money Right (Frontier Tribute)",
-      "tempo": 50,
-      "style": "felt-piano",
-      "filterCutoff": 1250,
-      "restInterval": [5, 9],
-      "phrases": [
-        {
-          "bars": 4,
-          "bass": "B1",
-          "pad": ["B2", "F#3", "D4"],
-          "melody": [
-            { "beat": 1.5, "note": "F#4", "dur": 0.8, "vel": 0.65 },
-            { "beat": 2.2, "note": "F#4", "dur": 0.8, "vel": 0.65 },
-            { "beat": 3.0, "note": "F#4", "dur": 1.2, "vel": 0.70 },
-            { "beat": 4.5, "note": "E4", "dur": 0.8, "vel": 0.60 },
-            { "beat": 5.2, "note": "D4", "dur": 0.8, "vel": 0.60 },
-            { "beat": 6.0, "note": "B3", "dur": 2.5, "vel": 0.75 }
-          ]
-        },
-        {
-          "bars": 4,
-          "bass": "G1",
-          "pad": ["G2", "D3", "B3"],
-          "melody": [
-            { "beat": 2.0, "note": "D4", "dur": 1.5, "vel": 0.60 },
-            { "beat": 3.5, "note": "E4", "dur": 1.2, "vel": 0.60 },
-            { "beat": 5.0, "note": "F#4", "dur": 2.5, "vel": 0.70 },
-            { "beat": 7.5, "note": "B4", "dur": 3.0, "vel": 0.65 }
-          ]
-        },
-        {
-          "bars": 4,
-          "bass": "E2",
-          "pad": ["E3", "B3", "G4"],
-          "melody": [
-            { "beat": 1.5, "note": "F#4", "dur": 0.8, "vel": 0.65 },
-            { "beat": 2.2, "note": "F#4", "dur": 0.8, "vel": 0.65 },
-            { "beat": 3.0, "note": "A4", "dur": 1.5, "vel": 0.75 },
-            { "beat": 4.8, "note": "F#4", "dur": 1.0, "vel": 0.65 },
-            { "beat": 6.0, "note": "E4", "dur": 1.2, "vel": 0.60 },
-            { "beat": 7.5, "note": "D4", "dur": 2.5, "vel": 0.70 }
-          ]
-        },
-        {
-          "bars": 4,
-          "bass": "F#2",
-          "pad": ["F#3", "C#4", "A#3"],
-          "melody": [
-            { "beat": 1.0, "note": "C#4", "dur": 1.5, "vel": 0.55 },
-            { "beat": 3.0, "note": "D4", "dur": 1.5, "vel": 0.60 },
-            { "beat": 5.0, "note": "B3", "dur": 4.5, "vel": 0.75 }
-          ]
-        }
-      ]
-    },
-    "exploration_night": {
-      "title": "Mist on the Frontier",
-      "tempo": 38,
-      "style": "ambient-drone",
-      "filterCutoff": 850,
-      "restInterval": [6, 12],
-      "phrases": [
         {
           "bars": 4,
           "bass": "A1",
-          "pad": ["A2", "E3", "B3", "C4"],
+          "pad": ["A2", "C3", "E3", "G3"],
           "melody": [
-            { "beat": 3.0, "note": "E4", "dur": 4.0, "vel": 0.40 },
-            { "beat": 7.0, "note": "B4", "dur": 3.5, "vel": 0.35 }
+            { "beat": 3.0, "note": "A4", "dur": 3.0, "vel": 0.42 },
+            { "beat": 9.0, "note": "C5", "dur": 4.0, "vel": 0.40 }
           ]
         },
         {
           "bars": 4,
           "bass": "F1",
-          "pad": ["F2", "C3", "G3", "A3"],
+          "pad": ["F2", "A2", "C3", "E3"],
           "melody": [
-            { "beat": 2.0, "note": "C5", "dur": 5.0, "vel": 0.45 },
-            { "beat": 6.5, "note": "G4", "dur": 4.0, "vel": 0.35 }
+            { "beat": 2.0, "note": "C5", "dur": 3.0, "vel": 0.42 },
+            { "beat": 7.0, "note": "A4", "dur": 3.0, "vel": 0.40 },
+            { "beat": 11.0, "note": "F4", "dur": 4.0, "vel": 0.38 }
+          ]
+        },
+        {
+          "bars": 4,
+          "bass": "G1",
+          "pad": ["G2", "B2", "D3", "G3"],
+          "melody": [
+            { "beat": 4.0, "note": "D5", "dur": 3.5, "vel": 0.42 },
+            { "beat": 10.0, "note": "B4", "dur": 4.0, "vel": 0.40 }
           ]
         }
       ]
     },
-    "raid_siege": {
-      "title": "Horns Across the Ridge",
-      "tempo": 76,
-      "style": "urgent-ostinato",
-      "filterCutoff": 2200,
-      "restInterval": [0, 1],
+    "orchestral": {
+      "title": "Orchestral Luxury",
+      "tempo": 92,
+      "style": "felt-piano",
+      "filterCutoff": 1300,
+      "restInterval": [0, 0],
+      "groove": "lush",
+      "strings": true,
+      "moods": ["prosperous", "day"],
       "phrases": [
         {
           "bars": 2,
           "bass": "D2",
-          "pad": ["D3", "F3", "A3", "C#4"],
+          "pad": ["D3", "F3", "A3", "D4"],
           "melody": [
-            { "beat": 1.0, "note": "D4", "dur": 0.5, "vel": 0.75 },
-            { "beat": 1.5, "note": "D4", "dur": 0.5, "vel": 0.65 },
-            { "beat": 2.0, "note": "F4", "dur": 0.8, "vel": 0.80 },
-            { "beat": 2.5, "note": "E4", "dur": 0.5, "vel": 0.70 },
-            { "beat": 3.0, "note": "C#4", "dur": 1.2, "vel": 0.85 },
-            { "beat": 4.0, "note": "D4", "dur": 0.6, "vel": 0.75 }
+            { "beat": 1.0, "note": "A4", "dur": 1.5, "vel": 0.60 },
+            { "beat": 3.5, "note": "F4", "dur": 1.0, "vel": 0.60 },
+            { "beat": 5.5, "note": "E4", "dur": 2.0, "vel": 0.62 }
           ]
         },
         {
           "bars": 2,
           "bass": "Bb1",
-          "pad": ["Bb2", "D3", "F3", "A3"],
+          "pad": ["Bb2", "D3", "F3"],
           "melody": [
-            { "beat": 1.0, "note": "Bb3", "dur": 0.5, "vel": 0.80 },
-            { "beat": 1.5, "note": "D4", "dur": 0.5, "vel": 0.70 },
-            { "beat": 2.0, "note": "C4", "dur": 0.8, "vel": 0.75 },
-            { "beat": 3.0, "note": "A3", "dur": 1.5, "vel": 0.85 }
+            { "beat": 1.0, "note": "F4", "dur": 1.5, "vel": 0.60 },
+            { "beat": 4.0, "note": "D4", "dur": 1.5, "vel": 0.60 },
+            { "beat": 6.5, "note": "C4", "dur": 1.0, "vel": 0.58 }
+          ]
+        },
+        {
+          "bars": 2,
+          "bass": "F1",
+          "pad": ["F2", "A2", "C3", "F3"],
+          "melody": [
+            { "beat": 1.0, "note": "C5", "dur": 1.5, "vel": 0.62 },
+            { "beat": 3.5, "note": "A4", "dur": 1.0, "vel": 0.60 },
+            { "beat": 5.5, "note": "G4", "dur": 2.0, "vel": 0.60 }
+          ]
+        },
+        {
+          "bars": 2,
+          "bass": "C2",
+          "pad": ["C3", "E3", "G3"],
+          "melody": [
+            { "beat": 1.0, "note": "G4", "dur": 1.0, "vel": 0.60 },
+            { "beat": 3.0, "note": "E4", "dur": 1.0, "vel": 0.60 },
+            { "beat": 5.0, "note": "D4", "dur": 3.0, "vel": 0.65 }
           ]
         }
       ]
     },
-    "victory_dawn": {
-      "title": "First Light Over the Walls",
-      "tempo": 56,
-      "style": "lydian-bells",
-      "filterCutoff": 1600,
-      "restInterval": [2, 4],
+    "desert": {
+      "title": "Desert Temple",
+      "tempo": 69,
+      "style": "felt-piano",
+      "filterCutoff": 1200,
+      "restInterval": [0, 0],
+      "groove": "calm",
+      "box": true,
+      "moods": ["day", "dawn"],
       "phrases": [
         {
           "bars": 4,
-          "bass": "F2",
-          "pad": ["F3", "C4", "A4", "B4"],
+          "bass": "E2",
+          "pad": ["E3", "G#3", "B3"],
           "melody": [
-            { "beat": 1.5, "note": "C5", "dur": 2.0, "vel": 0.65 },
-            { "beat": 3.0, "note": "E5", "dur": 2.0, "vel": 0.60 },
-            { "beat": 4.5, "note": "G5", "dur": 3.5, "vel": 0.75 },
-            { "beat": 7.0, "note": "F5", "dur": 4.0, "vel": 0.55 }
+            { "beat": 3.0, "note": "B4", "dur": 3.0, "vel": 0.44 },
+            { "beat": 8.0, "note": "G#4", "dur": 3.5, "vel": 0.42 },
+            { "beat": 12.0, "note": "E4", "dur": 3.5, "vel": 0.40 }
+          ]
+        },
+        {
+          "bars": 4,
+          "bass": "C#2",
+          "pad": ["C#3", "E3", "G#3"],
+          "melody": [
+            { "beat": 2.0, "note": "G#4", "dur": 3.0, "vel": 0.44 },
+            { "beat": 7.0, "note": "E4", "dur": 3.0, "vel": 0.42 },
+            { "beat": 11.0, "note": "C#4", "dur": 4.0, "vel": 0.40 }
+          ]
+        },
+        {
+          "bars": 4,
+          "bass": "A1",
+          "pad": ["A2", "C#3", "E3"],
+          "melody": [
+            { "beat": 2.0, "note": "C#5", "dur": 3.0, "vel": 0.43 },
+            { "beat": 7.0, "note": "A4", "dur": 3.0, "vel": 0.42 },
+            { "beat": 11.0, "note": "E4", "dur": 4.0, "vel": 0.40 }
+          ]
+        },
+        {
+          "bars": 4,
+          "bass": "B1",
+          "pad": ["B2", "D#3", "F#3"],
+          "melody": [
+            { "beat": 4.0, "note": "D#5", "dur": 3.0, "vel": 0.44 },
+            { "beat": 8.0, "note": "C#5", "dur": 3.0, "vel": 0.43 },
+            { "beat": 12.0, "note": "B4", "dur": 3.5, "vel": 0.42 }
+          ]
+        }
+      ]
+    },
+    "honeyblock": {
+      "title": "Honey Block Hymn",
+      "tempo": 71,
+      "style": "felt-piano",
+      "filterCutoff": 1250,
+      "restInterval": [0, 0],
+      "groove": "calm",
+      "box": true,
+      "choir": true,
+      "moods": ["prosperous", "dawn", "day"],
+      "phrases": [
+        {
+          "bars": 4,
+          "bass": "Bb1",
+          "pad": ["Bb2", "D3", "F3", "Bb3"],
+          "melody": [
+            { "beat": 2.0, "note": "D5", "dur": 3.0, "vel": 0.44 },
+            { "beat": 7.0, "note": "F5", "dur": 3.0, "vel": 0.42 },
+            { "beat": 12.0, "note": "D5", "dur": 3.5, "vel": 0.40 }
+          ]
+        },
+        {
+          "bars": 4,
+          "bass": "G1",
+          "pad": ["G2", "Bb2", "D3"],
+          "melody": [
+            { "beat": 3.0, "note": "Bb4", "dur": 3.0, "vel": 0.44 },
+            { "beat": 8.0, "note": "D5", "dur": 3.0, "vel": 0.43 },
+            { "beat": 12.0, "note": "G4", "dur": 3.5, "vel": 0.40 }
+          ]
+        },
+        {
+          "bars": 4,
+          "bass": "Eb2",
+          "pad": ["Eb3", "G3", "Bb3"],
+          "melody": [
+            { "beat": 2.0, "note": "Bb4", "dur": 3.0, "vel": 0.44 },
+            { "beat": 6.0, "note": "G4", "dur": 3.0, "vel": 0.42 },
+            { "beat": 11.0, "note": "Eb4", "dur": 4.0, "vel": 0.40 }
+          ]
+        },
+        {
+          "bars": 4,
+          "bass": "F1",
+          "pad": ["F2", "A2", "C3", "F3"],
+          "melody": [
+            { "beat": 4.0, "note": "A4", "dur": 3.0, "vel": 0.44 },
+            { "beat": 8.0, "note": "C5", "dur": 3.0, "vel": 0.43 },
+            { "beat": 12.0, "note": "F4", "dur": 3.5, "vel": 0.42 }
+          ]
+        }
+      ]
+    },
+    "nether": {
+      "title": "Nether Soul",
+      "tempo": 73,
+      "style": "felt-piano",
+      "filterCutoff": 1250,
+      "restInterval": [0, 0],
+      "groove": "soulcalm",
+      "box": true,
+      "moods": ["night", "weather"],
+      "phrases": [
+        {
+          "bars": 4,
+          "bass": "G1",
+          "pad": ["G2", "Bb2", "D3"],
+          "melody": [
+            { "beat": 1.5, "note": "D5", "dur": 2.5, "vel": 0.45 },
+            { "beat": 5.0, "note": "Bb4", "dur": 2.5, "vel": 0.43 },
+            { "beat": 9.0, "note": "G4", "dur": 2.5, "vel": 0.43 },
+            { "beat": 12.0, "note": "F4", "dur": 3.0, "vel": 0.40 }
+          ]
+        },
+        {
+          "bars": 4,
+          "bass": "Eb2",
+          "pad": ["Eb3", "G3", "Bb3"],
+          "melody": [
+            { "beat": 2.0, "note": "Bb4", "dur": 2.5, "vel": 0.44 },
+            { "beat": 6.0, "note": "G4", "dur": 2.5, "vel": 0.43 },
+            { "beat": 10.0, "note": "Eb4", "dur": 4.0, "vel": 0.40 }
+          ]
+        },
+        {
+          "bars": 4,
+          "bass": "Bb1",
+          "pad": ["Bb2", "D3", "F3"],
+          "melody": [
+            { "beat": 1.5, "note": "D5", "dur": 2.5, "vel": 0.44 },
+            { "beat": 5.0, "note": "C5", "dur": 2.5, "vel": 0.43 },
+            { "beat": 9.0, "note": "Bb4", "dur": 2.5, "vel": 0.43 },
+            { "beat": 12.0, "note": "A4", "dur": 3.0, "vel": 0.40 }
+          ]
+        },
+        {
+          "bars": 4,
+          "bass": "F1",
+          "pad": ["F2", "A2", "C3"],
+          "melody": [
+            { "beat": 3.0, "note": "A4", "dur": 2.5, "vel": 0.44 },
+            { "beat": 7.0, "note": "C5", "dur": 2.5, "vel": 0.43 },
+            { "beat": 11.0, "note": "F4", "dur": 4.0, "vel": 0.40 }
           ]
         }
       ]
