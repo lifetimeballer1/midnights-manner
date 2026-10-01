@@ -325,7 +325,7 @@ try{
  assert.ok(await evaluate('document.querySelector("[data-steward-details=budget]").open'),'budget details remain open across refresh');
  assert.ok(await evaluate('document.documentElement.scrollWidth<=innerWidth+1'),'steward controls fit the phone viewport');
  await fire('[data-steward-show="automation-forge"]');
- await waitFor('!document.querySelector("#inspector").hidden&&document.querySelector("#inspector").textContent.includes("Forge")');
+ await waitFor('!document.querySelector("#inspector").hidden&&document.querySelector("#inspector").textContent.includes("Emberforge")');
  const stewardCamera=await evaluate('window.midnightsManner.camera()');
  assert.ok(Number.isFinite(stewardCamera.x)&&Number.isFinite(stewardCamera.y),'Show goal centers the map');
  await fire('#inspector [data-action="close"]');await ensureResources();await fire('[data-resource="wood"]');
