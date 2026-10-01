@@ -2,7 +2,7 @@ import {towerCrewBonus, raidDamageMult} from './villagers.js';
 import {enemyRole,defenseTarget,retreat,enemyBuildingTarget} from './tactics.js';
 import {distance,center,stats,unlockedAbilities,auras,gearArmor,proximityArmor,reviveFraction,siegeBonus} from '../model.js';
 import {move,blocked} from './pathfinding.js';
-import {enemyDamageMult,enemySpeedMult} from './daynight.js';
+import {enemyDamageMult,enemySpeedMult,fogRangedMult,nightWatchMult} from './daynight.js';
 import {isWall} from './walls.js';
 import {bossTick,bossAuraMult,isSiegeRole,eliteLootMult,renownDamageMult,renownLootMult,paragonDamageMult,markElites} from './endgame.js';
 import {sfx, scheduleSound} from './audio.js';
@@ -205,15 +205,15 @@ export function tickCombat(world,data,dt) {
   }
   // Phase 7 temperament: Brave holds (+10%) and Cowardly falters (−10%) while raiders walk. No raid, no modifier.
   const grit=raidDamageMult(unit,raidActive);
-   if(order&&order.kind==='hold'){const e2=nearestFoe(world.enemies,unit);if(e2&&distance(unit,e2)<=s.range&&unit.attackTimer<=0){const dealt=s.damage*(1+aura.damage)*grit;e2.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,e2,data.items[unit.gear].animation);strikeSound(unit,e2,s.range>2);dmgNum(world,e2,dealt);}continue;}
+   if(order&&order.kind==='hold'){const e2=nearestFoe(world.enemies,unit);if(e2&&distance(unit,e2)<=s.range&&unit.attackTimer<=0){const dealt=s.damage*(1+aura.damage)*grit*fogRangedMult(world,s.range>2,data)*nightWatchMult(world,unit,data);e2.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,e2,data.items[unit.gear].animation);strikeSound(unit,e2,s.range>2);dmgNum(world,e2,dealt);}continue;}
    if(order&&order.kind==='attack'){const tgt=world.enemies.find(e=>e.id===order.targetId&&e.hp>0);if(!tgt){unit.order=null;continue;}
-    if(move(world,data,unit,tgt,s.speed,dt,s.range,false,true)&&unit.attackTimer<=0){const dealt=s.damage*(1+aura.damage)*grit;tgt.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,tgt,data.items[unit.gear].animation);strikeSound(unit,tgt,s.range>2);dmgNum(world,tgt,dealt);}continue;}
+    if(move(world,data,unit,tgt,s.speed,dt,s.range,false,true)&&unit.attackTimer<=0){const dealt=s.damage*(1+aura.damage)*grit*fogRangedMult(world,s.range>2,data)*nightWatchMult(world,unit,data);tgt.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,tgt,data.items[unit.gear].animation);strikeSound(unit,tgt,s.range>2);dmgNum(world,tgt,dealt);}continue;}
   if(!world.enemies.length){unit.hp=Math.min(s.hp,unit.hp+dt*2);continue;}
   if(data.troops[unit.type].role!=='combat')continue;
   const enemy=defenseTarget(world,data,unit,tgtCtx);if(!enemy)continue;
   if(s.range>2&&distance(unit,enemy)<1.7&&retreat(world,data,unit,enemy,s.speed,dt))continue;
    if(move(world,data,unit,enemy,s.speed,dt,s.range,false,true)&&unit.attackTimer<=0){
-    const dealt=s.damage*(1+aura.damage)*grit;
+    const dealt=s.damage*(1+aura.damage)*grit*fogRangedMult(world,s.range>2,data)*nightWatchMult(world,unit,data);
     enemy.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,enemy,data.items[unit.gear].animation);strikeSound(unit,enemy,s.range>2);dmgNum(world,enemy,dealt);
    for(const a of abs) if(a.effect==='splash')for(const other of world.enemies)if(other!==enemy&&distance(other,enemy)<a.radius)other.hp-=s.damage*a.factor;
   }
@@ -243,6 +243,7 @@ export function tickCombat(world,data,dt) {
    // siegebane bites engines and crowns.
     const mult=(1+siege+towerBonus)*renownDamageMult(world,data)*paragonDamageMult(b,data)*chestArrows;
    let dealt=(tier.damage||0)*mult;
+    dealt*=fogRangedMult(world,true,data);
    if(tier.siegebane&&(enemy.role==='boss'||isSiegeRole(data,enemy.role)))dealt*=(1+tier.siegebane);
    enemy.hp-=dealt;
    if(tier.burn)enemy.burn={dps:tier.burn*mult,timer:tier.burnDuration||3};
@@ -346,7 +347,7 @@ export function tickCombat(world,data,dt) {
    // hit harder — the aura reads off every boss still standing.
    let dread=1;
    try{if(enemy.role!=='boss')dread=bossAuraMult(world,data,enemy);}catch{}
-   const raw=enemy.damage*dread*skyDmg*(1-Math.min(.8,reduction))*(!targetUnit&&isWall(target)?(role.wallDamage||1)*chestGuard:1);
+   const raw=enemy.damage*dread*skyDmg*(1-Math.min(.8,reduction))*(!targetUnit&&isWall(target)?(role.wallDamage||1)*chestGuard:1)*fogRangedMult(world,(role.range||1.1)>2,data);
     if(targetUnit&&raw>=target.hp&&!target.unbrokenUsed){try{if(unlockedAbilities(target,data).some(a=>a.effect==='unbroken')){target.hp=1;target.unbrokenUsed=true;enemy.attackTimer=1.3;enemy.animation=.4;push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y-1,kind:'float',text:'UNBROKEN!',color:'#ffe9a8',life:.9});effect(world,enemy,targetPoint,'slash');strikeSound(enemy,targetPoint,false);continue;}}catch{}}
     target.hp=Math.max(0,target.hp-raw);enemy.attackTimer=1.3;enemy.animation=.4;effect(world,enemy,targetPoint,role.range>2?'arrow':'slash');push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y,kind:'hit',life:.18});strikeSound(enemy,targetPoint,role.range>2);
    // Rue's ledger: a building that falls while raiders walk counts against

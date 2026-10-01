@@ -34,7 +34,7 @@ import {startMission,tickMission,finishMission,missionLockReason} from './system
 import {load,save} from './storage.js';
 import {ensureMultiplayer,validateUsername,randomCode,addFriend,removeFriend,giftReason,makeGift,speedupReason,makeSpeedup,applyInbox,pushActivity,publicSnapshot,stampCloud} from './multiplayer.js';
 import {dayKey,seasonFor,modifierFor,calendarEffects,performTrade,marketOpen,describeDeal} from './systems/calendar.js';
-import {phaseAt,weatherAt,clockConfig} from './systems/daynight.js';
+import {phaseAt,weatherAt,clockConfig,tickStorm} from './systems/daynight.js';
 import {bossFor,spawnBoss,endgameSpawnOpts,renownCost,renownAvailable,paragonEligible,paragonCost,buildingMaxHp,renownLimitBonus,renownTroopBonus,renownRewardsUpTo,renownUnlocksFor} from './systems/endgame.js';
 import {warChestById,warChestLevel,warChestMax,warChestTotal,warChestOpenable,warChestArmed,warChestMinLevel,warChestRecovery,spendWarChest} from './systems/warchest.js';
 import {beginFestival} from './systems/festivals.js';
@@ -597,7 +597,7 @@ export class Game {
  tickClock(){
   const w=this.world,cfg=clockConfig(this.data);
   const phase=phaseAt(w.elapsed,this.data),weather=weatherAt(w.elapsed,this.data);
-  w.night=phase.night;w.weather=weather.id;
+  w.night=phase.night;w.weather=weather.id;tickStorm(w,this.data);
   if(w.lastPhase===undefined&&w.lastWeather===undefined){w.lastPhase=phase.id;w.lastWeather=weather.id;return;}
   if(w.lastPhase!==phase.id){w.lastPhase=phase.id;const line=cfg.lines[phase.id];if(line)this.notify(line);}
   if(w.lastWeather!==weather.id){w.lastWeather=weather.id;const line=cfg.lines[weather.id];if(line)this.notify(line);}

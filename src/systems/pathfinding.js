@@ -1,4 +1,5 @@
 import {recordTravel,trailMultiplier} from './trails.js';
+import {mudMult} from './daynight.js';
 import {roadRevision} from './roads.js';
 const movementCaches=new WeakMap(),actorRoutes=new WeakMap(),searchCounters=new WeakMap();
 export function movementMetrics(world){const c=searchCounters.get(world);return {movementSearches:c?.total||0,movementIntervalSearches:c?.interval===Math.floor((world.elapsed||0)/2)?c.count:0};}
@@ -108,7 +109,8 @@ export function move(world,data,actor,target,speed,dt,range=.9,avoidThreats=fals
  if(Math.hypot(actor.x-target.x,actor.y-target.y)<=range) return true;
  const oldX=actor.x,oldY=actor.y;
  const friendly=passGates&&!(world.enemies||[]).includes(actor);
- speed*=trailMultiplier(world,actor.x,actor.y,friendly);
+  speed*=trailMultiplier(world,actor.x,actor.y,friendly);
+  if(friendly)speed*=mudMult(world,actor.x,actor.y,data);
  const commit=()=>{if(friendly)recordTravel(world,data,oldX,oldY,actor.x,actor.y);};
  const next=nextStep(world,data,actor,target,range,avoidThreats,passGates,true);
  if(next){

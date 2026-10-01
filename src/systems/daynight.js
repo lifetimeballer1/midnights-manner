@@ -5,6 +5,8 @@
 // world.night / world.weather each tick for the sim to read. Everything
 // tunable lives under data.world.daynight — logic never hardcodes a number
 // the table already owns.
+import {roadAt} from './roads.js';
+import {trailWearAt,trailStage} from './trails.js';
 export const DAY_LENGTH = 300; // seconds of village time per full day
 
 // spans are fractions of the day: dawn 24s, day 126s, dusk 24s, night 126s.
@@ -38,6 +40,12 @@ const DEFAULTS = {
   rainGather: 0.05, // soft earth gathers a touch faster in rain
   nightExpeditionRisk: 0.05, // ranging after dark adds +5% mishap risk
   fogExpeditionRisk: 0.03, // fog on the trail adds +3% mishap risk
+  mudOffRoad: 0.12, // rain slows friendly off-road steps 12%
+  mudTrail: 0.06, // worn trails halve the mud penalty
+  fogRanged: 0.1, // fog blunts ranged shot 10%
+  nightWatch: 0.05, // posted defenders hit +5% harder after dark
+  stormDamage: 0.06, // a storm strike takes 6% of tier hp
+  stormInterval: 120, // seconds of village time between strikes
   lightBlend: 0.04, // fraction of a day fanned into each phase's crossfade
   lines: {
     dawn: '🌅 Dawn breaks over the palisade. The night lets go.',
@@ -261,6 +269,59 @@ export function skyGatherBonus(world, data) {
   if (world?.night === true) bonus += cfg.nightGather;
   if (world?.weather === 'rain') bonus += cfg.rainGather;
   return bonus;
+}
+
+// Phase 7 weather gameplay — all data-driven under data.world.daynight,
+// all defaulting through clockConfig so old saves read the same table.
+// Worlds without flags (old saves, direct subsystem ticks) read exactly 1.
+export function mudMult(world, x, y, data) {
+  if (world?.weather !== 'rain') return 1;
+  const cfg = clockConfig(data);
+  if (roadAt(world, x, y)) return 1;
+  if (trailStage(trailWearAt(world, x, y)) > 0) return 1 - cfg.mudTrail;
+  return 1 - cfg.mudOffRoad;
+}
+
+export function fogRangedMult(world, isRanged, data) {
+  if (world?.weather !== 'fog' || !isRanged) return 1;
+  return 1 - clockConfig(data).fogRanged;
+}
+
+// Posted defenders hold the line after dark; unposted hands gain nothing.
+export function nightWatchMult(world, unit, data) {
+  if (world?.night !== true || !unit?.defensePost) return 1;
+  return 1 + clockConfig(data).nightWatch;
+}
+
+// Storm targets mirror walls.js isWall (kept local: walls.js reads model.js,
+// which reads this clock — an import would ring the modules). Traps of every
+// kind sit out the storm beside the walls.
+const STORM_WALLS = new Set(['wall', 'stonewall', 'rampart', 'gate']);
+const STORM_TRAPS = new Set(['trap', 'fire-trap']);
+
+// Storms are hash-deterministic over the strike slot and seed — never
+// Math.random — so the same elapsed strikes the same roof, every load.
+// Rain only, interval-gated; strikes bruise 6% of tier hp but never ruin.
+export function tickStorm(world, data) {
+  if (!world || world.weather !== 'rain') return null;
+  const cfg = clockConfig(data);
+  const interval = cfg.stormInterval;
+  if (!Number.isFinite(interval) || interval <= 0) return null;
+  const elapsed = world.elapsed;
+  if (!Number.isFinite(elapsed) || elapsed < 0) return null;
+  const last = Number.isFinite(world.lastStormAt) ? world.lastStormAt : 0;
+  if (elapsed - last < interval) return null;
+  const seed = Number.isFinite(data?.world?.seed) ? data.world.seed : 7;
+  const slot = Math.floor(elapsed / interval);
+  if (hash(slot ^ Math.imul(seed, 0x9e3779b1)) % 3 !== 0) return null;
+  const targets = (world.buildings || []).filter(b => b && b.hp > 0 && !(b.remaining > 0) && !STORM_WALLS.has(b.type) && !STORM_TRAPS.has(b.type));
+  if (!targets.length) return null;
+  const pick = targets[hash(Math.imul(slot, 0x85ebca6b) ^ Math.imul(seed + 1, 0x9e3779b1)) % targets.length];
+  const tierHp = data?.buildings?.[pick.type]?.tiers?.[(pick.level || 1) - 1]?.hp;
+  const max = Number.isFinite(tierHp) && tierHp > 0 ? tierHp : Math.max(1, pick.hp);
+  pick.hp = Math.max(1, pick.hp - Math.max(1, Math.round(max * cfg.stormDamage)));
+  world.lastStormAt = elapsed;
+  return pick;
 }
 
 // One-line village-clock readout for panels: "🌙 Night · 🌧 Rain".
