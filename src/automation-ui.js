@@ -38,6 +38,7 @@ export function automationChange(g,e){
 export function automationClick(g,b){
  if(b.dataset.defenseUnit){g.assignDefense(b.dataset.defenseUnit,b.dataset.defensePost==='reserve'?null:b.dataset.defensePost);return true;}
  if(b.dataset.buildingSetting){g.configureBuilding(b.dataset.buildingId,b.dataset.buildingSetting,b.dataset.settingValue==='true');return true;}
- if(b.dataset.automationType){g.setAutomationType(b.dataset.automationType,b.dataset.settingValue==='true');return true;}\n if(b.dataset.automationToggle){g.setAutomation(b.dataset.automationToggle,b.dataset.settingValue==='true');return true;}
+ if(b.dataset.automationType){g.setAutomationType(b.dataset.automationType,b.dataset.settingValue==='true');return true;}
+ if(b.dataset.automationToggle){g.setAutomation(b.dataset.automationToggle,b.dataset.settingValue==='true');return true;}
  return false;
 }
