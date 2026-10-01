@@ -31,6 +31,13 @@ export function attachQuality(renderer) {
     renderer.qualityCfg = qualityPreset(name);
     store(name);
     hotSince = 0;
+    // New art must take effect immediately: drop cached layers so the next
+    // frame rebuilds at the new pixel density and detail limits.
+    try {
+      renderer.staticLayer = null; renderer.staticKey = '';
+      renderer._meshStatic = null; renderer._trailStatic = null;
+      renderer._pendingStaticKey = null;
+    } catch {}
   };
   renderer.cycleQuality = () => {
     const next = ORDER[(ORDER.indexOf(renderer.quality) + 1) % ORDER.length];
@@ -39,9 +46,12 @@ export function attachQuality(renderer) {
   };
   // Called once per frame with the rolling avg; degrades High->Med->Low
   // after 3s above 20ms, never upgrades on its own. Calm is untouched.
-  renderer.autoDegrade = (avgMs, nowMs) => {
+  // renderAvgMs (draw cost, no rAF gaps) also triggers a step-down after 3s
+  // above 12ms so heavy meshes degrade even when the frame interval looks fine.
+  renderer.autoDegrade = (avgMs, nowMs, renderAvgMs) => {
     if (!Number.isFinite(avgMs)) return renderer.quality;
-    if (avgMs <= 20) { hotSince = 0; return renderer.quality; }
+    const hot = avgMs > 20 || (Number.isFinite(renderAvgMs) && renderAvgMs > 12);
+    if (!hot) { hotSince = 0; return renderer.quality; }
     if (!hotSince) hotSince = nowMs;
     if (nowMs - hotSince < 3000) return renderer.quality;
     const i = ORDER.indexOf(renderer.quality);

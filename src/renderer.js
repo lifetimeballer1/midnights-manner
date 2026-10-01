@@ -31,7 +31,7 @@ import {zoomBand, bandGain, setListener, pickEmitters} from './systems/soundstag
 import {buildingActivityState, seedOf} from './building-activity.js';
 import {WorkSync} from './systems/worksync.js';
 export class Renderer {
- constructor(canvas,data,images){this.canvas=canvas;this.ctx=canvas.getContext('2d');this.data=data;this.images=images;this.grid=false;this.hover=null;this.selection=null;this.placing=null;this.moving=null;this.tw=43;this.th=22;this.ox=510;this.oy=97;this.shake=0;this.cam={x:10,y:8,zoom:1,yaw:DEFAULT_YAW,pitch:DEFAULT_PITCH};this.orbitMode=false;this.cx=550;this.cy=370;this.width=1100;this.height=740;this.dpr=1;this.hitAreas=[];this.staticLayer=null;this.staticKey='';this.frameTimes=[];this._pendingStaticKey=null;this._noCache=false;this._lastFrame=null;try{this.calm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch{this.calm=false;}this.seen=new Map();this.flash=new Map();this.deadAt=new Map();this.tints=new Map();}
+ constructor(canvas,data,images){this.canvas=canvas;this.ctx=canvas.getContext('2d');this.data=data;this.images=images;this.grid=false;this.hover=null;this.selection=null;this.placing=null;this.moving=null;this.tw=43;this.th=22;this.ox=510;this.oy=97;this.shake=0;this.cam={x:10,y:8,zoom:1,yaw:DEFAULT_YAW,pitch:DEFAULT_PITCH};this.orbitMode=false;this.cx=550;this.cy=370;this.width=1100;this.height=740;this.dpr=1;this.hitAreas=[];this.staticLayer=null;this.staticKey='';this.frameTimes=[];this.renderTimes=[];this._pendingStaticKey=null;this._noCache=false;this._lastFrame=null;try{this.calm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch{this.calm=false;}this.seen=new Map();this.flash=new Map();this.deadAt=new Map();this.tints=new Map();}
  base(x,y){return {x:this.ox+(x-y)*this.tw/2,y:this.oy+(x+y)*this.th/2};}
  camBase(){return this.base(this.cam.x,this.cam.y);}
  project(x,y,height=0){return project3D(this,x,y,height);}
@@ -44,7 +44,7 @@ export class Renderer {
  panPixels(dx,dy){panPixels(this,dx,dy);}
  zoomAt(f,x,y){zoomAt(this,f,x,y);}
  worldPoint(x,y){return screenToWorld(this,x,y);}
- resize(width,height,dpr=1){this.width=width;this.height=height;this.dpr=Math.min(dpr,2);this.canvas.width=Math.round(width*this.dpr);this.canvas.height=Math.round(height*this.dpr);this.cx=width/2;this.cy=height*.51;}
+  resize(width,height,dpr=1){this.width=width;this.height=height;this.dpr=Math.min(dpr,this.qualityCfg?.dprCap??2);this.canvas.width=Math.round(width*this.dpr);this.canvas.height=Math.round(height*this.dpr);this.cx=width/2;this.cy=height*.51;}
  fitVillage(world){const hall=world.buildings.find(b=>b.type==='hall');this.cam.x=hall?hall.x+1:this.data.world.width/2;this.cam.y=hall?hall.y+1:this.data.world.height/2;this.cam.zoom=this.width<600?1.65:Math.min(2.5,Math.max(1.6,this.width/540));}
  pick(x,y){const bubble=[...this.hitAreas].reverse().find(h=>h.kind==='harvest'&&x>=h.x&&x<=h.x+h.w&&y>=h.y&&y<=h.y+h.h);if(bubble){this.collectionDetail={...bubble,until:performance.now()+1600};return bubble;}for(let i=(this.sceneFaces?.length||0)-1;i>=0;i--){const f=this.sceneFaces[i];if(pointInPolygon(x,y,f.points))return f.owner||{kind:'scenery'};}return null;}
  resetCam(){this.cam={x:this.data.world.width/2,y:this.data.world.height/2,zoom:1,yaw:DEFAULT_YAW,pitch:DEFAULT_PITCH};}
@@ -103,7 +103,8 @@ export class Renderer {
    });c.closePath();c.fill();
   }
  }
-  draw(world,time){
+   draw(world,time){
+   const __drawStart=(typeof performance!=='undefined'&&performance.now)?performance.now():0;
    (this.lightingStats??={}).unitShadows=0;
    // Resolve indoor visibility once per frame, sharing it with meshes,
    // shadows, labels and footsteps. Never retain it across simulation ticks.
@@ -291,8 +292,9 @@ export class Renderer {
    for(let i=0;i<3;i++){const bp=this.project(5+4*Math.sin(time/(night?2300:3100)+i*2.1),6+3*Math.cos(time/(night?2900:2600)+i*1.7));
     if(night){c.globalAlpha=.5+Math.sin(time/400+i*2)*.4;c.fillStyle='#ffd97a';c.fillRect(bp.x,bp.y,2,2);c.globalAlpha=1;}
     else{const flap=Math.abs(Math.sin(time/180+i))*2;c.fillStyle='#f2c96ecc';c.fillRect(bp.x-2-flap,bp.y,2,2);c.fillRect(bp.x+flap,bp.y,2,2);}}}
-  if(!this.placing)this.drawCollections(world);
- }
+   if(!this.placing)this.drawCollections(world);
+   try{this.recordRender(performance.now()-__drawStart);}catch{}
+  }
  drawCollections(world){
   const c=this.ctx,z=this.cam.zoom,scale=collectionBubbleScale(z),obstacles=[...(this.collectionObstacles||[]),...(this.collectionSceneObstacles||[])];
   const ready=world.buildings.filter(b=>reserveReady(b,this.data.buildings[b.type]));
@@ -427,11 +429,12 @@ export class Renderer {
   }
   // Stormglass motion pool: capped at 60 transient effects so raids stay
   // flat on phones; calm players get the same visuals with zero shake.
- burst(world,x,y,tx,ty,kind,life){if(world.effects.length>=60)return;world.effects.push({x,y,tx,ty,kind,life});}
+  burst(world,x,y,tx,ty,kind,life){const cap=this.qualityCfg?.maxEffects??60;if(world.effects.length>=cap)return;world.effects.push({x,y,tx,ty,kind,life});}
  tint(name){let t=this.tints.get(name);if(t!==undefined)return t;const img=this.images[name];t=null;try{if(img){t=document.createElement('canvas');t.width=img.naturalWidth||32;t.height=img.naturalHeight||32;const g=t.getContext('2d');g.drawImage(img,0,0);g.globalCompositeOperation='source-in';g.fillStyle='#fff';g.fillRect(0,0,t.width,t.height);}}catch{t=null;}this.tints.set(name,t);return t;}
  spriteFlash(name,x,y,size,key,time,dy=0){const until=this.flash.get(key);if(!until||time>until)return;const t=this.tint(name);if(!t)return;const p=this.project(x,y),raw=size*this.cam.zoom,s=32*Math.max(1,Math.round(raw/32)),c=this.ctx;c.globalAlpha=Math.min(1,(until-time)/150);c.drawImage(t,Math.round(p.x-s/2),Math.round(p.y-s+12*this.cam.zoom+dy),s,s);c.globalAlpha=1;}
- recordFrame(now){if(this._lastFrame==null){this._lastFrame=now;return;}const dt=now-this._lastFrame;this._lastFrame=now;if(dt>=0&&dt<1000){this.frameTimes.push(dt);if(this.frameTimes.length>240)this.frameTimes.shift();}}
- frameReport(){const a=[...this.frameTimes].sort((x,y)=>x-y);if(!a.length)return null;const avg=a.reduce((n,v)=>n+v,0)/a.length;const q=f=>a[Math.min(a.length-1,Math.floor(a.length*f))];return {n:a.length,avg:Math.round(avg*100)/100,p50:Math.round(q(.5)*100)/100,p95:Math.round(q(.95)*100)/100,faces:(this.sceneFaces||[]).length,staticFaces:(this._meshStatic?.faces||[]).length,lighting:{...this.lightingStats,sources:(this.sceneSources||[]).length}};}
+  recordFrame(now){if(this._lastFrame==null){this._lastFrame=now;return;}const dt=now-this._lastFrame;this._lastFrame=now;if(dt>=0&&dt<1000){this.frameTimes.push(dt);if(this.frameTimes.length>240)this.frameTimes.shift();}}
+  recordRender(ms){if(!Number.isFinite(ms)||ms<0||ms>1000)return;this.renderTimes.push(ms);if(this.renderTimes.length>240)this.renderTimes.shift();}
+  frameReport(){const a=[...this.frameTimes].sort((x,y)=>x-y);if(!a.length)return null;const avg=a.reduce((n,v)=>n+v,0)/a.length;const q=f=>a[Math.min(a.length-1,Math.floor(a.length*f))];const r=[...this.renderTimes].sort((x,y)=>x-y);const renderAvg=r.length?r.reduce((n,v)=>n+v,0)/r.length:0;const rq=f=>r.length?r[Math.min(r.length-1,Math.floor(r.length*f))]:0;return {n:a.length,avg:Math.round(avg*100)/100,p50:Math.round(q(.5)*100)/100,p95:Math.round(q(.95)*100)/100,renderAvg:Math.round(renderAvg*100)/100,renderP95:Math.round(rq(.95)*100)/100,faces:(this.sceneFaces||[]).length,staticFaces:(this._meshStatic?.faces||[]).length,quality:this.quality||'High',lighting:{...this.lightingStats,sources:(this.sceneSources||[]).length}};}
  staticCacheKey(world){const b=world.bounds||{w:20,h:16};const seed=this.data.world?.seed??0;const lm=Array.isArray(this.data.world?.tiles)?this.data.world.tiles.length:0;let claimed=-1;try{if(Array.isArray(world.tiles)){claimed=0;for(const t of world.tiles)if(t.claimed)claimed++;}}catch{}this.claimedTileCount=claimed;return [this.cam.x.toFixed(2),this.cam.y.toFixed(2),this.cam.zoom,this.cam.yaw??DEFAULT_YAW,this.cam.pitch??DEFAULT_PITCH,this.width,this.height,this.dpr,this.grid?1:0,b.w,b.h,seed,lm,claimed].join('|');}
  blitCachedStatic(world){if(this._noCache)return false;const key=this.staticCacheKey(world);if(this.staticLayer&&key===this.staticKey){try{this.ctx.drawImage(this.staticLayer,0,0,this.width,this.height);}catch{this._noCache=true;return false;}return true;}this._pendingStaticKey=key;return false;}
  captureStatic(world){const key=this._pendingStaticKey;this._pendingStaticKey=null;if(!key||this._noCache||typeof document==='undefined')return;if(this.shake>0.2)return;try{const pw=Math.round(this.width*this.dpr),ph=Math.round(this.height*this.dpr);if(!this.staticLayer)this.staticLayer=document.createElement('canvas');if(this.staticLayer.width!==pw||this.staticLayer.height!==ph){this.staticLayer.width=pw;this.staticLayer.height=ph;}const g=this.staticLayer.getContext('2d');g.setTransform(1,0,0,1,0,0);g.drawImage(this.canvas,0,0);this.staticKey=key;}catch{this._noCache=true;this.staticLayer=null;this.staticKey='';}}

@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "note": "Converted CC0 mesh registry. All entries default disabled until their rollout phase passes its gate. Removal = set enabled:false or revert the phase commit; the game falls back to original procedural meshes. Source archives stay outside assets/.",
+  "licenses": {
+    "CC0": "https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  "meshes": {
+    "anvil": {
+      "enabled": false,
+      "phase": 1,
+      "pack": "Quaternius Fantasy Props MegaKit (Standard, 94 free models)",
+      "creator": "Quaternius",
+      "license": "CC0",
+      "source": "https://opengameart.org/content/fantasy-props-megakit",
+      "sourceObj": "Exports/OBJ/Anvil.obj",
+      "file": "assets/meshes/anvil.json",
+      "use": "Forge/smithy workplace prop sample proving the conversion path"
+    },
+    "tree-simple": {
+      "enabled": false,
+      "phase": 1,
+      "pack": "Kenney Nature Kit 2.1 (330+ objects)",
+      "creator": "Kenney",
+      "license": "CC0",
+      "source": "https://opengameart.org/content/nature-kit",
+      "sourceObj": "Models/OBJ format/tree_simple.obj",
+      "file": "assets/meshes/tree-simple.json",
+      "use": "Forest scenery sample proving the conversion path"
+    }
+  }
+}

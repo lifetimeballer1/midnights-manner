@@ -91,7 +91,7 @@ async function boot(){
 
   const ui=new UI(game,renderer,music);new MapInput(canvas,renderer,ui);new GameUpdates(game);new PatchNotes(game,ui,{onFresh:()=>{try{music.celebrate();}catch{}}});
   new ResizeObserver(resize).observe(canvas);
- try{if(new URLSearchParams(location.search).has('perf')){const badge=document.createElement('div');badge.id='perf';document.body.appendChild(badge);setInterval(()=>{const r=renderer.frameReport();if(r)badge.textContent='frame avg '+r.avg+'ms · p50 '+r.p50+'ms · p95 '+r.p95+'ms · n='+r.n+' · faces '+r.faces+' · '+(renderer.staticLayer?'cached':'uncached');},500);}}catch{}
+ try{if(new URLSearchParams(location.search).has('perf')){const badge=document.createElement('div');badge.id='perf';document.body.appendChild(badge);setInterval(()=>{const r=renderer.frameReport();if(r)badge.textContent='frame avg '+r.avg+'ms · render '+r.renderAvg+'ms · p95 '+r.p95+'ms · n='+r.n+' · faces '+r.faces+' · quality '+r.quality+' · '+(renderer.staticLayer?'cached':'uncached');},500);}}catch{}
  try{if(new URLSearchParams(location.search).has('meshes')){const badge=document.createElement('div');badge.id='meshes';document.body.appendChild(badge);setInterval(()=>{const r=renderer.frameReport();badge.textContent='buildings '+Object.keys(data.buildings).length+' · troops '+Object.keys(data.troops).length+' · items '+Object.keys(data.items).length+' · quality '+renderer.quality+' · faces '+(r?.faces||0);},500);}}catch{}
 
  window.addEventListener('pointerdown',()=>unlock(),{passive:true});window.addEventListener('keydown',()=>unlock());
@@ -132,7 +132,7 @@ async function boot(){
    ui.tick(dt);
    if(ui.started)ambience.tick();
    renderer.draw(game.world,now);
-   try{const r=renderer.frameReport();if(r&&renderer.autoDegrade)renderer.autoDegrade(r.avg,now);}catch{}
+   try{const r=renderer.frameReport();if(r&&renderer.autoDegrade)renderer.autoDegrade(r.avg,now,r.renderAvg);}catch{}
   }
   requestAnimationFrame(frame);
  }
