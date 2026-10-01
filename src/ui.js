@@ -13,7 +13,7 @@ import {mealStatus,supplyStatus} from './systems/food.js';
 import {economyDashboard,settlementHealth} from './systems/dashboard.js';
 import {wallRowQuote,isWall,placementCells} from './systems/walls.js';
 import {raidSides, raidStars} from './systems/combat.js';
-import {eventAnchor} from './systems/frontier-events.js';
+import {eventAnchor,eventRegionLabel} from './systems/frontier-events.js';
 import {stats,unlockedAbilities,buildingCost,housing,XP_LEVELS,center,assignedWorkers,workplaceCapacity,canPlace,afford,promotionOptions,buildingLimit,buildingCount} from './model.js';
 import {currentQuest,questProgress,growthStatus} from './systems/village.js';
 import {exportSave,importSaveBlob} from './storage.js';
@@ -349,7 +349,7 @@ export class UI {
   const q=s.quest;
   const activeFrontier=g.world.frontierEvent&&(g.data.world.frontierEvents||[]).find(e=>e.id===g.world.frontierEvent.id);
   const eventAnchorBuilding=activeFrontier?eventAnchor(g.world,g.data,activeFrontier):null;
-  const frontierEvent=activeFrontier?`<article class="adv-card adv-trade"><div class="adv-eyebrow">FRONTIER EVENT · ${activeFrontier.region.replaceAll('-',' ').toUpperCase()}</div><h3>${activeFrontier.title}</h3><p>${activeFrontier.text}</p><div class="actions">${eventAnchorBuilding?`<button data-event-focus="${eventAnchorBuilding.id}">View</button>`:''}${(activeFrontier.choices||[]).map(ch=>{const price=ch.cost||{},short=!afford(g.world.resources,price),suffix=Object.keys(price).length?` · ${cost(price)}`:'';return `<button data-frontier-choice="${ch.id}" ${short?'disabled':''}>${ch.label}${suffix}</button>`;}).join('')}</div></article>`:'';
+     const frontierEvent=activeFrontier?`<article class="adv-card adv-trade"><div class="adv-eyebrow">FRONTIER EVENT · ${eventRegionLabel(activeFrontier).replaceAll('-',' ').toUpperCase()}</div><h3>${activeFrontier.title}</h3><p>${activeFrontier.text}</p><div class="actions">${eventAnchorBuilding?`<button data-event-focus="${eventAnchorBuilding.id}">View</button>`:''}${(activeFrontier.choices||[]).map(ch=>{const price=ch.cost||{},short=!afford(g.world.resources,price),suffix=Object.keys(price).length?` · ${cost(price)}`:'';return `<button data-frontier-choice="${ch.id}" ${short?'disabled':''}>${ch.label}${suffix}</button>`;}).join('')}</div></article>`:'';
   const objective=q
    ?`<article class="adv-card"><div class="adv-eyebrow">CURRENT OBJECTIVE · VILLAGE PATH</div><h3>${q.name}</h3><p>${q.text}</p><div class="progress" role="progressbar" aria-valuenow="${Math.min(s.progress.have,s.progress.need)}" aria-valuemax="${s.progress.need}" aria-label="${q.name} progress"><div style="width:${Math.min(100,s.progress.have/Math.max(1,s.progress.need)*100)}%"></div></div><div class="adv-meta">${taskHint(q.task,g.data)} · ${Math.min(s.progress.have,s.progress.need)} / ${s.progress.need} · +${q.xp} XP</div></article>`
    :`<article class="adv-card adv-done"><div class="adv-eyebrow">CURRENT OBJECTIVE</div><h3>The path is walked.</h3><p>All ${s.questsTotal} village-path quests complete. The frontier is yours to hold.</p></article>`;

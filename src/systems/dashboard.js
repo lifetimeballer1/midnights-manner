@@ -81,12 +81,13 @@ export function settlementHealth(world, data) {
   const bucket = Math.floor((world.elapsed || 0) / 5);
   const hit = healthCache.get(world);
   if (hit && hit.bucket === bucket) return hit.value;
-  const builders = {construction: 0, repair: 0, road: 0, idle: 0};
+  const builders = {construction: 0, repair: 0, road: 0, idle: 0, other: 0};
   for (const u of world.troops || []) {
     if (!u || u.hp <= 0) continue;
     if (data.troops[u.type]?.role !== 'builder') continue;
     const kind = u.builderTask?.kind;
     if (kind === 'construction' || kind === 'repair' || kind === 'road') builders[kind]++;
+    else if (kind) builders.other++;
     else if (!u.builderTask && !u.order && !u.emergency && !u.expedition) builders.idle++;
   }
   let weakWall = null;
@@ -95,7 +96,7 @@ export function settlementHealth(world, data) {
     if (!b || b.hp <= 0 || !isWall(b)) continue;
     const max = buildingMaxHp(b, data);
     if (!Number.isFinite(max) || max <= 0) continue;
-    const frac = b.hp / max;
+    const frac = Math.min(1, b.hp / max);
     if (weakWall && frac >= weakWall.frac) continue;
     const size = data.buildings[b.type]?.size || 1;
     const dx = (b.x + size / 2) - cx, dy = (b.y + size / 2) - cy;

@@ -10,6 +10,12 @@ export function frontierEventById(data,id){
  return (data?.world?.frontierEvents||[]).find(e=>e.id===id)||null;
 }
 
+// Region-less card hardening (Phase 10): events without a region read as
+// the frontier — pure, never throws, safe for the card eyebrow.
+export function eventRegionLabel(event){
+ return event?.region||'frontier';
+}
+
 export function frontierEventDelay(world,data){
  const cfg=data?.world?.frontierEventTiming||{},min=Math.max(60,Number(cfg.minDelay)||300),jitter=Math.max(0,Math.floor(Number(cfg.jitter)||0));
  if(!jitter)return min;

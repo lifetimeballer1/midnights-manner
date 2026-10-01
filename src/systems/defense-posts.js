@@ -5,7 +5,7 @@ import {isWall} from './walls.js';
 // Home-only planner; transient routes, targets and clocks never enter saves.
 const plans=new WeakMap();
 const capacities={hall:3,gate:2,tower:2,archer_tower:2,'grand-watchtower':2};
-const RALLY_WEIGHTS={balanced:{},gates:{gate:-30},manor:{hall:-30},walls:{gate:-20,tower:-20,archer_tower:-20},storage:{anchor:'storage'},reserve:{hold:2}};
+const RALLY_WEIGHTS={balanced:{},gates:{gate:-30},manor:{hall:-30},walls:{gate:-20,tower:-20,archer_tower:-20,'grand-watchtower':-20},storage:{anchor:'storage'},reserve:{hold:2}};
 export function setRally(world,id){
  if(!Object.hasOwn(RALLY_WEIGHTS,id))return false;
  world.defenseRally=id;return true;
@@ -50,7 +50,12 @@ function autoFill(world,data,p){
    for(const b of posts){if((occupied.get(b.id)||0)>=defensePostCapacity(b,data))continue;
     const preferred=ranged?b.type.includes('tower'):b.type==='gate';
     const w=rally[b.type],weight=typeof w==='number'?w:0;
-    const dist=storageAnchor?Math.min(...storageAnchor.map(c=>distance(u,c))):distance(u,center(b,data));
+    // Storage anchor (Phase 10): near-store posts win through a bounded
+    // proximity penalty `min(10, dist(post,nearestStore)/4)` on top of the
+    // usual distance-to-post term — nearer scores lower, the cap keeps a
+    // far-flung post from dominating. Balanced has no anchor: byte-identical.
+    let dist=distance(u,center(b,data));
+    if(storageAnchor)dist+=Math.min(10,Math.min(...storageAnchor.map(c=>distance(center(b,data),c)))/4);
     const score=(preferred?0:b.type==='hall'?40:80)+weight+dist;
     if(score<bestScore){best=b;bestScore=score;}
    }

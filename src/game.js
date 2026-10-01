@@ -604,8 +604,11 @@ export class Game {
  tickClock(){
   const w=this.world,cfg=clockConfig(this.data);
   const phase=phaseAt(w.elapsed,this.data),weather=weatherAt(w.elapsed,this.data);
-  w.night=phase.night;w.weather=weather.id;tickStorm(w,this.data);
-  if(w.lastPhase===undefined&&w.lastWeather===undefined){w.lastPhase=phase.id;w.lastWeather=weather.id;return;}
+  w.night=phase.night;w.weather=weather.id;
+  // First tick (Phase 10): old saves arrive with no clock flags and a huge
+  // elapsed — seed the storm clock now so tick 1 never strikes the roofs.
+  if(w.lastPhase===undefined&&w.lastWeather===undefined){w.lastPhase=phase.id;w.lastWeather=weather.id;w.lastStormAt=w.elapsed;return;}
+  tickStorm(w,this.data);
   if(w.lastPhase!==phase.id){w.lastPhase=phase.id;const line=cfg.lines[phase.id];if(line)this.notify(line);}
   if(w.lastWeather!==weather.id){w.lastWeather=weather.id;const line=cfg.lines[weather.id];if(line)this.notify(line);}
  }
