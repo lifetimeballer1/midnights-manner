@@ -1,5 +1,6 @@
 import {beginShelterTick,isSheltered,releaseShelter,shelterVillager} from './shelter.js';
 import {supplyBonus} from './food.js';
+import {spendingAvailable} from './steward-budget.js';
 import {center,distance,stats} from '../model.js';
 import {move} from './pathfinding.js';
 import {retreat} from './tactics.js';
@@ -36,9 +37,7 @@ export function tickEmergency(world,data,dt) {
   if(nearest&&distance(u,nearest)<fleeAt){releaseShelter(u);retreat(world,data,u,nearest,fleeSpeed,dt);continue;}
   // Cowardly healers run for shelter instead of tending the field.
   const job=(spec.emergency==='heal'&&hasTrait(u,'cowardly'))?null:spec.emergency;
-  const reserve=world.automation?.reserves?.wood;
-  const availableWood=Math.max(0,world.resources.wood-(Number.isFinite(reserve)?Math.max(0,reserve):0));
-  if(job==='repair'&&availableWood>0){
+  if(job==='repair'&&world.resources.wood>0){
    // Every wall line counts: palisades, stone, ramparts and gatehouses
    // all read as walls, so builders mend the whole perimeter. Brave
    // builders mend closer to the fighting (2.5 tiles); the timid keep 3.5.
@@ -46,13 +45,13 @@ export function tickEmergency(world,data,dt) {
    let b=null,bestD=Infinity;
    for(const cand of world.buildings){
     if(cand.hp<=0||cand.remaining>0||!(isWall(cand)||cand.type==='hall'||data.buildings[cand.type].tiers[cand.level-1].damage))continue;
-    if(cand.hp>=data.buildings[cand.type].tiers[cand.level-1].hp)continue;
+    if(cand.hp>=data.buildings[cand.type].tiers[cand.level-1].hp||spendingAvailable(world,'wood',{purpose:'repair',buildingId:cand.id})<=0)continue;
     const cc=bCenter(cand);
     if(danger(foes,cc,safeDist))continue;
     const d=distance(u,cc);
     if(d<bestD){bestD=d;b=cand;}
    }
-   if(b){releaseShelter(u);u.emergency={kind:'repair',target:b.id};if(move(world,data,u,center(b,data),fleeSpeed,dt,data.buildings[b.type].size/2+.7,true,true)){
+   if(b){const availableWood=spendingAvailable(world,'wood',{purpose:'repair',buildingId:b.id});releaseShelter(u);u.emergency={kind:'repair',target:b.id};if(move(world,data,u,center(b,data),fleeSpeed,dt,data.buildings[b.type].size/2+.7,true,true)){
     const hp=Math.min(6*(1+supplyBonus(world,data,'repair'))*dt,data.buildings[b.type].tiers[b.level-1].hp-b.hp,availableWood*15);b.hp+=hp;world.resources.wood=Math.max(0,world.resources.wood-hp/15);
    }continue;}
   }

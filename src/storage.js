@@ -33,6 +33,24 @@ function normalizeManagement(w,data){
   const reserves={};for(const k of Object.keys(w.resources||{})){const n=c.reserves?.[k];if(Number.isFinite(n)&&n>=0)reserves[k]=Math.min(1e9,Math.floor(n));}
   w.automation={autoUpgrade:c.autoUpgrade===true,reserves,stockTarget:Number.isFinite(c.stockTarget)?Math.max(0,Math.min(5,Math.floor(c.stockTarget))):1};
  }
+ if(w.steward!==undefined){
+  const c=w.steward&&typeof w.steward==='object'&&!Array.isArray(w.steward)?w.steward:{};
+  const clean=g=>{
+   if(!g||typeof g!=='object'||!['grow','fortify','project','conquest'].includes(g.id))return null;
+   if(g.id==='conquest'){
+    const tribes=[data.conquest?.tribe,...(data.conquest?.tribes||[])].filter(Boolean);
+    return tribes.some(t=>t.id===g.tribeId)?{id:g.id,tribeId:g.tribeId}:null;
+   }
+   const b=w.buildings.find(b=>b.id===g.buildingId),spec=data.buildings[b?.type];if(!spec)return null;
+   if(g.id==='grow'&&!spec.housing)return null;
+   if(g.id==='fortify'&&!['wall','stonewall','rampart','gate'].includes(b.type)&&!spec.tiers.some(t=>t.damage>0))return null;
+   if(g.id==='fortify'&&g.action==='repair')return {id:g.id,buildingId:b.id,action:'repair',baseline:Number.isFinite(g.baseline)?Math.max(0,g.baseline):0};
+   if(!Number.isInteger(g.targetTier)||g.targetTier<1||g.targetTier>spec.tiers.length)return null;
+   return {id:g.id,buildingId:b.id,targetTier:g.targetTier,baseline:Number.isFinite(g.baseline)?Math.max(1,Math.min(g.targetTier,g.baseline)):Math.max(1,g.targetTier-1)};
+  };
+  const seen=new Set(),unique=g=>{const goal=clean(g);if(!goal)return null;const key=goal.buildingId||'tribe:'+goal.tribeId;if(seen.has(key))return null;seen.add(key);return goal;};
+  w.steward={enabled:c.enabled===true,protectMeals:c.protectMeals!==false,protectRepairs:c.protectRepairs!==false,main:unique(c.main),secondary:(Array.isArray(c.secondary)?c.secondary.slice(0,2):[]).map(unique)};
+ }
  const ids=new Set(w.buildings.map(b=>b.id));
  for(const b of w.buildings){
   for(const k of ['autoCraft','autoUpgrade'])if(b[k]!==undefined&&typeof b[k]!=='boolean')delete b[k];

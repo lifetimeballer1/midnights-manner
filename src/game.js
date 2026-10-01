@@ -1,3 +1,6 @@
+import {spendingAvailable} from './systems/steward-budget.js';
+import {tickSteward,refreshSteward} from './systems/steward.js';
+import {setGoal,clearGoal} from './systems/steward-goals.js';
 import {tickDefensePosts,assignDefensePost,defenseRaidSummary} from './systems/defense-posts.js';
 import {tickAutomation,automationSettings} from './systems/automation.js';
 import {bankOutput,outputAmount} from './systems/refiner-output.js';
@@ -296,6 +299,20 @@ export class Game {
   if(buildingId==='auto'){if(!assignDefensePost(this.world,this.data,u,null,false))return false;u.order=null;this.persist();return true;}
   if(!u||!assignDefensePost(this.world,this.data,u,buildingId||null,true))return this.notify('No suitable defense opening.'),false;
   u.order=null;this.persist();this.notify(buildingId?'Defense post assigned.':'Fighter held in reserve.');return true;
+ }
+ setSteward(key,value){
+  if(this.state.mission||this.paused||!['enabled','protectMeals','protectRepairs'].includes(key))return false;
+  this.world.steward??={enabled:false,main:null,secondary:[],protectMeals:true,protectRepairs:true};
+  this.world.steward[key]=!!value;refreshSteward(this);this.persist();return true;
+ }
+ setStewardGoal(slot,goal){
+  if(this.state.mission||this.paused)return false;
+  const result=setGoal(this,slot,goal);if(!result.ok){this.notify(result.error);return false;}
+  refreshSteward(this);this.persist();return true;
+ }
+ clearStewardGoal(slot){
+  if(this.state.mission||this.paused||!clearGoal(this,slot).ok)return false;
+  refreshSteward(this);this.persist();return true;
  }
  setAutomation(key,value){
   if(this.state.mission||this.paused)return false;
@@ -666,7 +683,7 @@ export class Game {
   // Phase 7 identity backfill: old saves and mission rosters gain names,
   // traits and job ledgers lazily — additive defaults, never a wipe.
   for(const w of [this.world,this.state.home]){if(!w)continue;for(const u of w.troops||[])ensureIdentity(u,this.data,w.troops);}
-  this.world.elapsed+=dt;tickTrails(this.world);this.tickClock();if(!this.state.mission){tickTownMeal(this.world,this.data,m=>this.notify(m));tickTownSupply(this.world,this.data,m=>this.notify(m));}if(!this.state.mission)tickFrontierEvents(this.state,this.data,m=>this.notify(m));tickResearch(this.state,this.data,dt,m=>this.notify(m));if(!this.state.mission)tickDefensePosts(this.world,this.data,dt);tickEmergency(this.world,this.data,dt);tickVillagerJobs(this.world,this.data,dt);const filled=autoFillTick(this.world,this.data,dt);if(filled&&(this.world.elapsed-(this.world.lastAutoFillNote||0)>60)){this.world.lastAutoFillNote=this.world.elapsed;this.notify(`${filled} jobless worker${filled>1?'s':''} took ${filled>1?'open posts':'an open post'} on their own — traits matched, locks respected.`);}tickEconomy(this.world,this.data,dt);if(!this.state.mission)tickAutomation(this,dt);if(!this.state.mission)tickLogistics(this.world,this.data,dt);tickRefine(this.world,this.data,dt,!this.state.mission);for(const c of tickCraft(this.world,this.data,dt)){const name=this.data.items[c.item]?.name||c.item;this.notify(`${name} finished — fit it from the People panel.`);}tickExpeditions(this.world,this.data,dt,Math.random,{state:this.state,notify:m=>this.notify(m)});tickCombat(this.world,this.data,dt);tickVillage(this.state,this.data,dt,m=>this.notify(m));const before=this.state.mission?.status;tickMission(this.state,this.data);if(this.state.mission?.herald){this.notify(this.state.mission.herald);this.state.mission.herald=null;}
+  this.world.elapsed+=dt;tickTrails(this.world);this.tickClock();if(!this.state.mission){tickTownMeal(this.world,this.data,m=>this.notify(m));tickTownSupply(this.world,this.data,m=>this.notify(m));}if(!this.state.mission)tickFrontierEvents(this.state,this.data,m=>this.notify(m));tickResearch(this.state,this.data,dt,m=>this.notify(m));if(!this.state.mission)tickDefensePosts(this.world,this.data,dt);if(!this.state.mission)tickSteward(this,dt);tickEmergency(this.world,this.data,dt);tickVillagerJobs(this.world,this.data,dt);const filled=autoFillTick(this.world,this.data,dt);if(filled&&(this.world.elapsed-(this.world.lastAutoFillNote||0)>60)){this.world.lastAutoFillNote=this.world.elapsed;this.notify(`${filled} jobless worker${filled>1?'s':''} took ${filled>1?'open posts':'an open post'} on their own — traits matched, locks respected.`);}tickEconomy(this.world,this.data,dt);if(!this.state.mission)tickAutomation(this,dt);if(!this.state.mission)tickLogistics(this.world,this.data,dt);tickRefine(this.world,this.data,dt,!this.state.mission,!this.state.mission&&this.world.steward?.enabled?k=>spendingAvailable(this,k,{purpose:'refine'}):null);for(const c of tickCraft(this.world,this.data,dt)){const name=this.data.items[c.item]?.name||c.item;this.notify(`${name} finished — fit it from the People panel.`);}tickExpeditions(this.world,this.data,dt,Math.random,{state:this.state,notify:m=>this.notify(m)});tickCombat(this.world,this.data,dt);tickVillage(this.state,this.data,dt,m=>this.notify(m));const before=this.state.mission?.status;tickMission(this.state,this.data);if(this.state.mission?.herald){this.notify(this.state.mission.herald);this.state.mission.herald=null;}
   if(raided&&!this.world.enemies.length&&!this.world.raidPending&&this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)){const recovered=warChestRecovery(this.world,this.data);spendWarChest(this.world);const kills=this.world.raidKills??0,loot=this.world.raidLoot??0;
    const damaged=this.world.buildings.filter(b=>b.hp<buildingMaxHp(b,this.data));
    const repairWood=damaged.reduce((n,b)=>n+Math.ceil((buildingMaxHp(b,this.data)-b.hp)/15),0);

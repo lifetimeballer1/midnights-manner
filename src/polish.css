@@ -157,3 +157,21 @@ body.hud-army-collapsed #game .army-rail{display:none}
 #game .reserve-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:8px}
 #game .reserve-grid label{flex-direction:column;align-items:flex-start}
 #game .reserve-grid input{width:100%}
+
+/* Steward cards keep the existing Stores navigation and phone touch targets. */
+#game .steward-controls{display:grid;gap:10px;min-width:0}
+#game .steward-controls :is(h3,p){margin:0}
+#game .steward-controls :is(button,select,summary){min-height:44px;box-sizing:border-box}
+#game .steward-controls button{white-space:normal}
+#game .steward-toggles{display:flex;flex-wrap:wrap;gap:8px}
+#game .steward-toggles button{flex:1 1 130px}
+#game .steward-goal{display:grid;gap:7px;padding:10px;border:1px solid #b49a72;border-radius:9px;min-width:0}
+#game .steward-goal label{display:grid;gap:5px;font-weight:700;min-width:0}
+#game .steward-goal select{width:100%;min-width:0;max-width:100%;font-size:16px}
+#game .steward-goal progress{width:100%;height:9px;accent-color:#637741}
+#game .steward-controls summary{display:flex;align-items:center;font-weight:700;cursor:pointer}
+#game .steward-budget>div{display:grid;gap:3px;padding:8px 0;border-bottom:1px solid #b49a7266;font-size:13px}
+#game .steward-issue{display:grid;gap:5px;margin:8px 0;padding:9px;border:1px solid #b49a7277;border-radius:8px;overflow-wrap:anywhere}
+#game .steward-issue p{font-size:13px;margin:0}
+#game .steward-building{margin-top:10px}
+#game .steward-building .steward-issue{background:#f0e3c5;color:#3a2c18}
