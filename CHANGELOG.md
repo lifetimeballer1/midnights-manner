@@ -1,3 +1,10 @@
+## 0.4.2 visuals: scorched ridge + burn remains + replay backfill
+
+- G1 theme: `scorched-ridge` map theme + ash tint in environment-art, hills reused.
+- G2 remains: renderer-only spent-fire geometry on cleared camp tiles (mesh-keyed via ledger, calm-safe, home-only).
+- G3 backfill: won-level additive `clearedCamps` write (first + replay-backfill, defeat/finale write nothing, old saves show all).
+- Verify: `npm test` 997 pass 0 fail, `npm run build` green (616 precached, 0.3.0-5589f0d547c0eac8).
+
 ## 0.4.1 polish: citadel/watchtower/infra detail + cues + balance re-pin
 
 - Hotfix: `attemptRoll` no-ops unless playing, `nether` stays Node-safe default (977 pass 0 fail).
