@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createWorld,makeBuilding,makeUnit} from '../src/model.js';
-import {tickAutomation,automationSettings,automationStatus} from '../src/systems/automation.js';
+import {tickAutomation,automationSettings,automationStatus,automationMaterialNeeds,automationConstructionNeeds} from '../src/systems/automation.js';
+import {supplyPriorities} from '../src/systems/supply-priority.js';
 import {tickCraft} from '../src/systems/crafting.js';
 const data=Object.fromEntries(await Promise.all(['world','buildings','troops','items','abilities'].map(async n=>[n,JSON.parse(await readFile(new URL(`../data/${n}.json`,import.meta.url)))])));
 function fixture(){
@@ -12,6 +13,15 @@ function fixture(){
 }
 function shop(w,type='forge'){const b=makeBuilding(type,4,4,data),u=makeUnit(type==='forge'?'weaponsmith':'armorer',data);b.craft=null;u.workplace=b.id;u.traits=[];w.buildings.push(b);w.troops.push(u);return b;}
 function advance(g,n=1){for(let i=0;i<n;i++)tickAutomation(g,2);}
+test('craft shortage signals include protected stores and disappear when the shop opts out',()=>{
+ const {g,w}=fixture(),b=shop(w);w.troops.push(makeUnit('warrior',data));automationSettings(w).reserves.gold=5000;advance(g);
+ assert.ok(automationMaterialNeeds(w).gold>w.resources.gold);assert.equal(supplyPriorities(w,data).get('gold').priority,75);
+ const before=structuredClone(w.resources);b.autoCraft=false;advance(g);assert.deepEqual(automationMaterialNeeds(w),{});assert.deepEqual(w.resources,before);
+});
+test('unfunded opted-in upgrades publish construction needs without spending reserves',()=>{
+ const {g,w}=fixture(),b=makeBuilding('farm',4,4,data);w.buildings.push(b);w.troops.push(makeUnit('builder',data));b.autoUpgrade=true;const cfg=automationSettings(w);cfg.autoUpgrade=true;cfg.reserves.wood=5000;advance(g);
+ assert.ok(automationConstructionNeeds(w).wood>5000);assert.equal(supplyPriorities(w,data).get('wood').priority,80);assert.equal(b.remaining,0);assert.equal(w.resources.wood,5000);
+});
 test('staffed workshop chooses highest unlocked demanded gear; no downgrade when materials absent',()=>{
  const {g,w}=fixture(),b=shop(w);w.troops.push(makeUnit('warrior',data));g.locked=id=>id==='first-dawn-blade';advance(g);assert.equal(b.craft.item,'dawn-blade');
  b.craft=null;w.resources.frostwood=0;advance(g);assert.equal(b.craft,null);assert.match(automationStatus(g,b),/materials/);

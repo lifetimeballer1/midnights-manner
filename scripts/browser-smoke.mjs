@@ -310,6 +310,8 @@ try{
  await evaluate('window.prompt=()=>window.__automationSmoke.fixture');await fire('#opt-import');
  await evaluate('window.prompt=window.__automationSmoke.prompt');
  await ensureResources();await fire('[data-resource="wood"]');
+ await waitFor('document.querySelector("#panel").textContent.includes("What the village needs")');
+ assert.ok(await evaluate('document.querySelector("#panel").textContent.includes("Delivery bottlenecks")||document.querySelector("#panel").textContent.includes("Current priority baskets")||document.querySelector("#panel").textContent.includes("short")'),'Stores exposes supply diagnostics');
  await fire('[data-steward-toggle="enabled"]');
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.steward.enabled'),true,'Stores enables the village steward');
  await waitFor('!!document.querySelector("[data-steward-goal=main]")');
@@ -379,6 +381,17 @@ try{
  await fire(`[data-defense-unit="${fighter}"][data-defense-post="settlement-b-0"]`);
  assert.equal(await evaluate(`window.midnightsManner.snapshot().world.troops.find(u=>u.id===${JSON.stringify(fighter)}).defensePost`),'settlement-b-0','workplace stations the selected fighter');
  await fire('#close-panel');await fire('[data-tab="troops"]');
+ await evaluate('document.querySelector("[data-battle-scope]").value="ranged"');
+ await fire('[data-battle-command="hold"]');
+ assert.ok(await evaluate('window.midnightsManner.snapshot().world.troops.filter(u=>u.type==="archer"&&u.hp>0&&!u.expedition).every(u=>u.order?.kind==="hold"&&u.order.group)'),'group Hold reaches ranged fighters');
+ assert.equal(await evaluate('document.querySelector("[data-battle-scope]").value'),'ranged','group selection survives panel refresh');
+ await evaluate('document.querySelector("[data-battle-post]").value="settlement-b-0"');
+ await fire('[data-battle-command="defend"]');
+ assert.ok(await evaluate('window.midnightsManner.snapshot().world.troops.filter(u=>u.type==="archer"&&u.hp>0&&!u.expedition).every(u=>u.order?.kind==="defend"&&u.order.buildingId==="settlement-b-0")'),'Defend binds the ranged group to its selected post');
+ await fire('[data-battle-command="auto"]');
+ assert.ok(await evaluate('window.midnightsManner.snapshot().world.troops.filter(u=>u.type==="archer").every(u=>!u.order?.group)'),'Resume releases only group commands');
+ assert.ok(await evaluate('document.documentElement.scrollWidth<=innerWidth+1'),'battlefield controls fit the phone viewport');
+ await screenshot('mobile-battlefield-commands');
  const pinnedUnit=await evaluate('document.querySelector("[data-steward-pin][data-slot=main]")?.dataset.stewardPin');
  assert.ok(pinnedUnit,'People exposes equipment overrides');
  await fire(`[data-steward-pin="${pinnedUnit}"][data-slot="main"]`);

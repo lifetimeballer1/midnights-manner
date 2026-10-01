@@ -1,3 +1,17 @@
+## 2026-10-01 — Working supply chains
+
+- Prioritize meals, recovery, cumulative construction baskets, needed gear, production targets and reserves; propagate shortages through staffed recipe chains. Age waiting jobs for fairness and choose reachable supply hubs.
+- Favor useful workshop destinations and avoid input trips when output buffers are full. Preserve shared-store spending, source-held batches, collection overrides and alarm cancellation.
+- Show shortage causes, workshop states, bounded delivery bottlenecks and existing project benefits in Stores/inspectors. Preserve battlefield selector choices across refreshes.
+- Add scoped-command/supply browser smoke coverage and a repeatable 150-villager simulation comparison. Save v15 and existing job/cart/path caps remain unchanged.
+
+## 2026-10-01 — Siege and battlefield intelligence
+
+- Add bounded home assault groups, exposed-defense/coverage scoring, committed targets and fresh-breach waypoints. Bosses and campaign tactics retain authored behavior.
+- Add melee reserve screening and scoped Hold / Defend / Rally / Resume commands with persistent existing-schema orders.
+- Show approach, target and phase in the HUD/People panel; record breach advances and defense hints after raids.
+- Verification: 1,177 tests pass, build passes. Browser checks follow in the combined update.
+
 ## 0.4.2 visuals: scorched ridge + burn remains + replay backfill
 
 - G1 theme: `scorched-ridge` map theme + ash tint in environment-art, hills reused.
