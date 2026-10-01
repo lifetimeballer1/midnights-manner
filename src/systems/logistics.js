@@ -79,9 +79,39 @@ export function refinementEfficiency(w,d,b){const s=states.get(w);if(!s?.graph)r
  let base=cached;if(base===undefined){const dist=n?distance/n:0,benefit=nearWork(w,d,s,center(b,d),'wood')-1;base=1-Math.max(0,dist-8)*.005+benefit*.3;s.efficiencies.set(b.id,base);}return Math.max(.85,Math.min(1.15,base+(delivered?.06:0)));}
 export function consumeSupply(w,b,inputs,runs){const keys=states.get(w)?.supply.get(b.id);if(keys)for(const [k,v] of Object.entries(inputs||{}))if(keys[k])keys[k].amount=Math.max(0,keys[k].amount-v*runs);}
 export function buildingLogistics(w,d,b){const s=states.get(w),link=s?.links.get(b.id);let incoming=0,outgoing=0,total=0;for(const j of s?.jobs||[]){if(j.destinationId===b.id){incoming++;total+=j.distance;}if(j.sourceId===b.id)outgoing++;}const dest=link&&s.byId.get(link.destinationId);return {destination:dest?d.buildings[dest.type].name:null,distance:link?.distance||0,incoming,outgoing,average:incoming?total/incoming:0,efficiency:refinementEfficiency(w,d,b),reserve:b.harvestBonus||0,outputs:{...b.outputReserve}};}
+// Living Kingdom Phase 9 districts: ordered first-match kind map. Exact type
+// names (not substrings): sawmill/mill, grand-granary/granary,
+// bell-tower/tower and dawn-gate/gate would otherwise collide families.
+const DISTRICT_KINDS=[['farming',/^(farm|mill|bakery|granary|pasture|grove|whisper-grove|frostgrove|pond|deephole|blackwater-weir)$/],['industrial',/^(mine|forge|forge-quarter|smeltery|armory|sawmill|lumber|timber_yard|mason_yard|tannery|butchery|workshop|emberglass)$/],['military',/^(barracks|fletcher|shieldwall-yard|tower|archer_tower|ballista|wall|stonewall|city-wall|rampart|gate|grand-watchtower)$/],['market',/^(market|market-square|storehouse|grand-granary)$/],['residential',/^(cottage|longhouse|gardens|manor-gardens)$/],['civic',/^(chapel|sunken-chapel|schoolroom|scriptorium|scout_post|bell-tower|bellcote|dawn-gate|monument|oathstone|moon-dial|cairnfield|hall)$/]];
+export function districtKindOf(type){for(const [kind,re] of DISTRICT_KINDS)if(re.test(type))return kind;return null;}
+const districtCache=new WeakMap();
+function computeDistrictGrid(w){
+ const byCell=new Map();
+ for(const b of w.buildings){
+  if(!(b&&b.hp>0)||b.remaining>0)continue;
+  const kind=districtKindOf(b.type);
+  if(!kind)continue;
+  const cx=Math.floor(b.x/6),cy=Math.floor(b.y/6),key=cy*4096+cx;
+  let cell=byCell.get(key);
+  if(!cell){cell={cx,cy,counts:new Map()};byCell.set(key,cell);}
+  cell.counts.set(kind,(cell.counts.get(kind)||0)+1);
+ }
+ const cells=[];
+ for(const cell of byCell.values()){let kind=null,count=0;for(const [k,n] of cell.counts)if(n>count){count=n;kind=k;}cells.push({cx:cell.cx,cy:cell.cy,kind:count>=2?kind:null,count});}
+ cells.sort((a,b)=>a.cy-b.cy||a.cx-b.cx);
+ return {cells,at:w.elapsed||0};
+}
+// 6x6-tile concentration grid over living buildings; recomputed only when the
+// 30s elapsed bucket changes. Returns detached copies, never the cached value.
+export function districtGrid(w,data){
+ const bucket=Math.floor((w.elapsed||0)/30);
+ let entry=districtCache.get(w);
+ if(!entry||entry.atBucket!==bucket){entry={atBucket:bucket,value:computeDistrictGrid(w)};districtCache.set(w,entry);}
+ return {cells:entry.value.cells.map(c=>({...c})),at:entry.value.at};
+}
 // Future Warfront consumers get values, never mutable runtime jobs/maps.
-export function settlementTopology(w,d){const districts={industrial:[],food:[],residential:[],trade:[],military:[]},hubs=[],gates=[];for(const b of w.buildings){if(!live(b))continue;const spec=d.buildings[b.type];if(spec.storage)hubs.push(b.id);if(b.type==='gate')gates.push(b.id);const type=b.type;if(/mine|forge|smelt|armory|sawmill/.test(type))districts.industrial.push(b.id);if(/farm|mill|bakery|granary|pasture/.test(type))districts.food.push(b.id);if(/cottage|longhouse|chapel|gardens|hall/.test(type))districts.residential.push(b.id);if(/market/.test(type))districts.trade.push(b.id);if(/barrack|fletcher|shield|tower|gate/.test(type))districts.military.push(b.id);}
- const intersections=[],roads=Object.entries(w.roads||{}).map(([key,tier])=>({key,tier}));for(const r of roads){const [x,y]=r.key.split(',').map(Number);let neighbors=0;for(const k of [`${x+1},${y}`,`${x-1},${y}`,`${x},${y+1}`,`${x},${y-1}`])if(w.roads[k])neighbors++;if(neighbors>=3)intersections.push(r.key);}return {hubs,gates,districts,roads,intersections,primaryRoads:Object.entries(w.trails||{}).filter(([,e])=>e[0]>=45).map(([key,e])=>({key,wear:e[0],tier:w.roads?.[key]||0})),routes:(states.get(w)?.jobs||[]).map(j=>({sourceId:j.sourceId,destinationId:j.destinationId,resource:j.resource,distance:j.distance}))};}
+export function settlementTopology(w,d){const districts={industrial:[],food:[],residential:[],trade:[],military:[],civic:[],market:[]},hubs=[],gates=[];for(const b of w.buildings){if(!live(b))continue;const spec=d.buildings[b.type];if(spec.storage)hubs.push(b.id);if(b.type==='gate')gates.push(b.id);const type=b.type;if(/mine|forge|smelt|armory|sawmill/.test(type))districts.industrial.push(b.id);if(/farm|mill|bakery|granary|pasture/.test(type))districts.food.push(b.id);if(/cottage|longhouse|chapel|gardens|hall/.test(type))districts.residential.push(b.id);if(/market/.test(type))districts.trade.push(b.id);if(/barrack|fletcher|shield|tower|gate/.test(type))districts.military.push(b.id);const kind=districtKindOf(type);if(kind==='civic')districts.civic.push(b.id);else if(kind==='market')districts.market.push(b.id);}
+ const intersections=[],roads=Object.entries(w.roads||{}).map(([key,tier])=>({key,tier}));for(const r of roads){const [x,y]=r.key.split(',').map(Number);let neighbors=0;for(const k of [`${x+1},${y}`,`${x-1},${y}`,`${x},${y+1}`,`${x},${y-1}`])if(w.roads[k])neighbors++;if(neighbors>=3)intersections.push(r.key);}return {hubs,gates,districts,cells:districtGrid(w,d).cells,roads,intersections,primaryRoads:Object.entries(w.trails||{}).filter(([,e])=>e[0]>=45).map(([key,e])=>({key,wear:e[0],tier:w.roads?.[key]||0})),routes:(states.get(w)?.jobs||[]).map(j=>({sourceId:j.sourceId,destinationId:j.destinationId,resource:j.resource,distance:j.distance}))};}
 export function visualHauls(w){return states.get(w)?.jobs||[];}
 export function visualCaravans(w){return states.get(w)?.caravans||[];}
 export function requestCaravan(w,d){const s=state(w);if(!s.graph)index(w,d,s);if(s.caravans.length>=1)return false;const market=w.buildings.find(b=>live(b)&&b.type==='market-square')||w.buildings.find(b=>live(b)&&b.type==='market');if(!market)return false;const target=accessTile(s.graph,market,d);if(!target)return false;const f=routeField(s.graph,w,target);if(!f)return false;let entry=null;for(let x=1;x<s.graph.W-1;x++){for(const y of [1,s.graph.H-2]){const p={x:x+.5,y:y+.5};if(Number.isFinite(routeDistance(s.graph,f,p))){entry=p;break;}}if(entry)break;}if(!entry)return false;s.caravans.push({unit:{...entry},entry,target,field:f,phase:'inbound',pause:2,loaded:true,wheel:0,heading:0,resource:'food',cart:true,revision:s.signature,age:0});return true;}
