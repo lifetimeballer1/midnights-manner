@@ -39,6 +39,14 @@ test('auto upgrades opt in per building, wait for repairs/construction/raids, li
  automationSettings(w).autoUpgrade=true;a.autoUpgradeMaxTier=1;advance(g);assert.equal(a.remaining,0);assert.equal(b.remaining,10);advance(g);assert.equal(a.remaining,0);
  b.remaining=0;b.autoUpgradeMaxTier=b.level;w.raidPending={seconds:10};a.autoUpgradeMaxTier=6;advance(g);assert.equal(a.remaining,0);w.raidPending=null;w.resources.wood=0;advance(g);assert.equal(a.remaining,0);
 });
+test('building-type auto upgrade applies to current and future buildings while legacy opt-ins still work',()=>{
+ const {g,w}=fixture(),a=makeBuilding('farm',4,4,data),u=makeUnit('builder',data);w.buildings.push(a);w.troops.push(u);automationSettings(w).autoUpgrade=true;
+ a.autoUpgrade=true;advance(g);assert.equal(a.remaining,10);
+ a.remaining=0;a.level=1;a.autoUpgrade=false;w.automation.autoUpgradeTypes.farm=true;advance(g);assert.equal(a.remaining,10);
+ a.remaining=0;a.level=1;const future=makeBuilding('farm',10,4,data);w.buildings.unshift(future);advance(g);assert.equal(future.remaining,10);
+ future.remaining=0;future.level=1;w.automation.autoUpgradeTypes.farm=false;advance(g);assert.equal(future.remaining,0);assert.equal(a.remaining,0);
+});
+
 test('mission and status reads leave automation and jobs untouched',()=>{const {g,w}=fixture(),b=makeBuilding('farm',4,4,data);w.buildings.push(b);automationStatus(g,b);assert.equal(w.automation,undefined);g.state.mission={};advance(g);assert.equal(w.automation,undefined);});
 
 test('raid warnings and sheltered workers pause new orders without losing manual queues',()=>{

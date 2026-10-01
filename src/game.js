@@ -356,6 +356,12 @@ export class Game {
   if(this.state.mission||this.paused||!Object.hasOwn(this.world.resources,resource)||!Number.isFinite(Number(amount)))return false;
   automationSettings(this.world).reserves[resource]=Math.max(0,Math.min(1e9,Math.floor(Number(amount))));this.persist();return true;
  }
+ setAutomationType(type,value){
+  const spec=this.data.buildings[type];if(this.state.mission||this.paused||!spec||spec.tiers.length<2)return false;
+  const enabled=!!value;automationSettings(this.world).autoUpgradeTypes[type]=enabled;
+  for(const b of this.world.buildings)if(b.type===type)b.autoUpgrade=enabled;
+  this.persist();return true;
+ }
  configureBuilding(id,key,value){
   const b=this.world.buildings.find(b=>b.id===id);if(this.state.mission||this.paused||!b)return false;
   if(key==='autoCraft'||key==='autoUpgrade')b[key]=!!value;

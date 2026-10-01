@@ -8,12 +8,18 @@ import {supplyBonus} from './food.js';
 import {canSpend,spendingAvailable} from './steward-budget.js';
 import {RARITY_ORDER,refinerCrew,craftCost,startCraftOrder,stockCount} from './crafting.js';
 const runtime=new WeakMap(),recipes=new WeakMap();
-const defaults=()=>({autoUpgrade:false,reserves:{},stockTarget:1});
+const defaults=()=>({autoUpgrade:false,autoUpgradeTypes:{},reserves:{},stockTarget:1});
 export function automationSettings(world){
  if(!world.automation)world.automation=defaults();
+ if(!world.automation.autoUpgradeTypes||typeof world.automation.autoUpgradeTypes!=='object'||Array.isArray(world.automation.autoUpgradeTypes))world.automation.autoUpgradeTypes={};
  return world.automation;
 }
 const settings=w=>w.automation||defaults();
+export function autoUpgradeTypeEnabled(world,type,building=null){
+ const byType=settings(world).autoUpgradeTypes;
+ if(byType&&Object.hasOwn(byType,type))return !!byType[type];
+ return !!building?.autoUpgrade;
+}
 const activeRaid=w=>!!w.raidPending||(w.enemies||[]).some(e=>e.hp>0);
 const eligible=(u,d)=>u.hp>0&&d.troops[u.type]?.role==='builder'&&!u.workplace&&!u.order&&!u.expedition&&!u.emergency&&!u.shelteredIn&&!isHauling(u)&&!(u.carry>0);
 function recipeList(data){
@@ -81,7 +87,7 @@ function planBuilders(game,cache){
  if(target){for(const u of builders)u.builderTask={kind:target.remaining>0?'construction':'repair',target:target.id,working:false};return;}
  if(!settings(w).autoUpgrade||!builders.length||repairs.length||construction.length)return;
  for(const b of w.buildings){
-  if(!b.autoUpgrade||w.steward?.enabled&&w.steward.queue?.some(e=>e.buildingId===b.id))continue;
+  if(!autoUpgradeTypeEnabled(w,b.type,b)||w.steward?.enabled&&w.steward.queue?.some(e=>e.buildingId===b.id))continue;
   const spec=d.buildings[b.type],limit=Math.min(spec.tiers.length,b.autoUpgradeMaxTier||spec.tiers.length);
   let note='Waiting for upgrade';
   if(b.hp<=0||b.remaining>0)note='Building unfinished';
@@ -119,6 +125,6 @@ export function automationStatus(game,b){
  if(b.autoCraft===false&&recipeList(game.data).some(([,it])=>it.craft.building===b.type))return 'Auto craft off';
  const task=game.world.troops.find(u=>u.builderTask?.target===b.id);
  if(task)return task.builderTask.working?'Builders '+(task.builderTask.kind==='repair'?'repairing':'constructing'):'Builders travelling';
- if(b.autoUpgrade&&!settings(game.world).autoUpgrade)return 'Auto upgrades paused';
+ if(autoUpgradeTypeEnabled(game.world,b.type,b)&&!settings(game.world).autoUpgrade)return 'Auto upgrades paused';
  return runtime.get(game.world)?.status.get(b.id)||'';
 }
