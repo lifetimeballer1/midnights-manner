@@ -8,6 +8,7 @@ import {center,canPlace,stats,housing,assignedWorkers} from './model.js';
 import {sfx} from './systems/audio.js';
 import {isWall} from './building-art.js';
 import {drawVillage3D,pointInPolygon} from './scene3d.js';
+import {drawBuildingStates} from './fx/building-fx.js';
 import {weatherAt,skyLightAt,phaseAt} from './systems/daynight.js';
 import {drawAtmosphere} from './atmosphere-art.js';
 import {insideWorkplace} from './systems/villagers.js';
@@ -179,6 +180,7 @@ export class Renderer {
   const tier=defense?.tiers[(selected?.level||1)-1];if(tier?.damage&&(selected||this.hover)){const pos=selected?center(selected,this.data):{x:this.hover.x+defense.size/2,y:this.hover.y+defense.size/2};c.save();c.strokeStyle='#f2e2a8';c.lineWidth=1.5;c.setLineDash([6,4]);ring(pos.x,pos.y,tier.range);c.restore();}
   drawAtmosphere(this,world,time,weather,{sceneChimneys:true});
   drawVillage3D(this,world,time,sky,visibleUnits);
+  drawBuildingStates(this,world,time);
   this.collectionSceneObstacles=[];
   const drawables=[];
   for(const b of world.buildings){const n=this.data.buildings[b.type].size;drawables.push({kind:'building',value:b,depth:this.depth(b.x+n/2,b.y+n/2)});}
