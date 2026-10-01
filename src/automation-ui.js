@@ -3,6 +3,13 @@ import {automationSettings,automationStatus,autoUpgradeTypeEnabled,POLICY_CATEGO
 import {shelterOccupants} from './systems/shelter.js';
 import {resourceInfo} from './resources.js';
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+export const RALLY_PRESETS=[['balanced','Balanced'],['gates','Gates'],['manor','Manor'],['walls','Walls'],['storage','Stores'],['reserve','Reserve']];
+export function rallyLabel(id){return (RALLY_PRESETS.find(([v])=>v===id)||RALLY_PRESETS[0])[1];}
+export function defenseRally(g){
+ if(g.state.mission)return '';
+ const cur=g.world.defenseRally||'balanced';
+ return `<div class="job automation-controls"><label>Rally preset <select data-rally aria-label="Rally preset">${RALLY_PRESETS.map(([v,label])=>`<option value="${v}" ${cur===v?'selected':''}>${label}</option>`).join('')}</select></label><small>Steers automatic defense posts; fighters you placed stay put.</small></div>`;
+}
 export function defenseChoice(g,u){
  if(g.state.mission)return '';
  if(g.data.troops[u.type]?.role!=='combat')return '';
@@ -33,7 +40,8 @@ export function automationChange(g,e){
  if(t.matches('[data-automation-policy-tier]')){const s=automationSettings(g.world),cat=t.dataset.automationPolicyTier;if(s.policies?.[cat])s.policies[cat].maxTier=Math.max(1,Math.min(6,Math.floor(Number(t.value))||6));if(typeof g.persist==='function')g.persist();return true;}
  if(t.matches('[data-automation-policy-priority]')){const s=automationSettings(g.world),cat=t.dataset.automationPolicyPriority;if(s.policies?.[cat])s.policies[cat].priority=['low','normal','high'].includes(t.value)?t.value:'normal';if(typeof g.persist==='function')g.persist();return true;}
  if(t.matches('[data-automation-reserve-pct]')){const s=automationSettings(g.world),[cat,res]=String(t.dataset.automationReservePct||'').split(':');if(cat&&res){s.reservePct[cat]=s.reservePct[cat]||{};s.reservePct[cat][res]=Math.max(0,Math.min(100,Math.floor(Number(t.value))||0));}if(typeof g.persist==='function')g.persist();return true;}
- if(t.matches('[data-defense-assign]')){g.assignDefense(t.dataset.defenseAssign,t.value==='reserve'?null:t.value);return true;}
+  if(t.matches('[data-rally]')){g.setRally(t.value);return true;}
+  if(t.matches('[data-defense-assign]')){g.assignDefense(t.dataset.defenseAssign,t.value==='reserve'?null:t.value);return true;}
  if(t.matches('[data-building-tier]')){g.configureBuilding(t.dataset.buildingTier,'autoUpgradeMaxTier',Number(t.value));return true;}
  if(t.matches('[data-automation-reserve]')){g.setAutomationReserve(t.dataset.automationReserve,Number(t.value));return true;}
  if(t.matches('[data-automation-stock]')){g.setAutomation('stockTarget',Number(t.value));return true;}

@@ -5,7 +5,7 @@ import {createDistrict,updateDistrict,removeDistrict} from './systems/steward-di
 import {spendingAvailable,canSpend} from './systems/steward-budget.js';
 import {tickSteward,refreshSteward} from './systems/steward.js';
 import {setGoal,clearGoal} from './systems/steward-goals.js';
-import {tickDefensePosts,assignDefensePost,defenseRaidSummary} from './systems/defense-posts.js';
+import {tickDefensePosts,assignDefensePost,defenseRaidSummary,setRally as setRallyPreset} from './systems/defense-posts.js';
 import {tickAutomation,automationSettings} from './systems/automation.js';
 import {bankOutput,outputAmount} from './systems/refiner-output.js';
 import {tickLogistics,requestCaravan} from './systems/logistics.js';
@@ -303,7 +303,12 @@ export class Game {
   if(buildingId==='auto'){if(!assignDefensePost(this.world,this.data,u,null,false))return false;u.order=null;this.persist();return true;}
   if(!u||!assignDefensePost(this.world,this.data,u,buildingId||null,true))return this.notify('No suitable defense opening.'),false;
   u.order=null;this.persist();this.notify(buildingId?'Defense post assigned.':'Fighter held in reserve.');return true;
- }
+  }
+  setRally(id){
+   if(this.state.mission||this.paused)return false;
+   if(!setRallyPreset(this.world,id))return false;
+   this.persist();this.notify(`Rally preset: ${id}.`);return true;
+  }
  setSteward(key,value){
   if(this.state.mission||this.paused||!['enabled','protectMeals','protectRepairs','autoEquip','queueEnabled'].includes(key))return false;
   this.world.steward??={enabled:false,main:null,secondary:[],protectMeals:true,protectRepairs:true};
