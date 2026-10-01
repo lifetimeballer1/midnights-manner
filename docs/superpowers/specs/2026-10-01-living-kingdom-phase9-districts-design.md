@@ -32,6 +32,8 @@ untouched. Missing: spatial concentration grid, Civic/Market kinds, any consumer
 - Consumers: road scorer +2 wear-equiv on industrial/market/farming cells; eventAnchor
   tie-breaks toward the `place.near` type's district; ambienceProfile.work sorts the
   district-dominant kind first (no filtering — quiet districts still sound).
+  Logistics tick/graph/refinement deliberately untouched — "logistics use" in this
+  slice means topology + readout + anchor only; deeper hooks belong to Phase 10.
 - Readability: Stores logistics card lists districts with counts (B).
 
 ## Packets
