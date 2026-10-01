@@ -173,6 +173,28 @@ export function enemyGearFor(unit){
  if(unit.role==='boss'&&unit.bossId==='pale-queen')return 'longbow';
  return '';
 }
+function factionSilhouette(s,u,x,y,bob,detail){
+ // Faction read at gameplay zoom: pale bone, thornband moss hood,
+ // cinder soot guards, ember red crest. Renderer-only; stats untouched.
+ const f=u.faction||'';
+ if(f==='pale-host'||f==='pale-court'){
+  const bone='#d8d3c2',pit='#1c2226';
+  s.box(x-.1,y-.09,.57+bob,.2,.18,.19,bone);
+  if(detail)for(const dx of [-.066,.038])s.box(x+dx,y+.092,.65+bob,.028,.016,.03,pit);
+  for(let i=0;i<3;i++)s.box(x-.13,y-.1,.3+i*.07,.26,.02,.03,bone);
+  for(const dx of [-.22,.15])s.box(x+dx,y-.075,.4,.075,.14,.06,bone);
+ }else if(f==='thornband'){
+  const moss='#4a5a3f';
+  s.box(x-.13,y-.13,.74+bob,.26,.25,.12,moss);
+  s.box(x-.13,y-.13,.56+bob,.26,.05,.18,moss);
+ }else if(f==='cinder-clan'){
+  for(const dx of [-.24,.15])s.box(x+dx,y-.075,.42,.085,.17,.09,'#3a3d3f');
+ }else if(f==='ember-legion'){
+  s.box(x-.025,y-.02,.82+bob,.05,.06,.22,'#b6402e');
+ }
+ if(f==='pale-court'&&detail)for(const dx of [-.24,.15])s.box(x+dx,y-.13,.5,.09,.18,.05,'#e8c673');
+}
+
 function enemyRoleSilhouette(s,u,x,y,bob,detail,coat){
  if(!u)return;
  if(u.role==='ram'){
@@ -331,7 +353,7 @@ export function characterModel(s,u,data,time,enemy=false){
  const toolAngle=s.r.calm||bow?0:attack?-1.1*Math.min(1,u.animation/.4):lift*4.2;
  const item=/cart/.test(gear)&&!s.r.calm?{...data.items[gear],wheelAngle:-gait.distance/.065}:bow&&!s.r.calm&&u.attackTimer>0&&u.attackTimer<.18?{...data.items[gear],draw:1-u.attackTimer/.18}:data.items[gear];
  equipment(pivotMesh(s,[x+.24,y,.34],toolAngle),gear,item,x,y,0,detail);
- if(enemy)enemyRoleSilhouette(s,u,x,y,bob,detail,coat);
+  if(enemy){enemyRoleSilhouette(s,u,x,y,bob,detail,coat);factionSilhouette(s,u,x,y,bob,detail);}
   if(/bow/.test(gear)){
    s.box(x-.12,y-.2,.32,.13,.09,.32,leather);
    if(detail)for(const dx of [-.1,-.04])s.box(x+dx,y-.18,.61,.02,.02,.17,'#d9cda5');
