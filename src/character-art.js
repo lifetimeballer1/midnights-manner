@@ -295,9 +295,11 @@ export function characterModel(s,u,data,time,enemy=false){
   if(gait.moving)beam(s,[x+dx+.043,y,.26],[px+.043,py,.07],.085,leather);else s.box(x+dx,y-.075,.055,.085,.15,.2,leather);
   if(detail||gait.moving)s.box(px-.01,py-.06,.02,.105,.2,.08,'#41453d');
  }
- s.box(x-.15,y-.11,.25,.3,.22,.31,coat);
- if(hat==='robe')s.box(x-.17,y-.13,.13,.34,.26,.2,coat);
- if(hat==='apron')s.box(x-.1,y+.115,.24,.2,.02,.3,'#d3b58b');
+  s.box(x-.15,y-.11,.25,.3,.22,.31,coat);
+  if(hat==='robe'){s.box(x-.17,y-.13,.13,.34,.26,.2,coat);s.box(x-.19,y-.15,.02,.38,.3,.11,coat);}
+  if(hat==='apron')s.box(x-.1,y+.115,.24,.2,.02,.3,'#d3b58b');
+  if(!enemy&&troop?.role==='builder'){s.box(x-.155,y-.115,.18,.31,.02,.07,leather);if(detail)s.box(x-.03,y+.117,.19,.06,.025,.05,brass);}
+  if(!enemy&&troop?.role==='collector'){s.box(x-.24,y-.1,.32,.08,.16,.14,leather);if(detail)s.box(x-.245,y-.105,.4,.09,.03,.05,brass);}
  if(detail){s.box(x-.154,y-.114,.29,.308,.228,.045,leather);s.box(x-.035,y+.117,.29,.07,.018,.046,'#d8bd79');}
  for(const dx of [-.22,.15]){const swing=-gait.swing*(dx<0?1:-1);if(gait.moving||lift)beam(s,[x+dx+.035,y,.52],[x+dx+.035+gait.dx*swing,y+gait.dy*swing,.29+(dx>0?lift:0)],.07,dx===.15&&professionColor?professionColor:coat);else s.box(x+dx,y-.075,.29,.07,.13,.23,dx===.15&&professionColor?professionColor:coat);}
  if(detail){s.box(x-.22,y-.076,.27,.075,.14,.075,skin);s.box(x+.15,y-.076,.27+lift,.075,.14,.075,skin);}
@@ -307,7 +309,7 @@ export function characterModel(s,u,data,time,enemy=false){
    s.box(x-.12,y-.11,.74+bob,.24,.22,.1,hat==='lamp'?'#86754f':metal);
    if(hat==='crest'){s.box(x-.025,y-.02,.82+bob,.05,.06,.22,brass);s.box(x-.075,y-.02,1.0+bob,.15,.06,.045,'#b76053');}
    if(detail&&hat==='helmet')for(const dx of [-.12,.085])s.box(x+dx,y-.1,.61+bob,.035,.18,.14,metal);
-  if(hat==='lamp')s.box(x-.035,y+.115,.75+bob,.07,.035,.055,'#f6df9a');
+   if(hat==='lamp'){s.emissive=.7;s.box(x-.035,y+.115,.75+bob,.07,.035,.055,'#f6df9a');s.emissive=0;}
   }else if(hat==='goggles'){
    s.box(x-.12,y-.11,.74+bob,.24,.22,.085,coat);
    s.box(x-.095,y+.075,.62+bob,.075,.035,.065,'#c7d6d6');s.box(x+.025,y+.075,.62+bob,.075,.035,.065,'#c7d6d6');
@@ -330,10 +332,13 @@ export function characterModel(s,u,data,time,enemy=false){
  const item=/cart/.test(gear)&&!s.r.calm?{...data.items[gear],wheelAngle:-gait.distance/.065}:bow&&!s.r.calm&&u.attackTimer>0&&u.attackTimer<.18?{...data.items[gear],draw:1-u.attackTimer/.18}:data.items[gear];
  equipment(pivotMesh(s,[x+.24,y,.34],toolAngle),gear,item,x,y,0,detail);
  if(enemy)enemyRoleSilhouette(s,u,x,y,bob,detail,coat);
- if(/bow/.test(gear)){
-  s.box(x-.12,y-.2,.32,.13,.09,.32,leather);
-  if(detail)for(const dx of [-.1,-.04])s.box(x+dx,y-.18,.61,.02,.02,.17,'#d9cda5');
- }
+  if(/bow/.test(gear)){
+   s.box(x-.12,y-.2,.32,.13,.09,.32,leather);
+   if(detail)for(const dx of [-.1,-.04])s.box(x+dx,y-.18,.61,.02,.02,.17,'#d9cda5');
+   // Back quiver: leather tube + fletched shafts, readable at gameplay zoom.
+   s.box(x-.28,y-.12,.42,.09,.14,.3,leather);
+   for(const dz of [.62,.68,.74])s.box(x-.26,y-.1,dz,.045,.05,.1,'#d9cda5');
+  }
  if(enemy&&u.role==='breaker')s.box(x-.27,y-.13,.28,.09,.32,.37,'#687777');
   if(u.armor){
    const armorColor=rarityColor(data.items[u.armor]?.rarity);
