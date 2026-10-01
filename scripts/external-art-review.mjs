@@ -6,6 +6,7 @@ import {createWorld,makeBuilding} from '../src/model.js';
 import {MeshScene} from '../src/scene3d.js';
 import {addExternalProp} from '../src/external-art.js';
 import {externalGeometry} from '../src/external-geometry.js';
+import {phaseAt,weatherAt} from '../src/systems/daynight.js';
 const {createCanvas}=await import(pathToFileURL(process.env.CANVAS_MODULE).href);
 const names=['world','troops','items','abilities','buildings','missions','quests','biomes','expansion'];
 const data=Object.fromEntries(await Promise.all(names.map(async n=>[n,JSON.parse(await readFile(`data/${n}.json`))])));
@@ -23,8 +24,9 @@ const types=['hall','storehouse','longhouse','farm','pasture','mine','lumber','f
 for(const [i,type] of types.entries()){
  const b=makeBuilding(type,3+(i%4)*4,3+Math.floor(i/4)*4,data,Math.min(3,data.buildings[type].tiers.length));b.remaining=0;b.id='art-'+i;world.buildings.push(b);
 }
-for(const [name,width,height,yaw,pitch,time] of [['day',1000,850,45,42,400],['reverse',1000,850,225,42,400],['night',1000,850,135,42,960],['phone',390,844,45,42,400]]){
+let nightTime=240;for(let t=200;t<30000;t+=5)if(phaseAt(t,data).night&&weatherAt(t,data).id==='clear'){nightTime=t;break;}
+for(const [name,width,height,yaw,pitch,time] of [['day',1000,850,45,42,400],['reverse',1000,850,225,42,400],['night',1000,850,135,42,nightTime],['phone',390,844,45,42,400]]){
  const canvas=createCanvas(width,height),r=new Renderer(canvas,data,{});r.resize(width,height,1);r.cam={x:11,y:10,zoom:width<600?1.65:2.2,yaw:yaw*Math.PI/180,pitch:pitch*Math.PI/180};r.calm=true;world.elapsed=time;r.draw(world,1000);
  await writeFile(`artifacts/external-village-${name}.png`,canvas.toBuffer('image/png'));
- console.log(name,r.sceneFaces.length,'visible faces');
+ console.log(name,phaseAt(time,data).id,r.sceneFaces.length,'visible faces');
 }
