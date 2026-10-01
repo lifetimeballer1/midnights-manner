@@ -138,10 +138,12 @@ function planBuilders(game,cache){
  for(const b of repairs)if(spendingAvailable(game,'wood',{purpose:'repair',buildingId:b.id})<=0)cache.status.set(b.id,'Waiting for wood above reserve');
  const target=repairs.find(b=>spendingAvailable(game,'wood',{purpose:'repair',buildingId:b.id})>0)||construction[0];
   if(target){for(const u of builders)u.builderTask={kind:target.remaining>0?'construction':'repair',target:target.id,working:false};return;}
-  // Living Kingdom slice 1: idle-only builder road jobs (2s tick only, never
-  // per-frame). Gated by stone-road tiers with reserves enforced. The
-  // policies guard tolerates the pre-Task-2 world via `?.`.
-  if(settings(w).policies?.roads!==false){
+   // Living Kingdom slice 1: idle-only builder road jobs (2s tick only, never
+   // per-frame). Gated by stone-road tiers with reserves enforced. The
+   // policies guard tolerates the pre-Task-2 world via `?.` and legacy
+   // boolean `false` saves.
+   const roadsPol=settings(w).policies?.roads;
+   if(!(roadsPol===false||roadsPol?.on===false)){
    const net=greatWorkTier(w,'stone-road');
    if(net)for(const row of busyRoutes(w,4,d)){
     const tier=row.road?2:1;if(tier===2&&net<3)continue;
@@ -174,10 +176,12 @@ export function tickAutomation(game,dt){
  cache.timer+=dt;
  if(cache.timer>=2){cache.timer=0;cache.status.clear();cache.byId=new Map(w.buildings.map(b=>[b.id,b]));planCraft(game,cache);planBuilders(game,cache);}
  const byId=cache.byId,raiding=activeRaid(w);
-  for(const u of w.troops){
-   if(!u.builderTask)continue;
-   if(u.builderTask.kind==='road'){
-    if(raiding||!eligible(u,d)){delete u.builderTask;continue;}
+   for(const u of w.troops){
+    if(!u.builderTask)continue;
+    if(u.builderTask.kind==='road'){
+     const roadsPol=settings(w).policies?.roads;
+     if(roadsPol===false||roadsPol?.on===false){delete u.builderTask;continue;}
+     if(raiding||!eligible(u,d)){delete u.builderTask;continue;}
     const [sx,sy]=String(u.builderTask.seed||'').split(',').map(Number);
     if(!Number.isFinite(sx)||!Number.isFinite(sy)){delete u.builderTask;continue;}
     const arrived=move(w,d,u,{x:(sx+.5)/2,y:(sy+.5)/2},stats(u,d).speed,dt,.7,false,true);
@@ -187,7 +191,8 @@ export function tickAutomation(game,dt){
     if(arrivalQuote.error||!canSpend(game,arrivalQuote.cost,{purpose:'road'})){delete u.builderTask;continue;}
     const done=buildRoad(w,d,u.builderTask.seed,u.builderTask.tier);
     let next=null;
-    if(done.ok)for(const row of busyRoutes(w,4,d)){
+    const chainPol=settings(w).policies?.roads;
+    if(done.ok&&!(chainPol===false||chainPol?.on===false))for(const row of busyRoutes(w,4,d)){
      const [ax,ay]=row.key.split(',').map(Number);
      if(Math.hypot(ax-sx,ay-sy)>12)continue;
      const tier=row.road?2:1,net=greatWorkTier(w,'stone-road');

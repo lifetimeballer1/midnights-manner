@@ -38,7 +38,7 @@ Accept: contact sheet shows desire→dirt→stone + granary hub emphasis; boss s
 
 ## Clarifications (self-review 2026-10-01)
 - `% reserve` = percent of `storageCap(world,data,resource)` per resource, stored as `automation.reservePct.{category}.{resource}`, enforced via `spendingAvailable` (never below floor). V1 default 0%.
-- Road importance = deterministic cached score recomputed max once per 2s automation tick: `wear(0-100) + 2×haulJobs on cell + hub/production→storage + homes→workplaces + gates/defenses adjacency`. No per-frame scan.
+- Road importance (v1 wear-only, cycle-safe) = deterministic cached wear score recomputed max once per 2s automation tick. Haul/hub/production→storage/workplace/gate weighting is a follow-up, not this slice.
 - `Nearby` = within 12 half-tile cells of the just-completed road quote seed; builder continues only if `roadQuote` still validates.
 - Per-category max tier clamps per-building `autoUpgradeMaxTier` (min of the two); category table maps `wall,gate,tower,farm,mine,lumber,cottage/longhouse,hall/storehouse/granary,workshops,barracks/defenses,roads`.
 - `builderTask.kind='road'` target is `{seed, tier, cells}` (not buildingId); `move()` reuses existing builder travel loop; raids/missions clear it like repairs.

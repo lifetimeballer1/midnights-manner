@@ -54,9 +54,17 @@ export function budgetSnapshot(game){
 // storageCap(world,data,resource) for automation.reservePct[category][res],
 // default 0%. Uncapped resources and missing data resolve to zero so legacy
 // behavior is unchanged. The purpose carries the category ('road' aliases
-// 'roads'); unknown purposes simply have no pct entry.
-function pctReserveFloor(w,d,resource,purpose){
- const cat=purpose==='road'?'roads':purpose;
+// 'roads'); real spenders use purpose 'upgrade'/'repair'/'craft' with a
+// buildingId, so a live building maps via the CATEGORY_OF table in
+// automation.js (mirrored here to avoid an import cycle); unknown purposes
+// simply have no pct entry.
+const CATEGORY_OF={wall:'walls',gate:'gates',tower:'towers',archer_tower:'towers',ballista:'towers',farm:'farms',mine:'mines',lumber:'lumber',timber_yard:'lumber',sawmill:'lumber',cottage:'housing',longhouse:'housing',hall:'storage',storehouse:'storage','grand-granary':'storage',forge:'workshops',workshop:'workshops',smeltery:'workshops',barracks:'military'};
+function pctReserveFloor(w,d,resource,purpose,buildingId){
+ let cat=purpose==='road'?'roads':purpose;
+ if(buildingId!=null&&Array.isArray(w.buildings)){
+  const b=w.buildings.find(x=>x&&x.id===buildingId);
+  if(b&&CATEGORY_OF[b.type])cat=CATEGORY_OF[b.type];
+ }
  const pct=Number(w.automation?.reservePct?.[cat]?.[resource]);
  if(!(pct>0)||!d)return 0;
  const cap=storageCap(w,d,resource);
@@ -64,7 +72,7 @@ function pctReserveFloor(w,d,resource,purpose){
  return cap*pct/100;
 }
 export function spendingAvailable(gameOrWorld,resource,{purpose='craft',buildingId}={}){
- const w=gameOrWorld.world||gameOrWorld,d=gameOrWorld?.data,owned=amount(w.resources?.[resource]),floor=Math.max(manual(w,resource),pctReserveFloor(w,d,resource,purpose));
+ const w=gameOrWorld.world||gameOrWorld,d=gameOrWorld?.data,owned=amount(w.resources?.[resource]),floor=Math.max(manual(w,resource),pctReserveFloor(w,d,resource,purpose,buildingId));
  if(!w.steward?.enabled)return Math.max(0,owned-floor);
  const rows=plans.get(w)||[];
  // An operation can use its own basket and lower-priority funds. Unrelated

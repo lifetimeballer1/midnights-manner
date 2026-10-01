@@ -42,6 +42,36 @@ test('LK slice: policies maxTier caps upgrades and pct reserve floors spending',
   const floor=storageCap(w,data,'wood')*10/100;
   assert.equal(spendingAvailable(g,'wood',{purpose:'walls'}),w.resources.wood-floor);
 });
+test('LK slice fix: roads OFF blocks planning and clears in-flight road task',()=>{
+  const g=new Game(data);g.state.vlevel=9;const w=g.state.world;
+  w.buildings.push(makeBuilding('stone-road',18,15,data,3));
+  for(let i=0;i<250;i++)recordTravel(w,data,2.25,8.25,8.25,8.25);
+  w.resources={...w.resources,wood:1000,gold:1000,lumber:1000};
+  const s=automationSettings(w);
+  const b=w.troops.find(u=>data.troops[u.type]?.role==='builder');
+  assert.ok(b,'needs a builder');
+  s.policies.roads={on:false,maxTier:6,priority:'normal'};
+  tickAutomation(g,0.1);
+  assert.equal(b.builderTask,undefined,'no road task planned while OFF');
+  s.policies.roads={on:true,maxTier:6,priority:'normal'};
+  tickAutomation(g,2.1);
+  assert.equal(b.builderTask?.kind,'road','road task planned while ON');
+  s.policies.roads={on:false,maxTier:6,priority:'normal'};
+  tickAutomation(g,0.1);
+  assert.equal(b.builderTask,undefined,'in-flight road task cleared while OFF');
+  tickAutomation(g,2.1);
+  assert.notEqual(b.builderTask?.kind,'road','no replan while OFF');
+});
+test('LK slice fix: walls % reserve enforced on real upgrade path',()=>{
+  const g=new Game(data);const w=g.state.world;
+  const s=automationSettings(w);
+  const wall=makeBuilding('wall',5,5,data,1);wall.remaining=0;w.buildings.push(wall);
+  s.reservePct={walls:{wood:10}};
+  w.resources.wood=storageCap(w,data,'wood');
+  const floor=storageCap(w,data,'wood')*10/100;
+  assert.equal(spendingAvailable(g,'wood',{purpose:'upgrade',buildingId:wall.id}),w.resources.wood-floor);
+  assert.equal(spendingAvailable(g,'wood',{purpose:'mystery'}),w.resources.wood);
+});
 test('LK slice: stores panel lists one policy row per category',()=>{
   const g=new Game(data);
   automationSettings(g.state.world);
