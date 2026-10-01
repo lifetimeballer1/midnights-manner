@@ -56,3 +56,22 @@ test('detail pass: ruins and construction do not show finished workplace clutter
  assert.ok(!has(building,'#9fd0d0'),'construction hides the finished quench trough');
  assert.ok(!has(ruin,'#9fd0d0'),'ruins hide the finished quench trough');
 });
+
+test('detail pass (V1): citadel, grand watchtower and great-work tiers gain masterwork props',()=>{
+ const citadel3=model('manner-citadel',3),citadel4=model('manner-citadel',4);
+ assert.ok(!has(citadel3,'#8d6844'),'citadel stays clean below masterwork tier');
+ assert.ok(has(citadel4,'#8d6844'),'citadel tier 4 stages quartermaster crates');
+ const watch3=model('grand-watchtower',3),watch4=model('grand-watchtower',4);
+ assert.ok(!has(watch3,'#8f7555'),'watchtower stays clean below masterwork tier');
+ assert.ok(has(watch4,'#8f7555'),'watchtower tier 4 braces a supply rack at the stair foot');
+ for(const type of ['stone-road','city-wall','forge-quarter','lantern-rows']){
+  const t3=model(type,3),t4=model(type,4),t5=model(type,5),t6=model(type,6);
+  assert.ok(!has(t3,'#8d6844'),`${type} stays clean below masterwork tier`);
+  assert.ok(has(t4,'#8d6844'),`${type} tier 4 stages a supply crate`);
+  assert.ok(!has(t4,'#8a6646')&&has(t5,'#8a6646'),`${type} tier 5 adds the barrel store`);
+  assert.ok(!has(t5,'#ffd58b')&&has(t6,'#ffd58b'),`${type} tier 6 raises its lantern`);
+ }
+ const far=model('manner-citadel',4,1.1),ruin=model('manner-citadel',4,1.8,{hp:0});
+ assert.ok(!has(far,'#8d6844'),'citadel crates drop out when zoomed away');
+ assert.ok(!has(ruin,'#8d6844'),'ruined citadel hides its quartermaster stores');
+});

@@ -491,10 +491,25 @@ function masterworkDetails(s,b,spec,fine){
    if(l>=5)s.box(x+.3,front+.02,.4,.07,.03,.4,'#d5c59c');
    if(l>=6)lanternPost(s,x+n-.32,y+.3,.62,.9,.4);
   }
-  if(t==='tower'||t==='archer_tower'||t==='ballista'){
-   if(l>=5)detailCrate(s,x+side,y+.26,.12,.85);
-   if(l>=6)detailBarrel(s,x+n-.45,y+.3,.12,.85);
-  }
+   if(t==='tower'||t==='archer_tower'||t==='ballista'){
+    if(l>=5)detailCrate(s,x+side,y+.26,.12,.85);
+    if(l>=6)detailBarrel(s,x+n-.45,y+.3,.12,.85);
+   }
+   if(t==='grand-watchtower'){
+    // Signal post: braced supply rack at the stair foot, stores above.
+    s.box(x+side,y+.3,.12,.08,.08,.66,timber);s.box(x+side-.12,y+.34,.39,.32,.08,.08,'#8f7555');
+    if(l>=5)detailCrate(s,x+n-.48,y+.3,.12,.85);
+    if(l>=6){detailBarrel(s,x+side,y+.5,.12,.85);lanternPost(s,x+n-.32,y+.3,.62,.9,.4);}
+   }
+   if(t==='manner-citadel'){
+    // Seat of the manner: quartermaster crates and a banner rack by the
+    // stair, stone braces and gilt trim closing in at fine zoom.
+    detailCrate(s,x+side,front-.24,.13,1);
+    for(let i=0;i<3;i++)s.box(x+.3+i*.16,front+.02,.4,.09,.035,.3,i%2?'#718e9b':'#ad6155');
+    if(fine){s.box(x+.2,front-.3,.13,.2,.2,.5,stone);s.box(x+.2,front-.3,.63,.24,.24,.07,gold);}
+    if(l>=5)detailBarrel(s,x+n-.42,y+.3,.13,.95);
+    if(l>=6)lanternPost(s,x+n-.32,y+.3,.7,1,.42);
+   }
   if(t==='watchfire'){
    if(l>=5)s.box(x+.2,y+.2,.12,.3,.2,.14,'#6b5541');
    if(l>=6)detailCrate(s,x+n-.48,y+.3,.12,.8);
@@ -543,11 +558,26 @@ function masterworkDetails(s,b,spec,fine){
    if(l>=5)detailCrate(s,x+side,y+.26,.12,.82);
    if(l>=6){s.box(x+n*.43,y+n*.43,.5,.14,.14,.3,stone);s.pyramid(x+n*.5,y+n*.5,.8,.12,.16,gold,4);}
   }
-  if(t==='stone-road'||t==='city-wall'||t==='forge-quarter'||t==='lantern-rows'){
-   detailCrate(s,x+side,y+.26,.12,.85);
-   if(l>=5)detailBarrel(s,x+n-.48,y+.3,.12,.85);
-   if(l>=6)lanternPost(s,x+.28,y+.28,.7,1,.42);
-  }
+   if(t==='stone-road'){
+    detailCrate(s,x+side,y+.26,.12,.85);
+    if(l>=5){detailBarrel(s,x+n-.48,y+.3,.12,.85);s.box(x+.2,front-.2,.13,.5,.14,.4,stone);}
+    if(l>=6){lanternPost(s,x+.28,y+.28,.7,1,.42);s.box(x+.3,front+.02,.4,.09,.035,.28,'#718e9b');}
+   }
+   if(t==='city-wall'){
+    detailCrate(s,x+side,y+.26,.12,.85);
+    if(l>=5){detailBarrel(s,x+n-.48,y+.3,.12,.85);for(let i=0;i<2;i++)s.box(x+.32+i*.2,front+.02,.4,.1,.04,.3,i%2?'#ad6155':'#718e9b');}
+    if(l>=6){lanternPost(s,x+.28,y+.28,.7,1,.42);if(fine)s.box(x+.2,front-.3,.63,.24,.24,.07,gold);}
+   }
+   if(t==='forge-quarter'){
+    detailCrate(s,x+side,y+.26,.12,.85);
+    if(l>=5){detailBarrel(s,x+n-.48,y+.3,.12,.85);for(let i=0;i<3;i++)s.box(x+.72+i*.14,y+.4,.13,.11,.28,.07,i%2?'#b6c1bf':'#879493');}
+    if(l>=6){lanternPost(s,x+.28,y+.28,.7,1,.42);s.box(x+.2,front-.3,.13,.2,.2,.5,stone);}
+   }
+   if(t==='lantern-rows'){
+    detailCrate(s,x+side,y+.26,.12,.85);
+    if(l>=5)detailBarrel(s,x+n-.48,y+.3,.12,.85);
+    if(l>=6){lanternPost(s,x+.28,y+.28,.7,1,.42);if(fine)lanternPost(s,x+n-.32,y+.5,.66,.95,.42);}
+   }
   if(t==='bell-tower'){
    if(l>=5)s.box(x+n*.4,y+n*.4,1.5,.2,.2,.2,gold);
    if(l>=6)lanternPost(s,x+.28,y+.28,.7,1,.42);

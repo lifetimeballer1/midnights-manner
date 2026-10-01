@@ -10,7 +10,7 @@ Rule: commit per task. If usage runs out, next session runs: git log -3, git dif
 
 ## Queue
 - [x] HOTFIX ambient-score fail DONE: attemptRoll no-op unless playing; 977 pass 0 fail, nether stays Node-safe.
-- [ ] V1 building detail (90m). NEXT: src/scene3d.js:385-555 add citadel + grand-watchtower branches + richer infra tiers. Guards: l<4 return, ghosts/ruins off, zoom<1.2 off, calm freeze. Verify: node scripts/architecture-preview.mjs + living-review.mjs, update building-detail-pass + lighting-baseline digests deliberately.
+ - [x] V1 building detail DONE: src/scene3d.js:385-555 citadel + grand-watchtower branches + richer infra tiers (per-type stone-road/city-wall/forge-quarter/lantern-rows). Guards kept. Verify: architecture/living previews need canvas (unavailable, skipped); building-detail-pass + lighting-baseline (6 new pins) green, 978 pass 0 fail, build green. Commit `V1 citadel/watchtower/infra detail`.
 - [ ] V2 work cues + light identity (90m). NEXT: src/building-activity.js:39 + src/source-lighting.js, state-derived only, outside static cache, zoom<1.05 off. Verify: production-preview.mjs + npm run capture dawn/day/dusk/night+phone.
 - [ ] P1 balance + clutter/perf (90m). NEXT: docs/BALANCE_ECONOMY_TARGETS.md pins (T1=base T2=2x T3 8-10x T4 20-24x Project 8x Renown +35% settling 0.01+0.02), CROWDED_READY_THRESHOLD=8 src/resources.js:35, faces<30k effects<=60 voices<=12. Verify: POLISH_CAPTURE=1 GUI_CAPTURE=1 npm run capture + settlement-benchmark.mjs.
 - [ ] S1 ship (30m). NEXT: npm.cmd test + npm.cmd run build + browser smoke + CHANGELOG 0.4.1 polish entry. Leave unmerged with evidence.
