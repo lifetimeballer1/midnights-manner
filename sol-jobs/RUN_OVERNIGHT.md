@@ -13,7 +13,7 @@ Rule: commit per task. If usage runs out, next session runs: git log -3, git dif
  - [x] V1 building detail DONE: src/scene3d.js:385-555 citadel + grand-watchtower branches + richer infra tiers (per-type stone-road/city-wall/forge-quarter/lantern-rows). Guards kept. Verify: architecture/living previews need canvas (unavailable, skipped); building-detail-pass + lighting-baseline (6 new pins) green, 978 pass 0 fail, build green. Commit `V1 citadel/watchtower/infra detail`.
  - [x] V2 work cues + light identity DONE: src/building-activity.js civic state + bounded cues (1 crew index/frame, zoom<1.05 off, calm off, smoke from real stacks only) + src/source-lighting.js CIVIC_CUES identity; production-preview needs canvas (skipped, headless geometry green); building-activity +6 tests, lighting digests held deliberate, 984 pass 0 fail, build green. Commit `V2 citadel/watchtower work cues`.
 - [x] P1 balance + clutter/perf DONE (90m). Pins re-checked, zero drift: T1=base T2=2x T3 8-10x T4 20-24x Project 8x Renown +35% settling 0.01+0.02, CROWDED_READY_THRESHOLD=8 src/resources.js:35, faces<30k effects<=60 voices<=12. Verify: 984 pass 0 fail + build green (616 precached).
-- [ ] S1 ship (30m). NEXT: npm.cmd test + npm.cmd run build + browser smoke + CHANGELOG 0.4.1 polish entry. Leave unmerged with evidence.
+- [x] S1 ship DONE: 984 pass 0 fail + build green (616 precached) + browser skipped (no CHROME_BIN/Edge) + CHANGELOG 0.4.1.
 
 ## Sol briefs (paste ONE at a time to Codex; fallback: same brief here)
 ### SOL-V1 (paste to Sol)

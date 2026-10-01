@@ -1,3 +1,11 @@
+## 0.4.1 polish: citadel/watchtower/infra detail + cues + balance re-pin
+
+- Hotfix: `attemptRoll` no-ops unless playing, `nether` stays Node-safe default (977 pass 0 fail).
+- V1: `masterworkDetails()` gains manner-citadel + grand-watchtower branches + richer stone-road/city-wall/forge-quarter/lantern-rows tiers; ghosts/unfinished/ruins suppressed, zoom<1.2 off, calm frozen (978 pass).
+- V2: civic work cues in `building-activity.js` (1 crew index/frame, zoom<1.05 off, calm off, smoke from real stacks) + `CIVIC_CUES` light identity; +6 tests, digests held (984 pass).
+- P1 no-drift: balance/clutter/perf pins re-checked zero drift (T1=base T2=2x T3 8-10x T4 20-24x Project 8x Renown +35%, CROWDED_READY_THRESHOLD=8, faces<30k effects<=60 voices<=12).
+- Verify: `npm test` 984 pass 0 fail, `npm run build` green (616 precached, 0.3.0-a9046741270e3f2c), browser smoke skipped (no CHROME_BIN/Edge, no install).
+
 # Keeper soundtrack: six fixed songs replace the calm generative set
 
 - `data/ambient-score.json` now ships the six approved keepers (Money Right Full Cover, Grass Block Lullaby, Orchestral Luxury, Desert Temple, Honey Block Hymn, Nether Soul) with mood tags; calm moods rotate through them, hats stay quarter-or-sparser, Calm drops the drums.
