@@ -14,32 +14,38 @@
       "frames": 360,
       "activeSeconds": 18,
       "frameMs": {
-        "average": 71.26321635000009,
-        "p50": 67.58878299999924,
-        "p95": 97.74364699999933
+        "average": 71.96456445,
+        "p50": 68.90416800000094,
+        "p95": 94.87254100000018
       },
       "tickMs": {
-        "average": 3.152407286111174,
-        "p50": 2.4799500000008265,
-        "p95": 7.341684000000896
+        "average": 3.182879641666801,
+        "p50": 2.4950559999997495,
+        "p95": 6.635706000000937
       },
       "renderMs": {
-        "average": 68.11080906388891,
-        "p50": 64.63485000000037,
-        "p95": 89.9363830000002
+        "average": 68.78168480833321,
+        "p50": 66.00455799999872,
+        "p95": 89.20726099999956
       },
-      "heapDeltaBytes": 62928800,
-      "faces": 7146,
-      "movementSearches": 32,
+      "heapDeltaBytes": 77320096,
+      "faces": 7098,
+      "movementSearches": 33,
       "stewardBefore": {
-        "movementSearches": 57,
+        "movementSearches": 59,
         "movementIntervalSearches": 0,
         "plans": 0,
         "inspected": 0,
         "lastInspected": 0,
         "interval": 3,
         "buildingLimit": 24,
-        "issueLimit": 12
+        "issueLimit": 12,
+        "queueActions": 0,
+        "equipmentLimit": 8,
+        "queueLimit": 12,
+        "districtLimit": 6,
+        "readinessLimit": 12,
+        "historyLimit": 12
       },
       "stewardAfter": {
         "plans": 0,
@@ -47,7 +53,26 @@
         "lastInspected": 0,
         "interval": 3,
         "buildingLimit": 24,
-        "issueLimit": 12
+        "issueLimit": 12,
+        "queueActions": 0,
+        "equipmentLimit": 8,
+        "queueLimit": 12,
+        "districtLimit": 6,
+        "readinessLimit": 12,
+        "historyLimit": 12
+      },
+      "features": {
+        "goals": 3,
+        "queue": 0,
+        "districts": 0,
+        "coverageSites": 0,
+        "coveragePosts": 0,
+        "productionTargets": 0,
+        "equipmentChecked": 0,
+        "equipmentFitted": 0,
+        "recoverySteps": 0,
+        "readiness": 0,
+        "history": 0
       }
     },
     {
@@ -63,32 +88,38 @@
       "frames": 360,
       "activeSeconds": 18,
       "frameMs": {
-        "average": 68.35037078888892,
-        "p50": 67.26331399999981,
-        "p95": 79.83557299999666
+        "average": 71.25028941388885,
+        "p50": 69.29297399999632,
+        "p95": 85.80804099999659
       },
       "tickMs": {
-        "average": 2.724518258333491,
-        "p50": 2.1878130000040983,
-        "p95": 6.27158000000054
+        "average": 3.0324784388889183,
+        "p50": 2.3807880000022124,
+        "p95": 7.006964000000153
       },
       "renderMs": {
-        "average": 65.62585253055543,
-        "p50": 64.8357079999987,
-        "p95": 75.52031800000259
+        "average": 68.21781097499994,
+        "p50": 66.5705420000013,
+        "p95": 81.92319999999745
       },
-      "heapDeltaBytes": 48624008,
-      "faces": 7187,
-      "movementSearches": 32,
+      "heapDeltaBytes": -12901256,
+      "faces": 7307,
+      "movementSearches": 33,
       "stewardBefore": {
-        "movementSearches": 57,
+        "movementSearches": 59,
         "movementIntervalSearches": 0,
         "plans": 2,
         "inspected": 48,
         "lastInspected": 24,
         "interval": 3,
         "buildingLimit": 24,
-        "issueLimit": 12
+        "issueLimit": 12,
+        "queueActions": 0,
+        "equipmentLimit": 8,
+        "queueLimit": 12,
+        "districtLimit": 6,
+        "readinessLimit": 12,
+        "historyLimit": 12
       },
       "stewardAfter": {
         "plans": 8,
@@ -96,7 +127,26 @@
         "lastInspected": 24,
         "interval": 3,
         "buildingLimit": 24,
-        "issueLimit": 12
+        "issueLimit": 12,
+        "queueActions": 0,
+        "equipmentLimit": 8,
+        "queueLimit": 12,
+        "districtLimit": 6,
+        "readinessLimit": 12,
+        "historyLimit": 12
+      },
+      "features": {
+        "goals": 3,
+        "queue": 12,
+        "districts": 3,
+        "coverageSites": 24,
+        "coveragePosts": 8,
+        "productionTargets": 8,
+        "equipmentChecked": 64,
+        "equipmentFitted": 3,
+        "recoverySteps": 0,
+        "readiness": 12,
+        "history": 8
       }
     },
     {
@@ -112,32 +162,38 @@
       "frames": 360,
       "activeSeconds": 18,
       "frameMs": {
-        "average": 69.34523641111133,
-        "p50": 67.17742599999474,
-        "p95": 95.44769899999665
+        "average": 67.92510552777816,
+        "p50": 62.39485599999898,
+        "p95": 96.13767799999914
       },
       "tickMs": {
-        "average": 4.801958272222368,
-        "p50": 4.182722999990801,
-        "p95": 9.606346000000485
+        "average": 4.986948705555248,
+        "p50": 4.295159000001149,
+        "p95": 10.167156000010436
       },
       "renderMs": {
-        "average": 64.54327813888895,
-        "p50": 60.83230199999525,
-        "p95": 91.64939799999411
+        "average": 62.93815682222291,
+        "p50": 56.23259600000165,
+        "p95": 89.32706300000427
       },
-      "heapDeltaBytes": 14232832,
-      "faces": 8508,
+      "heapDeltaBytes": 18261368,
+      "faces": 8544,
       "movementSearches": 3865,
       "stewardBefore": {
-        "movementSearches": 57,
+        "movementSearches": 59,
         "movementIntervalSearches": 0,
         "plans": 0,
         "inspected": 0,
         "lastInspected": 0,
         "interval": 3,
         "buildingLimit": 24,
-        "issueLimit": 12
+        "issueLimit": 12,
+        "queueActions": 0,
+        "equipmentLimit": 8,
+        "queueLimit": 12,
+        "districtLimit": 6,
+        "readinessLimit": 12,
+        "historyLimit": 12
       },
       "stewardAfter": {
         "plans": 0,
@@ -145,7 +201,26 @@
         "lastInspected": 0,
         "interval": 3,
         "buildingLimit": 24,
-        "issueLimit": 12
+        "issueLimit": 12,
+        "queueActions": 0,
+        "equipmentLimit": 8,
+        "queueLimit": 12,
+        "districtLimit": 6,
+        "readinessLimit": 12,
+        "historyLimit": 12
+      },
+      "features": {
+        "goals": 3,
+        "queue": 0,
+        "districts": 0,
+        "coverageSites": 0,
+        "coveragePosts": 0,
+        "productionTargets": 0,
+        "equipmentChecked": 0,
+        "equipmentFitted": 0,
+        "recoverySteps": 0,
+        "readiness": 0,
+        "history": 0
       }
     },
     {
@@ -161,32 +236,38 @@
       "frames": 360,
       "activeSeconds": 18,
       "frameMs": {
-        "average": 66.87172542499975,
-        "p50": 63.546258000002126,
-        "p95": 90.64701499999501
+        "average": 67.95453591111145,
+        "p50": 65.23150599999644,
+        "p95": 91.13169599999674
       },
       "tickMs": {
-        "average": 4.391856461110971,
-        "p50": 3.801521999994293,
-        "p95": 9.051091999994242
+        "average": 4.909039175000322,
+        "p50": 3.966084999992745,
+        "p95": 10.520126000003074
       },
       "renderMs": {
-        "average": 62.47986896388878,
-        "p50": 56.4354949999979,
-        "p95": 86.14336600000388
+        "average": 63.04549673611113,
+        "p50": 58.016929999997956,
+        "p95": 86.1641329999984
       },
-      "heapDeltaBytes": 33840472,
-      "faces": 8508,
+      "heapDeltaBytes": 6089032,
+      "faces": 8580,
       "movementSearches": 3865,
       "stewardBefore": {
-        "movementSearches": 57,
+        "movementSearches": 59,
         "movementIntervalSearches": 0,
         "plans": 2,
         "inspected": 48,
         "lastInspected": 24,
         "interval": 3,
         "buildingLimit": 24,
-        "issueLimit": 12
+        "issueLimit": 12,
+        "queueActions": 0,
+        "equipmentLimit": 8,
+        "queueLimit": 12,
+        "districtLimit": 6,
+        "readinessLimit": 12,
+        "historyLimit": 12
       },
       "stewardAfter": {
         "plans": 8,
@@ -194,25 +275,44 @@
         "lastInspected": 24,
         "interval": 3,
         "buildingLimit": 24,
-        "issueLimit": 12
+        "issueLimit": 12,
+        "queueActions": 0,
+        "equipmentLimit": 8,
+        "queueLimit": 12,
+        "districtLimit": 6,
+        "readinessLimit": 12,
+        "historyLimit": 12
+      },
+      "features": {
+        "goals": 3,
+        "queue": 12,
+        "districts": 3,
+        "coverageSites": 24,
+        "coveragePosts": 8,
+        "productionTargets": 8,
+        "equipmentChecked": 64,
+        "equipmentFitted": 2,
+        "recoverySteps": 8,
+        "readiness": 12,
+        "history": 5
       }
     }
   ],
   "comparison": [
     {
       "mode": "peace",
-      "tickP50DeltaMs": -0.29213699999672826,
-      "tickP95DeltaMs": -1.0701040000003559,
-      "frameP50DeltaMs": -0.3254689999994298,
-      "frameP95DeltaMs": -17.90807400000267,
+      "tickP50DeltaMs": -0.11426799999753712,
+      "tickP95DeltaMs": 0.3712579999992158,
+      "frameP50DeltaMs": 0.3888059999953839,
+      "frameP95DeltaMs": -9.06450000000359,
       "movementSearchDelta": 0
     },
     {
       "mode": "raid",
-      "tickP50DeltaMs": -0.38120099999650847,
-      "tickP95DeltaMs": -0.5552540000062436,
-      "frameP50DeltaMs": -3.6311679999926127,
-      "frameP95DeltaMs": -4.800684000001638,
+      "tickP50DeltaMs": -0.32907400000840425,
+      "tickP95DeltaMs": 0.3529699999926379,
+      "frameP50DeltaMs": 2.836649999997462,
+      "frameP95DeltaMs": -5.005982000002405,
       "movementSearchDelta": 0
     }
   ]

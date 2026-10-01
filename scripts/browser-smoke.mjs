@@ -328,7 +328,34 @@ try{
  await waitFor('!document.querySelector("#inspector").hidden&&document.querySelector("#inspector").textContent.includes("Emberforge")');
  const stewardCamera=await evaluate('window.midnightsManner.camera()');
  assert.ok(Number.isFinite(stewardCamera.x)&&Number.isFinite(stewardCamera.y),'Show goal centers the map');
+ const stewardTarget=await evaluate('window.midnightsManner.snapshot().world.buildings.find(b=>b.id==="automation-forge")');
+ assert.ok(Math.abs(stewardCamera.x-(stewardTarget.x+1))<.01&&Math.abs(stewardCamera.y-(stewardTarget.y+1))<.01,'Show goal centers its actual building');
+ await fire('#inspector [data-steward-queue-upgrade="automation-forge"]');
+ assert.equal(await evaluate('window.midnightsManner.snapshot().world.steward.queue[0].buildingId'),'automation-forge','building inspector queues its next upgrade');
+ await fire('#inspector [data-steward-blueprint-single="automation-forge"]');
+ assert.equal(await evaluate('window.midnightsManner.snapshot().world.steward.blueprints[0].entries.length'),1,'building inspector saves a one-building layout');
+
  await fire('#inspector [data-action="close"]');await ensureResources();await fire('[data-resource="wood"]');
+ await evaluate('document.querySelector("[data-steward-details=production]").open=true');
+ await evaluate('(()=>{const input=document.querySelector("[data-steward-target=bread]");input.focus();input.value="123";input.dispatchEvent(new Event("change",{bubbles:true}));})()');
+ assert.equal(await evaluate('window.midnightsManner.snapshot().world.steward.productionTargets.bread'),123,'production target sets a stock floor');
+ await evaluate('document.activeElement.blur()');await fire('[data-steward-toggle="autoEquip"]');
+ assert.equal(await evaluate('window.midnightsManner.snapshot().world.steward.autoEquip'),true,'automatic stock fitting is opt in');
+ await evaluate('document.querySelector("[data-steward-details=districts]").open=true');
+ await fire('[data-steward-district-create]');
+ assert.equal(await evaluate('window.midnightsManner.snapshot().world.steward.districts.length'),1,'suggested district groups existing buildings');
+ await evaluate('document.querySelector("[data-steward-details=queue]").open=true');
+ await fire('[data-steward-queue-remove]');
+ assert.equal(await evaluate('window.midnightsManner.snapshot().world.steward.queue.length'),0,'construction plan can be removed without building');
+ await evaluate('document.querySelector("[data-steward-details=blueprints]").open=true');
+ await evaluate(`(async()=>{const api=window.midnightsManner,d={buildings:await(await fetch('/midnights-manner/data/buildings.json')).json(),world:await(await fetch('/midnights-manner/data/world.json')).json()},w=api.snapshot().world,{canPlace}=await import('/midnights-manner/src/model.js');let point;for(let y=0;y<w.bounds.h&&!point;y++)for(let x=0;x<w.bounds.w&&!point;x++)if(canPlace(w,d,'forge',x,y))point={x,y};if(!point)throw new Error('No blueprint anchor');for(const axis of ['x','y']){const input=document.querySelector('[data-steward-blueprint-'+axis+']');input.focus();input.value=point[axis];input.dispatchEvent(new Event('change',{bubbles:true}));}window.__automationSmoke.blueprintAnchor=point;})()`);
+ await evaluate('document.querySelector("[data-steward-blueprint-preview]").focus()');
+ await fire('[data-steward-blueprint-preview]');
+ await waitFor('document.querySelector("[data-steward-blueprint-apply]")&&!document.querySelector("[data-steward-blueprint-apply]").disabled');
+ assert.ok(await evaluate('document.querySelector("[data-steward-details=blueprints]").textContent.includes("Full plan:")'),'blueprint preview shows eventual plan cost');
+ await fire('[data-steward-blueprint-apply]');
+ assert.equal(await evaluate('window.midnightsManner.snapshot().world.steward.queue[0].kind'),'build','blueprint queues a new building after explicit approval');
+ assert.ok(await evaluate('document.documentElement.scrollWidth<=innerWidth+1'),'advanced steward controls fit the phone viewport');
  await fire('[data-automation-toggle="autoUpgrade"]');
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.automation.autoUpgrade'),true,'Stores toggles automatic upgrades');
  await evaluate('(()=>{const details=document.querySelector("[data-automation-reserves]");details.open=true;const input=details.querySelector("[data-automation-reserve=wood]");input.focus();input.value="321";input.dispatchEvent(new Event("change",{bubbles:true}));window.__automationSmoke.input=input;})()');
@@ -352,6 +379,11 @@ try{
  await fire(`[data-defense-unit="${fighter}"][data-defense-post="settlement-b-0"]`);
  assert.equal(await evaluate(`window.midnightsManner.snapshot().world.troops.find(u=>u.id===${JSON.stringify(fighter)}).defensePost`),'settlement-b-0','workplace stations the selected fighter');
  await fire('#close-panel');await fire('[data-tab="troops"]');
+ const pinnedUnit=await evaluate('document.querySelector("[data-steward-pin][data-slot=main]")?.dataset.stewardPin');
+ assert.ok(pinnedUnit,'People exposes equipment overrides');
+ await fire(`[data-steward-pin="${pinnedUnit}"][data-slot="main"]`);
+ assert.equal(await evaluate(`window.midnightsManner.snapshot().world.troops.find(u=>u.id===${JSON.stringify(pinnedUnit)}).manualGear`),true,'People pins the chosen tool slot');
+
  await evaluate(`(()=>{const select=document.querySelector('[data-defense-assign="${fighter}"]');select.value='auto';select.dispatchEvent(new Event('change',{bubbles:true}));})()`);
  assert.equal(await evaluate(`window.midnightsManner.snapshot().world.troops.find(u=>u.id===${JSON.stringify(fighter)}).manualDefensePost`),false,'People restores automatic defense assignment');
  await fire('#close-panel');await openManagementBuilding('automation-forge');
@@ -366,6 +398,8 @@ try{
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.automation.reserves.wood'),321,'protected reserve survives browser reload');
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.steward.main.buildingId'),'automation-forge','steward goal survives browser reload');
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.steward.protectMeals'),false,'steward protection choice survives browser reload');
+ assert.equal(await evaluate('window.midnightsManner.snapshot().world.steward.queue[0].kind'),'build','blueprint construction queue survives reload');
+ assert.equal(await evaluate('window.midnightsManner.snapshot().world.steward.productionTargets.bread'),123,'production target survives reload');
  // The browser global is recreated on reload: restore the original exported
  // save from the harness rather than changing the fixture or save version.
  await fire('#begin');await fire('#pause');

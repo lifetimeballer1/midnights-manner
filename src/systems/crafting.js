@@ -77,7 +77,8 @@ function tierMult(building, data) {
 export function tickRefine(world, data, dt, physical = false, available = null) {
   if (!Number.isFinite(dt) || dt <= 0) return {};
   const made = {},held=physical?outputTotals(world):null;
-  for (const b of world?.buildings || []) {
+  const buildings=available&&typeof available==='object'&&available.buildings?available.buildings:world?.buildings||[];
+  for (const b of buildings) {
     if (!b || b.hp <= 0 || b.remaining > 0) continue;
     const recipes = data?.buildings?.[b.type]?.refine;
     if (!Array.isArray(recipes) || !recipes.length) continue;
@@ -91,8 +92,9 @@ export function tickRefine(world, data, dt, physical = false, available = null) 
       let capped = runs;
       for (const [k, v] of Object.entries(r.in || {})) {
         if (!Number.isFinite(v) || v <= 0) { capped = 0; break; }
-        capped = Math.min(capped, (available ? available(k) : (world.resources[k] || 0)) / v);
+        capped = Math.min(capped, (available ? (typeof available==='function'?available(k):available.available(k,b,r)) : (world.resources[k] || 0)) / v);
       }
+      if(available&&typeof available==='object'&&available.limitRuns)capped=Math.min(capped,Math.max(0,available.limitRuns(b,r,capped,held||{})));
       if (capped <= 0) continue;
       // Central storage caps (Phase 1): never make what the stores cannot
       // take — the run scales down so the raw input waits for room.

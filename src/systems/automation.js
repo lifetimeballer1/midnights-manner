@@ -74,14 +74,14 @@ function planBuilders(game,cache){
  const {world:w,data:d}=game,builders=w.troops.filter(u=>eligible(u,d));
  for(const u of w.troops)delete u.builderTask;
  if(activeRaid(w))return;
- const repairs=w.buildings.filter(b=>b.remaining<=0&&b.hp<buildingMaxHp(b,d)).sort((a,b)=>priority(a,d)-priority(b,d));
+ const repairs=w.buildings.filter(b=>b.remaining<=0&&b.hp<buildingMaxHp(b,d)).sort((a,b)=>priority(a,d)-priority(b,d)+(priority(a,d)===priority(b,d)?Number(!!w.steward?.enabled&&w.steward.districts?.some(x=>x.priority==='repair'&&x.buildingIds.includes(b.id)))-Number(!!w.steward?.enabled&&w.steward.districts?.some(x=>x.priority==='repair'&&x.buildingIds.includes(a.id))):0));
  const construction=w.buildings.filter(b=>b.hp>0&&b.remaining>0);
  for(const b of repairs)if(spendingAvailable(game,'wood',{purpose:'repair',buildingId:b.id})<=0)cache.status.set(b.id,'Waiting for wood above reserve');
  const target=repairs.find(b=>spendingAvailable(game,'wood',{purpose:'repair',buildingId:b.id})>0)||construction[0];
  if(target){for(const u of builders)u.builderTask={kind:target.remaining>0?'construction':'repair',target:target.id,working:false};return;}
  if(!settings(w).autoUpgrade||!builders.length||repairs.length||construction.length)return;
  for(const b of w.buildings){
-  if(!b.autoUpgrade)continue;
+  if(!b.autoUpgrade||w.steward?.enabled&&w.steward.queue?.some(e=>e.buildingId===b.id))continue;
   const spec=d.buildings[b.type],limit=Math.min(spec.tiers.length,b.autoUpgradeMaxTier||spec.tiers.length);
   let note='Waiting for upgrade';
   if(b.hp<=0||b.remaining>0)note='Building unfinished';

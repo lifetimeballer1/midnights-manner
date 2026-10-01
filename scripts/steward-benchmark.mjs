@@ -12,7 +12,7 @@ import {matureSettlement} from './settlement-fixture.mjs';
 const mod=process.env.CANVAS_MODULE;
 if(!mod)throw Error('Set CANVAS_MODULE to the optional @napi-rs/canvas/index.js');
 const {createCanvas}=await import(pathToFileURL(mod));
-const {stewardMetrics}=await import('../src/systems/steward.js');
+const {stewardMetrics,stewardSnapshot}=await import('../src/systems/steward.js');
 const dataDir=new URL('../data/',import.meta.url),files=(await readdir(dataDir)).filter(n=>n.endsWith('.json'));
 const data=Object.fromEntries(await Promise.all(files.map(async f=>[f.slice(0,-5),JSON.parse(await readFile(new URL(f,dataDir)))])));
 const stats=a=>{const s=[...a].sort((x,y)=>x-y);return {average:a.reduce((x,y)=>x+y,0)/a.length,p50:s[Math.floor(s.length*.5)],p95:s[Math.floor(s.length*.95)]};};
@@ -23,9 +23,13 @@ try{
   Math.random=()=>{seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;return (seed>>>0)/4294967296;};
   const game=new Game(data),w=matureSettlement(data,{createWorld,makeBuilding,makeUnit,recordTravel});
   game.state.world=w;game.state.vlevel=12;game.paused=false;game.notify=()=>{};game.persist=()=>true;
+  // Exercise all four woodland-readiness slots without launching expeditions.
+  const rangerType=Object.keys(data.troops).find(type=>data.troops[type].expedition?.durationSec>0);
+  for(let i=0;i<4;i++){const prior=w.troops[w.troops.length-1-i],u=makeUnit(rangerType,data);Object.assign(u,{id:prior.id,name:prior.name,x:prior.x,y:prior.y,traits:prior.traits});w.troops[w.troops.length-1-i]=u;}
   const home=w.buildings.find(b=>b.id==='settlement-b-15'),tower=w.buildings.find(b=>b.id==='settlement-b-17');
   home.level=5;home.hp=data.buildings[home.type].tiers[4].hp;tower.hp-=60;
-  w.steward={enabled,protectMeals:true,protectRepairs:true,main:{id:'fortify',buildingId:tower.id,action:'repair',baseline:tower.hp},secondary:[{id:'grow',buildingId:home.id,targetTier:6,baseline:5},{id:'conquest',tribeId:'ironshield'}]};
+  w.steward={enabled,protectMeals:true,protectRepairs:true,autoEquip:true,productionTargets:{bread:1500,plate:500,rations:200},queueEnabled:true,queue:Array.from({length:12},(_,i)=>({id:`benchmark-queue-${i}`,kind:'build',type:'wall',x:1,y:i+1,targetTier:1})),districts:Array.from({length:3},(_,i)=>({id:`benchmark-district-${i}`,name:`Quarter ${i+1}`,kind:['food','industry','defense'][i],priority:['supply','repair','balanced'][i],buildingIds:w.buildings.slice(i*24,i*24+24).map(b=>b.id)})),main:{id:'fortify',buildingId:tower.id,action:'repair',baseline:tower.hp},secondary:[{id:'grow',buildingId:home.id,targetTier:6,baseline:5},{id:'conquest',tribeId:'ironshield'}]};
+  game.state.unlocks=[...new Set([...(game.state.unlocks||[]),'toolkit'])];w.stock={toolkit:3};
   w.automation={autoUpgrade:true,reserves:{wood:500,food:500,gold:500},stockTarget:1};
   for(const b of w.buildings){b.autoUpgrade=true;b.autoUpgradeMaxTier=b.level;b.autoCraft=true;}
   const canvas=createCanvas(780,1688);canvas.style={};
@@ -41,7 +45,8 @@ try{
    renderer.draw(w,5000+i*50);const end=performance.now();
    if(i>=20){ticks.push(afterTick-start);renders.push(end-afterTick);frames.push(end-start);}
   }
-  reports.push({mode,enabled,viewport:[390,844],dpr:2,villagers:w.troops.length,buildings:w.buildings.length,frames:frames.length,activeSeconds:18,frameMs:stats(frames),tickMs:stats(ticks),renderMs:stats(renders),heapDeltaBytes:process.memoryUsage().heapUsed-heapBefore,faces:renderer.sceneFaces.length,movementSearches:movementMetrics(w).movementSearches-before.movementSearches,stewardBefore:before,stewardAfter:stewardMetrics(w)});
+  const snapshot=stewardSnapshot(game);
+  reports.push({mode,enabled,viewport:[390,844],dpr:2,villagers:w.troops.length,buildings:w.buildings.length,frames:frames.length,activeSeconds:18,frameMs:stats(frames),tickMs:stats(ticks),renderMs:stats(renders),heapDeltaBytes:process.memoryUsage().heapUsed-heapBefore,faces:renderer.sceneFaces.length,movementSearches:movementMetrics(w).movementSearches-before.movementSearches,stewardBefore:before,stewardAfter:stewardMetrics(w),features:{goals:snapshot.goals.length,queue:snapshot.queue.length,districts:snapshot.districts.length,coverageSites:snapshot.coverage.examined,coveragePosts:snapshot.coverage.posts,productionTargets:snapshot.production.rows.length,equipmentChecked:snapshot.equipment.checked,equipmentFitted:snapshot.equipment.fitted,recoverySteps:snapshot.reports.recovery.steps.length,readiness:snapshot.reports.readiness.length,history:snapshot.reports.history.length}});
   console.log(JSON.stringify(reports.at(-1)));
  }
 }finally{Math.random=originalRandom;}
