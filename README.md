@@ -12,6 +12,12 @@ A browser-based village builder with an isometric HTML5 Canvas map, farming econ
 
 **Status:** mobile-first playable prototype. The systems below are implemented; long-term balancing, richer combat AI, final art, and broader online features remain future work. Synthesized sound effects, an original generative music score, responsive full-screen controls and 15 campaign chapters are implemented. Progress is saved locally in the browser every five seconds and on page exit. Hidden tabs pause simulation; there is no offline production. Campaign expeditions use separate maps and preserve the home village.
 
+## Reviewed free low-poly props
+
+Seven CC0 models by Quaternius supplement the existing architecture: barrels, crates, supply sacks, open grain bags, hay, benches and rocks. Models are converted offline to the current Canvas face format, adapted to the village palette, and cached with the existing scene. No runtime glTF loader, texture downloads or third-party requests are added. Procedural building tiers, character rigs, machinery, saves and gameplay stay on their existing paths.
+
+Close views use the reviewed meshes within shared face budgets; distant, crowded and offscreen cases use the original procedural props. See [asset credits and conversion](docs/ASSET_CREDITS.md) and the machine-readable [manifest](data/external_assets.json).
+
 ## Start locally
 
 Requires Node.js 22+ for tests/build, and Python 3 for the development server.
