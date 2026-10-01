@@ -154,3 +154,5 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .panel .quest>span{color:#69543a}.panel .quest :is(.qflavor,.qgiver,.qprog){color:#69543a}
 .panel .quest>.qpill-active{color:#fff0cf}.panel .quest>.qpill-done{color:#49391f}.panel .quest>.qpill-upcoming{color:#5b533f}
 .panel .quest.qdone{opacity:.85}
+
+.title-art img{animation:village-drift 9s ease-in-out infinite alternate}.title-art img:nth-child(2){animation-duration:12s}.title-art img:nth-child(3){animation-duration:10s;animation-delay:-4s}@keyframes village-drift{from{transform:translateY(-3px)}to{transform:translateY(3px)}}@media(prefers-reduced-motion:reduce){.title-art img{animation:none}}
