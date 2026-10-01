@@ -9,6 +9,7 @@ import {sfx} from './systems/audio.js';
 import {isWall} from './building-art.js';
 import {drawVillage3D,pointInPolygon} from './scene3d.js';
 import {drawBuildingStates} from './fx/building-fx.js';
+import {drawEnvironmentFx} from './fx/environment-fx.js';
 import {weatherAt,skyLightAt,phaseAt} from './systems/daynight.js';
 import {drawAtmosphere} from './atmosphere-art.js';
 import {insideWorkplace} from './systems/villagers.js';
@@ -181,6 +182,7 @@ export class Renderer {
   drawAtmosphere(this,world,time,weather,{sceneChimneys:true});
   drawVillage3D(this,world,time,sky,visibleUnits);
   drawBuildingStates(this,world,time);
+  drawEnvironmentFx(this,world,time);
   this.collectionSceneObstacles=[];
   const drawables=[];
   for(const b of world.buildings){const n=this.data.buildings[b.type].size;drawables.push({kind:'building',value:b,depth:this.depth(b.x+n/2,b.y+n/2)});}
