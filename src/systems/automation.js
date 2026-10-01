@@ -4,6 +4,7 @@ import {buildingMaxHp} from './endgame.js';
 import {move} from './pathfinding.js';
 import {isWall} from './walls.js';
 import {isHauling} from './logistics.js';
+import {greatWorkTier,busyRoutes,roadQuote,buildRoad} from './roads.js';
 import {supplyBonus} from './food.js';
 import {canSpend,spendingAvailable} from './steward-budget.js';
 import {RARITY_ORDER,refinerCrew,craftCost,startCraftOrder,stockCount} from './crafting.js';
@@ -84,8 +85,21 @@ function planBuilders(game,cache){
  const construction=w.buildings.filter(b=>b.hp>0&&b.remaining>0);
  for(const b of repairs)if(spendingAvailable(game,'wood',{purpose:'repair',buildingId:b.id})<=0)cache.status.set(b.id,'Waiting for wood above reserve');
  const target=repairs.find(b=>spendingAvailable(game,'wood',{purpose:'repair',buildingId:b.id})>0)||construction[0];
- if(target){for(const u of builders)u.builderTask={kind:target.remaining>0?'construction':'repair',target:target.id,working:false};return;}
- if(!settings(w).autoUpgrade||!builders.length||repairs.length||construction.length)return;
+  if(target){for(const u of builders)u.builderTask={kind:target.remaining>0?'construction':'repair',target:target.id,working:false};return;}
+  // Living Kingdom slice 1: idle-only builder road jobs (2s tick only, never
+  // per-frame). Gated by stone-road tiers with reserves enforced. The
+  // policies guard tolerates the pre-Task-2 world via `?.`.
+  if(settings(w).policies?.roads!==false){
+   const net=greatWorkTier(w,'stone-road');
+   if(net)for(const row of busyRoutes(w,4,d)){
+    const tier=row.road?2:1;if(tier===2&&net<3)continue;
+    const q=roadQuote(w,d,row.key,tier);if(q.error)continue;
+    if(!canSpend(game,q.cost,{purpose:'road'}))continue;
+    for(const u of builders)u.builderTask={kind:'road',seed:row.key,tier,cells:q.cells,working:false};
+    break;
+   }
+  }
+  if(!settings(w).autoUpgrade||!builders.length||repairs.length||construction.length)return;
  for(const b of w.buildings){
   if(!autoUpgradeTypeEnabled(w,b.type,b)||w.steward?.enabled&&w.steward.queue?.some(e=>e.buildingId===b.id))continue;
   const spec=d.buildings[b.type],limit=Math.min(spec.tiers.length,b.autoUpgradeMaxTier||spec.tiers.length);
@@ -108,9 +122,30 @@ export function tickAutomation(game,dt){
  cache.timer+=dt;
  if(cache.timer>=2){cache.timer=0;cache.status.clear();cache.byId=new Map(w.buildings.map(b=>[b.id,b]));planCraft(game,cache);planBuilders(game,cache);}
  const byId=cache.byId,raiding=activeRaid(w);
- for(const u of w.troops){
-  if(!u.builderTask)continue;
-  const b=byId.get(u.builderTask.target);
+  for(const u of w.troops){
+   if(!u.builderTask)continue;
+   if(u.builderTask.kind==='road'){
+    if(raiding||!eligible(u,d)){delete u.builderTask;continue;}
+    const [sx,sy]=String(u.builderTask.seed||'').split(',').map(Number);
+    if(!Number.isFinite(sx)||!Number.isFinite(sy)){delete u.builderTask;continue;}
+    const arrived=move(w,d,u,{x:(sx+.5)/2,y:(sy+.5)/2},stats(u,d).speed,dt,.7,false,true);
+    u.builderTask.working=arrived;
+    if(!arrived)continue;
+    const done=buildRoad(w,d,u.builderTask.seed,u.builderTask.tier);
+    let next=null;
+    if(done.ok)for(const row of busyRoutes(w,4,d)){
+     const [ax,ay]=row.key.split(',').map(Number);
+     if(Math.hypot(ax-sx,ay-sy)>12)continue;
+     const tier=row.road?2:1,net=greatWorkTier(w,'stone-road');
+     if(tier===2&&net<3)continue;
+     const q=roadQuote(w,d,row.key,tier);
+     if(q.error||!canSpend(game,q.cost,{purpose:'road'}))continue;
+     next={kind:'road',seed:row.key,tier,cells:q.cells,working:false};break;
+    }
+    if(next)u.builderTask=next;else delete u.builderTask;
+    continue;
+   }
+   const b=byId.get(u.builderTask.target);
   if(raiding||!eligible(u,d)||!b||u.builderTask.kind==='repair'&&b.hp>=buildingMaxHp(b,d)||u.builderTask.kind==='construction'&&!(b.remaining>0)){delete u.builderTask;continue;}
   const arrived=move(w,d,u,center(b,d),stats(u,d).speed,dt,d.buildings[b.type].size/2+.7,false,true);
   u.builderTask.working=arrived;
