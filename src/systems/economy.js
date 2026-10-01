@@ -1,3 +1,4 @@
+import {isHauling,collectorDestination} from './logistics.js';
 import {supplyBonus} from './food.js';
 import {resourceLabel, reserveCapacity} from '../resources.js';
 import {builderBonuses,center,unlockedAbilities,stats,auras,gatherBonus} from '../model.js';
@@ -112,7 +113,7 @@ export function tickEconomy(world,data,dt) {
  }
  const hall=world.buildings.find(b=>b.type==='hall'&&b.hp>0);if(!hall)return;
  for(const u of world.troops) {
-  if(u.hp<=0||u.emergency)continue;
+  if(u.hp<=0||u.emergency||isHauling(u))continue;
   const spec=data.troops[u.type];
   // Ranging hands (Phase 3 expeditions) walk their own road — the
   // expedition handler moves them, never the economy loop.
@@ -146,14 +147,14 @@ export function tickEconomy(world,data,dt) {
   if(!Number.isFinite(capacity)||capacity<=0)capacity=1;
   if(!Number.isFinite(u.carry)||u.carry<0)u.carry=0;
   if(u.carry>=capacity)u.phase='return';
-  const target=u.phase==='return'?hall:source;
+  const target=u.phase==='return'?(collectorDestination(world,data,u,source,spec.gatherResource)||hall):source;
   const speed = stats(u,data).speed;
   if(move(world,data,u,center(target,data),speed,dt,1.6,false,true)) {
    if(u.phase==='return'){
     // Central storage caps (Phase 1): a full store never voids carried
     // goods — the collector keeps the load and tries again next tick.
     const {banked,leftover}=depositCentral(world,data,spec.gatherResource,u.carry);
-    if(banked>0){const cp=center(hall,data);floatText(world,cp.x,cp.y,resourceLabel(spec.gatherResource,banked),'#ffe9a8');sparkle(world,cp.x,cp.y);}
+    if(banked>0){const cp=center(target,data);floatText(world,cp.x,cp.y,resourceLabel(spec.gatherResource,banked),'#ffe9a8');sparkle(world,cp.x,cp.y);}
     u.carry=leftover;
     if(leftover<=0)u.phase='gather';
    }

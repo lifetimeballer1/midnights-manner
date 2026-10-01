@@ -1,0 +1,215 @@
+{
+  "environment": "Node + @napi-rs/canvas CPU renderer in container; not a phone or Chromium measurement",
+  "reports": [
+    {
+      "mode": "day",
+      "phase": "day",
+      "weather": "clear",
+      "viewport": [
+        390,
+        844
+      ],
+      "dpr": 2,
+      "villagers": 150,
+      "buildings": 72,
+      "frames": 30,
+      "frameMs": {
+        "average": 81.54254409999996,
+        "p50": 76.86561699999993,
+        "p95": 113.92825799999991
+      },
+      "renderMs": {
+        "average": 79.0216273666666,
+        "p50": 74.37934399999995,
+        "p95": 112.04771699999992
+      },
+      "tickMs": {
+        "average": 2.9336291749999477,
+        "p50": 1.6188360000001012,
+        "p95": 15.849346999999966
+      },
+      "heapDeltaBytes": 177859760,
+      "faces": 7259,
+      "activeJobs": 8,
+      "visibleCarts": 8,
+      "routeCache": 32,
+      "pathCalculations": 32,
+      "intervalPathCalculations": 8,
+      "delivered": 0,
+      "blocked": 12,
+      "roads": 968,
+      "trails": 1060,
+      "caravans": 0,
+      "movementSearches": 18,
+      "movementIntervalSearches": 0
+    },
+    {
+      "mode": "night",
+      "phase": "night",
+      "weather": "clear",
+      "viewport": [
+        390,
+        844
+      ],
+      "dpr": 2,
+      "villagers": 150,
+      "buildings": 72,
+      "frames": 30,
+      "frameMs": {
+        "average": 105.86146396666688,
+        "p50": 99.41466400000172,
+        "p95": 162.2895239999998
+      },
+      "renderMs": {
+        "average": 103.37635100000013,
+        "p50": 98.11018700000022,
+        "p95": 145.27141500000107
+      },
+      "tickMs": {
+        "average": 2.5469947499999988,
+        "p50": 1.49319000000105,
+        "p95": 11.27705700000115
+      },
+      "heapDeltaBytes": 38823824,
+      "faces": 7259,
+      "activeJobs": 8,
+      "visibleCarts": 8,
+      "routeCache": 32,
+      "pathCalculations": 32,
+      "intervalPathCalculations": 8,
+      "delivered": 0,
+      "blocked": 12,
+      "roads": 968,
+      "trails": 1060,
+      "caravans": 0,
+      "movementSearches": 18,
+      "movementIntervalSearches": 0
+    },
+    {
+      "mode": "rain",
+      "phase": "day",
+      "weather": "rain",
+      "viewport": [
+        390,
+        844
+      ],
+      "dpr": 2,
+      "villagers": 150,
+      "buildings": 72,
+      "frames": 30,
+      "frameMs": {
+        "average": 84.93971209999994,
+        "p50": 76.02696500000093,
+        "p95": 137.25849499999822
+      },
+      "renderMs": {
+        "average": 83.20559079999984,
+        "p50": 74.32505700000183,
+        "p95": 134.8236939999988
+      },
+      "tickMs": {
+        "average": 1.8780127750000246,
+        "p50": 1.2558510000017122,
+        "p95": 6.586346000000049
+      },
+      "heapDeltaBytes": 13766208,
+      "faces": 7259,
+      "activeJobs": 8,
+      "visibleCarts": 8,
+      "routeCache": 32,
+      "pathCalculations": 32,
+      "intervalPathCalculations": 8,
+      "delivered": 0,
+      "blocked": 12,
+      "roads": 968,
+      "trails": 1060,
+      "caravans": 0,
+      "movementSearches": 18,
+      "movementIntervalSearches": 18
+    },
+    {
+      "mode": "warning",
+      "phase": "day",
+      "weather": "clear",
+      "viewport": [
+        390,
+        844
+      ],
+      "dpr": 2,
+      "villagers": 150,
+      "buildings": 72,
+      "frames": 30,
+      "frameMs": {
+        "average": 78.0535044333336,
+        "p50": 75.81822600000305,
+        "p95": 93.23504099999991
+      },
+      "renderMs": {
+        "average": 75.59772573333345,
+        "p50": 72.8051149999992,
+        "p95": 89.34726299999966
+      },
+      "tickMs": {
+        "average": 2.7076373500002773,
+        "p50": 1.8214939999998023,
+        "p95": 10.068317000001116
+      },
+      "heapDeltaBytes": 4794184,
+      "faces": 7900,
+      "activeJobs": 0,
+      "visibleCarts": 0,
+      "routeCache": 32,
+      "pathCalculations": 32,
+      "intervalPathCalculations": 8,
+      "delivered": 0,
+      "blocked": 15,
+      "roads": 968,
+      "trails": 1125,
+      "caravans": 0,
+      "movementSearches": 109,
+      "movementIntervalSearches": 0
+    },
+    {
+      "mode": "raid",
+      "phase": "day",
+      "weather": "clear",
+      "viewport": [
+        390,
+        844
+      ],
+      "dpr": 2,
+      "villagers": 150,
+      "buildings": 72,
+      "frames": 30,
+      "frameMs": {
+        "average": 85.7637107333337,
+        "p50": 80.1058809999995,
+        "p95": 122.96488500000123
+      },
+      "renderMs": {
+        "average": 79.54639706666713,
+        "p50": 74.7504820000031,
+        "p95": 114.81085899999744
+      },
+      "tickMs": {
+        "average": 6.818980400000418,
+        "p50": 5.016702000000805,
+        "p95": 17.242816999998468
+      },
+      "heapDeltaBytes": 102974352,
+      "faces": 8149,
+      "activeJobs": 0,
+      "visibleCarts": 0,
+      "routeCache": 32,
+      "pathCalculations": 32,
+      "intervalPathCalculations": 8,
+      "delivered": 0,
+      "blocked": 15,
+      "roads": 968,
+      "trails": 1211,
+      "caravans": 0,
+      "movementSearches": 1785,
+      "movementIntervalSearches": 0
+    }
+  ]
+}

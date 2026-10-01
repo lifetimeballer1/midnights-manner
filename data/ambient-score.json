@@ -1,0 +1,183 @@
+{
+  "defaultTrack": "peace_day",
+  "tracks": {
+    "peace_day": {
+      "title": "Sunlight on the Timber",
+      "tempo": 48,
+      "style": "felt-piano",
+      "filterCutoff": 1300,
+      "restInterval": [4, 8],
+      "phrases": [
+        {
+          "bars": 4,
+          "bass": "C2",
+          "pad": ["C3", "G3", "D4", "E4"],
+          "melody": [
+            { "beat": 2.0, "note": "G4", "dur": 2.5, "vel": 0.55 },
+            { "beat": 4.0, "note": "B4", "dur": 1.5, "vel": 0.45 },
+            { "beat": 5.5, "note": "D5", "dur": 3.0, "vel": 0.65 },
+            { "beat": 8.0, "note": "E5", "dur": 4.0, "vel": 0.50 }
+          ]
+        },
+        {
+          "bars": 4,
+          "bass": "D2",
+          "pad": ["D3", "A3", "F#4"],
+          "melody": [
+            { "beat": 1.5, "note": "F#5", "dur": 2.5, "vel": 0.55 },
+            { "beat": 3.5, "note": "E5", "dur": 2.0, "vel": 0.45 },
+            { "beat": 5.0, "note": "B4", "dur": 3.5, "vel": 0.60 },
+            { "beat": 8.5, "note": "A4", "dur": 4.0, "vel": 0.40 }
+          ]
+        },
+        {
+          "bars": 4,
+          "bass": "G2",
+          "pad": ["G3", "D4", "B4"],
+          "melody": [
+            { "beat": 1.0, "note": "D5", "dur": 2.5, "vel": 0.60 },
+            { "beat": 3.0, "note": "B4", "dur": 2.0, "vel": 0.50 },
+            { "beat": 5.5, "note": "A4", "dur": 3.0, "vel": 0.45 },
+            { "beat": 9.0, "note": "G4", "dur": 6.0, "vel": 0.70 }
+          ]
+        }
+      ]
+    },
+    "money_right": {
+      "title": "Money Right (Frontier Tribute)",
+      "tempo": 50,
+      "style": "felt-piano",
+      "filterCutoff": 1250,
+      "restInterval": [5, 9],
+      "phrases": [
+        {
+          "bars": 4,
+          "bass": "B1",
+          "pad": ["B2", "F#3", "D4"],
+          "melody": [
+            { "beat": 1.5, "note": "F#4", "dur": 0.8, "vel": 0.65 },
+            { "beat": 2.2, "note": "F#4", "dur": 0.8, "vel": 0.65 },
+            { "beat": 3.0, "note": "F#4", "dur": 1.2, "vel": 0.70 },
+            { "beat": 4.5, "note": "E4", "dur": 0.8, "vel": 0.60 },
+            { "beat": 5.2, "note": "D4", "dur": 0.8, "vel": 0.60 },
+            { "beat": 6.0, "note": "B3", "dur": 2.5, "vel": 0.75 }
+          ]
+        },
+        {
+          "bars": 4,
+          "bass": "G1",
+          "pad": ["G2", "D3", "B3"],
+          "melody": [
+            { "beat": 2.0, "note": "D4", "dur": 1.5, "vel": 0.60 },
+            { "beat": 3.5, "note": "E4", "dur": 1.2, "vel": 0.60 },
+            { "beat": 5.0, "note": "F#4", "dur": 2.5, "vel": 0.70 },
+            { "beat": 7.5, "note": "B4", "dur": 3.0, "vel": 0.65 }
+          ]
+        },
+        {
+          "bars": 4,
+          "bass": "E2",
+          "pad": ["E3", "B3", "G4"],
+          "melody": [
+            { "beat": 1.5, "note": "F#4", "dur": 0.8, "vel": 0.65 },
+            { "beat": 2.2, "note": "F#4", "dur": 0.8, "vel": 0.65 },
+            { "beat": 3.0, "note": "A4", "dur": 1.5, "vel": 0.75 },
+            { "beat": 4.8, "note": "F#4", "dur": 1.0, "vel": 0.65 },
+            { "beat": 6.0, "note": "E4", "dur": 1.2, "vel": 0.60 },
+            { "beat": 7.5, "note": "D4", "dur": 2.5, "vel": 0.70 }
+          ]
+        },
+        {
+          "bars": 4,
+          "bass": "F#2",
+          "pad": ["F#3", "C#4", "A#3"],
+          "melody": [
+            { "beat": 1.0, "note": "C#4", "dur": 1.5, "vel": 0.55 },
+            { "beat": 3.0, "note": "D4", "dur": 1.5, "vel": 0.60 },
+            { "beat": 5.0, "note": "B3", "dur": 4.5, "vel": 0.75 }
+          ]
+        }
+      ]
+    },
+    "exploration_night": {
+      "title": "Mist on the Frontier",
+      "tempo": 38,
+      "style": "ambient-drone",
+      "filterCutoff": 850,
+      "restInterval": [6, 12],
+      "phrases": [
+        {
+          "bars": 4,
+          "bass": "A1",
+          "pad": ["A2", "E3", "B3", "C4"],
+          "melody": [
+            { "beat": 3.0, "note": "E4", "dur": 4.0, "vel": 0.40 },
+            { "beat": 7.0, "note": "B4", "dur": 3.5, "vel": 0.35 }
+          ]
+        },
+        {
+          "bars": 4,
+          "bass": "F1",
+          "pad": ["F2", "C3", "G3", "A3"],
+          "melody": [
+            { "beat": 2.0, "note": "C5", "dur": 5.0, "vel": 0.45 },
+            { "beat": 6.5, "note": "G4", "dur": 4.0, "vel": 0.35 }
+          ]
+        }
+      ]
+    },
+    "raid_siege": {
+      "title": "Horns Across the Ridge",
+      "tempo": 76,
+      "style": "urgent-ostinato",
+      "filterCutoff": 2200,
+      "restInterval": [0, 1],
+      "phrases": [
+        {
+          "bars": 2,
+          "bass": "D2",
+          "pad": ["D3", "F3", "A3", "C#4"],
+          "melody": [
+            { "beat": 1.0, "note": "D4", "dur": 0.5, "vel": 0.75 },
+            { "beat": 1.5, "note": "D4", "dur": 0.5, "vel": 0.65 },
+            { "beat": 2.0, "note": "F4", "dur": 0.8, "vel": 0.80 },
+            { "beat": 2.5, "note": "E4", "dur": 0.5, "vel": 0.70 },
+            { "beat": 3.0, "note": "C#4", "dur": 1.2, "vel": 0.85 },
+            { "beat": 4.0, "note": "D4", "dur": 0.6, "vel": 0.75 }
+          ]
+        },
+        {
+          "bars": 2,
+          "bass": "Bb1",
+          "pad": ["Bb2", "D3", "F3", "A3"],
+          "melody": [
+            { "beat": 1.0, "note": "Bb3", "dur": 0.5, "vel": 0.80 },
+            { "beat": 1.5, "note": "D4", "dur": 0.5, "vel": 0.70 },
+            { "beat": 2.0, "note": "C4", "dur": 0.8, "vel": 0.75 },
+            { "beat": 3.0, "note": "A3", "dur": 1.5, "vel": 0.85 }
+          ]
+        }
+      ]
+    },
+    "victory_dawn": {
+      "title": "First Light Over the Walls",
+      "tempo": 56,
+      "style": "lydian-bells",
+      "filterCutoff": 1600,
+      "restInterval": [2, 4],
+      "phrases": [
+        {
+          "bars": 4,
+          "bass": "F2",
+          "pad": ["F3", "C4", "A4", "B4"],
+          "melody": [
+            { "beat": 1.5, "note": "C5", "dur": 2.0, "vel": 0.65 },
+            { "beat": 3.0, "note": "E5", "dur": 2.0, "vel": 0.60 },
+            { "beat": 4.5, "note": "G5", "dur": 3.5, "vel": 0.75 },
+            { "beat": 7.0, "note": "F5", "dur": 4.0, "vel": 0.55 }
+          ]
+        }
+      ]
+    }
+  }
+}

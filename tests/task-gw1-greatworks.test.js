@@ -160,15 +160,15 @@ test('GW1: only living finished stages grant tier-scaled auras',()=>{
 });
 
 test('GW1: every stage round-trips and old saves import without a version bump',()=>{
- assert.equal(VERSION,14);
+ assert.equal(VERSION,15);
  for(const id of ids)for(let stage=1;stage<=data.buildings[id].tiers.length;stage++){
   const g=fresh(11),b=makeBuilding(id,2,2,data);b.level=stage;b.hp=data.buildings[id].tiers[stage-1].hp;
   g.world.buildings.push(b);assert.equal(validateSave(g.state,data),true);
   const back=importSaveBlob(exportSave(g.state),data);assert.equal(back.ok,true);
   const restored=back.state.world.buildings.find(x=>x.type===id);
-  assert.equal(restored.level,stage);assert.equal(restored.hp,b.hp);assert.equal(back.state.version,14);
+  assert.equal(restored.level,stage);assert.equal(restored.hp,b.hp);assert.equal(back.state.version,15);
  }
  const g=fresh(11);g.state.version=13;delete g.world.pendingRewards;
  const back=importSaveBlob(JSON.stringify(g.state),data);assert.equal(back.ok,true);
- assert.equal(back.state.version,14);assert.ok(back.state.world.buildings.every(b=>!ids.includes(b.type)));
+ assert.equal(back.state.version,15);assert.ok(back.state.world.buildings.every(b=>!ids.includes(b.type)));
 });

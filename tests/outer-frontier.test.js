@@ -60,7 +60,7 @@ test('v12 tile-grid saves append only new unclaimed coordinates and preserve old
  const oldFalse=tiles.find(t=>t.x===38&&t.y===33);oldFalse.claimed=false;
  const value={version:12,world:{tiles,buildings:[],troops:[],resources:{wood:1,food:1,gold:1},enemies:[],effects:[]},home:null,completed:[],unlocks:[],questsCompleted:[],xp:0};
  const migrated=migrate(structuredClone(value),data);
-  assert.equal(migrated.version,VERSION);assert.equal(VERSION,14);
+  assert.equal(migrated.version,VERSION);assert.equal(VERSION,15);
  assert.equal(migrated.world.tiles.length,52*44);
  const same=migrated.world.tiles.find(t=>t.x===39&&t.y===33);assert.equal(same.claimed,true);assert.equal(same.note,'keep-me');
  assert.equal(migrated.world.tiles.find(t=>t.x===38&&t.y===33).claimed,false);
@@ -71,5 +71,5 @@ test('v12 tile-grid saves append only new unclaimed coordinates and preserve old
 test('v12 tile-less vintage saves leave reconstruction to the established Game path',()=>{
  const value={version:12,world:{tiles:null},home:null};
  const migrated=migrate(structuredClone(value),data);
-  assert.equal(migrated.version,14);assert.equal(migrated.world.tiles,null);
+  assert.equal(migrated.version,15);assert.equal(migrated.world.tiles,null);
 });

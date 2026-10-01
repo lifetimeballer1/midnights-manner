@@ -1,6 +1,6 @@
 # Act XI J6: music + global-phone verification pass
 
-- Every theme (17/17, choir included) now pins Calm thinning, per-voice mix bounds, and master-gain ceiling in the multi-theme test — the measurable proxies for "songs sound good" on tiny speakers.
+- Every theme (18/18, choir included) now pins Calm thinning, per-voice mix bounds, and master-gain ceiling in the multi-theme test — the measurable proxies for "songs sound good" on tiny speakers.
 - Celebration hygiene pinned: the 5-minute duck disarms on stop with no leaked timer or hold.
 - Perf neutrality pinned: clearing the whole frontier costs exactly one static rebuild per burn and ends camp-free; all prior face/effect/voice caps hold untouched, and Act XI adds zero per-frame work (data + one short mesh-key join).
 - Review: full suite green, build green. Browser capture/smoke still belong to CI (no Chrome on this box).
@@ -32,10 +32,23 @@
 
 # Act XI J1: the Ashen Crown finale + update celebration song
 
-- New chapter 34 `ix-ashen-crown` (Act XI, requires `grey-dawn-crown`): defeat 32 + survive 360 on a scorched hills ridge, four horns at 8/10/12/14 with the new Ashen Warlord (`conquest.json` leader: 2900 hp base, faster summon clock) — out-stats the Grey Sovereign in every number.
+- New chapter 39 `ix-ashen-crown` (Act XI, requires `ix-pale-pavilion` after the J4 rewire): defeat 32 + survive 360 on a scorched hills ridge, four horns at 8/10/12/14 with the new Ashen Warlord (`conquest.json` leader: 2900 hp base, faster summon clock) — out-stats the Grey Sovereign in every number.
 - New original soul-choir theme `ashen-choir` (generative WebAudio, no assets): the update board forces it once when fresh 0.4.0 notes auto-show, then it settles to 25% volume after 5 minutes. Combat/mood urgency still wins; mute/Calm/voice caps untouched.
 - `data/updates.json` 0.4.0 entry announces Act XI; saves stay additive, no migration.
-- Review: historical mission/leader fingerprints preserved by excluding the two additive entries (verified byte-identical); totals move 34→35 missions, max chapter 33→34, 6→7 leaders, 16→17 themes.
+- Review: historical mission/leader fingerprints preserved by excluding the additive entries (verified byte-identical); totals move 34→41 missions, max chapter 33→39, 6→7 leaders, 17→18 themes with the main-side bonus track.
+## 2026-09-30 — Ambient soundtrack safety + performance sync
+
+- Keep the legacy `data/music.json` theme score intact as the fallback used by `MusicPlayer`; the ambient engine continues to load only `data/ambient-score.json`.
+- Sync the archival `update/audio.js` deliverable to the active pooled/shared-bus engine so future update passes do not reintroduce the older per-voice implementation.
+- Replace the commercial-song tribute cue with the original felt-piano bonus track “Coins at Sundown,” retaining the five-minute 25% peaceful-state easter-egg roll.
+- Add regression coverage for soundtrack schema separation, shared mute/unlock integration and required reactive tracks.
+
+## 2026-09-30 — Mobile UI and Lighting Pass 2
+
+- Move Collect Ready into the bottom Army utility row, retaining collection/storage logic and five navigation actions. Zero is disabled; menus and placement hide it.
+- Add quiet overview dots, scrollable unclipped filters, compact resource totals, shared parchment cards, secondary close controls and grouped settings/stores. Training follows equipment.
+- Reuse the existing clock for restrained phase/weather values, culled bounded shadow hulls, overview unit-shadow LOD, capped source bloom/spill, clear-weather rays, three-layer rain and sparse fog/ripples.
+- Add renderer-only effect telemetry, lighting/performance regression coverage and mature-settlement browser screenshots in CI. No save migration or gameplay/economy/AI changes.
 
 # Wooden interface: cartoon wood + candy reskin, wave stars
 

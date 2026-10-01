@@ -1,3 +1,4 @@
+import {matureSettlement} from './settlement-fixture.mjs';
 // Dependency-free real-Chromium regression test. CI provides google-chrome.
 // Local usage: CHROME_BIN=/path/to/chrome npm run test:browser
 import {spawn,spawnSync} from 'node:child_process';
@@ -49,6 +50,8 @@ try{
   await click('#begin');await waitFor('window.midnightsManner.ready');
   assert.equal(await evaluate('Boolean(document.querySelector("#camera-buttons")?.hidden)'),true,'camera tools collapse by default');
   assert.ok(await evaluate('Boolean(document.querySelector("#resource-summary"))'),'resource summary chip present');
+  assert.ok(await evaluate('document.querySelector("#collect-ready").closest(".bottom-hud")!==null'),'collect action belongs to bottom HUD');
+  assert.equal(await evaluate('document.querySelectorAll(".dock .dock-button").length'),5,'five navigation actions remain');
  const musicStarts=await evaluate('window.__audioProbe.starts');assert.ok(musicStarts>=12,'Enter village starts the generated score');
  let musicLevel;
  for(let i=0;i<30;i++){
@@ -57,10 +60,18 @@ try{
   await new Promise(r=>setTimeout(r,100));
  }
  assert.ok(musicLevel&&musicLevel.rms>0.0001,'score produces a non-silent browser audio signal');assert.ok(musicLevel.peak<.95,'score leaves headroom instead of clipping');console.log('Music output level',musicLevel);
- await click('#pause');const stopsBeforeMute=await evaluate('window.__audioProbe.stops');await click('#opt-sound');
- assert.ok(await evaluate(`window.__audioProbe.stops>${stopsBeforeMute}`),'Sound off stops scheduled score notes');
- const startsBeforeUnmute=await evaluate('window.__audioProbe.starts');await click('#opt-sound');
- assert.ok(await evaluate(`window.__audioProbe.starts>${startsBeforeUnmute}`),'Sound on resumes the score');await click('#resume');
+ // Both score engines route through the shared bus: test audible behavior,
+ // since the ambient engine fades voices instead of stopping oscillators.
+ const audioRms='(()=>{const a=window.__audioProbe.analyser;if(!a)return null;const d=new Float32Array(a.fftSize);a.getFloatTimeDomainData(d);return Math.sqrt(d.reduce((n,v)=>n+v*v,0)/d.length);})()';
+ await click('#pause');await click('#opt-sound');
+ await waitFor(`document.querySelector('#opt-sound').getAttribute('aria-pressed')==='false'&&${audioRms}<0.0001`);
+ // A quiet gap in the score can satisfy RMS before the bus fade finishes.
+ // Wait for the same strict gain threshold instead of sampling it once.
+ await waitFor(`(async()=>{const a=await import('./src/systems/audio.js');return a.isMuted()&&a.sharedAudioOutput().gain.value<.0001;})()`);
+ assert.ok(await evaluate(`${audioRms}<0.0001`),'Sound off silences the shared music/effects bus');
+ await click('#opt-sound');
+ await waitFor(`document.querySelector('#opt-sound').getAttribute('aria-pressed')==='true'&&${audioRms}>0.0001`);
+ await click('#resume');
  await screenshot('desktop');
  assert.equal(await evaluate('document.documentElement.scrollHeight > innerHeight'),false,'game has no document scrolling');
  const count=await evaluate('window.midnightsManner.snapshot().world.buildings.length');
@@ -226,6 +237,59 @@ try{
  assert.ok(perf&&perf.n>=10&&Number.isFinite(perf.avg)&&Number.isFinite(perf.p95),'frame telemetry stays live');
  assert.ok(perf.faces<30000&&perf.staticFaces<30000,`visible mesh stays bounded (faces=${perf.faces}, static=${perf.staticFaces})`);
  console.log('Frame report',perf);
+ // Living detail fixture: use a detached real browser canvas, keeping the
+ // interactive village/save used by the remainder of this smoke untouched.
+ const living=await evaluate(`(async()=>{
+  const root='/midnights-manner/',names=['world','troops','items','buildings','abilities','quests','missions','biomes','expansion'];
+  const data=Object.fromEntries(await Promise.all(names.map(async n=>[n,await(await fetch(root+'data/'+n+'.json')).json()])));
+  const [{Renderer},{createWorld,makeBuilding,makeUnit},{recordTravel,trailMultiplier},{move},{exportSave,importSaveBlob}]=await Promise.all(['renderer.js','model.js','systems/trails.js','systems/pathfinding.js','storage.js'].map(n=>import(root+'src/'+n)));
+  const world=createWorld(data);world.elapsed=400;world.buildings=[];world.troops=[];
+  Object.keys(data.buildings).forEach((type,i)=>{const x=2+(i%10)*4,y=2+Math.floor(i/10)*4,b=makeBuilding(type,x,y,data,Math.min(6,data.buildings[type].tiers.length));b.id='living-'+i;b.remaining=0;world.buildings.push(b);const typeOf=data.buildings[type].workplace;if(typeOf&&data.troops[typeOf]){const u=makeUnit(typeOf,data,i);u.workplace=b.id;u.x=x+data.buildings[type].size/2;u.y=y+data.buildings[type].size;world.troops.push(u);}});
+  for(let i=0;i<600;i++){recordTravel(world,data,4.25,4.25,28.25,4.25);recordTravel(world,data,10.25,4.25,10.25,24.25);}
+  const state={...window.midnightsManner.snapshot(),world,home:null,mission:null},loaded=importSaveBlob(exportSave(state),data);
+  if(!loaded.ok||JSON.stringify(loaded.state.world.trails)!==JSON.stringify(world.trails))throw Error('Living trail save roundtrip failed');
+  const speed=trailMultiplier(world,4.25,4.25),actor={id:'path-walker',hp:100,x:4.25,y:4.25};
+  const isolated={...world,buildings:[],troops:[actor],enemies:[]};move(isolated,data,actor,{x:7.25,y:4.25},1,.05,.1,false,true);
+  if(Math.abs(Math.hypot(actor.x-4.25,actor.y-4.25)-.05*speed)>1e-8)throw Error('Living friendly path speed failed');
+  const before=window.midnightsManner.snapshot().world.troops[0]?.id,frames=[];
+  for(const [width,height,yaw,zoom,calm,raid,tag] of [[1280,900,Math.PI/4,1.65,false,false,'desktop'],[390,844,Math.PI/4,1.65,false,false,'phone'],[1280,900,Math.PI*1.25,2.4,false,false,'reverse'],[1280,900,Math.PI/2,.65,false,false,'far'],[390,844,Math.PI/4,1.65,true,false,'calm'],[1280,900,Math.PI/4,1.65,false,true,'raid']]){
+   const canvas=document.createElement('canvas'),r=new Renderer(canvas,data,{});r.resize(width,height,1);r.cam={x:16,y:12,yaw,pitch:.8,zoom};r.calm=calm;
+   world.enemies=raid?Array.from({length:16},(_,i)=>({id:'living-enemy-'+i,hp:100,maxHp:100,x:8+i*.3,y:8,role:i%2?'archer':'raider',type:'enemy',animation:.2})):[];
+   const times=[];for(let i=0;i<8;i++){const start=performance.now();r.draw(world,2200+i*50);times.push(performance.now()-start);}
+   if(r.sceneFaces.some(f=>!f.color||f.vertices.some(v=>v.some(n=>!Number.isFinite(n)))))throw Error('Invalid living mesh');
+   frames.push({tag,faces:r.sceneFaces.length,staticFaces:r._meshStatic.faces.length,medianMs:times.sort((a,b)=>a-b)[4],image:canvas.toDataURL('image/png').split(',')[1]});
+  }
+  if(window.midnightsManner.snapshot().world.troops[0]?.id!==before)throw Error('Living fixture changed the interactive village');
+  return {speed,cells:Object.keys(world.trails).length,frames};
+ })()`);
+ assert.equal(living.speed,1.11,'packed path bonus in real Chromium');
+ for(const frame of living.frames){assert.ok(frame.faces<30000&&frame.staticFaces<30000,'crowded living village stays bounded');await writeFile('artifacts/living-browser-'+frame.tag+'.png',Buffer.from(frame.image,'base64'));delete frame.image;}
+ console.log('Living detail browser review',living);
+
+ // Living settlement: actual Chromium, 390x844 at DPR 2, 150 villagers.
+ const settlement=await evaluate(`(async()=>{
+ const root='/midnights-manner/',names=['world','buildings','troops','items','abilities','quests','missions','biomes','expansion','calendar','conquest','endgame','factions'];
+ const d=Object.fromEntries(await Promise.all(names.map(async n=>[n,await(await fetch(root+'data/'+n+'.json')).json()])));
+ const [model,trails,logistics,crafting,economy,emergency,combat,clock,routing,{Renderer}]=await Promise.all(['model.js','systems/trails.js','systems/logistics.js','systems/crafting.js','systems/economy.js','systems/emergency.js','systems/combat.js','systems/daynight.js','systems/pathfinding.js','renderer.js'].map(n=>import(root+'src/'+n)));
+ const make=${matureSettlement.toString()},reports=[];const stat=a=>{const s=[...a].sort((a,b)=>a-b);return {average:a.reduce((a,b)=>a+b,0)/a.length,p50:s[Math.floor(s.length*.5)],p95:s[Math.floor(s.length*.95)]};};
+ for(const mode of ['day','night','rain','warning','raid']){
+  const w=make(d,{...model,...trails}),canvas=document.createElement('canvas'),r=new Renderer(canvas,d,{});r.resize(390,844,2);r.cam={x:19,y:13,zoom:1.1,yaw:Math.PI/4,pitch:.8};
+  for(let i=0;i<100;i++){w.elapsed+=.05;logistics.tickLogistics(w,d,.05);crafting.tickRefine(w,d,.05,true);}
+  for(let t=0;t<30000;t+=5){const p=clock.phaseAt(t,d),weather=clock.weatherAt(t,d).id;if(mode==='night'?p.night&&weather==='clear':mode==='rain'?weather==='rain':!p.night&&weather==='clear'){w.elapsed=t;break;}}
+  if(mode==='warning')w.raidPending={at:w.elapsed+30};if(mode==='raid')combat.spawnRaid(w,6,null,d,null);
+  const render=[],ticks=[],frames=[],heap=performance.memory?.usedJSHeapSize||null;
+  for(let i=0;i<40;i++){const frameStart=performance.now();let t=frameStart;emergency.tickEmergency(w,d,.05);economy.tickEconomy(w,d,.05);logistics.tickLogistics(w,d,.05);crafting.tickRefine(w,d,.05,true);combat.tickCombat(w,d,.05);w.elapsed+=.05;ticks.push(performance.now()-t);t=performance.now();r.draw(w,2000+i*50);if(i>=10){render.push(performance.now()-t);frames.push(performance.now()-frameStart);}}
+  const metrics=logistics.logisticsMetrics(w);if(metrics.activeJobs>24||metrics.visibleCarts>10||metrics.routeCache>48||metrics.intervalPathCalculations>8)throw Error('Unbounded settlement simulation');
+  if(r.sceneFaces.some(f=>f.vertices.some(v=>v.some(n=>!Number.isFinite(n)))))throw Error('Invalid logistics geometry');
+  reports.push({mode,phase:clock.phaseAt(w.elapsed,d).id,weather:clock.weatherAt(w.elapsed,d).id,viewport:[390,844],dpr:2,villagers:150,buildings:w.buildings.length,pendingOutputs:w.buildings.reduce((n,b)=>n+Object.values(b.outputReserve||{}).reduce((a,v)=>a+v,0),0),outputJobs:logistics.visualHauls(w).filter(j=>j.kind==='output').length,frameMs:stat(frames),renderMs:stat(render),tickMs:stat(ticks),heapDeltaBytes:heap?(performance.memory.usedJSHeapSize-heap):null,faces:r.sceneFaces.length,...metrics,...routing.movementMetrics(w),image:canvas.toDataURL('image/png').split(',')[1]});
+ }
+ return reports;
+})()`);
+ for(const report of settlement){await writeFile('artifacts/settlement-browser-'+report.mode+'.png',Buffer.from(report.image,'base64'));delete report.image;}
+ await writeFile('artifacts/settlement-browser-benchmark.json',JSON.stringify({environment:'Headless Chromium in CI; desktop CPU, not physical phone',reports:settlement},null,2));
+ console.log('Living settlement Chromium benchmark',settlement);
+ await ensureResources();await fire('[data-resource="wood"]');await waitFor('!!document.querySelector("[data-logistics-view]")');await fire('[data-logistics-view="traffic"]');await click('#close-panel');
+
  await click('[data-tab="troops"]');await click('[data-category="recruit"]');
  assert.ok((await evaluate('document.querySelectorAll("[data-recruit]").length'))>=20,'all professions retained');
  // Serve a second build while the standalone-sized page stays open.

@@ -269,7 +269,7 @@ export function tickCombat(world,data,dt) {
  const wallCenters=new Map();
  const wallCenter=b=>{let c=wallCenters.get(b);if(!c){c=center(b,data);wallCenters.set(b,c);}return c;};
  for(const enemy of world.enemies) {
-  if(enemy.hp<=0)continue;enemy.attackTimer=(enemy.attackTimer??0)-dt;
+  if(enemy.hp<=0)continue;enemy.attackTimer=(enemy.attackTimer??0)-dt;enemy.animation=Math.max(0,(enemy.animation||0)-dt);
   // Crowns of the late war (Phase 12): slam, muster, enrage and dread
    // all tick here. Heralds ride float-text so the field reads the moment.
    if(enemy.role==='boss'&&data){
@@ -317,7 +317,7 @@ export function tickCombat(world,data,dt) {
     if(d<=1.2&&d<barrierD){barrierD=d;barrier=b;}
    }
    if(barrier&&enemy.attackTimer<=0){
-     barrier.hp=Math.max(0,barrier.hp-enemy.damage*skyDmg*(role.wallDamage||1)*chestGuard);enemy.attackTimer=1.3;
+     barrier.hp=Math.max(0,barrier.hp-enemy.damage*skyDmg*(role.wallDamage||1)*chestGuard);enemy.attackTimer=1.3;enemy.animation=.4;
      effect(world,enemy,center(barrier,data),'slash');wallSound(barrier);
     if(barrier.hp<=0)world.raidLosses=(world.raidLosses||0)+1;
     continue;
@@ -328,7 +328,7 @@ export function tickCombat(world,data,dt) {
    const bb=target;let adjacent=false;
    const bx0=Math.floor(enemy.x),by0=Math.floor(enemy.y);
    for(let yy=bb.y-1;yy<bb.y+data.buildings[bb.type].size+1&&!adjacent;yy++)for(let xx=bb.x-1;xx<bb.x+data.buildings[bb.type].size+1&&!adjacent;xx++)if(xx===bx0&&yy===by0)adjacent=true;
-     if(adjacent&&enemy.attackTimer<=0){bb.hp=Math.max(0,bb.hp-enemy.damage*skyDmg*(isWall(bb)?(role.wallDamage||1)*chestGuard:1));if(bb.hp<=0)world.raidLosses=(world.raidLosses||0)+1;enemy.attackTimer=1.3;effect(world,enemy,center(bb,data),'slash');if(isWall(bb))wallSound(bb);else{const g=listenerGain('combat');if(g>0)sfx.hit({vol:g});}push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y,kind:'hit',life:.18});continue;}
+     if(adjacent&&enemy.attackTimer<=0){bb.hp=Math.max(0,bb.hp-enemy.damage*skyDmg*(isWall(bb)?(role.wallDamage||1)*chestGuard:1));if(bb.hp<=0)world.raidLosses=(world.raidLosses||0)+1;enemy.attackTimer=1.3;enemy.animation=.4;effect(world,enemy,center(bb,data),'slash');if(isWall(bb))wallSound(bb);else{const g=listenerGain('combat');if(g>0)sfx.hit({vol:g});}push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y,kind:'hit',life:.18});continue;}
   }
   if(arrived&&enemy.attackTimer<=0){
    // Armor stacks: sky aura + ability resolve + worn gear (Padded Coat
@@ -346,8 +346,8 @@ export function tickCombat(world,data,dt) {
    let dread=1;
    try{if(enemy.role!=='boss')dread=bossAuraMult(world,data,enemy);}catch{}
    const raw=enemy.damage*dread*skyDmg*(1-Math.min(.8,reduction))*(!targetUnit&&isWall(target)?(role.wallDamage||1)*chestGuard:1);
-    if(targetUnit&&raw>=target.hp&&!target.unbrokenUsed){try{if(unlockedAbilities(target,data).some(a=>a.effect==='unbroken')){target.hp=1;target.unbrokenUsed=true;enemy.attackTimer=1.3;push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y-1,kind:'float',text:'UNBROKEN!',color:'#ffe9a8',life:.9});effect(world,enemy,targetPoint,'slash');strikeSound(enemy,targetPoint,false);continue;}}catch{}}
-    target.hp=Math.max(0,target.hp-raw);enemy.attackTimer=1.3;effect(world,enemy,targetPoint,role.range>2?'arrow':'slash');push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y,kind:'hit',life:.18});strikeSound(enemy,targetPoint,role.range>2);
+    if(targetUnit&&raw>=target.hp&&!target.unbrokenUsed){try{if(unlockedAbilities(target,data).some(a=>a.effect==='unbroken')){target.hp=1;target.unbrokenUsed=true;enemy.attackTimer=1.3;enemy.animation=.4;push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y-1,kind:'float',text:'UNBROKEN!',color:'#ffe9a8',life:.9});effect(world,enemy,targetPoint,'slash');strikeSound(enemy,targetPoint,false);continue;}}catch{}}
+    target.hp=Math.max(0,target.hp-raw);enemy.attackTimer=1.3;enemy.animation=.4;effect(world,enemy,targetPoint,role.range>2?'arrow':'slash');push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y,kind:'hit',life:.18});strikeSound(enemy,targetPoint,role.range>2);
    // Rue's ledger: a building that falls while raiders walk counts against
    // the flawless defense. Troops falling never do — only walls and roofs.
    if(!targetUnit&&target.hp<=0)world.raidLosses=(world.raidLosses||0)+1;

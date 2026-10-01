@@ -1,9 +1,8 @@
+import {workTiming} from '../work-motion.js';
 // Work synchronization: impact sounds fire exactly on visible work moments.
-// Every visual driver below mirrors a sine in building-activity.js with the
-// SAME rate/seed math, so the CLANG lands on the hammer's peak, the chop on
-// the axe fall, the pick on the strike — derived, never simulated. The sim
-// is untouched; this only listens. Higher levels work faster, never louder
-// than the mix allows.
+// Physical mechanisms and this listener share workTiming: cycle wraps mark
+// tool contact, saw reversals and wheel creaks. The simulation is untouched;
+// higher tiers work faster while the existing zoom-aware mix limits volume.
 import {sfx} from './audio.js';
 import {hashId} from './footsteps.js';
 
@@ -52,18 +51,19 @@ export class WorkSync {
     // defense in depth behind the renderer's own activity gate.
     if (!b || b.id == null || !(vol > 0) || b.hp <= 0 || (b.remaining || 0) > 0) return null;
     const id = 'w' + b.id, pitch = buildingPitch(b.id), rate = rateFor(b.level);
+    const wrap=(id,channel,t,period,offset)=>{const c=workTiming(b,channel);return this.wrap(id,channel,t,c?.period??period,c?.offset??offset);};
     const rnd = typeof R?.random === 'function' ? () => R.random() : Math.random;
     switch (b.type) {
       case 'forge':
       case 'smeltery':
       case 'workshop': {
         const soft = b.type === 'forge' ? 1 : 0.6;
-        if (this.wrap(id, 'bellows', t, 6300 * rate, phaseOffset(seed01, 5, 0.001, 0))) {
+        if (wrap(id, 'bellows', t, 6300 * rate, phaseOffset(seed01, 5, 0.001, 0))) {
           sfx.bellows({vol: vol * 0.9, pitch});
           sfx.crackle({vol: vol * 0.5 * soft, pitch: pitch * 0.9});
           return 'bellows';
         }
-        if (this.wrap(id, 'hammer', t, HAMMER_PERIOD * rate, phaseOffset(seed01, 11, 0.006, Math.PI / 2))) {
+        if (wrap(id, 'hammer', t, HAMMER_PERIOD * rate, phaseOffset(seed01, 11, 0.006, Math.PI / 2))) {
           sfx.workHammer({vol: vol * soft, pitch});
           if (rnd() < 0.12) sfx.crackle({vol: vol * 0.4, pitch: pitch * 1.6});
           return 'hammer';
@@ -72,11 +72,11 @@ export class WorkSync {
       }
       case 'mine':
       case 'emberglass': {
-        if (this.wrap(id, 'cart', t, 7800 * rate, phaseOffset(seed01, 7, 0.001, 0))) {
+        if (wrap(id, 'cart', t, 7800 * rate, phaseOffset(seed01, 7, 0.001, 0))) {
           sfx.wallWood({vol: vol * 0.7, pitch: pitch * 0.7});
           return 'cart';
         }
-        if (this.wrap(id, 'pick', t, (1250 + seed01 * 350) * rate, phaseOffset(seed01, 9, 0.005, Math.PI / 2))) {
+        if (wrap(id, 'pick', t, (1250 + seed01 * 350) * rate, phaseOffset(seed01, 9, 0.005, Math.PI / 2))) {
           sfx.workPick({vol, pitch: pitch * (0.96 + seed01 * 0.08)});
           return 'pick';
         }
@@ -84,22 +84,22 @@ export class WorkSync {
       }
       case 'lumber':
       case 'timber_yard': {
-        if (this.wrap(id, 'log', t, 7500 * rate, phaseOffset(seed01, 4, 0.001, 0))) {
+        if (wrap(id, 'log', t, 7500 * rate, phaseOffset(seed01, 4, 0.001, 0))) {
           sfx.wallWood({vol: vol * 0.8, pitch: pitch * 0.6});
           return 'log';
         }
-        if (this.wrap(id, 'chop', t, (1500 + seed01 * 350) * rate, phaseOffset(seed01, 6, 0.004, Math.PI / 2))) {
+        if (wrap(id, 'chop', t, (1500 + seed01 * 350) * rate, phaseOffset(seed01, 6, 0.004, Math.PI / 2))) {
           sfx.workChop({vol, pitch});
           return 'chop';
         }
         return null;
       }
       case 'sawmill': {
-        if (this.wrap(id, 'feed', t, 6900 * rate, phaseOffset(seed01, 4, 0.001, 0))) {
+        if (wrap(id, 'feed', t, 6900 * rate, phaseOffset(seed01, 4, 0.001, 0))) {
           sfx.wallWood({vol: vol * 0.6, pitch: pitch * 0.8});
           return 'feed';
         }
-        if (this.wrap(id, 'saw', t, SAW_HALF_PERIOD * rate, phaseOffset(seed01, 8, 0.012, Math.PI / 2))) {
+        if (wrap(id, 'saw', t, SAW_HALF_PERIOD * rate, phaseOffset(seed01, 8, 0.012, Math.PI / 2))) {
           sfx.saw({vol: vol * 0.8, pitch});
           return 'saw';
         }
@@ -111,7 +111,7 @@ export class WorkSync {
       case 'frostgrove': {
         // Crop sweeps breathe on sin(t*.004+seed*7); rustle every fourth
         // extreme so fields whisper instead of chattering.
-        if (this.wrap(id, 'rustle', t, (Math.PI / 0.004) * 2 * rate, phaseOffset(seed01, 7, 0.004, Math.PI / 2))) {
+        if (wrap(id, 'rustle', t, (Math.PI / 0.004) * 2 * rate, phaseOffset(seed01, 7, 0.004, Math.PI / 2))) {
           sfx.rustle({vol: vol * 0.9, pitch});
           return 'rustle';
         }
@@ -120,51 +120,51 @@ export class WorkSync {
       case 'mill': {
         // The wheel turns on angle=t*.0018+seed*6.28; wooden creaks twice
         // per revolution with a soft grind riding along.
-        if (this.wrap(id, 'creak', t, (Math.PI / 0.0018) * rate, phaseOffset(seed01, 6.28, 0.0018, 0))) {
+        if (wrap(id, 'creak', t, (Math.PI / 0.0018) * rate, phaseOffset(seed01, 6.28, 0.0018, 0))) {
           sfx.creak({vol, pitch});
           return 'creak';
         }
         return null;
       }
       case 'bakery': {
-        if (this.wrap(id, 'clatter', t, 8300 * rate, phaseOffset(seed01, 3, 0.001, 0))) {
+        if (wrap(id, 'clatter', t, 8300 * rate, phaseOffset(seed01, 3, 0.001, 0))) {
           sfx.wallWood({vol: vol * 0.4, pitch: pitch * 1.6});
           return 'clatter';
         }
-        if (this.wrap(id, 'oven', t, 4100 * rate, phaseOffset(seed01, 5, 0.0015, Math.PI / 2))) {
+        if (wrap(id, 'oven', t, 4100 * rate, phaseOffset(seed01, 5, 0.0015, Math.PI / 2))) {
           sfx.crackle({vol: vol * 0.6, pitch: pitch * 0.8});
           return 'oven';
         }
         return null;
       }
       case 'mason_yard': {
-        if (this.wrap(id, 'block', t, 9100 * rate, phaseOffset(seed01, 4, 0.001, 0))) {
+        if (wrap(id, 'block', t, 9100 * rate, phaseOffset(seed01, 4, 0.001, 0))) {
           sfx.wallStone({vol: vol * 0.5, pitch: pitch * 0.8});
           return 'block';
         }
-        if (this.wrap(id, 'chisel', t, (1700 + seed01 * 400) * rate, phaseOffset(seed01, 6, 0.004, Math.PI / 2))) {
+        if (wrap(id, 'chisel', t, (1700 + seed01 * 400) * rate, phaseOffset(seed01, 6, 0.004, Math.PI / 2))) {
           sfx.workPick({vol: vol * 0.8, pitch: pitch * 0.6});
           return 'chisel';
         }
         return null;
       }
       case 'fletcher': {
-        if (this.wrap(id, 'twang', t, 7400 * rate, phaseOffset(seed01, 3, 0.001, 0))) {
+        if (wrap(id, 'twang', t, 7400 * rate, phaseOffset(seed01, 3, 0.001, 0))) {
           sfx.arrow({vol: vol * 0.4, pitch: pitch * 0.9});
           return 'twang';
         }
-        if (this.wrap(id, 'shave', t, (2100 + seed01 * 400) * rate, phaseOffset(seed01, 6, 0.004, Math.PI / 2))) {
+        if (wrap(id, 'shave', t, (2100 + seed01 * 400) * rate, phaseOffset(seed01, 6, 0.004, Math.PI / 2))) {
           sfx.saw({vol: vol * 0.5, pitch: pitch * 0.7});
           return 'shave';
         }
         return null;
       }
       case 'tannery': {
-        if (this.wrap(id, 'bucket', t, 8800 * rate, phaseOffset(seed01, 3, 0.001, 0))) {
+        if (wrap(id, 'bucket', t, 8800 * rate, phaseOffset(seed01, 3, 0.001, 0))) {
           sfx.splash({vol: vol * 0.35, pitch: pitch * 0.8});
           return 'bucket';
         }
-        if (this.wrap(id, 'scrape', t, (2400 + seed01 * 400) * rate, phaseOffset(seed01, 6, 0.003, Math.PI / 2))) {
+        if (wrap(id, 'scrape', t, (2400 + seed01 * 400) * rate, phaseOffset(seed01, 6, 0.003, Math.PI / 2))) {
           sfx.saw({vol: vol * 0.5, pitch: pitch * 0.5});
           return 'scrape';
         }
@@ -172,7 +172,7 @@ export class WorkSync {
       }
       case 'butchery': {
         // Chopping-board work, never the forge hammer.
-        if (this.wrap(id, 'board', t, (1900 + seed01 * 400) * rate, phaseOffset(seed01, 6, 0.004, Math.PI / 2))) {
+        if (wrap(id, 'board', t, (1900 + seed01 * 400) * rate, phaseOffset(seed01, 6, 0.004, Math.PI / 2))) {
           sfx.workChop({vol: vol * 0.7, pitch: pitch * 0.7});
           return 'board';
         }
@@ -181,7 +181,7 @@ export class WorkSync {
       case 'pond':
       case 'blackwater-weir':
       case 'deephole': {
-        if (this.wrap(id, 'lap', t, (3600 + seed01 * 800) * rate, phaseOffset(seed01, 5, 0.0012, Math.PI / 2))) {
+        if (wrap(id, 'lap', t, (3600 + seed01 * 800) * rate, phaseOffset(seed01, 5, 0.0012, Math.PI / 2))) {
           sfx.splash({vol: vol * 0.5, pitch: pitch * 1.1});
           return 'lap';
         }
@@ -189,11 +189,11 @@ export class WorkSync {
       }
       case 'market':
       case 'market-square': {
-        if (this.wrap(id, 'coin', t, 6800 * rate, phaseOffset(seed01, 3, 0.001, 0))) {
+        if (wrap(id, 'coin', t, 6800 * rate, phaseOffset(seed01, 3, 0.001, 0))) {
           sfx.coin({vol: vol * 0.8, pitch});
           return 'coin';
         }
-        if (this.wrap(id, 'murmur', t, 11500 * rate, phaseOffset(seed01, 5, 0.0008, 0))) {
+        if (wrap(id, 'murmur', t, 11500 * rate, phaseOffset(seed01, 5, 0.0008, 0))) {
           sfx.murmur({vol: vol * 0.8, pitch});
           return 'murmur';
         }
@@ -207,23 +207,23 @@ export class WorkSync {
         // Homes hush: hearth crackle after dark, a rare door creak by day.
         // Never workshop noise.
         if (opts.night) {
-          if (this.wrap(id, 'hearth', t, (5200 + seed01 * 900) * rate, phaseOffset(seed01, 5, 0.001, Math.PI / 2))) {
+          if (wrap(id, 'hearth', t, (5200 + seed01 * 900) * rate, phaseOffset(seed01, 5, 0.001, Math.PI / 2))) {
             sfx.crackle({vol: vol * 0.5, pitch: pitch * 0.85});
             return 'hearth';
           }
-        } else if (this.wrap(id, 'door', t, 14800 * rate, phaseOffset(seed01, 3, 0.0007, 0))) {
+        } else if (wrap(id, 'door', t, 14800 * rate, phaseOffset(seed01, 3, 0.0007, 0))) {
           sfx.creak({vol: vol * 0.5, pitch: pitch * 1.1});
           return 'door';
         }
         return null;
       }
       case 'barracks': {
-        if (this.wrap(id, 'drill', t, (2600 + seed01 * 500) * rate, phaseOffset(seed01, 6, 0.003, Math.PI / 2))) {
+        if (wrap(id, 'drill', t, (2600 + seed01 * 500) * rate, phaseOffset(seed01, 6, 0.003, Math.PI / 2))) {
           if (rnd() < 0.25) sfx.arrow({vol: vol * 0.4, pitch});
           else sfx.blade({vol: vol * 0.5, pitch: pitch * (0.9 + seed01 * 0.2)});
           return 'drill';
         }
-        if (this.wrap(id, 'shield', t, 7900 * rate, phaseOffset(seed01, 3, 0.001, 0))) {
+        if (wrap(id, 'shield', t, 7900 * rate, phaseOffset(seed01, 3, 0.001, 0))) {
           sfx.hit({vol: vol * 0.5, pitch: pitch * 0.7});
           return 'shield';
         }

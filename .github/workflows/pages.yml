@@ -22,6 +22,8 @@ jobs:
       - run: npm run build
       - name: Browser gameplay and mobile smoke test
         run: npm run test:browser
+      - name: Mature settlement UI and lighting review
+        run: POLISH_CAPTURE=1 GUI_CAPTURE=1 npm run capture
       - uses: actions/upload-artifact@v4
         if: always()
         with:

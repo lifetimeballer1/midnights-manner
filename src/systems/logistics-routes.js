@@ -1,0 +1,14 @@
+// Reverse route fields: one calculation per destination/revision, never per
+// moving worker. Strict building footprints; friendly gates remain passable.
+import {roadAt,ROAD_SPEED,roadRevision} from './roads.js';
+export const ROUTE_CAP=48,ROUTE_BUDGET=8;
+export function layoutSignature(w,d){let s=`${d.world.width},${d.world.height}|${roadRevision(w)}|`;for(const b of w.buildings)s+=`${b.id},${b.type},${b.x},${b.y},${b.level},${b.hp>0?1:0},${b.remaining>0?1:0};`;s+=(w.tiles||[]).reduce((n,t)=>n+(t.claimed?1:0),0);return s;}
+export function routeGraph(w,d){const W=d.world.width,H=d.world.height,blocked=new Uint8Array(W*H);for(const b of w.buildings){if(b.hp<=0||['gate','trap'].includes(b.type))continue;const n=d.buildings[b.type]?.size||1;for(let y=Math.floor(b.y);y<b.y+n;y++)for(let x=Math.floor(b.x);x<b.x+n;x++)if(x>=0&&y>=0&&x<W&&y<H)blocked[y*W+x]=1;}return {W,H,blocked,fields:new Map(),calculations:0,budget:ROUTE_BUDGET};}
+export function accessTile(g,b,d,from=b){const size=d.buildings[b.type].size;let best=null,score=Infinity;for(let y=b.y-1;y<=b.y+size;y++)for(let x=b.x-1;x<=b.x+size;x++){if(x>=b.x&&x<b.x+size&&y>=b.y&&y<b.y+size)continue;if(x<0||y<0||x>=g.W||y>=g.H||g.blocked[y*g.W+x])continue;const v=Math.hypot(x+.5-from.x,y+.5-from.y);if(v<score){score=v;best={x:x+.5,y:y+.5};}}return best;}
+// Grid Dijkstra with a binary heap, deterministic neighbor/tie order. Road
+// travel costs prefer useful routes instead of steering through solid shops.
+export function routeField(g,w,target){const key=Math.floor(target.y)*g.W+Math.floor(target.x);if(g.fields.has(key))return g.fields.get(key);if(g.budget<=0)return null;g.budget--;g.calculations++;
+ const N=g.W*g.H,dist=new Float32Array(N);dist.fill(Infinity);const next=new Int32Array(N);next.fill(-1);const heap=[],push=(k,v)=>{let i=heap.length;heap.push([k,v]);while(i){const p=(i-1)>>1;if(heap[p][1]<=v)break;heap[i]=heap[p];i=p;}heap[i]=[k,v];},pop=()=>{const top=heap[0],last=heap.pop();if(heap.length){let i=0;while(i*2+1<heap.length){let c=i*2+1;if(c+1<heap.length&&heap[c+1][1]<heap[c][1])c++;if(heap[c][1]>=last[1])break;heap[i]=heap[c];i=c;}heap[i]=last;}return top;};
+ dist[key]=0;push(key,0);while(heap.length){const [k,v]=pop();if(v>dist[k]+.0001)continue;const x=k%g.W,y=Math.floor(k/g.W);for(const n of [x+1<g.W?k+1:-1,x>0?k-1:-1,y+1<g.H?k+g.W:-1,y>0?k-g.W:-1]){if(n<0||g.blocked[n])continue;const nx=n%g.W,ny=Math.floor(n/g.W),c=v+1/ROAD_SPEED[roadAt(w,nx+.5,ny+.5)];if(c<dist[n]-.0001){dist[n]=c;next[n]=k;push(n,dist[n]);}}}
+ const field={target,key,dist,next};if(g.fields.size>=ROUTE_CAP)g.fields.delete(g.fields.keys().next().value);g.fields.set(key,field);return field;}
+export function routeDistance(g,f,a){const x=Math.floor(a.x),y=Math.floor(a.y);if(!f||x<0||y<0||x>=g.W||y>=g.H)return Infinity;return f.dist[y*g.W+x];}
