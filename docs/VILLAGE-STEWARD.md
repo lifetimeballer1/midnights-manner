@@ -16,6 +16,15 @@ Optional version-15 save settings contain only enabled/protection flags and sele
 
 The deterministic benchmark uses full simulation plus CPU Canvas rendering at 390×844, DPR 2, with 150 villagers and 72 buildings. CPU results and planner/path counters are in `steward-benchmark.json`. These measurements are a regression check, not physical iPhone verification. Browser smoke covers controls and reload persistence; existing project checks cover simulation and offline build behavior.
 
+### Recorded sample
+
+| Scenario | Simulation p95, off → on | Movement searches, off / on |
+| --- | --- | --- |
+| Peaceful | 7.34 → 6.27 ms | 32 / 32 |
+| Raid | 9.61 → 9.05 ms | 3865 / 3865 |
+
+Six enabled planner passes each inspected 24 diagnostic buildings. This sample showed no slowdown; normal timing variance means the lower numbers are not a claimed speedup. Budget protections intentionally change production output, so rendered face counts can differ. Tests also verify disabled/campaign inactivity, invalid-step handling, no planner catch-up loops and no new paths.
+
 ## Remaining releases
 
 | Release | Phases | Work |

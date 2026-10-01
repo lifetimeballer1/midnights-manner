@@ -1,0 +1,219 @@
+{
+  "environment": "Node + optional CPU Canvas in container; complete Game.tick; same seed and settlement; not physical iPhone or Safari",
+  "reports": [
+    {
+      "mode": "peace",
+      "enabled": false,
+      "viewport": [
+        390,
+        844
+      ],
+      "dpr": 2,
+      "villagers": 150,
+      "buildings": 72,
+      "frames": 360,
+      "activeSeconds": 18,
+      "frameMs": {
+        "average": 71.26321635000009,
+        "p50": 67.58878299999924,
+        "p95": 97.74364699999933
+      },
+      "tickMs": {
+        "average": 3.152407286111174,
+        "p50": 2.4799500000008265,
+        "p95": 7.341684000000896
+      },
+      "renderMs": {
+        "average": 68.11080906388891,
+        "p50": 64.63485000000037,
+        "p95": 89.9363830000002
+      },
+      "heapDeltaBytes": 62928800,
+      "faces": 7146,
+      "movementSearches": 32,
+      "stewardBefore": {
+        "movementSearches": 57,
+        "movementIntervalSearches": 0,
+        "plans": 0,
+        "inspected": 0,
+        "lastInspected": 0,
+        "interval": 3,
+        "buildingLimit": 24,
+        "issueLimit": 12
+      },
+      "stewardAfter": {
+        "plans": 0,
+        "inspected": 0,
+        "lastInspected": 0,
+        "interval": 3,
+        "buildingLimit": 24,
+        "issueLimit": 12
+      }
+    },
+    {
+      "mode": "peace",
+      "enabled": true,
+      "viewport": [
+        390,
+        844
+      ],
+      "dpr": 2,
+      "villagers": 150,
+      "buildings": 72,
+      "frames": 360,
+      "activeSeconds": 18,
+      "frameMs": {
+        "average": 68.35037078888892,
+        "p50": 67.26331399999981,
+        "p95": 79.83557299999666
+      },
+      "tickMs": {
+        "average": 2.724518258333491,
+        "p50": 2.1878130000040983,
+        "p95": 6.27158000000054
+      },
+      "renderMs": {
+        "average": 65.62585253055543,
+        "p50": 64.8357079999987,
+        "p95": 75.52031800000259
+      },
+      "heapDeltaBytes": 48624008,
+      "faces": 7187,
+      "movementSearches": 32,
+      "stewardBefore": {
+        "movementSearches": 57,
+        "movementIntervalSearches": 0,
+        "plans": 2,
+        "inspected": 48,
+        "lastInspected": 24,
+        "interval": 3,
+        "buildingLimit": 24,
+        "issueLimit": 12
+      },
+      "stewardAfter": {
+        "plans": 8,
+        "inspected": 192,
+        "lastInspected": 24,
+        "interval": 3,
+        "buildingLimit": 24,
+        "issueLimit": 12
+      }
+    },
+    {
+      "mode": "raid",
+      "enabled": false,
+      "viewport": [
+        390,
+        844
+      ],
+      "dpr": 2,
+      "villagers": 150,
+      "buildings": 72,
+      "frames": 360,
+      "activeSeconds": 18,
+      "frameMs": {
+        "average": 69.34523641111133,
+        "p50": 67.17742599999474,
+        "p95": 95.44769899999665
+      },
+      "tickMs": {
+        "average": 4.801958272222368,
+        "p50": 4.182722999990801,
+        "p95": 9.606346000000485
+      },
+      "renderMs": {
+        "average": 64.54327813888895,
+        "p50": 60.83230199999525,
+        "p95": 91.64939799999411
+      },
+      "heapDeltaBytes": 14232832,
+      "faces": 8508,
+      "movementSearches": 3865,
+      "stewardBefore": {
+        "movementSearches": 57,
+        "movementIntervalSearches": 0,
+        "plans": 0,
+        "inspected": 0,
+        "lastInspected": 0,
+        "interval": 3,
+        "buildingLimit": 24,
+        "issueLimit": 12
+      },
+      "stewardAfter": {
+        "plans": 0,
+        "inspected": 0,
+        "lastInspected": 0,
+        "interval": 3,
+        "buildingLimit": 24,
+        "issueLimit": 12
+      }
+    },
+    {
+      "mode": "raid",
+      "enabled": true,
+      "viewport": [
+        390,
+        844
+      ],
+      "dpr": 2,
+      "villagers": 150,
+      "buildings": 72,
+      "frames": 360,
+      "activeSeconds": 18,
+      "frameMs": {
+        "average": 66.87172542499975,
+        "p50": 63.546258000002126,
+        "p95": 90.64701499999501
+      },
+      "tickMs": {
+        "average": 4.391856461110971,
+        "p50": 3.801521999994293,
+        "p95": 9.051091999994242
+      },
+      "renderMs": {
+        "average": 62.47986896388878,
+        "p50": 56.4354949999979,
+        "p95": 86.14336600000388
+      },
+      "heapDeltaBytes": 33840472,
+      "faces": 8508,
+      "movementSearches": 3865,
+      "stewardBefore": {
+        "movementSearches": 57,
+        "movementIntervalSearches": 0,
+        "plans": 2,
+        "inspected": 48,
+        "lastInspected": 24,
+        "interval": 3,
+        "buildingLimit": 24,
+        "issueLimit": 12
+      },
+      "stewardAfter": {
+        "plans": 8,
+        "inspected": 192,
+        "lastInspected": 24,
+        "interval": 3,
+        "buildingLimit": 24,
+        "issueLimit": 12
+      }
+    }
+  ],
+  "comparison": [
+    {
+      "mode": "peace",
+      "tickP50DeltaMs": -0.29213699999672826,
+      "tickP95DeltaMs": -1.0701040000003559,
+      "frameP50DeltaMs": -0.3254689999994298,
+      "frameP95DeltaMs": -17.90807400000267,
+      "movementSearchDelta": 0
+    },
+    {
+      "mode": "raid",
+      "tickP50DeltaMs": -0.38120099999650847,
+      "tickP95DeltaMs": -0.5552540000062436,
+      "frameP50DeltaMs": -3.6311679999926127,
+      "frameP95DeltaMs": -4.800684000001638,
+      "movementSearchDelta": 0
+    }
+  ]
+}
