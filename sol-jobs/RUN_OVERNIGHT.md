@@ -24,7 +24,7 @@ Add close-zoom detail in src/scene3d.js masterworkDetails() 385-555 for manner-c
 - J5 audit: ledger/meshkey/smoke filter verified; gaps: ch39 hills generic not scorched, no burn-remains geometry, no backfill of clearedCamps on replay, finale clears no camp.
 - G1 scorched-ridge mission theme DONE: map.theme scorched-ridge + ash tint in environment-art, hills reused, 988 pass 0 fail, build green (616 precached), commit `G1 scorched-ridge theme`.
 - G2 burned-remains markers DONE: renderer-only spent-fire geometry on cleared camp tiles (burnedRemains + burnRemains in environment-art, mesh-keyed via clearedCamps ledger, calm-safe, home-only), 992 pass 0 fail, build green (616 precached), commit `G2 burn-remains`.
-- G3 replay backfill: first-victory-only preserved, replay of already-cleared prerequisite writes missing clearedCamps additively, no reward change.
-  - Verify: npm.cmd test + build green, commit per task no push.
+- G3 replay backfill DONE: won-level additive clearedCamps write (first + replay-backfill, defeat writes nothing, finale burns nothing, old saves show all), 997 pass 0 fail, build green (616 precached), commit `G3 replay backfill`.
+- Queue CLOSED.
 - Resume: git log -3, git diff --stat, continue NEXT.
 - Cmd: opencode run -m opencode/gpt-6.1-sol --dir <repo> --title <task> "<one task brief>".

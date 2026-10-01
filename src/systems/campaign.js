@@ -133,15 +133,20 @@ export function finishMission(game,data) {
   // works broken, or the stronghold itself fallen (the annex gate).
   if(mission.conquest==='preliminary')recordPreliminary(game.world,mission.id,mission.tribe);
   if(mission.conquest==='assault')recordAssault(game.world,mission.tribe);
-  // Act XI (J5): burning a camp writes the home ledger — the frontier mesh
-  // drops the camp on the next static rebuild. Additive and lazy: worlds
-  // without the field (old saves) simply show every camp.
-  if(data?.world?.frontierCamps?.some?.(c=>c.clearedBy===mission.id)){
-   const shelf=Array.isArray(game.world.clearedCamps)?game.world.clearedCamps:[];
-   if(!shelf.includes(mission.id)){shelf.push(mission.id);game.world.clearedCamps=shelf;}
-  }
   // Crowning (Act VIII finale): the mission names the eldest of the roster
   // — data `crowning`, oldest by roster order, unnamed hands only.
   if(mission.crowning&&game.world.troops.length){const eldest=game.world.troops[0];if(eldest&&!eldest.name)eldest.name=mission.crowning;}}
+ // Act XI (J5) + G3 replay backfill: burning a camp writes the home
+ // ledger — the frontier mesh drops the camp on the next static rebuild.
+ // Additive and lazy: worlds without the field (old saves) simply show
+ // every camp. First victory writes it; a replay win of an already-
+ // cleared chapter backfills it if missing. Rewards/unlocks/conquest/
+ // crowning stay first-only above — replay never pays twice. Defeat
+ // writes nothing; entries are never removed. Home-only: game.world is
+ // already restored to home by this point, expedition sheets untouched.
+ if(won&&data?.world?.frontierCamps?.some?.(c=>c.clearedBy===mission.id)){
+  const shelf=Array.isArray(game.world.clearedCamps)?game.world.clearedCamps:[];
+  if(!shelf.includes(mission.id)){shelf.push(mission.id);game.world.clearedCamps=shelf;}
+ }
  game.mission=null;return {won,first};
 }
