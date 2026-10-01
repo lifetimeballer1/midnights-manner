@@ -7,6 +7,7 @@ import {isWall} from './walls.js';
 import {bossTick,bossAuraMult,isSiegeRole,eliteLootMult,renownDamageMult,renownLootMult,paragonDamageMult,markElites} from './endgame.js';
 import {sfx, scheduleSound} from './audio.js';
 import {listenerGain} from './soundstage.js';
+import {isSheltered} from './shelter.js';
 // Release/impact split: the swing (or bow release) sounds now; the impact
 // thud lands after arrow-flight time (distance-scaled) or a melee beat.
 // Damage itself is untouched — this only separates what the ear hears.
@@ -127,7 +128,7 @@ export function activateAbility(world,data,unit,id) {
  let list=[];try{list=unlockedAbilities(unit,data);}catch{return false;}
  const a=list.find(a=>a.id===id&&a.active);
  if(!a||unit.abilityTimer>0)return false;
- if(a.effect==='heal')for(const ally of world.troops)if(ally.hp>0&&distance(unit,ally)<=a.radius)ally.hp=Math.min(stats(ally,data).hp,ally.hp+a.value);
+ if(a.effect==='heal')for(const ally of world.troops)if(ally.hp>0&&!isSheltered(world,data,ally)&&distance(unit,ally)<=a.radius)ally.hp=Math.min(stats(ally,data).hp,ally.hp+a.value);
  // Oathcall (Act VII): plant a sworn challenge — nearby raiders turn on
  // the oathbound while the taunt timer burns. Data radius/duration.
  if(a.effect==='taunt'){unit.taunt={radius:a.radius||2.5,timer:a.duration||8};effect(world,unit,unit,'sparkle');unit.abilityTimer=a.cooldown;return true;}
@@ -210,7 +211,7 @@ export function tickCombat(world,data,dt) {
   if(!world.enemies.length){unit.hp=Math.min(s.hp,unit.hp+dt*2);continue;}
   if(data.troops[unit.type].role!=='combat')continue;
   const enemy=defenseTarget(world,data,unit,tgtCtx);if(!enemy)continue;
-  if(s.range>2&&distance(unit,enemy)<1.7)retreat(world,data,unit,enemy,s.speed,dt);
+  if(s.range>2&&distance(unit,enemy)<1.7&&retreat(world,data,unit,enemy,s.speed,dt))continue;
    if(move(world,data,unit,enemy,s.speed,dt,s.range,false,true)&&unit.attackTimer<=0){
     const dealt=s.damage*(1+aura.damage)*grit;
     enemy.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,enemy,data.items[unit.gear].animation);strikeSound(unit,enemy,s.range>2);dmgNum(world,enemy,dealt);
@@ -291,7 +292,7 @@ export function tickCombat(world,data,dt) {
   // (skip the target scan when sworn) is preserved.
   let sworn=null,swornD=Infinity;
   for(const t of world.troops){
-   if(t.hp<=0||t.expedition)continue;
+   if(t.hp<=0||t.expedition||isSheltered(world,data,t))continue;
    if(!(t.taunt&&t.taunt.timer>0))continue;
    const d=distance(enemy,t);
    if(d<=t.taunt.radius&&d<swornD){swornD=d;sworn=t;}
@@ -300,7 +301,7 @@ export function tickCombat(world,data,dt) {
   if(!targetUnit){
    let bestD=Infinity;
    for(const t of world.troops){
-    if(t.hp<=0||t.expedition)continue;
+    if(t.hp<=0||t.expedition||isSheltered(world,data,t))continue;
     const d=distance(enemy,t);
     if(d<reach&&d<bestD){bestD=d;targetUnit=t;}
    }
@@ -340,7 +341,7 @@ export function tickCombat(world,data,dt) {
     // under the same 0.8 ceiling — the oath guards, it does not break.
     if(targetUnit.oath)reduction+=0.25;try{reduction+=gearArmor(target,data);}catch{}
     try{reduction+=proximityArmor(target,world,data);}catch{}
-    if(targetUnit.hp>0)for(const ally of world.troops){if(ally.id===target.id||ally.hp<=0)continue;try{for(const a of unlockedAbilities(ally,data))if(a.effect==='guard'&&distance(ally,target)<=a.radius)reduction+=a.value;}catch{}}}
+    if(targetUnit.hp>0)for(const ally of world.troops){if(ally.id===target.id||ally.hp<=0||isSheltered(world,data,ally))continue;try{for(const a of unlockedAbilities(ally,data))if(a.effect==='guard'&&distance(ally,target)<=a.radius)reduction+=a.value;}catch{}}}
    // Dread courts (Phase 12): raiders fighting beside their living crown
    // hit harder — the aura reads off every boss still standing.
    let dread=1;

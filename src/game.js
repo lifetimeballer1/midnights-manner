@@ -1,3 +1,5 @@
+import {tickDefensePosts,assignDefensePost,defenseRaidSummary} from './systems/defense-posts.js';
+import {tickAutomation,automationSettings} from './systems/automation.js';
 import {bankOutput,outputAmount} from './systems/refiner-output.js';
 import {tickLogistics,requestCaravan} from './systems/logistics.js';
 import {buildRoad} from './systems/roads.js';
@@ -287,6 +289,32 @@ export class Game {
   }
   this.notify(`Claimed (${x}, ${y}) for the village — build on it.`);
   return true;
+ }
+ assignDefense(unitId,buildingId){
+  if(this.state.mission||this.paused)return false;
+  const u=this.world.troops.find(t=>t.id===unitId);
+  if(buildingId==='auto'){if(!assignDefensePost(this.world,this.data,u,null,false))return false;u.order=null;this.persist();return true;}
+  if(!u||!assignDefensePost(this.world,this.data,u,buildingId||null,true))return this.notify('No suitable defense opening.'),false;
+  u.order=null;this.persist();this.notify(buildingId?'Defense post assigned.':'Fighter held in reserve.');return true;
+ }
+ setAutomation(key,value){
+  if(this.state.mission||this.paused)return false;
+  const cfg=automationSettings(this.world);
+  if(key==='autoUpgrade')cfg.autoUpgrade=!!value;
+  else if(key==='stockTarget'&&Number.isFinite(Number(value)))cfg.stockTarget=Math.max(0,Math.min(5,Math.floor(Number(value))));
+  else return false;
+  this.persist();return true;
+ }
+ setAutomationReserve(resource,amount){
+  if(this.state.mission||this.paused||!Object.hasOwn(this.world.resources,resource)||!Number.isFinite(Number(amount)))return false;
+  automationSettings(this.world).reserves[resource]=Math.max(0,Math.min(1e9,Math.floor(Number(amount))));this.persist();return true;
+ }
+ configureBuilding(id,key,value){
+  const b=this.world.buildings.find(b=>b.id===id);if(this.state.mission||this.paused||!b)return false;
+  if(key==='autoCraft'||key==='autoUpgrade')b[key]=!!value;
+  else if(key==='autoUpgradeMaxTier'&&Number.isFinite(Number(value)))b[key]=Math.max(1,Math.min(this.data.buildings[b.type].tiers.length,Math.floor(Number(value))));
+  else return false;
+  this.persist();return true;
  }
  assign(unitId,buildingId){
   const u=this.world.troops.find(t=>t.id===unitId);if(!u)return this.notify('That villager is gone.');
@@ -638,11 +666,11 @@ export class Game {
   // Phase 7 identity backfill: old saves and mission rosters gain names,
   // traits and job ledgers lazily — additive defaults, never a wipe.
   for(const w of [this.world,this.state.home]){if(!w)continue;for(const u of w.troops||[])ensureIdentity(u,this.data,w.troops);}
-  this.world.elapsed+=dt;tickTrails(this.world);this.tickClock();if(!this.state.mission){tickTownMeal(this.world,this.data,m=>this.notify(m));tickTownSupply(this.world,this.data,m=>this.notify(m));}if(!this.state.mission)tickFrontierEvents(this.state,this.data,m=>this.notify(m));tickResearch(this.state,this.data,dt,m=>this.notify(m));tickEmergency(this.world,this.data,dt);tickVillagerJobs(this.world,this.data,dt);const filled=autoFillTick(this.world,this.data,dt);if(filled&&(this.world.elapsed-(this.world.lastAutoFillNote||0)>60)){this.world.lastAutoFillNote=this.world.elapsed;this.notify(`${filled} jobless worker${filled>1?'s':''} took ${filled>1?'open posts':'an open post'} on their own — traits matched, locks respected.`);}tickEconomy(this.world,this.data,dt);if(!this.state.mission)tickLogistics(this.world,this.data,dt);tickRefine(this.world,this.data,dt,!this.state.mission);for(const c of tickCraft(this.world,this.data,dt)){const name=this.data.items[c.item]?.name||c.item;this.notify(`${name} finished — fit it from the People panel.`);}tickExpeditions(this.world,this.data,dt,Math.random,{state:this.state,notify:m=>this.notify(m)});tickCombat(this.world,this.data,dt);tickVillage(this.state,this.data,dt,m=>this.notify(m));const before=this.state.mission?.status;tickMission(this.state,this.data);if(this.state.mission?.herald){this.notify(this.state.mission.herald);this.state.mission.herald=null;}
+  this.world.elapsed+=dt;tickTrails(this.world);this.tickClock();if(!this.state.mission){tickTownMeal(this.world,this.data,m=>this.notify(m));tickTownSupply(this.world,this.data,m=>this.notify(m));}if(!this.state.mission)tickFrontierEvents(this.state,this.data,m=>this.notify(m));tickResearch(this.state,this.data,dt,m=>this.notify(m));if(!this.state.mission)tickDefensePosts(this.world,this.data,dt);tickEmergency(this.world,this.data,dt);tickVillagerJobs(this.world,this.data,dt);const filled=autoFillTick(this.world,this.data,dt);if(filled&&(this.world.elapsed-(this.world.lastAutoFillNote||0)>60)){this.world.lastAutoFillNote=this.world.elapsed;this.notify(`${filled} jobless worker${filled>1?'s':''} took ${filled>1?'open posts':'an open post'} on their own — traits matched, locks respected.`);}tickEconomy(this.world,this.data,dt);if(!this.state.mission)tickAutomation(this,dt);if(!this.state.mission)tickLogistics(this.world,this.data,dt);tickRefine(this.world,this.data,dt,!this.state.mission);for(const c of tickCraft(this.world,this.data,dt)){const name=this.data.items[c.item]?.name||c.item;this.notify(`${name} finished — fit it from the People panel.`);}tickExpeditions(this.world,this.data,dt,Math.random,{state:this.state,notify:m=>this.notify(m)});tickCombat(this.world,this.data,dt);tickVillage(this.state,this.data,dt,m=>this.notify(m));const before=this.state.mission?.status;tickMission(this.state,this.data);if(this.state.mission?.herald){this.notify(this.state.mission.herald);this.state.mission.herald=null;}
   if(raided&&!this.world.enemies.length&&!this.world.raidPending&&this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)){const recovered=warChestRecovery(this.world,this.data);spendWarChest(this.world);const kills=this.world.raidKills??0,loot=this.world.raidLoot??0;
    const damaged=this.world.buildings.filter(b=>b.hp<buildingMaxHp(b,this.data));
    const repairWood=damaged.reduce((n,b)=>n+Math.ceil((buildingMaxHp(b,this.data)-b.hp)/15),0);
-   this.world.raidResult={won:true,kills,loot,damaged:damaged.length,repairWood};sfx.win();
+   this.world.raidResult={won:true,kills,loot,damaged:damaged.length,repairWood,defense:defenseRaidSummary(this.world)};sfx.win();
    scheduleRecovery(this.state,this.data,true);
    // Crown settled (Phase 12): a slain boss gets its victory herald and a
    // won pin for the Chronicle; a fled crown is marked withdrawn, never won.
@@ -661,7 +689,7 @@ export class Game {
    this.world.bossSlain=null;this.world.raidFled=false;
    this.notify(`${crownLine}${fillLine(pickLine(cfg.victoryLines,this.world.wave),{kills,loot,wave:this.world.wave})}${recovered?` ${recovered} restored by the repair wagons.`:''}${damaged.length?` ${damaged.length} buildings need repair (${repairWood} wood).`:' All buildings stand strong.'}`);this.persist();}
   if(before!==this.state.mission?.status){const m=this.data.missions.find(m=>m.id===this.state.mission.id);this.notify(this.state.mission.status==='won'?`${m?.ceremony?.victory||'Mission complete!'} Return home to claim your rewards.`:`${m?.ceremony?.defeat||'Expedition lost.'} Return home and try a different layout.`);this.persist();}
-  if(!this.state.mission&&!this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)&&this.world.enemies.length){const recovered=warChestRecovery(this.world,this.data);spendWarChest(this.world);const kills=this.world.raidKills??0,loot=this.world.raidLoot??0;this.world.enemies=[];this.world.inRaid=false;this.world.raidLosses=0;this.world.resources.wood=Math.max(80,this.world.resources.wood);this.world.raidResult={won:false,kills,loot,damaged:this.world.buildings.filter(b=>b.hp<=0).length,repairWood:0};sfx.lose();scheduleRecovery(this.state,this.data,false);if(this.world.lastBoss&&this.world.lastBoss.won==null)this.world.lastBoss.won=false;this.notify(fillLine(pickLine(cfg.defeatLines,this.world.wave),{kills,loot,wave:this.world.wave})+(recovered?` ${recovered} restored by the repair wagons.`:''));}
+  if(!this.state.mission&&!this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)&&this.world.enemies.length){const recovered=warChestRecovery(this.world,this.data);spendWarChest(this.world);const kills=this.world.raidKills??0,loot=this.world.raidLoot??0;this.world.enemies=[];this.world.inRaid=false;this.world.raidLosses=0;this.world.resources.wood=Math.max(80,this.world.resources.wood);this.world.raidResult={won:false,kills,loot,damaged:this.world.buildings.filter(b=>b.hp<=0).length,repairWood:0,defense:defenseRaidSummary(this.world)};sfx.lose();scheduleRecovery(this.state,this.data,false);if(this.world.lastBoss&&this.world.lastBoss.won==null)this.world.lastBoss.won=false;this.notify(fillLine(pickLine(cfg.defeatLines,this.world.wave),{kills,loot,wave:this.world.wave})+(recovered?` ${recovered} restored by the repair wagons.`:''));}
   this.saveTimer+=dt;if(this.saveTimer>5){this.saveTimer=0;this.persist();}
  }
 }

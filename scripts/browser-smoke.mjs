@@ -293,6 +293,65 @@ try{
  for(const report of settlement){await writeFile('artifacts/settlement-browser-'+report.mode+'.png',Buffer.from(report.image,'base64'));delete report.image;}
  await writeFile('artifacts/settlement-browser-benchmark.json',JSON.stringify({environment:'Headless Chromium in CI; desktop CPU, not physical phone',reports:settlement},null,2));
  console.log('Living settlement Chromium benchmark',settlement);
+ // Exercise the actual management UI against an imported mature village,
+ // then restore the interactive save before the remaining update tests.
+ await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:2,mobile:true});
+ await evaluate(`(async()=>{
+  const root='/midnights-manner/',names=['world','buildings','troops','items','abilities','quests','missions','biomes','expansion'];
+  const d=Object.fromEntries(await Promise.all(names.map(async n=>[n,await(await fetch(root+'data/'+n+'.json')).json()])));
+  const [model,trails,storage]=await Promise.all(['model.js','systems/trails.js','storage.js'].map(n=>import(root+'src/'+n)));
+  const make=${matureSettlement.toString()},w=make(d,{...model,...trails}),original=window.midnightsManner.snapshot();
+  const shop=model.makeBuilding('forge',11,3,d,3);shop.id='automation-forge';shop.remaining=0;w.buildings[2]=shop;
+  const state={...original,world:w,home:null,mission:null,vlevel:11,unlocks:[...d.world.locked]};
+  window.__automationSmoke={original:storage.exportSave(original),fixture:storage.exportSave(state),camera:window.midnightsManner.camera(),prompt:window.prompt};
+ })()`);
+ const managementOriginal=await evaluate('window.__automationSmoke.original'),managementCamera=await evaluate('window.__automationSmoke.camera');
+ await fire('#pause');
+ await evaluate('window.prompt=()=>window.__automationSmoke.fixture');await fire('#opt-import');
+ await evaluate('window.prompt=window.__automationSmoke.prompt');
+ await ensureResources();await fire('[data-resource="wood"]');
+ await fire('[data-automation-toggle="autoUpgrade"]');
+ assert.equal(await evaluate('window.midnightsManner.snapshot().world.automation.autoUpgrade'),true,'Stores toggles automatic upgrades');
+ await evaluate('(()=>{const details=document.querySelector("[data-automation-reserves]");details.open=true;const input=details.querySelector("[data-automation-reserve=wood]");input.focus();input.value="321";input.dispatchEvent(new Event("change",{bubbles:true}));window.__automationSmoke.input=input;})()');
+ await new Promise(r=>setTimeout(r,650));
+ assert.ok(await evaluate('document.activeElement===window.__automationSmoke.input&&document.activeElement.value==="321"'),'periodic updates preserve reserve editing focus');
+ assert.equal(await evaluate('window.midnightsManner.snapshot().world.automation.reserves.wood'),321,'reserve input changes the automation budget');
+ await evaluate('document.activeElement.blur()');await fire('#close-panel');
+ const openManagementBuilding=async (id)=>{
+  await evaluate(`(()=>{const g=window.midnightsManner,b=g.snapshot().world.buildings.find(b=>b.id===${JSON.stringify(id)});g.setCamera({x:b.x+1.5,y:b.y+1.5,yaw:Math.PI/4,pitch:.8,zoom:1.65});})()`);
+  await new Promise(r=>setTimeout(r,200));
+  const point=await evaluate(`(()=>{const g=window.midnightsManner;for(let y=140;y<innerHeight-160;y+=3)for(let x=10;x<innerWidth-10;x+=3){if(document.elementFromPoint(x,y)?.id==='world'&&g.pick(x,y)?.id===${JSON.stringify(id)})return {x,y};}return null;})()`);
+  assert.ok(point,'management building has a selectable face: '+id);await tap(point);
+ };
+ await openManagementBuilding('settlement-b-0');
+ await fire('#inspector [data-action="assign"]');
+ await waitFor('document.querySelector("#panel").textContent.includes("defense jobs filled")&&!!document.querySelector("[data-defense-unit]")');
+ const fighter=await evaluate('document.querySelector("[data-defense-post=reserve]")?.dataset.defenseUnit');
+ assert.ok(fighter,'automatic defense jobs station fighters at the hall');
+ await fire(`[data-defense-unit="${fighter}"][data-defense-post="reserve"]`);
+ assert.ok(await evaluate(`(()=>{const u=window.midnightsManner.snapshot().world.troops.find(u=>u.id===${JSON.stringify(fighter)});return u.manualDefensePost&&!u.defensePost;})()`),'release keeps a fighter in manual reserve');
+ await fire(`[data-defense-unit="${fighter}"][data-defense-post="settlement-b-0"]`);
+ assert.equal(await evaluate(`window.midnightsManner.snapshot().world.troops.find(u=>u.id===${JSON.stringify(fighter)}).defensePost`),'settlement-b-0','workplace stations the selected fighter');
+ await fire('#close-panel');await fire('[data-tab="troops"]');
+ await evaluate(`(()=>{const select=document.querySelector('[data-defense-assign="${fighter}"]');select.value='auto';select.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+ assert.equal(await evaluate(`window.midnightsManner.snapshot().world.troops.find(u=>u.id===${JSON.stringify(fighter)}).manualDefensePost`),false,'People restores automatic defense assignment');
+ await fire('#close-panel');await openManagementBuilding('automation-forge');
+ await fire('#inspector [data-building-setting="autoCraft"]');
+ assert.equal(await evaluate('window.midnightsManner.snapshot().world.buildings.find(b=>b.id==="automation-forge").autoCraft'),false,'workshop inspector toggles automatic crafting');
+ await evaluate('(()=>{const select=document.querySelector("[data-building-tier=automation-forge]");select.focus();select.value="4";select.dispatchEvent(new Event("change",{bubbles:true}));})()');
+ assert.equal(await evaluate('window.midnightsManner.snapshot().world.buildings.find(b=>b.id==="automation-forge").autoUpgradeMaxTier'),4,'building inspector sets its upgrade ceiling');
+ await evaluate('document.activeElement.blur()');await fire('#inspector [data-action="close"]');
+ await fire('#pause');await fire('#opt-save');await fire('#resume');
+ await call('Page.reload');await new Promise(r=>setTimeout(r,300));
+ await waitFor('Boolean(window.midnightsManner)&&!document.querySelector("#title").hidden');
+ assert.equal(await evaluate('window.midnightsManner.snapshot().world.automation.reserves.wood'),321,'protected reserve survives browser reload');
+ // The browser global is recreated on reload: restore the original exported
+ // save from the harness rather than changing the fixture or save version.
+ await fire('#begin');await fire('#pause');
+ await evaluate(`window.__managementPrompt=window.prompt;window.prompt=()=>${JSON.stringify(managementOriginal)}`);await fire('#opt-import');
+ await evaluate('window.prompt=window.__managementPrompt;delete window.__managementPrompt');
+ await evaluate(`window.midnightsManner.setCamera(${JSON.stringify(managementCamera)})`);
+
  await ensureResources();await fire('[data-resource="wood"]');await waitFor('!!document.querySelector("[data-logistics-view]")');await fire('[data-logistics-view="traffic"]');await click('#close-panel');
 
  await click('[data-tab="troops"]');await click('[data-category="recruit"]');

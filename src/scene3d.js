@@ -16,6 +16,7 @@ import {reserveCapacity,reserveReady} from './resources.js';
 import {drawBuildingActivity} from './building-activity.js';
 import {addEnvironmentScenery,isScorchedRidge} from './environment-art.js';
 import {insideWorkplace} from './systems/villagers.js';
+import {isSheltered} from './systems/shelter.js';
 import {sfx} from './systems/audio.js';
 import {drawCelestialShadows,drawGroundMist,drawPracticalBloom,drawCelestialAir,drawChimneyWisps,prepareNearbyLight,drawGodRays} from './cinematic-lighting.js';
 export function pointInPolygon(x,y,points){let inside=false;for(let i=0,j=points.length-1;i<points.length;j=i++){const a=points[i],b=points[j];if((a.y>y)!==(b.y>y)&&x<(b.x-a.x)*(y-a.y)/(b.y-a.y)+a.x)inside=!inside;}return inside;}
@@ -885,7 +886,7 @@ function productionPile(s,b,spec){
  }
  if(reserveReady(b,spec)){s.box(b.x+.24,b.y+n-.14,.1,.05,.05,.52,timber);s.box(b.x+.29,b.y+n-.14,.58,.24,.03,.14,'#f2c96e');}
 }
-export function drawVillage3D(r,world,time,light){const s=new MeshScene(r),W=r.data.world.width,H=r.data.world.height;
+export function drawVillage3D(r,world,time,light,visibleUnits){const s=new MeshScene(r),W=r.data.world.width,H=r.data.world.height;
  // Phase 2/3/4 — one resolved sky per frame: mesh shading follows the clock,
  // and the static geometry cache below stays light-agnostic (clock is not a key).
  s.light=light||skyLightAt(world.elapsed,r.data,{calm:r.calm});
@@ -924,7 +925,7 @@ export function drawVillage3D(r,world,time,light){const s=new MeshScene(r),W=r.d
   r._motionWorld=world;
   addLivingMechanisms(s,world,time);
   addWindLife(s,world,time);addLogisticsMeshes(s,world);
-  for(const u of world.troops)if(!insideWorkplace(world,r.data,u))characterModel(s,u,r.data,time);for(const e of world.enemies)characterModel(s,e,r.data,time,true);
+  for(const u of visibleUnits??world.troops)if(visibleUnits||(!isSheltered(world,r.data,u)&&!insideWorkplace(world,r.data,u)))characterModel(s,u,r.data,time);for(const e of world.enemies)characterModel(s,e,r.data,time,true);
   if(r.placing&&r.hover){const source=world.buildings.find(b=>b.id===r.moving),ghosts=placementCells(r).map(p=>({type:r.placing,...p,level:source?.level||1,hp:1,remaining:1,id:null})),preview={buildings:[...world.buildings.filter(b=>b.id!==r.moving),...ghosts]};for(const b of ghosts)buildingModel(s,b,r.data.buildings[b.type],preview,time);}
  drawCelestialShadows(s);
  drawGroundMist(s,time);

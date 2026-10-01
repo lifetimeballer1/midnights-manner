@@ -146,3 +146,14 @@ body.hud-army-collapsed #game .army-rail{display:none}
  #game .army-controls{position:absolute;bottom:64px;left:0;margin:0}
  body.hud-army-collapsed #game .army-controls{width:max-content}
 }
+/* Reuse the drawers and inspector for settlement automation. */
+#game .automation-controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px;min-width:0}
+#game .automation-controls h3,#game .automation-controls p,#game .automation-controls>small,#game .automation-controls details{flex-basis:100%;margin:0}
+#game .automation-controls label{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0;font-size:13px}
+#game .automation-controls button,#game .automation-controls select,#game .automation-controls input,#game .automation-controls summary{min-height:44px}
+#game .automation-controls select{max-width:100%;min-width:80px}
+#game .automation-controls input{width:96px;max-width:100%;box-sizing:border-box;font-size:16px;padding:6px;color:inherit;background:rgba(0,0,0,.22);border:1px solid #99744b;border-radius:7px}
+#game .automation-controls summary{display:flex;align-items:center;cursor:pointer;font-weight:700}
+#game .reserve-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:8px}
+#game .reserve-grid label{flex-direction:column;align-items:flex-start}
+#game .reserve-grid input{width:100%}

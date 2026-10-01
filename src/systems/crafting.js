@@ -161,6 +161,8 @@ export function tickCraft(world, data, dt) {
   for (const b of world?.buildings || []) {
     if (!b?.craft || b.hp <= 0) continue;
     if (b.remaining > 0) continue;
+    // Orders wait safely on the anvil while their workers shelter or leave.
+    if (!refinerCrew(world,data,b).some(u=>!u.emergency&&!u.shelteredIn&&!u.expedition)) continue;
     b.craft.remaining -= dt;
     if (b.craft.remaining > 0) continue;
     const itemId = b.craft.item;

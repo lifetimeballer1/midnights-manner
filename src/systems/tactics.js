@@ -2,6 +2,7 @@ import {distance,center} from '../model.js';
 import {blocked,move} from './pathfinding.js';
 import {isWall} from './walls.js';
 import {bossSpec} from './endgame.js';
+import {plannedDefenseTarget} from './defense-posts.js';
 export function factionFor(data,wave,vlevel=1) {
  // Endgame courts only answer seasoned villages: a minLevel gate keeps
  // siege engines and pale courts out of mid-game raids entirely.
@@ -18,6 +19,7 @@ export function enemyRole(data,enemy){
 // Perf: optional ctx {postOf, urgCache} memoizes the per-enemy urgency
 // (targetIds are static during the troops loop) and skips buildings.find.
 export function defenseTarget(world,data,unit,ctx) {
+ const planned=plannedDefenseTarget(world,unit);if(planned!==undefined)return planned;
  let best=null,score=Infinity;
  for(const e of world.enemies){if(e.hp<=0)continue;
   let urgency;
