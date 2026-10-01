@@ -1039,6 +1039,150 @@
           "result": "The Mooncleric lifts the thread to a safer branch. The boats take the far channel while the old post settles into the mud."
         }
       ]
+    },
+    {
+      "id": "timberdeep-market-day",
+      "region": "timber-deep",
+      "minLevel": 6,
+      "title": "Market Day on the Timber Road",
+      "text": "A caravan out of the Timber Deep rolls in at first light, awnings bright, bells ringing. Their master will only pitch stalls beside a true market, and their coin is good.",
+      "when": {"building": "market"},
+      "cooldown": 1200,
+      "place": {"near": "market"},
+      "choices": [
+        {
+          "id": "stock",
+          "label": "Stock their stalls: 50 food",
+          "cost": {"food": 50},
+          "reward": {"gold": 95},
+          "result": "Your cooks fill their larders before noon. The master pays in heavy coin and promises the Timber Road will remember your market."
+        },
+        {
+          "id": "pass",
+          "label": "Let them pass through",
+          "result": "You wave the caravan on to the next village. Their bells fade down the road, and your stores stay exactly where they were."
+        }
+      ]
+    },
+    {
+      "id": "southfield-open-hearths",
+      "region": "southfield-flats",
+      "minLevel": 5,
+      "title": "Open Hearths in Southfield",
+      "text": "Two families walk in off the Southfield Flats with nothing but blankets and a mule. They ask only for a roof until the frost lifts, and they will work for their supper.",
+      "when": {"freeBeds": 2},
+      "cooldown": 900,
+      "place": {"near": "cottage"},
+      "choices": [
+        {
+          "id": "welcome",
+          "label": "Take them in: 30 food",
+          "cost": {"food": 30},
+          "reward": {"gold": 45},
+          "result": "You settle them by warm hearths and set them to mending and threshing. When they move on, they leave coin and two sound roofs behind."
+        },
+        {
+          "id": "turn",
+          "label": "Point them down the road",
+          "result": "You give them water and directions, nothing more. Their fire is small on the flats that night, and the village sleeps uneasily."
+        }
+      ]
+    },
+    {
+      "id": "reedbeds-empty-sacks",
+      "region": "stillwater-reedbeds",
+      "minLevel": 6,
+      "title": "Empty Sacks at the Reedbeds",
+      "text": "Word travels fast when the Manor's sacks run light. A reed-cutter's barge ties up below the village, heavy with grain, and her price is plain coin.",
+      "when": {"resourceBelow": {"key": "food", "amount": 120}},
+      "cooldown": 900,
+      "place": {"near": "farm"},
+      "choices": [
+        {
+          "id": "buy",
+          "label": "Buy grain: 30 gold",
+          "cost": {"gold": 30},
+          "reward": {"food": 90},
+          "result": "The reed-cutter's crew hauls sacks up the bank until the storehouse breathes again. She takes your coin and leaves you her winter mooring mark."
+        },
+        {
+          "id": "refuse",
+          "label": "Tighten belts instead",
+          "result": "You send the barge on with thanks but no sale. The village eats thin porridge for a week, and nobody complains twice."
+        }
+      ]
+    },
+    {
+      "id": "emberfall-scarred-drill",
+      "region": "emberfall",
+      "minLevel": 7,
+      "title": "Scarred Blades at Emberfall",
+      "text": "Three veterans of the Emberfall line limp into the village, armor dented, eyes clear. They have drilled raw levies through three waves of the dark, and they offer the fourth winter of their knowledge.",
+      "when": {"minWave": 3},
+      "cooldown": 1500,
+      "place": {"near": "barracks"},
+      "choices": [
+        {
+          "id": "drill",
+          "label": "Feed the company: 50 food",
+          "cost": {"food": 50},
+          "reward": {"gold": 100},
+          "result": "The veterans drill your levies from dawn to dusk and eat like wolves. Grateful captains down the line send coin for the favor, and your walls stand a little straighter."
+        },
+        {
+          "id": "decline",
+          "label": "Thank them and send them on",
+          "result": "You honor the veterans with a night's fire and a morning's bread. They march on, and your levies learn the slow way instead."
+        }
+      ]
+    },
+    {
+      "id": "moonwell-herbwife",
+      "region": "moonwell-steps",
+      "minLevel": 6,
+      "title": "The Herbwife of Moonwell",
+      "text": "An old herbwife comes down from the Moonwell Steps with her cart of roots and simples, just as your own stores run thin. She wants shelf-room and coin, in that order.",
+      "when": {"building": "storehouse", "resourceBelow": {"key": "food", "amount": 150}},
+      "cooldown": 1200,
+      "place": {"near": "storehouse"},
+      "choices": [
+        {
+          "id": "trade",
+          "label": "Trade coin for stores: 50 gold",
+          "cost": {"gold": 50},
+          "reward": {"food": 120},
+          "result": "Her roots and dried stores fill your shelves to the beams. She counts your coin twice, nods once, and promises to return before the snows."
+        },
+        {
+          "id": "pass",
+          "label": "Let her cart roll on",
+          "result": "You let the cart roll on to richer villages. Your shelves stay thin, but your purse stays heavy, and the winter will judge between them."
+        }
+      ]
+    },
+    {
+      "id": "mirewood-rain-refugees",
+      "region": "mirewood",
+      "minLevel": 8,
+      "title": "Rain Out of the Mirewood",
+      "text": "The Mirewood floods drive a column of refugees to your gates in the cold rain. They need roofs and porridge tonight, not promises.",
+      "when": {"freeBeds": 4, "minWave": 5},
+      "cooldown": 1500,
+      "place": {"near": "longhouse"},
+      "choices": [
+        {
+          "id": "shelter",
+          "label": "Open the longhouse: 60 food + 40 wood",
+          "cost": {"food": 60, "wood": 40},
+          "reward": {"gold": 140},
+          "result": "You crowd them into the longhouse and keep the fires high all night. At dawn their headman presses travel-coin into your steward's hand and swears the Mirewood will remember."
+        },
+        {
+          "id": "turn",
+          "label": "Bar the gates gently",
+          "result": "You pass blankets and bread through the gate but keep it barred. Their fires gutter in the rain beyond your walls, and the watch does not sing that night."
+        }
+      ]
     }
   ],
   "frontierCamps": [

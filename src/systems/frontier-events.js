@@ -1,6 +1,7 @@
 import {hash2} from './biomes.js';
 import {isRegionClaimed,regionById} from './expansion.js';
 import {centralRoom} from './storage.js';
+import {housing,center as buildingCenter} from '../model.js';
 
 const resources = value => value && typeof value==='object' ? value : {};
 
@@ -19,12 +20,71 @@ export function frontierEventEligible(event,state,data){
  const world=state?.world;
  if(!event||!world||state?.mission)return false;
  if((state.vlevel||1)<(event.minLevel||1))return false;
- const region=regionById(data?.expansion,event.region);
- return !!region&&isRegionClaimed(world,region);
+ if(event.region){
+  const region=regionById(data?.expansion,event.region);
+  if(!region||!isRegionClaimed(world,region))return false;
+ }
+ if(!eventConditionsMet(event,state,data))return false;
+ const cooldown=Math.max(0,Number(event.cooldown)||0);
+ if(cooldown>0){
+  const seen=world.frontierEventSeen?.[event.id];
+  if(Number.isFinite(seen)&&(world.elapsed||0)-seen<cooldown)return false;
+ }
+ return true;
 }
 
 export function eligibleFrontierEvents(state,data){
  return (data?.world?.frontierEvents||[]).filter(e=>frontierEventEligible(e,state,data));
+}
+
+// Village gates (Phase 6): every `when` clause must hold. Events without
+// `when` read exactly as before — the original nine carry no gates.
+export function eventConditionsMet(event,state,data){
+ const when=event?.when;
+ if(!when||typeof when!=='object')return true;
+ const world=state?.world;
+ if(!world)return false;
+ if(when.building){
+  const raised=(world.buildings||[]).some(b=>b&&b.type===when.building&&b.hp>0&&!(b.remaining>0));
+  if(!raised)return false;
+ }
+ if(Number.isFinite(+when.freeBeds)){
+  const h=housing(world,data);
+  if(h.beds-h.used<+when.freeBeds)return false;
+ }
+ if(when.resourceBelow&&typeof when.resourceBelow==='object'){
+  const rb=when.resourceBelow;
+  const pairs=('key' in rb||'resource' in rb)?[[rb.key??rb.resource,rb.amount]]:Object.entries(rb);
+  for(const [key,amount] of pairs)if(!((world.resources?.[key]||0)<amount))return false;
+ }
+ if(Number.isFinite(+when.minWave)){
+  if((world.wave||0)<+when.minWave)return false;
+ }
+ return true;
+}
+
+// Placement anchor (Phase 6): the living finished `place.near` building
+// closest to the village center, or the first candidate when no center
+// reads. Events without `place.near` anchor on the first living finished
+// building; a village with none standing anchors nowhere.
+export function eventAnchor(world,data,event){
+ const alive=(world?.buildings||[]).filter(b=>b&&b.hp>0&&!(b.remaining>0));
+ if(!alive.length)return null;
+ const near=event?.place?.near;
+ const pool=near?alive.filter(b=>b.type===near):alive;
+ if(!pool.length)return null;
+ if(pool.length===1)return pool[0];
+ const bounds=world?.bounds;
+ const c=bounds&&Number.isFinite(bounds.w)&&Number.isFinite(bounds.h)?{x:bounds.w/2,y:bounds.h/2}:null;
+ if(!c)return pool[0];
+ let best=pool[0],bd=Infinity;
+ for(const b of pool){
+  let p;
+  try{p=buildingCenter(b,data);}catch{p={x:b.x,y:b.y};}
+  const d=Math.hypot(p.x-c.x,p.y-c.y);
+  if(d<bd){bd=d;best=b;}
+ }
+ return best;
 }
 
 function schedule(world,data,delay=null){
@@ -82,6 +142,8 @@ export function resolveFrontierEvent(state,data,choiceId){
  for(const [key,value] of Object.entries(reward))world.resources[key]=(world.resources[key]||0)+value;
  world.lastFrontierEventId=event.id;
  world.frontierEventCount=(world.frontierEventCount||0)+1;
+ if(!world.frontierEventSeen||typeof world.frontierEventSeen!=='object')world.frontierEventSeen={};
+ world.frontierEventSeen[event.id]=world.elapsed||0;
  world.frontierEvent=null;
  schedule(world,data);
  return {ok:true,event,choice,message:choice.result||'The frontier settles again.',cost:{...cost},reward:{...reward},nextAt:world.nextFrontierEventAt};

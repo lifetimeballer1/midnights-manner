@@ -17,7 +17,7 @@ const fresh=()=>({world:createWorld(structuredClone(data)),home:null,mission:nul
 
 test('frontier events: data is region-bound with two readable choices each',()=>{
  const events=data.world.frontierEvents||[];
-  assert.equal(events.length,9);
+  assert.equal(events.length,15);
  assert.ok(events.every(e=>regionById(data.expansion,e.region)), 'every event region resolves');
  for(const e of events){
   assert.ok(e.title&&e.text.length>40,e.id);
