@@ -68,11 +68,13 @@ const dayLight = canon(0.3), nightLight = canon(0.8), dawnLight = canon(0.01);
 // watchtower, great-work tier 6) so later phases diff them in review.
 // CC0 prop pass deliberately repins five masterwork cargo geometries; all
 // other structure, defense, equipment and lighting formula pins stay intact.
+// R3/B modular architecture pass deliberately repins hall-1/2/3 + cottage-3
+// (8-family tier rebuild) and the equipment lineup (rig-baked bodies).
 const CASES = [
-  ["hall-1","hall",1,207,"fbeff627beb772a4","06d7d28a22b0aaaf","9cb46ec8433be3bb","e955f4f6ab94a7f6"],
-  ["hall-2","hall",2,267,"4aba687d05ec28f0","961d54243adfcccb","1adb9a33c51f4c74","1b67c461502c5766"],
-  ["hall-3","hall",3,281,"0d2e205bfc3c4e6d","2f19b263851004da","96180e0397dd6806","96b9d51eac1e998f"],
-  ["cottage-3","cottage",3,267,"e6854c4deb6351bd","4e8f8be04c8c61e4","e1dc1076aef07e74","4b03904fa6ca6a02"],
+  ["hall-1","hall",1,142,"d220bf61a96e509e","7162e3f50b276d3c","04516584148de435","53edec18dd5be0c9"],
+  ["hall-2","hall",2,198,"6418edd1bbfd86c1","98ea15134e6dbdd9","06cc582dcb51fd4a","90d9a9c97c2a0538"],
+  ["hall-3","hall",3,279,"9e8500734363522a","6ea24afb09575f7b","2043a32f4f409df0","5f493c6605823432"],
+  ["cottage-3","cottage",3,285,"27999fc85c0a6308","6d3fa0f3b67f02a2","e02cb3e0b0b68690","e0699c47945ac17a"],
   ["wall-3","wall",3,50,"66f49e5bb1ec257b","0febfbad242f8c3c","cb5be678bcbe22ce","e4e6c0073c7d5d85"],
   ["gate-1","gate",1,84,"96e261af4c6c169a","ace76688e6458a7f","1b749b208cadd235","7fabae7d7075bfbe"],
   ["trap-1","trap",1,51,"bdd62e2597b787f6","c520a25808aa9642","353c6f1ac46c7783","2fb02fbd069f95aa"],
@@ -87,11 +89,12 @@ const CASES = [
   ["forge-quarter-6","forge-quarter",6,421,"84ddb4409f271f76","b19f92a7043f0378","eeac67b85ef7da3a","efe022345e67ec90"],
   ["lantern-rows-6","lantern-rows",6,398,"9a4b5d6adab2855c","bb95e11a6cc87f81","7c6c6a3a8fff6e4b","0d4a4ed367306e82"],
 ];
-const ORBIT = {"faces":770,"day":"42c57ac0a58b0b8b","night":"0a922c280a83f28f","dawn":"33de588b650fcfbe"};
+const ORBIT = {"faces":816,"day":"3aba428250efde3c","night":"e19340549c9d429b","dawn":"c3ed0c3afba7ed8f"};
 // Canonical tool and outfit lineups at the mobile/gameplay zoom.
 // P3 deliberately adds quiver/belt/satchel/hem faces (villager readability);
-// shading formula verified drift-free at update time.
-const EQUIPMENT_BASELINE={"faces":2341,"raw":"e6cd55c6c3d6f72a","frozen":"1dbbb4708d698fc7","day":"a869672666d550a6","night":"5685c36eb6d438e5","dawn":"a6a9e2554ac4bc25"};
+// R3/A deliberately replaces procedural bodies with rig-baked CC0 geometry.
+// Shading formula verified drift-free at each update.
+const EQUIPMENT_BASELINE={"faces":2987,"raw":"712f59df7a9d0d0a","frozen":"d7554a34efbc149c","day":"0b0a28cd1c3e6a9d","night":"2584b72282b3c20a","dawn":"7466b15ba207f1e7"};
 
 test('baseline: canonical meshes keep their raw geometry and albedo', () => {
   const r = renderer();

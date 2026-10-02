@@ -9,7 +9,9 @@ const manifest=JSON.parse(await readFile(new URL('../data/external_assets.json',
 const context=new Proxy({},{get:(t,k)=>t[k]||(()=>k==='measureText'?{width:40}:k.includes('Gradient')?{addColorStop(){}}:undefined),set:(t,k,v)=>(t[k]=v,true)});
 function scene(zoom=1.8,yaw=Math.PI/4){const r=new Renderer({getContext:()=>context},{world:{width:20,height:16}},{});r.resize(800,600,1);r.cam={x:5,y:5,zoom,yaw,pitch:.7};return new MeshScene(r);}
 test('external art: every shipped mesh has reviewed CC0 provenance and retained sources',async()=>{
- assert.deepEqual(manifest.assets.map(a=>a.id).sort(),Object.keys(externalGeometry).sort());
+ // Pack-level source records (e.g. rig-baked character sets) may exist without
+ // a same-named geometry entry; every geometry entry must have provenance.
+ for(const id of Object.keys(externalGeometry))assert.ok(manifest.assets.some(a=>a.id===id),id+' has provenance');
  for(const a of manifest.assets){assert.equal(a.license,'CC0-1.0');assert.ok(a.creator&&a.originalPage&&a.attribution&&a.modifications.length&&a.gameSystems.length);assert.ok((await stat(new URL('../'+a.sourceFile,import.meta.url))).size>0);for(const file of a.localFiles)await stat(new URL('../'+file,import.meta.url));}
 });
 test('external art: reduced meshes have ground pivots, finite convex faces and valid winding',()=>{
