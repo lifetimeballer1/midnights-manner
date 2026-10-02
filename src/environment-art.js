@@ -1,6 +1,7 @@
 import {hash2} from './systems/biomes.js';
 import {regionById,isRegionClaimed} from './systems/expansion.js';
 import {artEnabled,drawMesh} from './asset-art.js';
+import {addExternalProp} from './external-art.js';
 // Converted CC0 meshes replace or alternate with procedural props when their
 // manifest entry is enabled and the mesh doc was preloaded (renderer.meshes).
 // Missing/disabled meshes fall back to the original procedural geometry.
@@ -120,6 +121,7 @@ export function isScorchedRidge(world,data){
  return true;
 }
 function rock(s,x,y,scale=1,color='#899087',scorched=false){
+ if(!scorched&&addExternalProp(s,'rock',x,y,.04,.24*scale,Math.PI*.23,true))return;
  s.pyramid(x,y,.04,.18*scale,.24*scale,color,5);
  if(scale>.95)s.pyramid(x+.14*scale,y-.08*scale,.04,.11*scale,.15*scale,scorched?'#6a6a6e':'#adb0a5',5);
 }

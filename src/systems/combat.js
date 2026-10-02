@@ -8,6 +8,7 @@ import {bossTick,bossAuraMult,isSiegeRole,eliteLootMult,renownDamageMult,renownL
 import {sfx, scheduleSound} from './audio.js';
 import {listenerGain} from './soundstage.js';
 import {isSheltered} from './shelter.js';
+import {siegeOrder,screenTarget} from './siege.js';
 // Release/impact split: the swing (or bow release) sounds now; the impact
 // thud lands after arrow-flight time (distance-scaled) or a melee beat.
 // Damage itself is untouched — this only separates what the ear hears.
@@ -205,12 +206,22 @@ export function tickCombat(world,data,dt) {
   }
   // Phase 7 temperament: Brave holds (+10%) and Cowardly falters (−10%) while raiders walk. No raid, no modifier.
   const grit=raidDamageMult(unit,raidActive);
+  if(order&&['defend','rally'].includes(order.kind)){
+   const post=world.buildings.find(b=>b.id===order.buildingId&&b.hp>0&&b.remaining<=0);
+   if(!post||!Number.isFinite(order.x)||!Number.isFinite(order.y)){unit.order=null;continue;}
+   const anchor=center(post,data),foe=order.kind==='defend'?nearestFoe(world.enemies.filter(e=>distance(e,anchor)<=6),unit):null;
+   if(foe){
+    if(s.range>2&&distance(unit,foe)<1.7&&retreat(world,data,unit,foe,s.speed,dt))continue;
+    if(move(world,data,unit,foe,s.speed,dt,s.range,false,true)&&unit.attackTimer<=0){const dealt=s.damage*(1+aura.damage)*grit*fogRangedMult(world,s.range>2,data)*nightWatchMult(world,unit,data);foe.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,foe,data.items[unit.gear].animation);strikeSound(unit,foe,s.range>2);dmgNum(world,foe,dealt);}
+   }else if(move(world,data,unit,order,s.speed,dt,.3,false,true)&&order.kind==='rally')unit.order={kind:'hold',group:true};
+   continue;
+  }
    if(order&&order.kind==='hold'){const e2=nearestFoe(world.enemies,unit);if(e2&&distance(unit,e2)<=s.range&&unit.attackTimer<=0){const dealt=s.damage*(1+aura.damage)*grit*fogRangedMult(world,s.range>2,data)*nightWatchMult(world,unit,data);e2.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,e2,data.items[unit.gear].animation);strikeSound(unit,e2,s.range>2);dmgNum(world,e2,dealt);}continue;}
    if(order&&order.kind==='attack'){const tgt=world.enemies.find(e=>e.id===order.targetId&&e.hp>0);if(!tgt){unit.order=null;continue;}
     if(move(world,data,unit,tgt,s.speed,dt,s.range,false,true)&&unit.attackTimer<=0){const dealt=s.damage*(1+aura.damage)*grit*fogRangedMult(world,s.range>2,data)*nightWatchMult(world,unit,data);tgt.hp-=dealt;unit.attackTimer=1;unit.animation=.4;effect(world,unit,tgt,data.items[unit.gear].animation);strikeSound(unit,tgt,s.range>2);dmgNum(world,tgt,dealt);}continue;}
   if(!world.enemies.length){unit.hp=Math.min(s.hp,unit.hp+dt*2);continue;}
   if(data.troops[unit.type].role!=='combat')continue;
-  const enemy=defenseTarget(world,data,unit,tgtCtx);if(!enemy)continue;
+  const enemy=screenTarget(world,data,unit)||defenseTarget(world,data,unit,tgtCtx);if(!enemy)continue;
   if(s.range>2&&distance(unit,enemy)<1.7&&retreat(world,data,unit,enemy,s.speed,dt))continue;
    if(move(world,data,unit,enemy,s.speed,dt,s.range,false,true)&&unit.attackTimer<=0){
     const dealt=s.damage*(1+aura.damage)*grit*fogRangedMult(world,s.range>2,data)*nightWatchMult(world,unit,data);
@@ -307,9 +318,11 @@ export function tickCombat(world,data,dt) {
     if(d<reach&&d<bestD){bestD=d;targetUnit=t;}
    }
   }
-  const target=targetUnit||enemyBuildingTarget(world,data,enemy);if(!target)continue;
+  const assault=siegeOrder(world,enemy,data);
+  const target=targetUnit||assault?.target||enemyBuildingTarget(world,data,enemy);if(!target)continue;
   enemy.targetId=target.id;
-  const targetPoint=targetUnit?target:center(target,data),range=targetUnit?(role.range||1.1):data.buildings[target.type].size/2+Math.max(.7,(role.range||1.1)-.4);
+  const waypoint=!targetUnit&&assault?.point;
+  const targetPoint=targetUnit?target:waypoint||center(target,data),range=waypoint?assault.range:targetUnit?(role.range||1.1):data.buildings[target.type].size/2+Math.max(.7,(role.range||1.1)-.4);
   const arrived=move(world,data,enemy,targetPoint,(role.speed||.95)*skySlow*chestSlow,dt,range);
   if(!arrived){
    let barrier=null,barrierD=Infinity;
@@ -325,14 +338,14 @@ export function tickCombat(world,data,dt) {
     continue;
    }
   }
-  if(!arrived&&!targetUnit&&target){
+  if(!arrived&&!targetUnit&&target&&!waypoint){
    // Walled in? Chew the adjacent barrier so raids never soft-lock.
    const bb=target;let adjacent=false;
    const bx0=Math.floor(enemy.x),by0=Math.floor(enemy.y);
    for(let yy=bb.y-1;yy<bb.y+data.buildings[bb.type].size+1&&!adjacent;yy++)for(let xx=bb.x-1;xx<bb.x+data.buildings[bb.type].size+1&&!adjacent;xx++)if(xx===bx0&&yy===by0)adjacent=true;
      if(adjacent&&enemy.attackTimer<=0){bb.hp=Math.max(0,bb.hp-enemy.damage*skyDmg*(isWall(bb)?(role.wallDamage||1)*chestGuard:1));if(bb.hp<=0)world.raidLosses=(world.raidLosses||0)+1;enemy.attackTimer=1.3;enemy.animation=.4;effect(world,enemy,center(bb,data),'slash');if(isWall(bb))wallSound(bb);else{const g=listenerGain('combat');if(g>0)sfx.hit({vol:g});}push(world,{x:targetPoint.x,y:targetPoint.y,tx:targetPoint.x,ty:targetPoint.y,kind:'hit',life:.18});continue;}
   }
-  if(arrived&&enemy.attackTimer<=0){
+  if(arrived&&enemy.attackTimer<=0&&!waypoint){
    // Armor stacks: sky aura + ability resolve + worn gear (Padded Coat
    // onward, read through gearArmor) + the phalanx shield-line ('guard'-
    // effect allies in radius lend their value) + Oathstone ground (Act VII

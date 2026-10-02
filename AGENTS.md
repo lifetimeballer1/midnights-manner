@@ -6,4 +6,4 @@ Follow the implementation order and extension contracts in README.md.
 Do not claim unverified features or a successful Pages deployment.
 Run `npm test` and `npm run build` before pushing changes.
 Preserve work from other contributors; use fast-forward updates, never force push.
-No external art licensing dependencies: existing sprites are original placeholders.
+External art requires verified public-repository redistribution rights and an entry in data/external_assets.json. Prefer CC0, retain provenance during conversion, and keep procedural fallbacks. Existing sprites remain original placeholders.

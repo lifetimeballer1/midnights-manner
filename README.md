@@ -12,6 +12,12 @@ A browser-based village builder with an isometric HTML5 Canvas map, farming econ
 
 **Status:** mobile-first playable prototype. The systems below are implemented; long-term balancing, richer combat AI, final art, and broader online features remain future work. Synthesized sound effects, an original generative music score, responsive full-screen controls and 15 campaign chapters are implemented. Progress is saved locally in the browser every five seconds and on page exit. Hidden tabs pause simulation; there is no offline production. Campaign expeditions use separate maps and preserve the home village.
 
+## Reviewed free low-poly props
+
+Seven CC0 models by Quaternius supplement the existing architecture: barrels, crates, supply sacks, open grain bags, hay, benches and rocks. Models are converted offline to the current Canvas face format, adapted to the village palette, and cached with the existing scene. No runtime glTF loader, texture downloads or third-party requests are added. Procedural building tiers, character rigs, machinery, saves and gameplay stay on their existing paths.
+
+Close views use the reviewed meshes within shared face budgets; distant, crowded and offscreen cases use the original procedural props. See [asset credits and conversion](docs/ASSET_CREDITS.md) and the machine-readable [manifest](data/external_assets.json).
+
 ## Start locally
 
 Requires Node.js 22+ for tests/build, and Python 3 for the development server.
@@ -524,3 +530,11 @@ This is a shared-store logistics model: input deliveries improve modest throughp
 ### The Village Holds
 
 Defense posts now fill like jobs, civilians enter reachable shelters during raids, staffed equipment workshops craft the highest unlocked needed tier, and builders travel to repair and construction work. Opt-in automatic upgrades have a master switch, per-building tier limits and protected resource reserves. People, building inspectors and Stores expose the controls without adding navigation tiles. Raid summaries report breaches and responding defenders. Save v15 remains compatible; new settings are additive and transient shelter/routes restart safely. See [docs/VILLAGE-HOLDS.md](docs/VILLAGE-HOLDS.md) for behavior, budgets and verification limits.
+
+### Siege intelligence and group commands
+
+Home raiders now coordinate by approach side, probe exposed weak defenses, and use fresh breaches to advance. Army & People offers scoped Hold, Defend post, Rally & hold and Resume group duties commands. Enemy plans appear in the battle HUD and raid reports explain breach advances. Campaigns, bosses, balance curves and v15 saves retain their existing contracts. See [Siege and supply intelligence](docs/SIEGE-SUPPLY.md).
+
+### Working supply chains
+
+Haulers prioritize meal shortages, recovery, planned construction and equipment materials, including protected reserves. Staffed recipe chains pull demand toward raw ingredients; workshop inputs use reachable supply hubs, and full outputs stop unnecessary trips. Stores shows shortages, idle-workshop causes, delivery bottlenecks and project handling benefits. Shared-store accounting, manual collection, save v15 and existing hauling/path budgets remain intact. See [Siege and supply intelligence](docs/SIEGE-SUPPLY.md).

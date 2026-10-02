@@ -1,3 +1,4 @@
+import {supplyPriorities,recipeHasRoom,workshopSupplyStatus} from './supply-priority.js';
 // Shared stores remain the authoritative inventory. Producer batches are
 // reservations at their source until unloading, so collection, orders, raids,
 // save/reload and destroyed destinations cannot lose or duplicate material.
@@ -15,42 +16,89 @@ const states=new WeakMap(),assignments=new WeakMap();
 export function haulFor(u){return assignments.get(u)||null;}
 export function isHauling(u){return assignments.has(u);}
 function live(b){return b&&b.hp>0&&b.remaining<=0;}
-function state(w){let s=states.get(w);if(!s){s={jobs:[],clock:2,signature:null,graph:null,byId:new Map(),candidates:new Map(),crew:new Map(),units:new Set(),supply:new Map(),links:new Map(),caravans:[],collectorTargets:new WeakMap(),efficiencies:new Map(),serial:0,producerCursor:0,delivered:0,blocked:0};states.set(w,s);}return s;}
-export function logisticsMetrics(w){const s=states.get(w);return {activeJobs:s?.jobs.length||0,visibleCarts:s?.jobs.filter(j=>j.cart).length||0,routeCache:s?.graph?.fields.size||0,pathCalculations:s?.graph?.calculations||0,intervalPathCalculations:s?.graph?ROUTE_BUDGET-s.graph.budget:0,delivered:s?.delivered||0,blocked:s?.blocked||0,roads:Object.keys(w.roads||{}).length,trails:Object.keys(w.trails||{}).length,caravans:s?.caravans.length||0};}
+function state(w){let s=states.get(w);if(!s){s={jobs:[],clock:2,signature:null,graph:null,byId:new Map(),candidates:new Map(),crew:new Map(),units:new Set(),supply:new Map(),links:new Map(),caravans:[],collectorTargets:new WeakMap(),efficiencies:new Map(),serial:0,producerCursor:0,delivered:0,blocked:0,waiting:new Map(),priorities:new Map(),issues:[],workshops:new Map(),lastReason:null,supplyVisits:0};states.set(w,s);}return s;}
+export function logisticsMetrics(w){const s=states.get(w);return {activeJobs:s?.jobs.length||0,visibleCarts:s?.jobs.filter(j=>j.cart).length||0,routeCache:s?.graph?.fields.size||0,pathCalculations:s?.graph?.calculations||0,intervalPathCalculations:s?.graph?ROUTE_BUDGET-s.graph.budget:0,delivered:s?.delivered||0,blocked:s?.blocked||0,roads:Object.keys(w.roads||{}).length,trails:Object.keys(w.trails||{}).length,caravans:s?.caravans.length||0,supplyVisits:s?.supplyVisits||0,urgentResources:s?.priorities.size||0};}
 function canHaul(u,w,d){return u.hp>0&&!u.workplace&&!u.order&&!u.emergency&&!u.builderTask&&!u.expedition&&!(u.carry>0)&&d.troops[u.type]?.role!=='combat'&&!(d.troops[u.type]?.role==='builder'&&w.buildings.some(b=>b.hp>0&&b.remaining>0));}
-function index(w,d,s){const sig=layoutSignature(w,d);if(sig!==s.signature){s.signature=sig;s.graph=routeGraph(w,d);s.byId.clear();s.candidates.clear();s.links.clear();for(const b of w.buildings){s.byId.set(b.id,b);if(!live(b))continue;const spec=d.buildings[b.type],keys=new Set(Object.keys(spec.storage||{}));for(const r of spec.refine||[])for(const k of Object.keys(r.in||{}))keys.add(k);if(b.type==='hall')for(const k of Object.keys(d.world.storageBase||{}))keys.add(k);for(const key of keys){let arr=s.candidates.get(key);if(!arr)s.candidates.set(key,arr=[]);arr.push(b);}}}s.graph.budget=ROUTE_BUDGET;for(const id of s.supply.keys())if(!s.byId.has(id))s.supply.delete(id);s.units.clear();for(const u of w.troops)s.units.add(u);s.crew.clear();for(const u of w.troops)if(u.hp>0&&u.workplace&&!u.order&&!u.emergency&&!u.builderTask&&!u.expedition)s.crew.set(u.workplace,(s.crew.get(u.workplace)||0)+1);}
-function demand(b,d,key,s){if(!(s.crew.get(b.id)>0))return 0;let need=0;for(const r of d.buildings[b.type]?.refine||[])need+=(r.in?.[key]||0)*(r.perSec||0)*10;const token=s.supply.get(b.id)?.[key];return Math.max(0,need-(token&&s.now-token.at<30?token.amount:0));}
+function index(w,d,s){s.world=w;const sig=layoutSignature(w,d);if(sig!==s.signature){s.signature=sig;s.graph=routeGraph(w,d);s.byId.clear();s.candidates.clear();s.links.clear();for(const b of w.buildings){s.byId.set(b.id,b);if(!live(b))continue;const spec=d.buildings[b.type],keys=new Set(Object.keys(spec.storage||{}));for(const r of spec.refine||[])for(const k of Object.keys(r.in||{}))keys.add(k);if(b.type==='hall')for(const k of Object.keys(d.world.storageBase||{}))keys.add(k);for(const key of keys){let arr=s.candidates.get(key);if(!arr)s.candidates.set(key,arr=[]);arr.push(b);}}}s.graph.budget=ROUTE_BUDGET;for(const id of s.supply.keys())if(!s.byId.has(id))s.supply.delete(id);s.units.clear();for(const u of w.troops)s.units.add(u);s.crew.clear();for(const u of w.troops)if(u.hp>0&&u.workplace&&!u.order&&!u.emergency&&!u.builderTask&&!u.expedition)s.crew.set(u.workplace,(s.crew.get(u.workplace)||0)+1);}
+function demand(b,d,key,s){if(!(s.crew.get(b.id)>0))return 0;let need=0;for(const r of d.buildings[b.type]?.refine||[])if(recipeHasRoom(s.world,d,b,r))need+=(r.in?.[key]||0)*(r.perSec||0)*10;const token=s.supply.get(b.id)?.[key];return Math.max(0,need-(token&&s.now-token.at<15?token.amount:0));}
 function hub(b,d,key){return b.type==='hall'||(d.buildings[b.type]?.storage?.[key]||0)>0;}
 export function chooseDestination(w,d,source,key,{s=state(w),consumerOnly=false}={}){
- if(!s.graph)index(w,d,s);if(!(centralRoom(w,d,key)>0)&&!consumerOnly)return null;
+ if(!s.graph)index(w,d,s);if(!(centralRoom(w,d,key)>0)&&!consumerOnly){s.lastReason='Shared storage full';return null;}
  const from=accessTile(s.graph,source,d);if(!from)return null;let best=null,bestScore=Infinity;
  const granaryFinished=greatWorkTier(w,'grand-granary')>0;
  for(const b of s.candidates.get(key)||[]){if(b.id===source.id||!live(b))continue;const need=demand(b,d,key,s),isHub=hub(b,d,key);if(consumerOnly?!need:!isHub&&!need)continue;
   const point=accessTile(s.graph,b,d,from);if(!point)continue;const f=routeField(s.graph,w,point),distance=routeDistance(s.graph,f,from);if(!Number.isFinite(distance))continue;
   let busy=0;for(const j of s.jobs)if(j.destinationId===b.id)busy++;
   const preferred=b.type==='grand-granary'&&granaryFinished&&['food','flour','bread'].includes(key)?2:b.type==='market-square'?1:0;
-  const score=distance+busy*3-Math.min(6,need*.25)-preferred;
+  const priority=s.priorities.get(key)?.priority||0,related=districtKindOf(source.type)===districtKindOf(b.type)?.75:0;
+  const score=distance+busy*3-Math.min(6,need*.25)-(need>0?priority*.08:0)-preferred-related;
   if(score<bestScore){bestScore=score;best={building:b,point,field:f,distance,need};}
  }
+ if(!best)s.lastReason=s.graph.budget<=0?'Route planning queued':(s.candidates.get(key)||[]).some(b=>b.id!==source.id&&live(b))?'No reachable compatible destination':'Build a compatible storage hub';
  return best;
 }
 function nearWork(w,d,s,point,key){let mult=1;for(const b of s.byId.values()){if(!live(b)||Math.hypot(center(b,d).x-point.x,center(b,d).y-point.y)>8)continue;if(b.type==='grand-granary'&&['food','flour','bread','rations'].includes(key))mult=Math.max(mult,1+.03*b.level);if(b.type==='forge-quarter'&&['wood','gold','lumber','plate','frostwood'].includes(key))mult=Math.max(mult,1+.025*b.level);if(b.type==='market-square')mult=Math.max(mult,1+.015*b.level);}return Math.min(1.2,mult);}
 function cancel(s,j){if(j.unit)assignments.delete(j.unit);const i=s.jobs.indexOf(j);if(i>=0)s.jobs.splice(i,1);}
 function sourceAmount(w,source,key,kind){return kind==='output'?outputAmount(source,key):kind==='reserve'?source.harvestBonus||0:w.resources[key]||0;}
 function createJob(w,d,s,source,key,kind='reserve',destination=null){
- if(s.jobs.length>=LOGISTICS_LIMITS.jobs||s.jobs.some(j=>j.sourceId===source.id&&j.resource===key&&j.kind===kind))return false;
+ s.lastReason=null;
+ if(s.jobs.length>=LOGISTICS_LIMITS.jobs){s.lastReason='Haul queue full';return false;}
+ if(s.jobs.some(j=>j.sourceId===source.id&&j.resource===key&&j.kind===kind)){s.lastReason='Supply hub busy';return false;}
  const dest=destination||chooseDestination(w,d,source,key,{s,consumerOnly:kind==='supply'});if(!dest)return false;
- const origin=accessTile(s.graph,source,d,dest.point);if(!origin)return false;const field=routeField(s.graph,w,origin);if(!field)return false;
+ const origin=accessTile(s.graph,source,d,dest.point);if(!origin){s.lastReason='Source entrance blocked';return false;}const field=routeField(s.graph,w,origin);if(!field){s.lastReason='Route planning queued';return false;}
  let unit=null,best=Infinity;for(const u of w.troops){if(!canHaul(u,w,d)||assignments.has(u))continue;const n=routeDistance(s.graph,field,u);if(n<best){best=n;unit=u;}}
- if(!unit)return false;const carry=24*(hasTrait(unit,'strong')?1.25:1),amount=Math.min(carry,sourceAmount(w,source,key,kind));if(amount<1)return false;
+ if(!unit){s.lastReason=w.troops.some(u=>canHaul(u,w,d)&&!assignments.has(u))?'No reachable hauling worker':'No spare hauling worker';return false;}const carry=24*(hasTrait(unit,'strong')?1.25:1),amount=Math.min(carry,sourceAmount(w,source,key,kind));if(amount<1){s.lastReason='Waiting for raw materials';return false;}
  const cart=amount>=18&&s.jobs.filter(j=>j.cart).length<LOGISTICS_LIMITS.carts;
  const j={id:++s.serial,kind,sourceId:source.id,destinationId:dest.building.id,source,destination:dest.building,resource:key,amount,unit,assignedUnit:unit.id,phase:'pickup',origin,target:dest.point,originField:field,targetField:dest.field,distance:dest.distance,cart,loaded:false,wheel:0,heading:0,pause:0,age:0,revision:s.signature};s.jobs.push(j);assignments.set(unit,j);s.links.set(source.id,{destinationId:dest.building.id,distance:dest.distance});return true;
 }
-function plan(w,d,s){index(w,d,s);s.blocked=0;s.efficiencies.clear();
- const count=w.buildings.length;for(let i=0;i<count;i++){const b=w.buildings[(s.producerCursor+i)%count];if(!live(b))continue;const key=d.buildings[b.type].production;if(key&&(b.harvestBonus||0)>=4){if(!createJob(w,d,s,b,key))s.blocked++;}for(const key of Object.keys(b.outputReserve||{}))if(outputAmount(b,key)>=4&&!createJob(w,d,s,b,key,'output'))s.blocked++;}s.producerCursor=count?(s.producerCursor+7)%count:0;
- // Only one supply trip per workshop/key; crews keep their assigned posts.
- for(const b of w.buildings){if(!live(b)||!s.crew.get(b.id))continue;for(const r of d.buildings[b.type]?.refine||[])for(const key of Object.keys(r.in||{})){if(demand(b,d,key,s)<1||s.jobs.some(j=>j.kind==='supply'&&j.destinationId===b.id&&j.resource===key))continue;let source=null,min=Infinity;const to=center(b,d);for(const h of s.candidates.get(key)||[]){if(h.id===b.id||!hub(h,d,key)||!live(h))continue;const dist=Math.hypot(center(h,d).x-to.x,center(h,d).y-to.y);if(dist<min){min=dist;source=h;}}if(source){const origin=accessTile(s.graph,source,d),point=accessTile(s.graph,b,d,origin||to);if(!point||!origin)continue;const f=routeField(s.graph,w,point),distance=routeDistance(s.graph,f,origin);if(Number.isFinite(distance))createJob(w,d,s,source,key,'supply',{building:b,point,field:f,distance});}}}
+function plan(w,d,s){
+ index(w,d,s);s.blocked=0;s.efficiencies.clear();s.issues=[];s.workshops.clear();s.priorities=supplyPriorities(w,d);
+ const alarm=!!w.raidPending||(w.enemies||[]).some(e=>e.hp>0),requests=[],seen=new Set(),count=w.buildings.length;
+ const request=(source,key,kind,destination=null)=>{
+  if(s.jobs.some(j=>j.sourceId===source.id&&j.resource===key&&j.kind===kind&&(!destination||j.destinationId===destination.id)))return;
+  const id=`${source.id}:${key}:${kind}:${destination?.id||''}`;seen.add(id);if(!s.waiting.has(id))s.waiting.set(id,s.now);
+  const wait=Math.max(0,s.now-s.waiting.get(id)),priority=s.priorities.get(key)?.priority||0;
+  requests.push({id,source,key,kind,destination,priority:priority+(kind==='output'?15:0)+Math.min(120,wait*.4)});
+ };
+ for(let i=0;i<count;i++){
+  const b=w.buildings[(s.producerCursor+i)%count];if(!live(b))continue;
+  const key=d.buildings[b.type].production;if(key&&(b.harvestBonus||0)>=4)request(b,key,'reserve');
+  for(const key of Object.keys(b.outputReserve||{}))if(outputAmount(b,key)>=4)request(b,key,'output');
+ }
+ s.producerCursor=count?(s.producerCursor+7)%count:0;
+ for(const b of w.buildings){
+  const crew=s.crew.get(b.id)||0,status=workshopSupplyStatus(w,d,b,crew);if(status)s.workshops.set(b.id,status);
+  if(!live(b)||!crew)continue;
+  const keys=new Set((d.buildings[b.type]?.refine||[]).flatMap(r=>recipeHasRoom(w,d,b,r)?Object.keys(r.in||{}):[]));
+  for(const key of keys){
+   if(demand(b,d,key,s)<1||s.jobs.some(j=>j.kind==='supply'&&j.destinationId===b.id&&j.resource===key))continue;
+   if(!(w.resources[key]>=1))continue;
+   // Resolve the nearest reachable hub lazily, after urgent requests sort.
+   request(b,key,'supply',b);
+  }
+ }
+ for(const id of s.waiting.keys())if(!seen.has(id))s.waiting.delete(id);
+ requests.sort((a,b)=>b.priority-a.priority);
+ const issue=(r,reason)=>{s.blocked++;if(s.issues.length<8)s.issues.push({buildingId:r.destination?.id||r.source.id,resource:r.key,reason});};
+ for(const r of requests){
+  if(alarm){issue(r,'Hauling paused for raid safety');continue;}
+  let source=r.source,dest=null;
+  if(r.destination){
+   const point=accessTile(s.graph,r.destination,d);if(!point){issue(r,'Workshop entrance blocked');continue;}
+   const field=routeField(s.graph,w,point);if(!field){issue(r,'Route planning queued');continue;}
+   let best=Infinity;
+   for(const h of s.candidates.get(r.key)||[]){if(h.id===r.destination.id||!hub(h,d,r.key)||!live(h))continue;
+    const origin=accessTile(s.graph,h,d,point),n=origin?routeDistance(s.graph,field,origin):Infinity;
+    if(n<best){best=n;source=h;}
+   }
+   if(!Number.isFinite(best)){issue(r,'No reachable supply hub');continue;}
+   dest={building:r.destination,point,field,distance:best};
+  }
+  if(createJob(w,d,s,source,r.key,r.kind,dest))s.waiting.delete(r.id);
+  else issue(r,s.lastReason||'Waiting for route or supplies');
+ }
 }
+
 function walk(w,d,s,j,target,field,dt){const u=j.unit,g=s.graph;if(!field)return false;let dx=target.x-u.x,dy=target.y-u.y;if(Math.hypot(dx,dy)<.12)return true;let waypoint=j.waypoint;
  if(!waypoint||Math.hypot(u.x-waypoint.x,u.y-waypoint.y)<.001){const k=Math.floor(u.y)*g.W+Math.floor(u.x),n=field.next[k];if(k===field.key)waypoint=target;else if(n>=0)waypoint={x:n%g.W+.5,y:Math.floor(n/g.W)+.5};else return false;j.waypoint=waypoint;}
  let tx=waypoint.x,ty=waypoint.y;
@@ -67,7 +115,7 @@ export function tickLogistics(w,d,dt){if(!(dt>0)||!Number.isFinite(dt))return;co
   else{j.pause-=dt*(hasTrait(u,'hard_worker')?1.12:1)*nearWork(w,d,s,j.target,j.resource);if(j.pause>0)continue;
    if(j.kind==='reserve'){const amount=Math.min(j.amount,j.source.harvestBonus||0),result=depositCentral(w,d,j.resource,amount);j.source.harvestBonus=Math.max(0,(j.source.harvestBonus||0)-result.banked);s.delivered+=result.banked;if(result.banked>0)supply(s,j.destination,j.resource,result.banked,w.elapsed||0);}
    else if(j.kind==='output'){const result=bankOutput(w,d,j.source,j.resource,j.amount);s.delivered+=result.banked;if(result.banked>0)supply(s,j.destination,j.resource,result.banked,w.elapsed||0);}
-   else supply(s,j.destination,j.resource,Math.min(j.amount,w.resources[j.resource]||0),w.elapsed||0);
+   else {supply(s,j.destination,j.resource,Math.min(j.amount,w.resources[j.resource]||0),w.elapsed||0);s.supplyVisits++;}
    cancel(s,j);
   }
  }
@@ -78,7 +126,7 @@ export function tickLogistics(w,d,dt){if(!(dt>0)||!Number.isFinite(dt))return;co
 export function refinementEfficiency(w,d,b){const s=states.get(w);if(!s?.graph)return 1;let distance=0,n=0,delivered=0;const cached=s.efficiencies.get(b.id);for(const r of d.buildings[b.type]?.refine||[])for(const key of Object.keys(r.in||{})){if(!cached){let min=Infinity;const p=center(b,d);for(const h of s.candidates.get(key)||[])if(h.id!==b.id&&hub(h,d,key)&&live(h)){const q=center(h,d);min=Math.min(min,Math.hypot(p.x-q.x,p.y-q.y));}if(Number.isFinite(min)){distance+=min;n++;}}const token=s.supply.get(b.id)?.[key];if(token&&(w.elapsed||0)-token.at<30&&token.amount>0)delivered++;}
  let base=cached;if(base===undefined){const dist=n?distance/n:0,benefit=nearWork(w,d,s,center(b,d),'wood')-1;base=1-Math.max(0,dist-8)*.005+benefit*.3;s.efficiencies.set(b.id,base);}return Math.max(.85,Math.min(1.15,base+(delivered?.06:0)));}
 export function consumeSupply(w,b,inputs,runs){const keys=states.get(w)?.supply.get(b.id);if(keys)for(const [k,v] of Object.entries(inputs||{}))if(keys[k])keys[k].amount=Math.max(0,keys[k].amount-v*runs);}
-export function buildingLogistics(w,d,b){const s=states.get(w),link=s?.links.get(b.id);let incoming=0,outgoing=0,total=0;for(const j of s?.jobs||[]){if(j.destinationId===b.id){incoming++;total+=j.distance;}if(j.sourceId===b.id)outgoing++;}const dest=link&&s.byId.get(link.destinationId);return {destination:dest?d.buildings[dest.type].name:null,distance:link?.distance||0,incoming,outgoing,average:incoming?total/incoming:0,efficiency:refinementEfficiency(w,d,b),reserve:b.harvestBonus||0,outputs:{...b.outputReserve}};}
+export function buildingLogistics(w,d,b){const s=states.get(w),link=s?.links.get(b.id);let incoming=0,outgoing=0,total=0;for(const j of s?.jobs||[]){if(j.destinationId===b.id){incoming++;total+=j.distance;}if(j.sourceId===b.id)outgoing++;}const dest=link&&s.byId.get(link.destinationId);return {destination:dest?d.buildings[dest.type].name:null,distance:link?.distance||0,incoming,outgoing,average:incoming?total/incoming:0,efficiency:refinementEfficiency(w,d,b),reserve:b.harvestBonus||0,outputs:{...b.outputReserve},status:s?.workshops.get(b.id)||null};}
 // Living Kingdom Phase 9 districts: ordered first-match kind map. Exact type
 // names (not substrings): sawmill/mill, grand-granary/granary,
 // bell-tower/tower and dawn-gate/gate would otherwise collide families.
@@ -131,3 +179,8 @@ function tickCaravans(w,d,s,dt,alarm){
 // Existing collectors retain their gather/carry amounts; only their return hub
 // changes, using the same bounded planner and manual/emergency priority.
 export function collectorDestination(w,d,u,source,key){const s=states.get(w);if(!s?.graph)return null;let entry=s.collectorTargets.get(u);if(entry&&entry.revision===s.signature&&live(entry.building)&&entry.until>(w.elapsed||0))return entry.building;const dest=chooseDestination(w,d,source,key,{s});if(!dest)return null;entry={building:dest.building,until:(w.elapsed||0)+2,revision:s.signature};s.collectorTargets.set(u,entry);s.links.set(source.id,{destinationId:dest.building.id,distance:dest.distance});return entry.building;}
+
+export function supplyDiagnostics(w,d){
+ const s=states.get(w);
+ return {needs:[...(s?.priorities.values()||[])].map(n=>({...n,reasons:[...n.reasons]})).sort((a,b)=>b.priority-a.priority),issues:(s?.issues||[]).map(i=>({...i})),workshops:[...(s?.workshops||[])].map(([buildingId,status])=>({buildingId,name:d.buildings[s.byId.get(buildingId)?.type]?.name||'Workshop',...status,missing:[...status.missing]}))};
+}
