@@ -252,3 +252,4 @@ test('music mood selection stays inside matching theme groups',async()=>{
    if(previousWindow===undefined)delete globalThis.window;else globalThis.window=previousWindow;
   }
  });
+
