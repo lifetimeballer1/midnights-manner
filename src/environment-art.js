@@ -6,18 +6,18 @@ import {addExternalProp} from './external-art.js';
 // manifest entry is enabled and the mesh doc was preloaded (renderer.meshes).
 // Missing/disabled meshes fall back to the original procedural geometry.
 const NATIVE_MESH={shrub:'bush',log:'log',rock:'rock-small-a',stone:'stone-small'};
-const FLOWERS=['flower-red','flower-yellow','flower-purple'],LILIES=['lily-small','lily-large'];
+const FLOWERS=['flower-red','flower-yellow','flower-purple'],LILIES=['lily-small','lily-large'],ROCKS=['rock-small-a','rock-small-d'];
 export function convertedId(s,item){
  const meshes=s.r?.meshes;
- if(!meshes)return null;
+ if(!meshes||item.biome==='unclaimed-fringe'||(item.kind==='shrub'&&item.biome==='hills'))return null;
  let id=null;
  if(item.kind==='flowers')id=FLOWERS[hash2(item.x,item.y,7)%FLOWERS.length];
  else if(item.kind==='lilies')id=LILIES[hash2(item.x,item.y,13)%LILIES.length];
  else if(NATIVE_MESH[item.kind]){
   if(hash2(item.x,item.y,41)%2===0)return null; // alternate for variety
-  id=NATIVE_MESH[item.kind];
+  id=item.kind==='rock'?ROCKS[hash2(item.x,item.y,53)%ROCKS.length]:NATIVE_MESH[item.kind];
  }
- return id&&meshes[id]&&artEnabled(s.r?.data,id)?id:null;
+ return id&&meshes[id]?.faces?.length&&artEnabled(s.r?.data,id)?id:null;
 }
 
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -126,7 +126,7 @@ export function isScorchedRidge(world,data){
 // no save fields, flat hex albedo, grounded (z>=0) and tile-scale.
 const broadleafAt=(x,y)=>hash2(x,y,991)%100<42;
 function rock(s,x,y,scale=1,color='#899087',scorched=false,dark=false){
- if(!scorched&&addExternalProp(s,'rock',x,y,.04,.24*scale,Math.PI*.23,true))return;
+  if(!scorched&&!dark&&addExternalProp(s,'rock',x,y,.04,.24*scale,Math.PI*.23,true))return;
  // Craggy cluster: a tall shard over flanking slabs with a deterministic lean.
  const light=scorched?'#6a6a6e':dark?'#7d857c':'#adb0a5';
  const lean=((hash2(Math.round(x*7),Math.round(y*7),353)%100)/100-.5)*.12*scale;
@@ -267,10 +267,20 @@ function frontierCamp(s,camp,faction){
 }
 export function drawProp(s,item,seed,scorched=false,zoom=1.8){
  const x=item.x+.5,y=item.y+.5,j=(hash2(item.x+13,item.y+29,seed)%1000)/1000;
- const conv=convertedId(s,item);
- if(conv){drawMesh(s,s.r.meshes[conv],x,y);return;}
  const scale=.78+j*.35,cold=item.biome==='water',fringe=item.biome==='unclaimed-fringe';
  const ash=scorched===true&&item.biome==='hills',dark=fringe||ash;
+ // Keep full procedural silhouettes at distance and preserve biome palettes.
+ const conv=zoom>=1.2&&!ash?convertedId(s,item):null;
+ if(conv){
+  const mesh=s.r.meshes[conv],drift=item.kind==='flowers'||item.kind==='lilies';
+  if(drift){
+   const k=item.kind==='lilies'?.42:.8;
+   const doc={faces:mesh.faces.map(f=>({...f,v:f.v.map(([vx,vy,vz])=>[vx*k,vy*k,vz*k]),
+    c:item.kind==='lilies'?(f.c==='#29c9ab'?'#3f7a50':f.c==='#2ba6aa'?'#589a68':f.c):f.c}))};
+   for(const [dx,dy]of[[-.17,-.08],[.14,.1],[-.02,.19]])drawMesh(s,doc,x+dx,y+dy);
+  }else drawMesh(s,mesh,x,y);
+  return;
+ }
  // Missing P5 meshes still fall back to biome reads: flowers as wildflower
  // drifts, lilies as flat pads (not reeds).
  if(item.kind==='flowers'){flowers(s,x,y,scale,cold,dark);return;}

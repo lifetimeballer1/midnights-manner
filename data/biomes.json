@@ -11,6 +11,7 @@
         "grass",
         "stone",
         "stump",
+        "flowers",
         "flowers"
       ]
     }
@@ -24,6 +25,7 @@
       "claimedDensity": 0.09,
       "wildDensity": 0.18,
       "props": [
+        "pine",
         "pine",
         "shrub",
         "stump",
@@ -70,9 +72,11 @@
     "yieldModifier": 1,
     "scenery": {
       "claimedDensity": 0.08,
-      "wildDensity": 0.18,
+      "wildDensity": 0.22,
       "props": [
         "pine",
+        "pine",
+        "shrub",
         "shrub",
         "rock",
         "stump",
