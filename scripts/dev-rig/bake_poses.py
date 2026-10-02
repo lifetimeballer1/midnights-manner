@@ -21,6 +21,7 @@ Example:
     --poses stand:Idle:0.0 walk:Walk:0.25 swing:Sword_Attack:0.45
 """
 import argparse
+import hashlib
 import json
 import re
 import struct
@@ -154,6 +155,8 @@ def world_matrices(glb, overrides):
 
     def local(i):
         node = nodes[i]
+        if 'matrix' in overrides.get(i, {}):
+            return overrides[i]['matrix']
         if 'matrix' in node:
             return np.array(node['matrix']).reshape(4, 4).T
         over = overrides.get(i, {})
@@ -181,13 +184,51 @@ def texture_sampler(texture):
     return image
 
 
+def kaykit_pose(glb, name, fraction):
+    """Author discrete bone poses for staged KayKit rigs (which ship no clips)."""
+    if name not in ('KayKit_Stand', 'KayKit_Walk', 'KayKit_Attack'):
+        raise SystemExit('unknown authored KayKit pose ' + name)
+    rest = world_matrices(glb, {})
+    parents = glb.parent_map()
+    overrides = {}
+    stride = (.38 if fraction < .5 else -.38) if name == 'KayKit_Walk' else 0
+    for i, node in enumerate(glb.doc['nodes']):
+        bone = node.get('name', '')
+        side = 1 if bone.endswith('.l') else -1
+        rx = rz = 0
+        if bone.startswith('upperarm.'):
+            rz = -side * 1.12
+            rx = -side * stride * .75
+            if name == 'KayKit_Attack':
+                rx = -1.05 if side == 1 else -.35
+                rz = -side * .8
+        elif bone.startswith('upperleg.'):
+            rx = side * stride
+        elif bone.startswith('lowerleg.') and stride * side > 0:
+            rx = -.22
+        else:
+            continue
+        rotation = trs_matrix([0, 0, 0], [np.sin(rx / 2), 0, 0, np.cos(rx / 2)], [1, 1, 1])
+        rotation = rotation @ trs_matrix([0, 0, 0], [0, 0, np.sin(rz / 2), np.cos(rz / 2)], [1, 1, 1])
+        pivot = rest(i)[:3, 3]
+        rotation[:3, 3] = pivot - rotation[:3, :3] @ pivot
+        parent = rest(parents[i]) if i in parents else np.eye(4)
+        overrides[i] = {'matrix': np.linalg.inv(parent) @ rotation @ rest(i)}
+    return overrides
+
+
 def bake_pose(glb, clip_name, fraction, texture, debug=False, exclude_nodes=(), tint=None,
               tint_strength=0.0):
-    clip = glb.clip_index(clip_name)
-    times = glb.accessor(glb.doc['animations'][clip]['samplers'][0]['input']).reshape(-1)
-    duration = float(times[-1])
-    time = fraction * duration
-    overrides = sample_animation(glb, clip, time)
+    authored = clip_name.startswith('KayKit_')
+    if authored:
+        duration = time = 0.0
+        overrides = kaykit_pose(glb, clip_name, fraction)
+    else:
+        clip = glb.clip_index(clip_name)
+        times = glb.accessor(glb.doc['animations'][clip]['samplers'][0]['input']).reshape(-1)
+        duration = float(times[-1])
+        time = fraction * duration
+        overrides = sample_animation(glb, clip, time)
     world = world_matrices(glb, overrides)
     triangles = []
     stats = {'skinned': 0, 'rigid': 0}
@@ -241,7 +282,7 @@ def bake_pose(glb, clip_name, fraction, texture, debug=False, exclude_nodes=(), 
                 if texture is not None and uv is not None:
                     u, v = uv[face].mean(axis=0)
                     px = min(texture.width - 1, max(0, int((u % 1.0) * texture.width)))
-                    py = min(texture.height - 1, max(0, int((v % 1.0) * texture.height)))
+                    py = min(texture.height - 1, max(0, int((1 - v % 1.0) * texture.height)))
                     color = np.array(texture.getpixel((px, py)), dtype=np.float64)
                 else:
                     # glTF factors are linear; Canvas hex colors are sRGB.
@@ -252,11 +293,20 @@ def bake_pose(glb, clip_name, fraction, texture, debug=False, exclude_nodes=(), 
                     # keeps the pack's shape but reads the faction color.
                     color = color * (1.0 - tint_strength) + np.asarray(tint, dtype=np.float64) * tint_strength
                 triangles.append((positions[face], color))
-    return {'triangles': triangles, 'clip': clip_name, 'fraction': fraction,
+    anchors = {}
+    for node_index, node in enumerate(glb.doc['nodes']):
+        key = {'handslot.l': 'hand', 'head': 'head'}.get(node.get('name'))
+        if key:
+            p = world(node_index)[:3, 3]
+            anchors[key] = np.array([p[0], -p[2], p[1]])
+    return {'triangles': triangles, 'anchors': anchors, 'authored': authored,
+            'clip': clip_name, 'fraction': fraction,
             'time': time, 'duration': duration, 'stats': stats}
 
 
-def quantize(triangles, palette_size=28, threshold=22.0):
+def quantize(triangles, palette_size=28, threshold=22.0, color_floor=None):
+    if color_floor is not None:
+        triangles = [(points, np.maximum(color, color_floor)) for points, color in triangles]
     counts = Counter(tuple(int(round(c)) for c in color) for _, color in triangles)
     centers = []
     for rgb, _ in sorted(counts.items(), key=lambda item: -item[1]):
@@ -301,7 +351,9 @@ def simplify_and_cap(triangles, max_faces):
         source_points = np.array([points for points, _ in triangles], dtype=np.float64)
         source_colors = [color for _, color in triangles]
         flat = source_points.reshape(-1, 3)
-        unique, inverse = np.unique(np.round(flat, 6), axis=0, return_inverse=True)
+        # Weld shared UV/part boundaries before one whole-body reduction; never
+        # simplify sleeves and limbs independently and open cracks at the joints.
+        unique, inverse = np.unique(np.round(flat, 4), axis=0, return_inverse=True)
         indices = inverse.reshape(-1, 3).astype(np.int32)
         target = max(12, max_faces - 12)
         if len(indices) > target:
@@ -374,7 +426,9 @@ def normalize(poses, target_height):
         # Ground the whole pose (not each triangle) so feet sit at z = 0.
         min_z = min(triangle[:, 2].min() for triangle, _ in scaled)
         pose['triangles'] = [(np.c_[triangle[:, :2], triangle[:, 2] - min_z], color)
-                             for triangle, color in scaled]
+                              for triangle, color in scaled]
+        pose['anchors'] = {name: np.r_[(p[:2] - center) * scale, p[2] * scale - min_z]
+                           for name, p in pose['anchors'].items()}
     return scale, height
 
 
@@ -405,9 +459,13 @@ def write_mesh(path, pose, meta, vertices, faces, cell):
             'excluded_nodes': meta.get('excluded_nodes', []),
             'tint': meta.get('tint'),
             'tint_strength': meta.get('tint_strength', 0.0),
+            'source_sha256': meta['source_sha256'],
+            'pose_method': 'authored bone transforms' if pose['authored'] else 'sampled animation',
+            'color_floor': meta['color_floor'],
+            'anchors': {name: [round(float(v), 4) for v in p] for name, p in pose['anchors'].items()},
         },
         'faces': [
-            {'v': [[round(float(v), 5) for v in vertices[i]] for i in indices], 'c': color}
+            {'v': [[round(float(v), 4) for v in vertices[i]] for i in indices], 'c': color}
             for indices, color in faces
         ],
     }
@@ -433,6 +491,7 @@ def main():
     parser.add_argument('--target-height', type=float, default=1.1)
     parser.add_argument('--max-faces', type=int, default=799)
     parser.add_argument('--palette-size', type=int, default=28)
+    parser.add_argument('--color-floor', default=None, help='minimum sRGB channels, e.g. #3a3f45')
     parser.add_argument('--exclude-node', action='append', default=[],
                         help='regex of GLB node names to skip (e.g. weapon meshes); repeatable')
     parser.add_argument('--tint', default=None, help='#rrggbb faction wash applied at bake time')
@@ -473,7 +532,8 @@ def main():
 
     # One shared flat palette across every pose keeps the character consistent.
     combined = [triangle for pose in poses for triangle in pose['triangles']]
-    mapped = quantize(combined, args.palette_size)
+    floor = [int(args.color_floor.lstrip('#')[i:i + 2], 16) for i in (0, 2, 4)] if args.color_floor else None
+    mapped = quantize(combined, args.palette_size, color_floor=floor)
     cursor = 0
     for pose in poses:
         count = len(pose['triangles'])
@@ -495,6 +555,8 @@ def main():
         'tint': args.tint,
         'tint_strength': args.tint_strength,
         'lod': args.lod,
+        'color_floor': args.color_floor,
+        'source_sha256': hashlib.sha256(Path(args.glb).read_bytes()).hexdigest(),
     }
     # Simplify each pose, then refit them all with one shared scale taken from
     # the stand pose so poses stay consistent and exactly tile-scaled.
@@ -510,6 +572,7 @@ def main():
         points = np.asarray(vertices, dtype=np.float64) * refit
         low, _ = used_bounds(points, faces)
         points[:, 2] -= low[2]  # ground the simplified pose at z = 0
+        pose['anchors'] = {name: p * refit - [0, 0, low[2]] for name, p in pose['anchors'].items()}
         suffix = ('-%s' % args.lod) if args.lod else ''
         write_mesh(out_dir / ('%s-%s%s.json' % (prefix, pose['name'], suffix)), pose, meta,
                    points, faces, cell)

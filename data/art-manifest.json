@@ -389,23 +389,27 @@
  "baked": {
   "warrior": {
    "enabled": true,
-   "phase": "R3",
-   "pack": "Quaternius RPG Characters (Nov 2020)",
-   "creator": "Quaternius",
+   "phase": "R4",
+   "pack": "KayKit Adventurers 2.0 FREE",
+   "creator": "Kay Lousberg",
    "license": "CC0-1.0",
-   "source": "https://opengameart.org/sites/default/files/rpg_characters_-_nov_2020.zip",
-   "sourceFbx": "RPG Characters - Nov 2020/FBX/Warrior.fbx",
+   "source": "https://kaylousberg.itch.io/kaykit-adventurers",
+   "sourceGlb": ".superpowers/sdd/2026-10-02-cosmetic-art-pass/sources/adventurers/Knight.glb",
+   "sourceSHA256": "e484370733824a0740683e7f6040aae0d20e5efd4107dde1175d6a2ad7e2f199",
+   "textureSHA256": "028db4d1cd8b3471e6ba21686515abd4e36ae582f8b314b71ad2ab1fb5453b12",
+   "licenseFile": ".superpowers/sdd/2026-10-02-cosmetic-art-pass/sources/adventurers-License.txt",
    "clips": {
-    "stand": "Idle@0.0",
-    "walk-a": "Walk@0.0",
-    "walk-b": "Walk@0.5",
-    "attack": "Sword_Attack@0.45"
+    "stand": "KayKit_Stand@0",
+    "walk-a": "KayKit_Walk@0",
+    "walk-b": "KayKit_Walk@0.5",
+    "attack": "KayKit_Attack@0.45"
    },
+   "poseMethod": "authored bone transforms (staged GLBs have no animation clips)",
    "poseBudget": {
-    "hi": 260,
-    "lo": 110
+    "hi": 450,
+    "lo": 180
    },
-   "use": "Village role-group body (weapons excluded; the gear system draws the hand tool)",
+   "use": "Role-group body; existing gear translated to the baked hand anchor",
    "poses": {
     "stand-hi": "assets/meshes/baked/warrior-stand-hi.json",
     "stand-lo": "assets/meshes/baked/warrior-stand-lo.json",
@@ -419,23 +423,27 @@
   },
   "ranger": {
    "enabled": true,
-   "phase": "R3",
-   "pack": "Quaternius RPG Characters (Nov 2020)",
-   "creator": "Quaternius",
+   "phase": "R4",
+   "pack": "KayKit Adventurers 2.0 FREE",
+   "creator": "Kay Lousberg",
    "license": "CC0-1.0",
-   "source": "https://opengameart.org/sites/default/files/rpg_characters_-_nov_2020.zip",
-   "sourceFbx": "RPG Characters - Nov 2020/FBX/Ranger.fbx",
+   "source": "https://kaylousberg.itch.io/kaykit-adventurers",
+   "sourceGlb": ".superpowers/sdd/2026-10-02-cosmetic-art-pass/sources/adventurers/Ranger.glb",
+   "sourceSHA256": "3a0b0166b9d61d58dcaaa739c3cc0538be46e00d2928dd5cb513d9a41770d2e9",
+   "textureSHA256": "639cd0ba5106fbdf65370b52b9290091d3bd92fe267693abc8dc474471bb800f",
+   "licenseFile": ".superpowers/sdd/2026-10-02-cosmetic-art-pass/sources/adventurers-License.txt",
    "clips": {
-    "stand": "Idle@0.0",
-    "walk-a": "Walk@0.0",
-    "walk-b": "Walk@0.5",
-    "attack": "Bow_Attack_Shoot@0.45"
+    "stand": "KayKit_Stand@0",
+    "walk-a": "KayKit_Walk@0",
+    "walk-b": "KayKit_Walk@0.5",
+    "attack": "KayKit_Attack@0.45"
    },
+   "poseMethod": "authored bone transforms (staged GLBs have no animation clips)",
    "poseBudget": {
-    "hi": 260,
-    "lo": 110
+    "hi": 450,
+    "lo": 180
    },
-   "use": "Village role-group body (weapons excluded; the gear system draws the hand tool)",
+   "use": "Role-group body; existing gear translated to the baked hand anchor",
    "poses": {
     "stand-hi": "assets/meshes/baked/ranger-stand-hi.json",
     "stand-lo": "assets/meshes/baked/ranger-stand-lo.json",
@@ -449,23 +457,27 @@
   },
   "rogue": {
    "enabled": true,
-   "phase": "R3",
-   "pack": "Quaternius RPG Characters (Nov 2020)",
-   "creator": "Quaternius",
+   "phase": "R4",
+   "pack": "KayKit Adventurers 2.0 FREE",
+   "creator": "Kay Lousberg",
    "license": "CC0-1.0",
-   "source": "https://opengameart.org/sites/default/files/rpg_characters_-_nov_2020.zip",
-   "sourceFbx": "RPG Characters - Nov 2020/FBX/Rogue.fbx",
+   "source": "https://kaylousberg.itch.io/kaykit-adventurers",
+   "sourceGlb": ".superpowers/sdd/2026-10-02-cosmetic-art-pass/sources/adventurers/Rogue_Hooded.glb",
+   "sourceSHA256": "e8f3233c6db190506fbef3ad855683e6cb8bd7350de637d923e14a08aef088dc",
+   "textureSHA256": "2e2fc741e20e7e2c85b176c8143b49b769bca0d2ed1a1cfc1807a758a0e4d3e1",
+   "licenseFile": ".superpowers/sdd/2026-10-02-cosmetic-art-pass/sources/adventurers-License.txt",
    "clips": {
-    "stand": "Idle@0.0",
-    "walk-a": "Walk@0.0",
-    "walk-b": "Walk@0.5",
-    "attack": "Dagger_Attack@0.45"
+    "stand": "KayKit_Stand@0",
+    "walk-a": "KayKit_Walk@0",
+    "walk-b": "KayKit_Walk@0.5",
+    "attack": "KayKit_Attack@0.45"
    },
+   "poseMethod": "authored bone transforms (staged GLBs have no animation clips)",
    "poseBudget": {
-    "hi": 260,
-    "lo": 110
+    "hi": 450,
+    "lo": 180
    },
-   "use": "Village role-group body (weapons excluded; the gear system draws the hand tool)",
+   "use": "Role-group body; existing gear translated to the baked hand anchor",
    "poses": {
     "stand-hi": "assets/meshes/baked/rogue-stand-hi.json",
     "stand-lo": "assets/meshes/baked/rogue-stand-lo.json",
@@ -479,23 +491,27 @@
   },
   "wizard": {
    "enabled": true,
-   "phase": "R3",
-   "pack": "Quaternius RPG Characters (Nov 2020)",
-   "creator": "Quaternius",
+   "phase": "R4",
+   "pack": "KayKit Adventurers 2.0 FREE",
+   "creator": "Kay Lousberg",
    "license": "CC0-1.0",
-   "source": "https://opengameart.org/sites/default/files/rpg_characters_-_nov_2020.zip",
-   "sourceFbx": "RPG Characters - Nov 2020/FBX/Wizard.fbx",
+   "source": "https://kaylousberg.itch.io/kaykit-adventurers",
+   "sourceGlb": ".superpowers/sdd/2026-10-02-cosmetic-art-pass/sources/adventurers/Mage.glb",
+   "sourceSHA256": "1f7d891bde50b879c70965f155b7b765b166dc3f8518e5abb86c0002f191a26e",
+   "textureSHA256": "9ef9672e93b231fc4e0e19238edfae3be22513aaf634df1898f45842ce6e4b5f",
+   "licenseFile": ".superpowers/sdd/2026-10-02-cosmetic-art-pass/sources/adventurers-License.txt",
    "clips": {
-    "stand": "Idle@0.0",
-    "walk-a": "Walk@0.0",
-    "walk-b": "Walk@0.5",
-    "attack": "Staff_Attack@0.45"
+    "stand": "KayKit_Stand@0",
+    "walk-a": "KayKit_Walk@0",
+    "walk-b": "KayKit_Walk@0.5",
+    "attack": "KayKit_Attack@0.45"
    },
+   "poseMethod": "authored bone transforms (staged GLBs have no animation clips)",
    "poseBudget": {
-    "hi": 260,
-    "lo": 110
+    "hi": 450,
+    "lo": 180
    },
-   "use": "Village role-group body (weapons excluded; the gear system draws the hand tool)",
+   "use": "Role-group body; existing gear translated to the baked hand anchor",
    "poses": {
     "stand-hi": "assets/meshes/baked/wizard-stand-hi.json",
     "stand-lo": "assets/meshes/baked/wizard-stand-lo.json",
@@ -509,23 +525,27 @@
   },
   "cleric": {
    "enabled": true,
-   "phase": "R3",
-   "pack": "Quaternius RPG Characters (Nov 2020)",
-   "creator": "Quaternius",
+   "phase": "R4",
+   "pack": "KayKit Adventurers 2.0 FREE",
+   "creator": "Kay Lousberg",
    "license": "CC0-1.0",
-   "source": "https://opengameart.org/sites/default/files/rpg_characters_-_nov_2020.zip",
-   "sourceFbx": "RPG Characters - Nov 2020/FBX/Cleric.fbx",
+   "source": "https://kaylousberg.itch.io/kaykit-adventurers",
+   "sourceGlb": ".superpowers/sdd/2026-10-02-cosmetic-art-pass/sources/adventurers/Mage.glb",
+   "sourceSHA256": "1f7d891bde50b879c70965f155b7b765b166dc3f8518e5abb86c0002f191a26e",
+   "textureSHA256": "9ef9672e93b231fc4e0e19238edfae3be22513aaf634df1898f45842ce6e4b5f",
+   "licenseFile": ".superpowers/sdd/2026-10-02-cosmetic-art-pass/sources/adventurers-License.txt",
    "clips": {
-    "stand": "Idle@0.0",
-    "walk-a": "Walk@0.0",
-    "walk-b": "Walk@0.5",
-    "attack": "Staff_Attack@0.45"
+    "stand": "KayKit_Stand@0",
+    "walk-a": "KayKit_Walk@0",
+    "walk-b": "KayKit_Walk@0.5",
+    "attack": "KayKit_Attack@0.45"
    },
+   "poseMethod": "authored bone transforms (staged GLBs have no animation clips)",
    "poseBudget": {
-    "hi": 260,
-    "lo": 110
+    "hi": 450,
+    "lo": 180
    },
-   "use": "Village role-group body (weapons excluded; the gear system draws the hand tool)",
+   "use": "Role-group body; existing gear translated to the baked hand anchor",
    "poses": {
     "stand-hi": "assets/meshes/baked/cleric-stand-hi.json",
     "stand-lo": "assets/meshes/baked/cleric-stand-lo.json",
@@ -539,23 +559,27 @@
   },
   "monk": {
    "enabled": true,
-   "phase": "R3",
-   "pack": "Quaternius RPG Characters (Nov 2020)",
-   "creator": "Quaternius",
+   "phase": "R4",
+   "pack": "KayKit Adventurers 2.0 FREE",
+   "creator": "Kay Lousberg",
    "license": "CC0-1.0",
-   "source": "https://opengameart.org/sites/default/files/rpg_characters_-_nov_2020.zip",
-   "sourceFbx": "RPG Characters - Nov 2020/FBX/Monk.fbx",
+   "source": "https://kaylousberg.itch.io/kaykit-adventurers",
+   "sourceGlb": ".superpowers/sdd/2026-10-02-cosmetic-art-pass/sources/adventurers/Barbarian.glb",
+   "sourceSHA256": "d37824a1d6e8e8af57ef9ae4a87e9271c3986210fbc432fb44670749a577ccac",
+   "textureSHA256": "f11434d3e5e4df929dacd2c69d15734effb82babf8176a80bb040d2007f5f882",
+   "licenseFile": ".superpowers/sdd/2026-10-02-cosmetic-art-pass/sources/adventurers-License.txt",
    "clips": {
-    "stand": "Idle@0.0",
-    "walk-a": "Walk@0.0",
-    "walk-b": "Walk@0.5",
-    "attack": "Attack@0.45"
+    "stand": "KayKit_Stand@0",
+    "walk-a": "KayKit_Walk@0",
+    "walk-b": "KayKit_Walk@0.5",
+    "attack": "KayKit_Attack@0.45"
    },
+   "poseMethod": "authored bone transforms (staged GLBs have no animation clips)",
    "poseBudget": {
-    "hi": 260,
-    "lo": 110
+    "hi": 450,
+    "lo": 180
    },
-   "use": "Village role-group body (weapons excluded; the gear system draws the hand tool)",
+   "use": "Role-group body; existing gear translated to the baked hand anchor",
    "poses": {
     "stand-hi": "assets/meshes/baked/monk-stand-hi.json",
     "stand-lo": "assets/meshes/baked/monk-stand-lo.json",
@@ -569,23 +593,27 @@
   },
   "skeleton": {
    "enabled": true,
-   "phase": "R3",
-   "pack": "Quaternius Animated Monster Pack",
-   "creator": "Quaternius",
+   "phase": "R4",
+   "pack": "KayKit Skeletons 1.1 FREE",
+   "creator": "Kay Lousberg",
    "license": "CC0-1.0",
-   "source": "https://opengameart.org/sites/default/files/Animated%20Monster%20Pack%20by%20%40Quaternius.zip",
-   "sourceFbx": "Animated Monster Pack by @Quaternius/FBX/Skeleton.fbx",
+   "source": "https://kaylousberg.itch.io/kaykit-skeletons",
+   "sourceGlb": ".superpowers/sdd/2026-10-02-cosmetic-art-pass/sources/skeletons/Skeleton_Warrior.glb",
+   "sourceSHA256": "992d5cfd6beb5565c50f742587d492f2a2cfcdfb3ffe4435aa16461c6d0e54be",
+   "textureSHA256": "15741a25c53e04fa9bf3beac3bc0de442359404b1ff9be863b892cb551ad3657",
+   "licenseFile": ".superpowers/sdd/2026-10-02-cosmetic-art-pass/sources/skeletons-License.txt",
    "clips": {
-    "stand": "Skeleton_Idle@0.0",
-    "walk-a": "Skeleton_Running@0.0",
-    "walk-b": "Skeleton_Running@0.5",
-    "attack": "Skeleton_Attack@0.45"
+    "stand": "KayKit_Stand@0",
+    "walk-a": "KayKit_Walk@0",
+    "walk-b": "KayKit_Walk@0.5",
+    "attack": "KayKit_Attack@0.45"
    },
+   "poseMethod": "authored bone transforms (staged GLBs have no animation clips)",
    "poseBudget": {
-    "hi": 260,
-    "lo": 110
+    "hi": 450,
+    "lo": 180
    },
-   "use": "Pale Host and Pale Court enemy body (bake-time pale-bone tint)",
+   "use": "Role-group body; existing gear translated to the baked hand anchor",
    "poses": {
     "stand-hi": "assets/meshes/baked/skeleton-stand-hi.json",
     "stand-lo": "assets/meshes/baked/skeleton-stand-lo.json",
@@ -599,23 +627,27 @@
   },
   "human-thornband": {
    "enabled": true,
-   "phase": "R3",
-   "pack": "Quaternius Animated Human Low Poly",
-   "creator": "Quaternius",
+   "phase": "R4",
+   "pack": "KayKit Skeletons 1.1 FREE",
+   "creator": "Kay Lousberg",
    "license": "CC0-1.0",
-   "source": "https://opengameart.org/sites/default/files/Animated%20Human%20by%20%40Quaternius_0.zip",
-   "sourceFbx": "Animated Human by @Quaternius/FBX/Animated Human.fbx",
+   "source": "https://kaylousberg.itch.io/kaykit-skeletons",
+   "sourceGlb": ".superpowers/sdd/2026-10-02-cosmetic-art-pass/sources/skeletons/Skeleton_Rogue.glb",
+   "sourceSHA256": "d5b8f074a78a9972af0966014905ea1df2e71d2c3495d37a211980e6343ee774",
+   "textureSHA256": "15741a25c53e04fa9bf3beac3bc0de442359404b1ff9be863b892cb551ad3657",
+   "licenseFile": ".superpowers/sdd/2026-10-02-cosmetic-art-pass/sources/skeletons-License.txt",
    "clips": {
-    "stand": "Idle@0.0",
-    "walk-a": "Walk@0.0",
-    "walk-b": "Walk@0.5",
-    "attack": "Punch@0.4"
+    "stand": "KayKit_Stand@0",
+    "walk-a": "KayKit_Walk@0",
+    "walk-b": "KayKit_Walk@0.5",
+    "attack": "KayKit_Attack@0.45"
    },
+   "poseMethod": "authored bone transforms (staged GLBs have no animation clips)",
    "poseBudget": {
-    "hi": 260,
-    "lo": 110
+    "hi": 450,
+    "lo": 180
    },
-   "use": "Thornband enemy body (bake-time moss tint)",
+   "use": "Role-group body; existing gear translated to the baked hand anchor",
    "poses": {
     "stand-hi": "assets/meshes/baked/human-thornband-stand-hi.json",
     "stand-lo": "assets/meshes/baked/human-thornband-stand-lo.json",
@@ -629,23 +661,27 @@
   },
   "human-cinder": {
    "enabled": true,
-   "phase": "R3",
-   "pack": "Quaternius Animated Human Low Poly",
-   "creator": "Quaternius",
+   "phase": "R4",
+   "pack": "KayKit Skeletons 1.1 FREE",
+   "creator": "Kay Lousberg",
    "license": "CC0-1.0",
-   "source": "https://opengameart.org/sites/default/files/Animated%20Human%20by%20%40Quaternius_0.zip",
-   "sourceFbx": "Animated Human by @Quaternius/FBX/Animated Human.fbx",
+   "source": "https://kaylousberg.itch.io/kaykit-skeletons",
+   "sourceGlb": ".superpowers/sdd/2026-10-02-cosmetic-art-pass/sources/skeletons/Skeleton_Minion.glb",
+   "sourceSHA256": "1fadbf1bc66fd7ce008eecd0ffccc8f8089e1c2887813559ca553680a738fece",
+   "textureSHA256": "15741a25c53e04fa9bf3beac3bc0de442359404b1ff9be863b892cb551ad3657",
+   "licenseFile": ".superpowers/sdd/2026-10-02-cosmetic-art-pass/sources/skeletons-License.txt",
    "clips": {
-    "stand": "Idle@0.0",
-    "walk-a": "Walk@0.0",
-    "walk-b": "Walk@0.5",
-    "attack": "Punch@0.4"
+    "stand": "KayKit_Stand@0",
+    "walk-a": "KayKit_Walk@0",
+    "walk-b": "KayKit_Walk@0.5",
+    "attack": "KayKit_Attack@0.45"
    },
+   "poseMethod": "authored bone transforms (staged GLBs have no animation clips)",
    "poseBudget": {
-    "hi": 260,
-    "lo": 110
+    "hi": 450,
+    "lo": 180
    },
-   "use": "Cinder Clan enemy body (bake-time soot tint)",
+   "use": "Role-group body; existing gear translated to the baked hand anchor",
    "poses": {
     "stand-hi": "assets/meshes/baked/human-cinder-stand-hi.json",
     "stand-lo": "assets/meshes/baked/human-cinder-stand-lo.json",
@@ -659,23 +695,27 @@
   },
   "human-ember": {
    "enabled": true,
-   "phase": "R3",
-   "pack": "Quaternius Animated Human Low Poly",
-   "creator": "Quaternius",
+   "phase": "R4",
+   "pack": "KayKit Skeletons 1.1 FREE",
+   "creator": "Kay Lousberg",
    "license": "CC0-1.0",
-   "source": "https://opengameart.org/sites/default/files/Animated%20Human%20by%20%40Quaternius_0.zip",
-   "sourceFbx": "Animated Human by @Quaternius/FBX/Animated Human.fbx",
+   "source": "https://kaylousberg.itch.io/kaykit-skeletons",
+   "sourceGlb": ".superpowers/sdd/2026-10-02-cosmetic-art-pass/sources/skeletons/Skeleton_Mage.glb",
+   "sourceSHA256": "aee903d0febd151dbc49a4784ad4135862b20c1b025bf433b98a08d52e5f7849",
+   "textureSHA256": "15741a25c53e04fa9bf3beac3bc0de442359404b1ff9be863b892cb551ad3657",
+   "licenseFile": ".superpowers/sdd/2026-10-02-cosmetic-art-pass/sources/skeletons-License.txt",
    "clips": {
-    "stand": "Idle@0.0",
-    "walk-a": "Walk@0.0",
-    "walk-b": "Walk@0.5",
-    "attack": "Punch@0.4"
+    "stand": "KayKit_Stand@0",
+    "walk-a": "KayKit_Walk@0",
+    "walk-b": "KayKit_Walk@0.5",
+    "attack": "KayKit_Attack@0.45"
    },
+   "poseMethod": "authored bone transforms (staged GLBs have no animation clips)",
    "poseBudget": {
-    "hi": 260,
-    "lo": 110
+    "hi": 450,
+    "lo": 180
    },
-   "use": "Ember Legion enemy body (bake-time ember tint)",
+   "use": "Role-group body; existing gear translated to the baked hand anchor",
    "poses": {
     "stand-hi": "assets/meshes/baked/human-ember-stand-hi.json",
     "stand-lo": "assets/meshes/baked/human-ember-stand-lo.json",
