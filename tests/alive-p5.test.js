@@ -28,8 +28,8 @@ const buildings = n => Array.from({length: n}, (_, i) => ({type: 'cottage', hp: 
 test('calm moods belong to keeper songs, battle moods to battle themes', () => {
   const supports = mood => music.themes.filter(t => Array.isArray(t.moods) && t.moods.includes(mood)).map(t => t.id);
   const keepersClaim = mood => Object.keys(keepers.tracks).filter(k => trackSupportsMood(keepers.tracks[k], mood));
-  assert.deepEqual(keepersClaim('dawn'), ['desert', 'honeyblock']);
-  assert.deepEqual(keepersClaim('prosperous'), ['orchestral', 'honeyblock']);
+  assert.deepEqual(keepersClaim('dawn'), ['desert', 'honeyblock', 'daylight_dissolve']);
+  assert.deepEqual(keepersClaim('prosperous'), ['orchestral', 'honeyblock', 'low_horizon', 'daylight_dissolve']);
   assert.deepEqual(supports('aftermath'), ['aftermath']);
   assert.ok(supports('danger').includes('midnight_walls'), 'raid music gains urgency');
 });
