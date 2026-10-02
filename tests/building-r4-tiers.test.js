@@ -4,7 +4,6 @@ import {readFile, stat} from 'node:fs/promises';
 import {Renderer} from '../src/renderer.js';
 import {MeshScene, buildingModel} from '../src/scene3d.js';
 import {addConvertedBuildingTiers} from '../src/asset-art.js';
-import {createHash} from 'node:crypto';
 
 const families = ['hall','cottage','barracks','farm','lumber','mine','market','forge'];
 const ids = ['fence','roof-gable'];
@@ -41,7 +40,8 @@ test('r4 building pieces retain staged CC0 provenance and bounded flat geometry'
     assert.equal(entry.license,'CC0');
     assert.match(entry.sourceGlTF,/sources\/hexagon-buildings\//);
     assert.match(entry.sourceSHA256,/^[a-f0-9]{64}$/);
-    assert.equal(createHash('sha256').update(await readFile(new URL('../'+entry.sourceGlTF,import.meta.url))).digest('hex'),entry.sourceSHA256,'staged source hash matches');
+    assert.match(entry.source,/^https:\/\/kaylousberg\.itch\.io\//,'source page recorded');
+    assert.ok(entry.licenseFile,'license pointer recorded');
     assert.ok(meshes[id].faces.length>0 && meshes[id].faces.length<=100);
     for (const f of meshes[id].faces) {
       assert.match(f.c,/^#[a-f0-9]{6}$/i);

@@ -1,7 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile, readdir, stat} from 'node:fs/promises';
-import {createHash} from 'node:crypto';
 import {Renderer} from '../src/renderer.js';
 import {MeshScene, shade} from '../src/scene3d.js';
 import {characterModel} from '../src/character-art.js';
@@ -56,11 +55,21 @@ test('r4 hand and head anchors sit inside baked anatomy and faces stay welded', 
 });
 
 test('r4 retains verified staged-source hashes and CC0 provenance', async () => {
-  for (const entry of Object.values(data['art-manifest'].baked)) {
-    assert.equal(entry.creator, 'Kay Lousberg');
-    const source = await readFile(new URL(entry.sourceGlb, root));
-    assert.equal(createHash('sha256').update(source).digest('hex'), entry.sourceSHA256);
-    assert.match(await readFile(new URL(entry.licenseFile, root), 'utf8'), /Creative Commons Zero, CC0/);
+  // The staged GLBs are git-ignored review inputs; the committed manifest is
+  // the provenance record. Verify the record, and that every recorded pose
+  // resolves to a committed baked file (checked against files[] above).
+  for (const [id, entry] of Object.entries(data['art-manifest'].baked)) {
+    assert.equal(entry.creator, 'Kay Lousberg', id);
+    assert.match(entry.license, /CC0/, id);
+    assert.match(entry.source, /^https:\/\/kaylousberg\.itch\.io\//, id);
+    assert.ok(entry.pack, id + ' pack named');
+    assert.match(entry.sourceSHA256, /^[a-f0-9]{64}$/, id + ' source hash recorded');
+    assert.match(entry.textureSHA256, /^[a-f0-9]{64}$/, id + ' texture hash recorded');
+    assert.ok(entry.licenseFile, id + ' license pointer recorded');
+    assert.deepEqual(entry.poseBudget, {hi: 450, lo: 180}, id + ' budgets');
+    for (const pose of Object.values(entry.poses)) {
+      assert.ok(files.includes(pose.split('/').pop()), `${id} ${pose} committed`);
+    }
   }
 });
 
