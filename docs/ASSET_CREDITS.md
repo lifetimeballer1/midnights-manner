@@ -42,6 +42,20 @@ The toolchain downloads FBX2glTF v0.9.7 and the three pack zips with SHA-256 che
 
 ## Audit inventory and routing
 
+### R4 modular building pieces
+
+Task 2 uses **KayKit Medieval Hexagon Pack 1.0 FREE**, by **Kay Lousberg**, under **CC0 1.0**. The staged `hexagon-License.txt` explicitly grants personal, educational and commercial use; CC0 permits adaptation and public-repository redistribution. Pack page: https://kaylousberg.itch.io/kaykit-medieval-hexagon. Sources are read only from `.superpowers/sdd/2026-10-02-cosmetic-art-pass/sources/hexagon-buildings/`, never from Desktop.
+
+| Converted piece | Staged glTF | Source triangles | Canvas faces | Dimensions (tiles) |
+| --- | --- | --- | --- | --- |
+| `fence` | `neutral/fence_wood_straight.gltf` | 212 | 83 | 0.62 x 0.075 x 0.25 |
+| `fence.variants.stone` | `neutral/fence_stone_straight.gltf` | 284 | 83 | 0.62 x 0.09 x 0.28 |
+| `roof-gable` | `blue/building_home_A_blue.gltf` (only triangles entirely at source Y >= 0.5) | 154 | 87 | 0.48 x 0.48 x 0.26 |
+
+Offline conversion reuses `scripts/convert-external-assets.py` after packing the staged glTF/bin/atlas into a temporary GLB. It samples the atlas to the existing flat palette, simplifies by material, clusters vertices, merges coplanar faces, preserves winding, rotates straight fences along game X, fits the dimensions above, and sorts largest surfaces first for LOD. Source glTF, binary and atlas SHA-256 values are retained in each output's `meta`; registry entries retain the source path, hash, creator, license and license-file path. Two converted JSON files ship with the three modules, reusing the existing enabled registry keys; the stone variant is bundled in `fence.json`. No loader, texture or dependency is added at runtime.
+
+Hall, cottage, barracks, farm, lumber, mine, market and forge retain all authored structural tiers, shutters/doors/chimneys/stairs, footprints, collisions and existing visible light fixtures. Tiers 2-3 gain timber rails; tier 4 replaces that module with a structurally different stone balustrade; tier 5 adds a compact roof gable; tier 6 adds a second rail. Missing/disabled pieces retain the procedural buildings. Modules stay inside each footprint, are static under Calm, and are absent on ruins, scaffolds, previews and views below 1.35x. Additional modules are capped at 1,400 submitted faces per scene (800 on phones). Light anchors and lighting baseline pins are unchanged.
+
 The current game projects Z-up flat-colored 3D faces onto Canvas, with `MeshScene` face culling/depth ordering, owner-based selection, cached static structures, existing lighting/AO and separate moving mechanisms. It has no runtime GLB, texture, skin or skeletal-animation pipeline. Sprites remain in inventory/build cards. Asset conversion must happen offline rather than introducing another renderer.
 
 | Existing categories | Current home | Pass treatment |

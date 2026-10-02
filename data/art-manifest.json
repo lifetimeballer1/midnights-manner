@@ -161,14 +161,16 @@
   },
   "roof-gable": {
    "enabled": true,
-   "phase": 2,
-   "pack": "Kenney Fantasy Town Kit 2.0",
-   "creator": "Kenney",
+   "phase": "R4",
+   "pack": "KayKit Medieval Hexagon Pack 1.0 FREE",
+   "creator": "Kay Lousberg",
    "license": "CC0",
-   "source": "https://opengameart.org/content/fantasy-town-kit",
-   "sourceObj": "Models/OBJ format/roof-gable.obj",
+   "source": "https://kaylousberg.itch.io/kaykit-medieval-hexagon",
+   "sourceGlTF": ".superpowers/sdd/2026-10-02-cosmetic-art-pass/sources/hexagon-buildings/blue/building_home_A_blue.gltf",
+   "sourceSHA256": "60b3568e086d586b491eed8168c46acb61bb9670fb2c296faa64929b18dfcbea",
+   "licenseFile": ".superpowers/sdd/2026-10-02-cosmetic-art-pass/sources/hexagon-License.txt",
    "file": "assets/meshes/roof-gable.json",
-   "use": "Cottage/hall roof upgrade"
+   "use": "Upper-gable extraction: existing lumber accent plus tier 5+ roof modules for eight core families"
   },
   "roof-window": {
    "enabled": true,
@@ -238,14 +240,18 @@
   },
   "fence": {
    "enabled": true,
-   "phase": 6,
-   "pack": "Kenney Fantasy Town Kit 2.0",
-   "creator": "Kenney",
+   "phase": "R4",
+   "pack": "KayKit Medieval Hexagon Pack 1.0 FREE",
+   "creator": "Kay Lousberg",
    "license": "CC0",
-   "source": "https://opengameart.org/content/fantasy-town-kit",
-   "sourceObj": "Models/OBJ format/balcony-wall-fence.obj",
+   "source": "https://kaylousberg.itch.io/kaykit-medieval-hexagon",
+   "sourceGlTF": ".superpowers/sdd/2026-10-02-cosmetic-art-pass/sources/hexagon-buildings/neutral/fence_wood_straight.gltf",
+   "sourceSHA256": "5a2af87c5a6b90875e3bc11f289a321a5d4b2459975dba52351edbc58b2132e3",
+   "stoneSourceGlTF": ".superpowers/sdd/2026-10-02-cosmetic-art-pass/sources/hexagon-buildings/neutral/fence_stone_straight.gltf",
+   "stoneSourceSHA256": "9738b7f152b3e4d9912cbad772435d9bd8247982be81e713b9b3ddc7579d1439",
+   "licenseFile": ".superpowers/sdd/2026-10-02-cosmetic-art-pass/sources/hexagon-License.txt",
    "file": "assets/meshes/fence.json",
-   "use": "Paddock borders"
+   "use": "Paddock borders and eight-family tier 2-3 timber rails; bundled structural stone variant for tier 4+, second rail at tier 6"
   },
   "town-lantern": {
    "enabled": true,

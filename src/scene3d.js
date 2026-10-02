@@ -1,5 +1,5 @@
 import {addLogisticsMeshes,addRoadGeometry,drawLogisticsOverlay} from './logistics-art.js';
-import {addConvertedAccents,artEnabled,drawMesh,meshBounds} from './asset-art.js';
+import {addConvertedAccents,addConvertedBuildingTiers,artEnabled,drawMesh,meshBounds} from './asset-art.js';
 import {roadRevision} from './systems/roads.js';
 import {addLivingMechanisms} from './mechanical-art.js';
 import {addLivingProps} from './living-props.js';
@@ -371,7 +371,7 @@ function lumberFamily(s,b,n,l){
  famEntrance(s,sx+sw*.28,sy+sw,sw*.44,sh,l,false);
  famStack(s,sx+sw-.18,sy+.1,sh+.03,.12,.12,.4+l*.04);
  if(l>=3)famPanes(s,sx,sy,sw,sw,sh,4);
- if(l===4||l===5)famMesh(s,'roof-gable',x+.12,y+.58,.5);
+ if(l===4||l===5)famMesh(s,'roof-gable',x+.12,y+.5,.5);
  if(l>=4){s.box(x+.1,y+.62,.13,.5,.12,.12,'#c79861');s.box(x+.14,y+.66,.25,.42,.08,.06,'#b38a59');}
  if(l>=5){s.pyramid(x+.3,y+.7,.13,.16,.24,'#76593d',5);s.pyramid(x+.48,y+.7,.13,.13,.2,'#8a6a48',5);}
  if(l>=6){s.box(x+.62,y+.5,.13,.07,.07,.8,'#b38a59');s.box(x+.62,y+.5,.8,.4,.07,.07,'#b38a59');s.box(x+.95,y+.5,.3,.07,.07,.07,'#6a6f65');}
@@ -1062,6 +1062,7 @@ export function buildingModel(s,b,spec,world,time=0){
  buildingDetailLayer(s,b,spec);
  addLivingProps(s,b,spec);
  addConvertedAccents(s,b,spec);
+ addConvertedBuildingTiers(s,b,spec);
  addExternalWorkplace(s,b,spec);
  const x=b.x,y=b.y,n=spec.size;
  if(b.hp<=0){

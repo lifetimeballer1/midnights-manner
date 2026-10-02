@@ -69,9 +69,21 @@ const ACCENTS = {
   timber_yard: [['log-stack', .1, .1]],
   pasture: [['fence', .05, .05]],
 };
+// Compact KayKit structural modules supplement, never replace, authored tiers.
+// Roof anchors follow each family's existing roof rather than the tile center.
+const BUILDING_ROOFS = {
+  hall: [.5, .68, l => .42+l*.16+(.4+l*.05)*.55],
+  cottage: [.5, .68, l => .42+l*.16+(.36+l*.06)*.55],
+  barracks: [.5, .68, l => .42+l*.16+(.42+l*.06)*.55],
+  farm: [.335, .4, l => .42+l*.16+(.34+l*.05)*.55],
+  lumber: [.34, .36, l => .36+l*.1+(.28+l*.04)*.55],
+  mine: [.5, .4, l => .88+(.22+l*.04)*.55],
+  market: [.63, .7, l => .42+l*.13+(.32+l*.05)*.55],
+  forge: [.5, .68, l => .42+l*.16+(.42+l*.06)*.55],
+};
 export function addConvertedAccents(s, b, spec) {
   const list = ACCENTS[b.type];
-  if (!list || b.hp <= 0 || b.remaining > 0) return 0;
+  if (!list || b.id == null || b.hp <= 0 || b.remaining > 0) return 0;
   const meshes = s.r?.meshes;
   if (!meshes) return 0;
   const n = spec?.size || 1;
@@ -80,6 +92,26 @@ export function addConvertedAccents(s, b, spec) {
     const doc = meshes[id];
     if (!doc || !artEnabled(s.r?.data, id)) continue;
     added += drawMesh(s, doc, b.x + n * fx, b.y + n * fy, {dz: fz ?? 0});
+  }
+  return added;
+}
+export function addConvertedBuildingTiers(s, b, spec) {
+  if (b.id == null || b.hp <= 0 || b.remaining > 0) return 0;
+  const roof = BUILDING_ROOFS[b.type], l = b.level;
+  if (!roof || l < 2 || (s.r?.cam?.zoom ?? 1.65) < 1.35) return 0;
+  const meshes = s.r?.meshes, n = spec.size;
+  if (!meshes) return 0;
+  let added = 0;
+  const modules = [['fence', Math.max(.44,n*.25), n-.12, .12]];
+  if (l >= 5) modules.push(['roof-gable', n*roof[0], n*roof[1], roof[2](l)]);
+  if (l >= 6) modules.push(['fence', n-.44, .16, .12]);
+  const budget = s.r.width < 600 ? 800 : 1400;
+  for (const [id, x, y, z] of modules) {
+    const doc = id === 'fence' && l >= 4 ? meshes[id]?.variants?.stone : meshes[id];
+    if (!artEnabled(s.r.data,id) || !doc?.faces?.length || (s.buildingArtFaces || 0)+doc.faces.length > budget) continue;
+    const count = drawMesh(s,doc,b.x+x,b.y+y,{dz:z});
+    s.buildingArtFaces = (s.buildingArtFaces || 0)+count;
+    added += count;
   }
   return added;
 }
