@@ -8,7 +8,7 @@ const cache = new Map();
 
 export function artEnabled(data, id) {
   const manifest = data?.artManifest ?? data?.['art-manifest'];
-  const entry = manifest?.meshes?.[id];
+  const entry = manifest?.meshes?.[id] ?? manifest?.baked?.[id];
   return entry?.enabled === true;
 }
 

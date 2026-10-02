@@ -1,4 +1,5 @@
 import {seedOf} from './procedural-seed.js';
+import {hash2} from './systems/biomes.js';
 import {beam} from './mechanical-art.js';
 export const LIVING_LIMITS=Object.freeze({vegetation:18,banners:12,flames:16});
 export function addWindLife(s,world,time){
@@ -9,7 +10,13 @@ export function addWindLife(s,world,time){
  for(const prop of r._livingScenery||[]){
   if(leaves>=leafCap)break;if(!['grass','reeds','pine','shrub','flowers','lilies'].includes(prop.kind))continue;
   const x=prop.x+.5,y=prop.y+.5,p=r.project(x,y);if(p.x<-25||p.y<-60||p.x>r.width+25||p.y>r.height+30)continue;
-  const phase=seedOf(`${prop.x},${prop.y}`)*6.28,sway=Math.sin(time*.0015+phase)*.035*wind,z=prop.kind==='pine'?.9:prop.kind==='shrub'?.24:.2;s.owner=null;beam(s,[x,y,z],[x+.025+sway,y+sway*.3,z+.12],.024,prop.kind==='reeds'||prop.kind==='lilies'?'#b69a55':prop.kind==='flowers'?'#c98a9a':'#78965b');leaves++;
+  // Sway anchors follow the rebuilt silhouettes: broadleaf crowns sit lower
+  // than conifer tips, scrub below shrubs, pads at the waterline. Variant
+  // choice matches environment-art's tile hash so beams never float.
+  const broad=prop.kind==='pine'&&hash2(prop.x,prop.y,991)%100<42,fringe=prop.biome==='unclaimed-fringe';
+  const z=prop.kind==='pine'?(broad?.62:.88):prop.kind==='shrub'?.24:prop.kind==='reeds'?.36:prop.kind==='lilies'?.06:prop.kind==='flowers'?.34:.2;
+  const color=prop.kind==='reeds'||prop.kind==='lilies'?'#b69a55':prop.kind==='flowers'?'#c98a9a':fringe?'#3f5a34':'#78965b';
+  const phase=seedOf(`${prop.x},${prop.y}`)*6.28,sway=Math.sin(time*.0015+phase)*.035*wind;s.owner=null;beam(s,[x,y,z],[x+.025+sway,y+sway*.3,z+.12],.024,color);leaves++;
  }
  for(const b of world.buildings){
   if(banners>=bannerCap)break;if(b.hp<=0||b.remaining>0||!['barracks','scout_post','market','market-square','longhouse','shieldwall-yard'].includes(b.type))continue;

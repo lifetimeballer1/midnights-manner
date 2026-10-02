@@ -7,4 +7,13 @@ export function workTiming(b,channel){
  return cfg?{period:cfg[0]*rate,offset:(seed*cfg[1]-cfg[3])/cfg[2]}:null;
 }
 export function workPhase(b,channel,time){const c=workTiming(b,channel);return c?((time+c.offset)/c.period%1+1)%1:0;}
-export function strikeLift(phase){return phase<.18?phase/.18*.08:phase<.72?.08+(phase-.18)/.54*.92:Math.pow((1-phase)/.28,2);}
+// Work-swing envelope with contact at phase zero: recover off the strike,
+// wind the tool back up with a short anticipation hold at the cock, then
+// accelerate through the strike snap so the tool arrives fast. Pinned at
+// strikeLift(0)=0 and strikeLift(.72)=1 for the shared contact clocks.
+export function strikeLift(phase){
+ if(phase<.16)return phase/.16*.12;
+ if(phase<.58){const t=(phase-.16)/.42;return .12+t*t*.84;}
+ if(phase<.72){const t=(phase-.58)/.14;return .96+t*.04;}
+ return Math.pow((1-phase)/.28,.62);
+}

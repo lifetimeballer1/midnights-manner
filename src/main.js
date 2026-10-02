@@ -31,6 +31,13 @@ async function boot(){
     if(!entry?.enabled)continue;
     try{const res=await fetch(new URL('../'+entry.file,import.meta.url));if(res.ok)meshes[id]=await res.json();}catch{}
    }
+   // R3 baked character sets preload the same way, keyed <set>-<pose>-<lod>.
+   if(manifest)for(const [id,entry] of Object.entries(manifest.baked||{})){
+    if(!entry?.enabled)continue;
+    for(const [key,file] of Object.entries(entry.poses||{})){
+     try{const res=await fetch(new URL('../'+file,import.meta.url));if(res.ok)meshes[`${id}-${key}`]=await res.json();}catch{}
+    }
+   }
   }catch{}
  const images=Object.fromEntries(await Promise.all([...new Set(sprites)].map(name=>new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve([name,image]);image.onerror=()=>reject(Error(`Missing sprite: ${name}`));image.src=new URL(`../assets/sprites/${name}`,import.meta.url).href;}))));
   const canvas=document.querySelector('#world'),game=new Game(data),renderer=new Renderer(canvas,data,images);

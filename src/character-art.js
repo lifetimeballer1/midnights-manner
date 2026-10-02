@@ -1,4 +1,5 @@
 import {gaitFor} from './character-motion.js';
+import {artEnabled,drawMesh} from './asset-art.js';
 import {pivotMesh,wheelMesh,beam} from './mechanical-art.js';
 import {workPhase,strikeLift} from './work-motion.js';
 // Original low-poly outfits and equipment. All choices are renderer-only;
@@ -28,6 +29,13 @@ const uniforms={
  oathsworn:['#c17d39','helmet'],squire:['#c8a95f','cap'],
 };
 function rarityColor(rarity){return Object.hasOwn(RARITY_COLORS,rarity)?RARITY_COLORS[rarity]:metal;}
+const smithTypes=new Set(['weaponsmith','armorer','toolsmith','smelter','leatherworker']);
+function roundedHead(s,x,y,z,h,rx,ry,color){
+ const sides=8,lo=[],hi=[];
+ for(let i=0;i<sides;i++){const a=(i+.5)*Math.PI*2/sides,cx=x+Math.cos(a)*rx,cy=y+Math.sin(a)*ry;lo.push([cx,cy,z]);hi.push([cx,cy,z+h]);}
+ for(let i=0;i<sides;i++){const j=(i+1)%sides;s.face([lo[i],lo[j],hi[j],hi[i]],color,false);}
+ s.face(hi,color,false);
+}
 function shaft(s,x,y,z,height=.55){s.box(x+.22,y-.025,z,.045,.045,height,wood);}
 function bookEquipment(s,gear,x,y,z,detail){
  if(!gear.includes('tome')&&!gear.includes('hymnal')&&!gear.includes('primer'))return false;
@@ -173,62 +181,104 @@ export function enemyGearFor(unit){
  if(unit.role==='boss'&&unit.bossId==='pale-queen')return 'longbow';
  return '';
 }
+
+// R3 baked CC0 rig mapping (renderer-only, no save fields). Offline-baked pose
+// sets replace the procedural body when the manifest entry is enabled and the
+// pose/LOD mesh is preloaded; otherwise the original procedural body draws.
+// Role groups: fighters -> warrior, archers/rangers -> ranger, scouts/light ->
+// rogue, scholars/robes -> wizard, healers -> cleric, builders/labor -> monk.
+// Enemies: pale-host/pale-court -> skeleton, thornband -> human-thornband,
+// cinder-clan -> human-cinder, ember-legion -> human-ember. Unknown troops,
+// unknown factions, missing/disabled meshes and far zoom beyond the lo LOD all
+// fall back to the procedural body. Crowded scenes (characterDetail off) hold
+// the lo LOD so a full village never pays near-zoom body cost.
+const BAKED_TROOPS={
+ warrior:'warrior',warden:'warrior',pikewoman:'warrior',halberdier:'warrior',oathsworn:'warrior',squire:'warrior',
+ archer:'ranger',ranger:'ranger',longbowman:'ranger',
+ scout:'rogue',
+ scholar:'wizard',chorister:'wizard',tidecaller:'wizard',
+ healer:'cleric',
+ builder:'monk',mason:'monk',smelter:'monk',apprentice:'monk',miller:'monk',sawyer:'monk',
+ weaponsmith:'monk',armorer:'monk',toolsmith:'monk',leatherworker:'monk',haggler:'monk',
+ miner:'monk',farmer:'monk',fisherman:'monk',shepherd:'monk',lumberjack:'monk',butcher:'monk',
+ forager:'monk',woodward:'monk',heartwarden:'monk',diver:'monk',mudlark:'monk',sapper:'monk',
+};
+const BAKED_FACTIONS={'pale-host':'skeleton','pale-court':'skeleton',thornband:'human-thornband','cinder-clan':'human-cinder','ember-legion':'human-ember'};
+export const BAKED_HI_ZOOM=2,BAKED_MIN_ZOOM=.75;
+export function bakedSetId(u,troop,enemy){
+ if(!u)return null;
+ return enemy?(BAKED_FACTIONS[u.faction]||null):(BAKED_TROOPS[u.type]||null);
+}
+export function bakedPoseFor(u,gait,zoom,detail=true){
+ if(!(zoom>=BAKED_MIN_ZOOM))return null;
+ const lod=zoom>=BAKED_HI_ZOOM&&detail!==false?'hi':'lo';
+ const pose=(u?.attackTimer||0)>0?'attack':gait?.moving?(gait.swing>=0?'walk-a':'walk-b'):'stand';
+ return {pose,lod};
+}
+function bakedBodyFor(s,u,data,enemy,gait){
+ const setId=bakedSetId(u,data.troops[u.type],enemy);
+ if(!setId||!artEnabled(data,setId))return null;
+ const pick=bakedPoseFor(u,gait,s.r?.cam?.zoom??1.65,s.characterDetail);
+ if(!pick)return null;
+ const mesh=s.r?.meshes?.[`${setId}-${pick.pose}-${pick.lod}`];
+ return mesh?{setId,pose:pick.pose,lod:pick.lod,mesh}:null;
+}
 function factionSilhouette(s,u,x,y,bob,detail){
  // Faction read at gameplay zoom: pale bone, thornband moss hood,
  // cinder soot guards, ember red crest. Renderer-only; stats untouched.
  const f=u.faction||'';
  if(f==='pale-host'||f==='pale-court'){
   const bone='#d8d3c2',pit='#1c2226';
-  s.box(x-.1,y-.09,.57+bob,.2,.18,.19,bone);
-  if(detail)for(const dx of [-.066,.038])s.box(x+dx,y+.092,.65+bob,.028,.016,.03,pit);
-  for(let i=0;i<3;i++)s.box(x-.13,y-.1,.3+i*.07,.26,.02,.03,bone);
-  for(const dx of [-.22,.15])s.box(x+dx,y-.075,.4,.075,.14,.06,bone);
+  s.box(x-.135,y+.105,.59+bob,.27,.05,.24,bone);
+  if(detail)for(const dx of [-.085,.04])s.box(x+dx,y+.14,.7+bob,.045,.025,.05,pit);
+  for(let i=0;i<3;i++)s.box(x-.15,y+.11,.33+i*.07,.3,.035,.035,bone);
+  for(const dx of [-.27,.16])s.box(x+dx,y-.08,.5,.1,.16,.07,bone);
  }else if(f==='thornband'){
   const moss='#4a5a3f';
-  s.box(x-.13,y-.13,.74+bob,.26,.25,.12,moss);
-  s.box(x-.13,y-.13,.56+bob,.26,.05,.18,moss);
+  s.box(x-.19,y-.18,.72+bob,.38,.36,.2,moss);
+  s.box(x-.19,y-.18,.55+bob,.38,.05,.24,moss);
  }else if(f==='cinder-clan'){
-  for(const dx of [-.24,.15])s.box(x+dx,y-.075,.42,.085,.17,.09,'#3a3d3f');
+  for(const dx of [-.28,.16])s.box(x+dx,y-.09,.4,.11,.19,.1,'#3a3d3f');
  }else if(f==='ember-legion'){
-  s.box(x-.025,y-.02,.82+bob,.05,.06,.22,'#b6402e');
+  s.box(x-.03,y-.025,.88+bob,.06,.07,.24,'#b6402e');
  }
- if(f==='pale-court'&&detail)for(const dx of [-.24,.15])s.box(x+dx,y-.13,.5,.09,.18,.05,'#e8c673');
+ if(f==='pale-court'&&detail)for(const dx of [-.27,.16])s.box(x+dx,y-.13,.52,.11,.18,.05,'#e8c673');
 }
 
 function enemyRoleSilhouette(s,u,x,y,bob,detail,coat){
  if(!u)return;
  if(u.role==='ram'){
   // Carried beam + iron cap: a siege profile broader than an ordinary raider.
-  s.box(x-.42,y-.19,.28,.84,.16,.17,wood);
-  s.box(x+.36,y-.2,.27,.13,.18,.19,metal);
-  s.box(x-.27,y-.12,.36,.06,.24,.34,leather);
-  s.box(x+.18,y-.12,.36,.06,.24,.34,leather);
+  s.box(x-.42,y-.19,.3,.84,.16,.17,wood);
+  s.box(x+.36,y-.2,.29,.13,.18,.19,metal);
+  s.box(x-.27,y-.12,.38,.06,.24,.34,leather);
+  s.box(x+.18,y-.12,.38,.06,.24,.34,leather);
  }
  if(u.role==='bombard'){
   // Short field tube on a shoulder frame; intentionally compact at map scale.
-  s.box(x-.18,y-.2,.34,.36,.18,.28,wood);
-  s.box(x-.04,y-.27,.5,.15,.45,.14,metal);
-  s.box(x-.055,y+.14,.49,.18,.08,.16,brass);
-  if(detail)s.box(x-.22,y-.18,.29,.07,.15,.33,leather);
+  s.box(x-.18,y-.2,.38,.36,.18,.28,wood);
+  s.box(x-.04,y-.27,.54,.15,.45,.14,metal);
+  s.box(x-.055,y+.14,.53,.18,.08,.16,brass);
+  if(detail)s.box(x-.22,y-.18,.33,.07,.15,.33,leather);
  }
  if(u.role==='scout'&&detail){
-  s.box(x-.24,y-.15,.31,.08,.27,.18,leather);
-  s.box(x-.26,y+.06,.38,.11,.04,.09,coat);
+  s.box(x-.28,y-.16,.36,.09,.28,.2,leather);
+  s.box(x-.3,y+.06,.43,.12,.04,.09,coat);
  }
  if(u.elite){const eliteGold='#f1d487';
-  s.box(x-.24,y-.13,.5,.09,.18,.13,eliteGold);
-  s.box(x+.15,y-.13,.5,.09,.18,.13,eliteGold);
-  s.box(x-.025,y-.02,.82+bob,.05,.06,.18,eliteGold);
+  s.box(x-.27,y-.14,.5,.1,.18,.13,eliteGold);
+  s.box(x+.17,y-.14,.5,.1,.18,.13,eliteGold);
+  s.box(x-.03,y-.025,.88+bob,.06,.07,.18,eliteGold);
  }
  if(u.role==='boss'){
   if(u.bossId==='cinder-maul'){
-   s.box(x-.26,y-.15,.43,.52,.3,.18,'#6b4637');
-   s.box(x-.31,y-.16,.5,.12,.24,.17,metal);s.box(x+.19,y-.16,.5,.12,.24,.17,metal);
-   s.box(x-.03,y-.02,.84+bob,.06,.07,.25,'#b55a3d');
+   s.box(x-.28,y-.16,.32,.56,.32,.22,'#6b4637');
+   s.box(x-.33,y-.17,.5,.13,.25,.17,metal);s.box(x+.2,y-.17,.5,.13,.25,.17,metal);
+   s.box(x-.035,y-.025,.9+bob,.07,.08,.25,'#b55a3d');
   }else if(u.bossId==='pale-queen'){
-   s.box(x-.2,y-.18,.2,.4,.05,.46,'#d8ddea');
-   s.box(x-.14,y-.13,.77+bob,.28,.25,.08,'#d8ddea');
-   for(const dx of [-.1,0,.1])s.pyramid(x+dx,y-.01,.84+bob,.045,.14,brass,4);
+   s.box(x-.22,y-.2,.1,.44,.06,.52,'#d8ddea');
+   s.box(x-.19,y-.17,.72+bob,.38,.34,.12,'#d8ddea');
+   for(const dx of [-.1,0,.1])s.pyramid(x+dx,y-.01,.9+bob,.045,.14,brass,4);
   }
  }
 }
@@ -312,72 +362,87 @@ export function characterModel(s,u,data,time,enemy=false){
   const channel=/pick/.test(u.gear)?'pick':/axe/.test(u.gear)?'chop':/hammer|tongs/.test(u.gear)?'hammer':/sickle|scythe/.test(u.gear)?'rustle':null;
   if(channel)lift=strikeLift(workPhase(post,channel,time))*.18;
  }
- for(const dx of [-.115,.04]){
+ const baked=bakedBodyFor(s,u,data,enemy,gait);
+ if(baked)drawMesh(s,baked.mesh,x,y,{});
+ else{
+ const smith=!enemy&&smithTypes.has(u.type);
+ const boot=!enemy&&u.type==='miner'?'#4a5560':'#41453d';
+ for(const dx of [-.13,.05]){
   const stride=gait.swing*(dx<0?1:-1),px=x+dx+gait.dx*stride,py=y+gait.dy*stride;
-  if(gait.moving)beam(s,[x+dx+.043,y,.26],[px+.043,py,.07],.085,leather);else s.box(x+dx,y-.075,.055,.085,.15,.2,leather);
-  if(detail||gait.moving)s.box(px-.01,py-.06,.02,.105,.2,.08,'#41453d');
+  if(gait.moving)beam(s,[x+dx+.05,y,.3],[px+.05,py,.08],.1,leather);else s.box(x+dx-.005,y-.07,.08,.11,.14,.23,leather);
+  s.box(px-.005,py-.12,.005,.12,.22,.085,boot);
+  if(detail&&!enemy&&u.type==='miner')s.box(px-.005,py+.045,.005,.12,.055,.045,brass);
  }
-  s.box(x-.15,y-.11,.25,.3,.22,.31,coat);
-  if(hat==='robe'){s.box(x-.17,y-.13,.13,.34,.26,.2,coat);s.box(x-.19,y-.15,.02,.38,.3,.11,coat);}
-  if(hat==='apron')s.box(x-.1,y+.115,.24,.2,.02,.3,'#d3b58b');
-  if(!enemy&&troop?.role==='builder'){s.box(x-.155,y-.115,.18,.31,.02,.07,leather);if(detail)s.box(x-.03,y+.117,.19,.06,.025,.05,brass);}
-  if(!enemy&&troop?.role==='collector'){s.box(x-.24,y-.1,.32,.08,.16,.14,leather);if(detail)s.box(x-.245,y-.105,.4,.09,.03,.05,brass);}
- if(detail){s.box(x-.154,y-.114,.29,.308,.228,.045,leather);s.box(x-.035,y+.117,.29,.07,.018,.046,'#d8bd79');}
- for(const dx of [-.22,.15]){const swing=-gait.swing*(dx<0?1:-1);if(gait.moving||lift)beam(s,[x+dx+.035,y,.52],[x+dx+.035+gait.dx*swing,y+gait.dy*swing,.29+(dx>0?lift:0)],.07,dx===.15&&professionColor?professionColor:coat);else s.box(x+dx,y-.075,.29,.07,.13,.23,dx===.15&&professionColor?professionColor:coat);}
- if(detail){s.box(x-.22,y-.076,.27,.075,.14,.075,skin);s.box(x+.15,y-.076,.27+lift,.075,.14,.075,skin);}
- s.box(x-.1,y-.09,.57+bob,.2,.18,.19,skin);
- if(detail)s.box(x-.105,y-.105,.66+bob,.21,.04,.13,hair);
+  s.box(x-.17,y-.115,.29,.34,.23,.26,coat);
+  if(hat==='robe'){s.box(x-.19,y-.15,.1,.38,.3,.17,coat);s.box(x-.205,y-.165,.06,.41,.33,.06,coat);}
+  if(hat==='apron')s.box(x-.11,y+.125,.16,.22,.03,.34,'#d3b58b');
+  if(!enemy&&troop?.role==='builder'){s.box(x-.18,y-.125,.31,.36,.25,.19,'#8a6f4a');s.box(x-.18,y+.115,.29,.36,.03,.07,leather);if(detail)s.box(x-.03,y+.15,.3,.06,.03,.05,brass);}
+  if(!enemy&&troop?.role==='collector'&&u.type!=='farmer'){s.box(x-.3,y-.09,.3,.1,.16,.15,leather);if(detail)s.box(x-.305,y-.095,.39,.11,.03,.05,brass);}
+  if(!enemy&&u.type==='farmer'){s.box(x-.31,y-.06,.28,.14,.15,.16,wood);s.box(x-.325,y-.075,.425,.16,.17,.035,leather);}
+ for(const dx of [-.25,.15]){const swing=-gait.swing*(dx<0?1:-1);if(gait.moving||lift)beam(s,[x+dx+.05,y,.55],[x+dx+.05+gait.dx*swing,y+gait.dy*swing,.31+(dx>0?lift:0)],smith?.12:.1,dx===.15&&professionColor?professionColor:coat);else s.box(x+dx,y-.065,.29,smith?.12:.1,smith?.15:.13,.26,dx===.15&&professionColor?professionColor:coat);}
+ if(detail){s.box(x-.25,y-.066,.275,.1,.15,.075,skin);s.box(x+.15,y-.066,.275+lift,.1,.15,.075,skin);if(smith){s.box(x-.25,y-.07,.33,.125,.155,.07,'#8a6f4a');s.box(x+.15,y-.07,.33,.125,.155,.07,'#8a6f4a');}}
+ roundedHead(s,x,y,.56+bob,.32,.16,.145,skin);
+ if(detail)s.box(x-.15,y-.14,.84+bob,.3,.15,.05,hair);
   if(hat==='helmet'||hat==='lamp'||hat==='crest'){
-   s.box(x-.12,y-.11,.74+bob,.24,.22,.1,hat==='lamp'?'#86754f':metal);
-   if(hat==='crest'){s.box(x-.025,y-.02,.82+bob,.05,.06,.22,brass);s.box(x-.075,y-.02,1.0+bob,.15,.06,.045,'#b76053');}
-   if(detail&&hat==='helmet')for(const dx of [-.12,.085])s.box(x+dx,y-.1,.61+bob,.035,.18,.14,metal);
-   if(hat==='lamp'){s.emissive=.7;s.box(x-.035,y+.115,.75+bob,.07,.035,.055,'#f6df9a');s.emissive=0;}
+   s.box(x-.17,y-.16,.82+bob,.34,.32,.11,hat==='lamp'?'#86754f':metal);
+   if(hat==='crest'){s.box(x-.03,y-.03,.88+bob,.06,.07,.2,brass);s.box(x-.085,y-.03,1.04+bob,.17,.07,.05,'#b76053');}
+   if(detail&&hat==='helmet')for(const dx of [-.17,.135])s.box(x+dx,y-.15,.62+bob,.04,.2,.2,metal);
+   if(hat==='lamp'){s.emissive=.7;s.box(x-.045,y+.135,.8+bob,.09,.04,.06,'#f6df9a');s.emissive=0;}
   }else if(hat==='goggles'){
-   s.box(x-.12,y-.11,.74+bob,.24,.22,.085,coat);
-   s.box(x-.095,y+.075,.62+bob,.075,.035,.065,'#c7d6d6');s.box(x+.025,y+.075,.62+bob,.075,.035,.065,'#c7d6d6');
-   s.box(x-.025,y+.08,.645+bob,.05,.02,.025,leather);
+   s.box(x-.17,y-.16,.82+bob,.34,.32,.09,coat);
+   s.box(x-.13,y+.13,.68+bob,.09,.04,.075,'#c7d6d6');s.box(x+.02,y+.13,.68+bob,.09,.04,.075,'#c7d6d6');
+   s.box(x-.025,y+.135,.71+bob,.06,.025,.03,leather);
   }else if(hat==='hood'||hat==='robe'){
-  s.box(x-.13,y-.13,.74+bob,.26,.25,.12,coat);
-  s.box(x-.13,y-.13,.56+bob,.26,.05,.18,coat);
-  s.pyramid(x,y-.015,.86+bob,.14,.14,coat);
+  s.box(x-.19,y-.18,.72+bob,.38,.36,.2,coat);
+  s.box(x-.19,y-.18,.55+bob,.38,.05,.24,coat);
+  s.pyramid(x,y-.015,.88+bob,.16,.16,coat);
  }else{
-  s.box(x-.12,y-.11,.75+bob,.24,.22,.085,hat==='straw'?'#d6bb78':coat);
-  if(hat==='straw')s.box(x-.19,y-.17,.735+bob,.38,.34,.045,'#cbb176');
+  s.box(x-.16,y-.15,.84+bob,.32,.3,.1,hat==='straw'?'#d6bb78':coat);
+  if(hat==='straw')s.box(x-.25,y-.23,.81+bob,.5,.46,.05,'#cbb176');
  }
   if(detail){
-   for(const dx of [-.066,.038])s.box(x+dx,y+.092,.65+bob,.028,.016,.025,'#33443a');
-   s.box(x-.02,y+.097,.613+bob,.045,.025,.035,skin);
+   for(const dx of [-.075,.045])s.box(x+dx,y+.14,.71+bob,.035,.02,.03,'#33443a');
+   s.box(x-.02,y+.145,.665+bob,.05,.025,.035,skin);
   }
+ }
  const gear=enemy?enemyGearFor(u):(u.gear||'');
  const attack=(u.animation||0)>0,bow=/bow/.test(gear);
  const toolAngle=s.r.calm||bow?0:attack?-1.1*Math.min(1,u.animation/.4):lift*4.2;
  const item=/cart/.test(gear)&&!s.r.calm?{...data.items[gear],wheelAngle:-gait.distance/.065}:bow&&!s.r.calm&&u.attackTimer>0&&u.attackTimer<.18?{...data.items[gear],draw:1-u.attackTimer/.18}:data.items[gear];
  equipment(pivotMesh(s,[x+.24,y,.34],toolAngle),gear,item,x,y,0,detail);
-  if(enemy){enemyRoleSilhouette(s,u,x,y,bob,detail,coat);factionSilhouette(s,u,x,y,bob,detail);}
-  if(/bow/.test(gear)){
-   s.box(x-.12,y-.2,.32,.13,.09,.32,leather);
-   if(detail)for(const dx of [-.1,-.04])s.box(x+dx,y-.18,.61,.02,.02,.17,'#d9cda5');
-   // Back quiver: leather tube + fletched shafts, readable at gameplay zoom.
-   s.box(x-.28,y-.12,.42,.09,.14,.3,leather);
-   for(const dz of [.62,.68,.74])s.box(x-.26,y-.1,dz,.045,.05,.1,'#d9cda5');
+  if(enemy){enemyRoleSilhouette(s,u,x,y,bob,detail,coat);
+   // Baked skeletons skip the bone-face/rib overlay: it is authored for the
+   // procedural skull and cannot sit on the baked anatomy. The pale bone bake
+   // and role gear carry the read; baked human factions keep their overlay.
+   if(!baked||baked.setId!=='skeleton')factionSilhouette(s,u,x,y,bob,detail);
   }
- if(enemy&&u.role==='breaker')s.box(x-.27,y-.13,.28,.09,.32,.37,'#687777');
-  if(u.armor){
+  if(!baked&&/bow/.test(gear)){
+   s.box(x-.13,y-.21,.3,.14,.09,.34,leather);
+   if(detail)for(const dx of [-.1,-.04])s.box(x+dx,y-.19,.62,.02,.02,.17,'#d9cda5');
+   // Back quiver: leather tube + fletched shafts, readable at gameplay zoom.
+   s.box(x-.31,y-.13,.42,.1,.15,.32,leather);
+   for(const dz of [.64,.7,.76])s.box(x-.29,y-.11,dz,.045,.05,.1,'#d9cda5');
+  }
+ if(!baked&&enemy&&u.role==='breaker')s.box(x-.28,y-.135,.34,.1,.34,.39,'#687777');
+  // Baked bodies skip procedural body armor, hats/hoods/helmets and the back
+  // quiver: those pieces are authored around the procedural torso/head. The
+  // hand tool, carried load, level flair, hit flash and duty markers stay.
+  if(!baked&&u.armor){
    const armorColor=rarityColor(data.items[u.armor]?.rarity);
   if(/shield/.test(u.armor)){
-   s.box(x-.31,y-.12,.22,.075,.3,.38,armorColor);
-   if(detail)s.box(x-.33,y-.015,.35,.03,.09,.1,'#ddbb75');
-  }else if(/cap/.test(u.armor))s.box(x-.13,y-.12,.74+bob,.26,.24,.11,armorColor);
+   s.box(x-.31,y-.12,.24,.08,.32,.4,armorColor);
+   if(detail)s.box(x-.33,y-.015,.37,.03,.09,.1,'#ddbb75');
+  }else if(/cap/.test(u.armor))s.box(x-.16,y-.15,.83+bob,.32,.3,.12,armorColor);
   else if(/coat|cloak|robe/.test(u.armor)){
    const cloth=/winter/.test(u.armor)?'#c7cebb':/oilskin/.test(u.armor)?'#5b8088':/robe/.test(u.armor)?'#9f8aaf':'#9b856c';
-   s.box(x-.17,y-.16,.21,.34,.04,.34,cloth);
-   if(detail)s.box(x-.18,y-.15,.5,.36,.28,.055,cloth);
+   s.box(x-.19,y-.17,.12,.38,.05,.44,cloth);
+   if(detail)s.box(x-.2,y-.17,.48,.4,.3,.07,cloth);
   }
   else{
-   s.box(x-.16,y+.112,.34,.32,.03,.19,armorColor);
-   if(detail)for(const dx of [-.23,.15])s.box(x+dx,y-.085,.49,.085,.18,.08,armorColor);
+   s.box(x-.17,y+.115,.32,.34,.03,.21,armorColor);
+   if(detail)for(const dx of [-.27,.16])s.box(x+dx,y-.1,.49,.1,.2,.08,armorColor);
   }
-  if(u.armor==='regalia')for(const dx of [-.1,0,.1])s.box(x+dx-.025,y+.05,.82+bob,.05,.05,.13,'#e8c673');
+  if(u.armor==='regalia')for(const dx of [-.1,0,.1])s.box(x+dx-.025,y+.05,.88+bob,.05,.05,.13,'#e8c673');
  }
   carriedLoad(s,u,troop,x,y+gait.swing*.12,detail);
   drawLevelFlair(s,u,x,y,bob,detail);

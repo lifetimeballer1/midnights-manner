@@ -120,50 +120,124 @@ export function isScorchedRidge(world,data){
  }
  return true;
 }
-function rock(s,x,y,scale=1,color='#899087',scorched=false){
+// Wilds silhouettes: biome reads come from structure first (conifer vs
+// broadleaf, crag vs fieldstone, tuft vs reed vs lily pad) and palette
+// second. Every prop stays a pure function of tile position + seed: no time,
+// no save fields, flat hex albedo, grounded (z>=0) and tile-scale.
+const broadleafAt=(x,y)=>hash2(x,y,991)%100<42;
+function rock(s,x,y,scale=1,color='#899087',scorched=false,dark=false){
  if(!scorched&&addExternalProp(s,'rock',x,y,.04,.24*scale,Math.PI*.23,true))return;
- s.pyramid(x,y,.04,.18*scale,.24*scale,color,5);
- if(scale>.95)s.pyramid(x+.14*scale,y-.08*scale,.04,.11*scale,.15*scale,scorched?'#6a6a6e':'#adb0a5',5);
+ // Craggy cluster: a tall shard over flanking slabs with a deterministic lean.
+ const light=scorched?'#6a6a6e':dark?'#7d857c':'#adb0a5';
+ const lean=((hash2(Math.round(x*7),Math.round(y*7),353)%100)/100-.5)*.12*scale;
+ s.pyramid(x-.08*scale,y-.02*scale,.04,.2*scale,.36*scale,color,5);
+ s.pyramid(x+.12*scale,y+.06*scale,.04,.14*scale,.22*scale,light,5);
+ s.pyramid(x+.02*scale+lean,y-.14*scale,.04,.11*scale,.16*scale,color,4);
+ s.box(x-.17*scale,y-.13*scale,.04,.2*scale,.18*scale,.08*scale,light);
+ if(dark)s.pyramid(x-.15*scale,y+.15*scale,.04,.09*scale,.13*scale,light,5);
 }
-function shrub(s,x,y,scale=1,cold=false,scorched=false){
- const dark=scorched?'#42372f':cold?'#557a72':'#3f7046',light=scorched?'#6e6258':cold?'#79a49a':'#65925b';
- s.pyramid(x-.08*scale,y,.04,.19*scale,.28*scale,dark,6);
+function shrub(s,x,y,scale=1,cold=false,scorched=false,dry=false,dark=false){
+ if(dry&&!scorched){
+  // Hills scrub: low wind-bitten mounds instead of a forest canopy.
+  const a=dark?'#3c4d2f':'#5d6b42',b=dark?'#55663c':'#7a8757';
+  s.pyramid(x-.1*scale,y,.03,.18*scale,.14*scale,a,5);
+  s.pyramid(x+.12*scale,y+.05*scale,.03,.14*scale,.12*scale,b,5);
+  s.pyramid(x,y-.1*scale,.03,.12*scale,.1*scale,a,5);
+  if(dark)s.pyramid(x-.02*scale,y+.14*scale,.03,.1*scale,.09*scale,b,5);
+  return;
+ }
+ const darkG=scorched?'#42372f':dark?'#2e4a31':cold?'#557a72':'#3f7046',light=scorched?'#6e6258':dark?'#476b41':cold?'#79a49a':'#65925b';
+ s.pyramid(x-.08*scale,y,.04,.19*scale,.28*scale,darkG,6);
  s.pyramid(x+.11*scale,y+.04*scale,.04,.15*scale,.23*scale,light,6);
+ if(dark)s.pyramid(x+.01*scale,y-.12*scale,.04,.12*scale,.18*scale,light,6);
 }
-function grass(s,x,y,scale=1){
- for(const [dx,dy,h]of[[-.08,0,.22],[.03,-.04,.27],[.1,.05,.18]])s.box(x+dx*scale,y+dy*scale,.03,.025,.025,h*scale,'#78965b');
+function grass(s,x,y,scale=1,cold=false,dark=false){
+ const a=dark?'#3f5a34':cold?'#6d8f70':'#78965b',b=dark?'#54713f':cold?'#84a884':'#8fae6a';
+ const blades=[[-.1,0,.24],[.02,-.05,.3],[.11,.04,.2],[-.04,.08,.26],[.07,.09,.17]];
+ if(dark)blades.push([-.13,.1,.15],[.14,-.07,.23]);
+ for(const [dx,dy,h]of blades)s.box(x+dx*scale,y+dy*scale,.028,.024,.024,h*scale,(dx+dy)>0?b:a);
 }
-function stump(s,x,y,scale=1){
- s.box(x-.09*scale,y-.09*scale,.03,.18*scale,.18*scale,.19*scale,'#73543c');
- s.box(x-.1*scale,y-.1*scale,.22*scale,.2*scale,.2*scale,.035,'#b48a59');
+function flowers(s,x,y,scale=1,cold=false,dark=false){
+ // Wildflower drift: a grass tuft under three staggered blossom heads.
+ const petal=[['#c96a7a','#e9a0ac'],['#d9b04e','#f0d27e'],['#8f7ec0','#b7a8e0']][hash2(Math.round(x*2),Math.round(y*2),727)%3];
+ const stem=dark?'#4c6a3f':cold?'#6d8f70':'#78965b';
+ grass(s,x,y,scale*.9,cold,dark);
+ for(const [dx,dy,h]of[[-.12,-.04,.3],[.02,.06,.36],[.12,-.02,.26]]){
+  s.box(x+dx*scale,y+dy*scale,h*scale,.018,.018,.1*scale,stem);
+  s.pyramid(x+dx*scale,y+dy*scale,h*scale+.1*scale,.06*scale,.08*scale,petal[0],5);
+  s.pyramid(x+dx*scale,y+dy*scale,h*scale+.15*scale,.035*scale,.05*scale,petal[1],5);
+ }
 }
-function fallenLog(s,x,y,scale=1,cold=false){
- const wood=cold?'#79939a':'#77583e',cap=cold?'#adc6cb':'#b68b5d';
+function stump(s,x,y,scale=1,dark=false){
+ const wood=dark?'#4f3c2c':'#73543c',cut=dark?'#8a6a45':'#b48a59';
+ s.box(x-.09*scale,y-.09*scale,.03,.18*scale,.18*scale,.19*scale,wood);
+ s.box(x-.1*scale,y-.1*scale,.22*scale,.2*scale,.2*scale,.035,cut);
+ if(dark)s.pyramid(x+.11*scale,y+.1*scale,.04,.07*scale,.09*scale,wood,4);
+}
+function fallenLog(s,x,y,scale=1,cold=false,dark=false){
+ const wood=cold?'#79939a':dark?'#4f3c2c':'#77583e',cap=cold?'#adc6cb':dark?'#7d6247':'#b68b5d';
  s.box(x-.3*scale,y-.07*scale,.07,.6*scale,.14*scale,.14*scale,wood);
  s.box(x+.27*scale,y-.075*scale,.065,.035,.15*scale,.15*scale,cap);
+ if(dark)s.box(x-.24*scale,y+.05*scale,.06,.2*scale,.12*scale,.11*scale,wood);
 }
-function pine(s,x,y,scale=1,cold=false){
- const trunk=cold?'#6c6254':'#73543c',greens=cold?['#4f7773','#6d9a91']:['#315d43','#4c7b4e'];
+function pine(s,x,y,scale=1,cold=false,dark=false){
+ // Layered-canopy conifer. BroadleafAt() deals the broadleaf form from
+ // drawProp; this signature stays for existing callers.
+ const trunk=cold?'#6c6254':dark?'#4f3c2c':'#73543c';
+ const greens=cold?['#4f7773','#6d9a91','#8fb8b0']:dark?['#24402b','#315536','#436b3f']:['#2c563d','#3f7046','#5c8a55'];
+ const layers=dark?4:3;
  s.box(x-.035*scale,y-.035*scale,.03,.07*scale,.07*scale,.5*scale,trunk);
- s.pyramid(x,y,.25*scale,.28*scale,.55*scale,greens[0],6);
- s.pyramid(x,y,.48*scale,.22*scale,.45*scale,greens[1],6);
+ for(let i=0;i<layers;i++)s.pyramid(x,y,(.2+i*.16)*scale,(.32-.06*i)*scale,(.42-.05*i)*scale,greens[Math.min(i,2)],6);
 }
-function reeds(s,x,y,scale=1){
- for(const [dx,dy,h]of[[-.09,.02,.32],[0,-.04,.4],[.1,.03,.28],[.05,.11,.35]]){
-  s.box(x+dx*scale,y+dy*scale,.02,.022,.022,h*scale,'#79975f');
-  s.box(x+dx*scale-.015,y+dy*scale-.015,.02+h*scale,.052,.052,.07,'#b69a55');
+function broadleaf(s,x,y,scale=1,cold=false,dark=false){
+ // Round offset-crown broadleaf: the forest's second silhouette.
+ const trunk=cold?'#6c6254':dark?'#4f3c2c':'#77583e';
+ const crown=cold?['#5b8a7e','#7fb0a3']:dark?['#2e4a31','#41653a']:['#356b3c','#4f8a4a'];
+ s.box(x-.04*scale,y-.04*scale,.03,.08*scale,.08*scale,.44*scale,trunk);
+ s.pyramid(x-.1*scale,y,.28*scale,.22*scale,.22*scale,crown[0],5);
+ s.pyramid(x+.12*scale,y+.04*scale,.32*scale,.2*scale,.2*scale,crown[1],5);
+ s.pyramid(x,y-.1*scale,.44*scale,.18*scale,.18*scale,crown[0],5);
+ s.pyramid(x+.02*scale,y+.06*scale,.56*scale,.14*scale,.16*scale,crown[1],5);
+ if(dark)s.pyramid(x-.12*scale,y+.12*scale,.3*scale,.12*scale,.14*scale,crown[0],5);
+}
+function reeds(s,x,y,scale=1,cold=false,dark=false){
+ const green=dark?'#4c6a3f':cold?'#6f8f6a':'#79975f',head=dark?'#8a7440':'#b69a55';
+ const stalks=[[-.12,.02,.34],[0,-.05,.42],[.11,.03,.3],[.05,.12,.37],[-.05,.1,.28]];
+ if(dark)stalks.push([.13,.1,.24],[-.14,-.06,.3]);
+ for(const [dx,dy,h]of stalks){
+  s.box(x+dx*scale,y+dy*scale,.02,.022,.022,h*scale,green);
+  s.box(x+dx*scale-.015,y+dy*scale-.015,.02+h*scale,.052,.052,.07,head);
  }
+}
+function lilies(s,x,y,scale=1,cold=false,dark=false){
+ // Lily pads sit almost flat at the waterline; one blossom rides a pad.
+ const pad=dark?'#2f5a3e':cold?'#3f7a50':'#4a8a58',rim=dark?'#3f7048':cold?'#589a68':'#63a46e',bloom=dark?'#b98ba0':'#e0a7bd';
+ for(const [dx,dy,r]of[[-.1,-.05,.17],[.12,.07,.14],[0,.14,.11]]){
+  s.pyramid(x+dx*scale,y+dy*scale,.015,r*scale,.04,pad,7);
+  s.pyramid(x+dx*scale,y+dy*scale,.03,r*scale*.62,.025,rim,7);
+ }
+ s.pyramid(x+.11*scale,y-.11*scale,.05,.05*scale,.07*scale,bloom,5);
+}
+function fieldstone(s,x,y,scale=1,cold=false,dark=false,scorched=false){
+ const a=scorched?'#5d5d60':dark?'#5f655c':cold?'#7f8a86':'#9aa08f';
+ const b=scorched?'#6a6a6e':dark?'#777d72':cold?'#9aa5a0':'#b7bcab';
+ s.pyramid(x-.1*scale,y-.04*scale,.02,.16*scale,.13*scale,a,6);
+ s.pyramid(x+.11*scale,y+.05*scale,.02,.12*scale,.11*scale,b,5);
+ s.pyramid(x+.02*scale,y-.12*scale,.02,.09*scale,.08*scale,a,6);
+ if(cold)s.pyramid(x-.12*scale,y+.13*scale,.015,.11*scale,.03*scale,b,6);
 }
 function cairn(s,x,y,scale=1,scorched=false){
  if(!scorched){
   s.box(x-.15*scale,y-.13*scale,.03,.3*scale,.26*scale,.11*scale,'#777d77');
   s.box(x-.11*scale,y-.1*scale,.14*scale,.22*scale,.2*scale,.1*scale,'#949b94');
   s.box(x-.06*scale,y-.055*scale,.24*scale,.12*scale,.11*scale,.09*scale,'#b5b8ab');
+  s.pyramid(x+.02*scale,y-.01*scale,.33*scale,.07*scale,.1*scale,'#c4c6b8',5);
   return;
  }
  s.box(x-.15*scale,y-.13*scale,.03,.3*scale,.26*scale,.11*scale,'#4a4b4c');
  s.box(x-.11*scale,y-.1*scale,.14*scale,.22*scale,.2*scale,.1*scale,'#5e5f60');
  s.box(x-.06*scale,y-.055*scale,.24*scale,.12*scale,.11*scale,.09*scale,'#757678');
+ s.pyramid(x+.02*scale,y-.01*scale,.33*scale,.07*scale,.1*scale,'#8a8b8d',5);
 }
 function charShard(s,x,y,scale=1){
  // Sparse char detail: two small static shards, no time/anim (calm-safe).
@@ -195,22 +269,22 @@ export function drawProp(s,item,seed,scorched=false,zoom=1.8){
  const x=item.x+.5,y=item.y+.5,j=(hash2(item.x+13,item.y+29,seed)%1000)/1000;
  const conv=convertedId(s,item);
  if(conv){drawMesh(s,s.r.meshes[conv],x,y);return;}
- const scale=.78+j*.35,cold=item.biome==='water'||item.biome==='unclaimed-fringe';
- // New P5 kinds degrade gracefully without their meshes: flowers read as
- // grass tufts, lilies as shoreline reeds.
- if(item.kind==='flowers'){grass(s,x,y,scale);return;}
- if(item.kind==='lilies'){reeds(s,x,y,scale);return;}
- const ash=scorched===true&&item.biome==='hills';
+ const scale=.78+j*.35,cold=item.biome==='water',fringe=item.biome==='unclaimed-fringe';
+ const ash=scorched===true&&item.biome==='hills',dark=fringe||ash;
+ // Missing P5 meshes still fall back to biome reads: flowers as wildflower
+ // drifts, lilies as flat pads (not reeds).
+ if(item.kind==='flowers'){flowers(s,x,y,scale,cold,dark);return;}
+ if(item.kind==='lilies'){lilies(s,x,y,scale,cold,dark);return;}
  if(item.kind==='landmark')return landmark(s,item,scorched===true&&item.landmark==='Ashen Crown');
- if(item.kind==='pine')return pine(s,x,y,scale,cold);
- if(item.kind==='shrub'){shrub(s,x,y,scale,cold,ash);if(ash&&zoom>=1.2&&(hash2(item.x-7,item.y+11,seed+813)%4===0))charShard(s,x,y,scale);return;}
- if(item.kind==='grass')return grass(s,x,y,scale);
- if(item.kind==='stump')return stump(s,x,y,scale);
- if(item.kind==='log')return fallenLog(s,x,y,scale,cold);
- if(item.kind==='reeds')return reeds(s,x,y,scale);
+ if(item.kind==='pine')return broadleafAt(item.x,item.y)?broadleaf(s,x,y,scale,cold,dark):pine(s,x,y,scale,cold,dark);
+ if(item.kind==='shrub'){shrub(s,x,y,scale,cold,ash,item.biome==='hills',dark);if(ash&&zoom>=1.2&&(hash2(item.x-7,item.y+11,seed+813)%4===0))charShard(s,x,y,scale);return;}
+ if(item.kind==='grass')return grass(s,x,y,scale,cold,dark);
+ if(item.kind==='stump')return stump(s,x,y,scale,dark);
+ if(item.kind==='log')return fallenLog(s,x,y,scale,cold,dark);
+ if(item.kind==='reeds')return reeds(s,x,y,scale,cold,dark);
  if(item.kind==='cairn'){cairn(s,x,y,scale,ash);if(ash&&zoom>=1.2&&(hash2(item.x-7,item.y+11,seed+813)%4===0))charShard(s,x,y,scale);return;}
- if(item.kind==='rock'){rock(s,x,y,scale,ash?'#4f4f52':'#808881',ash);if(ash&&zoom>=1.2&&(hash2(item.x-7,item.y+11,seed+813)%4===0))charShard(s,x,y,scale);return;}
- if(item.kind==='stone')return rock(s,x,y,scale*.75,ash?'#5d5d60':'#92988d',ash);
+ if(item.kind==='rock'){rock(s,x,y,scale,ash?'#4f4f52':'#808881',ash,dark);if(ash&&zoom>=1.2&&(hash2(item.x-7,item.y+11,seed+813)%4===0))charShard(s,x,y,scale);return;}
+ if(item.kind==='stone')return fieldstone(s,x,y,scale*.9,cold,dark,ash);
 }
 export function scorchedThemeKey(world,data){
  return isScorchedRidge(world,data)?'scorched-ridge':'';
