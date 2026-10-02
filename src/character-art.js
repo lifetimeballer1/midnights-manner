@@ -182,7 +182,7 @@ export function enemyGearFor(unit){
  return '';
 }
 
-// R3 baked CC0 rig mapping (renderer-only, no save fields). Offline-baked pose
+// Baked CC0 rig mapping (renderer-only, no save fields). Offline-baked pose
 // sets replace the procedural body when the manifest entry is enabled and the
 // pose/LOD mesh is preloaded; otherwise the original procedural body draws.
 // Role groups: fighters -> warrior, archers/rangers -> ranger, scouts/light ->
@@ -221,7 +221,7 @@ function bakedBodyFor(s,u,data,enemy,gait){
  const pick=bakedPoseFor(u,gait,s.r?.cam?.zoom??1.65,s.characterDetail);
  if(!pick)return null;
  const mesh=s.r?.meshes?.[`${setId}-${pick.pose}-${pick.lod}`];
- return mesh?{setId,pose:pick.pose,lod:pick.lod,mesh}:null;
+ return mesh?.faces?.length?{setId,pose:pick.pose,lod:pick.lod,mesh}:null;
 }
 function factionSilhouette(s,u,x,y,bob,detail){
  // Faction read at gameplay zoom: pale bone, thornband moss hood,
@@ -363,7 +363,40 @@ export function characterModel(s,u,data,time,enemy=false){
   if(channel)lift=strikeLift(workPhase(post,channel,time))*.18;
  }
  const baked=bakedBodyFor(s,u,data,enemy,gait);
- if(baked)drawMesh(s,baked.mesh,x,y,{});
+  if(baked){
+   drawMesh(s,baked.mesh,x,y,{});
+   if(!enemy){
+    const {head,hand}=baked.mesh.meta?.anchors||{};
+    // Follow the pose anchors instead of overlaying the procedural arms/head.
+    if(professionColor&&hand&&head)beam(s,
+     [x+hand[0],y+hand[1],hand[2]+.06],
+     [x+hand[0]*.65+head[0]*.35,y+hand[1]*.65+head[1]*.35,hand[2]*.65+head[2]*.35+.06],.11,professionColor);
+    if(hat==='lamp'&&head){
+     s.box(x+head[0]-.1,y+head[1]-.07,head[2]+.13,.2,.14,.045,'#86754f');
+     const emissive=s.emissive;s.emissive=.7;
+     s.box(x+head[0]-.045,y+head[1]+.065,head[2]+.13,.09,.04,.06,'#f6df9a');s.emissive=emissive;
+    }
+    if(head&&hat!=='lamp'){
+     const hx=x+head[0],hy=y+head[1],hz=head[2];
+     if(hat==='crest'){
+      s.box(hx-.025,hy-.045,hz+.32,.05,.09,.15,brass);
+      s.box(hx-.08,hy-.045,hz+.45,.16,.09,.04,'#b76053');
+     }else if(hat==='helmet')s.box(hx-.13,hy-.13,hz+.28,.26,.26,.045,metal);
+     else if(hat==='hood'||hat==='robe'){
+      s.box(hx-.15,hy-.14,hz+.24,.3,.28,.07,coat);
+      s.pyramid(hx,hy,hz+.31,.13,.12,coat);
+     }else{
+      s.box(hx-.12,hy-.11,hz+.28,.24,.22,.07,hat==='straw'?'#d6bb78':coat);
+      if(hat==='straw')s.box(hx-.22,hy-.2,hz+.25,.44,.4,.035,'#cbb176');
+      if(hat==='goggles'){
+       for(const dx of [-.1,.025])s.box(hx+dx,hy+.13,hz+.16,.075,.035,.055,'#c7d6d6');
+       s.box(hx-.025,hy+.135,hz+.18,.05,.025,.025,leather);
+      }
+     }
+     if(hat==='apron')s.box(hx-.1,hy+.14,hz-.28,.2,.03,.25,'#d3b58b');
+    }
+   }
+  }
  else{
  const smith=!enemy&&smithTypes.has(u.type);
  const boot=!enemy&&u.type==='miner'?'#4a5560':'#41453d';
@@ -409,7 +442,13 @@ export function characterModel(s,u,data,time,enemy=false){
  const attack=(u.animation||0)>0,bow=/bow/.test(gear);
  const toolAngle=s.r.calm||bow?0:attack?-1.1*Math.min(1,u.animation/.4):lift*4.2;
  const item=/cart/.test(gear)&&!s.r.calm?{...data.items[gear],wheelAngle:-gait.distance/.065}:bow&&!s.r.calm&&u.attackTimer>0&&u.attackTimer<.18?{...data.items[gear],draw:1-u.attackTimer/.18}:data.items[gear];
- equipment(pivotMesh(s,[x+.24,y,.34],toolAngle),gear,item,x,y,0,detail);
+  const hand=baked?.mesh.meta?.anchors?.hand,toolScene=pivotMesh(s,[x+.24,y,.34],toolAngle);
+  if(hand){
+   // Rotate around the baked palm, not the old procedural grip.
+   const anchored=Object.create(s);
+   anchored.face=(vertices,color,split=true)=>s.face(vertices.map(([vx,vy,vz])=>[vx+hand[0]-.24,vy+hand[1],vz+hand[2]-.34]),color,split);
+   equipment(pivotMesh(anchored,[x+.24,y,.34],toolAngle),gear,item,x,y,0,detail);
+  }else equipment(toolScene,gear,item,x,y,0,detail);
   if(enemy){enemyRoleSilhouette(s,u,x,y,bob,detail,coat);
    // Baked skeletons skip the bone-face/rib overlay: it is authored for the
    // procedural skull and cannot sit on the baked anatomy. The pale bone bake
@@ -424,7 +463,7 @@ export function characterModel(s,u,data,time,enemy=false){
    for(const dz of [.64,.7,.76])s.box(x-.29,y-.11,dz,.045,.05,.1,'#d9cda5');
   }
  if(!baked&&enemy&&u.role==='breaker')s.box(x-.28,y-.135,.34,.1,.34,.39,'#687777');
-  // Baked bodies skip procedural body armor, hats/hoods/helmets and the back
+  // Baked bodies skip procedural body armor, full hats/hoods/helmets and the back
   // quiver: those pieces are authored around the procedural torso/head. The
   // hand tool, carried load, level flair, hit flash and duty markers stay.
   if(!baked&&u.armor){
