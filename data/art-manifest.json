@@ -579,7 +579,16 @@
     "hi": 450,
     "lo": 180
    },
-   "use": "Role-group body; existing gear translated to the baked hand anchor",
+   "use": "Civilian body with neck-preserving head/hat reduction and part/face LOD budgets; existing gear follows rebaked hand anchors",
+   "anatomy": {
+    "headWidthScale": 0.72,
+    "headDepthScale": 0.85,
+    "hatWidthScale": 0.62,
+    "hatDepthScale": 0.62,
+    "upperHeadHeightScale": 0.72,
+    "neckTaperSourceUnits": 0.18,
+    "simplification": "named source parts with separate skin-face budget"
+   },
    "poses": {
     "stand-hi": "assets/meshes/baked/monk-stand-hi.json",
     "stand-lo": "assets/meshes/baked/monk-stand-lo.json",

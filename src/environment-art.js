@@ -269,6 +269,19 @@ export function drawProp(s,item,seed,scorched=false,zoom=1.8){
  const x=item.x+.5,y=item.y+.5,j=(hash2(item.x+13,item.y+29,seed)%1000)/1000;
  const scale=.78+j*.35,cold=item.biome==='water',fringe=item.biome==='unclaimed-fringe';
  const ash=scorched===true&&item.biome==='hills',dark=fringe||ash;
+ // Wild undergrowth interlocks locally; all three forms stay inside the
+ // selected, unoccupied tile and share one scenery-budget slot.
+ if(item.claimed===false&&['shrub','grass','reeds','rock','stone'].includes(item.kind)){
+  for(const [dx,dy,k]of[[-.1,-.12,1.05+j*.2],[.21,.13,.65+j*.18],[-.12,.24,.6+(1-j)*.15]]){
+   if(item.kind==='shrub')shrub(s,x+dx,y+dy,k,cold,ash,item.biome==='hills',dark);
+   else if(item.kind==='grass')grass(s,x+dx,y+dy,k,cold,dark);
+   else if(item.kind==='reeds')reeds(s,x+dx,y+dy,k,cold,dark);
+   else if(item.kind==='rock')rock(s,x+dx,y+dy,k,ash?'#4f4f52':'#808881',ash,dark);
+   else fieldstone(s,x+dx,y+dy,k,cold,dark,ash);
+  }
+  if(ash&&zoom>=1.2&&(item.kind==='shrub'||item.kind==='rock')&&(hash2(item.x-7,item.y+11,seed+813)%4===0))charShard(s,x,y,scale);
+  return;
+ }
  // Keep full procedural silhouettes at distance and preserve biome palettes.
  const conv=zoom>=1.2&&!ash?convertedId(s,item):null;
  if(conv){

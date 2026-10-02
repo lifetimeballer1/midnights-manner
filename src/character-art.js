@@ -1,5 +1,5 @@
 import {gaitFor} from './character-motion.js';
-import {artEnabled,drawMesh} from './asset-art.js';
+import {artEnabled,meshBounds} from './asset-art.js';
 import {pivotMesh,wheelMesh,beam} from './mechanical-art.js';
 import {workPhase,strikeLift} from './work-motion.js';
 // Original low-poly outfits and equipment. All choices are renderer-only;
@@ -233,10 +233,17 @@ function factionSilhouette(s,u,x,y,bob,detail){
   if(detail)for(const dx of [-.085,.04])s.box(x+dx,y+.14,.7+bob,.045,.025,.05,pit);
   for(let i=0;i<3;i++)s.box(x-.15,y+.11,.33+i*.07,.3,.035,.035,bone);
   for(const dx of [-.27,.16])s.box(x+dx,y-.08,.5,.1,.16,.07,bone);
- }else if(f==='thornband'){
-  const moss='#4a5a3f';
-  s.box(x-.19,y-.18,.72+bob,.38,.36,.2,moss);
-  s.box(x-.19,y-.18,.55+bob,.38,.05,.24,moss);
+  }else if(f==='thornband'){
+   const moss='#4a5a3f';
+   if(s.bakedHead){
+    const [hx,hy,hz,top]=s.bakedHead;
+    // An open cowl rim leaves the baked face exposed, rather than boxing it in.
+    for(const side of [-1,1])beam(s,[hx+side*.14,hy+.1,hz+.04],[hx+side*.12,hy,top-.04],.045,moss);
+    beam(s,[hx-.12,hy,top-.04],[hx+.12,hy,top-.04],.045,moss);
+   }else{
+    s.box(x-.19,y-.18,.72+bob,.38,.36,.2,moss);
+    s.box(x-.19,y-.18,.55+bob,.38,.05,.24,moss);
+   }
  }else if(f==='cinder-clan'){
   for(const dx of [-.28,.16])s.box(x+dx,y-.09,.4,.11,.19,.1,'#3a3d3f');
  }else if(f==='ember-legion'){
@@ -261,7 +268,7 @@ function enemyRoleSilhouette(s,u,x,y,bob,detail,coat){
   s.box(x-.055,y+.14,.53,.18,.08,.16,brass);
   if(detail)s.box(x-.22,y-.18,.33,.07,.15,.33,leather);
  }
- if(u.role==='scout'&&detail){
+  if(u.role==='scout'){
   s.box(x-.28,y-.16,.36,.09,.28,.2,leather);
   s.box(x-.3,y+.06,.43,.12,.04,.09,coat);
  }
@@ -362,38 +369,49 @@ export function characterModel(s,u,data,time,enemy=false){
   const channel=/pick/.test(u.gear)?'pick':/axe/.test(u.gear)?'chop':/hammer|tongs/.test(u.gear)?'hammer':/sickle|scythe/.test(u.gear)?'rustle':null;
   if(channel)lift=strikeLift(workPhase(post,channel,time))*.18;
  }
- const baked=bakedBodyFor(s,u,data,enemy,gait);
+  const baked=bakedBodyFor(s,u,data,enemy,gait);
   if(baked){
-   drawMesh(s,baked.mesh,x,y,{});
+    // The selected low LOD is already budgeted: area cropping loses face/limbs at 1x.
+    for(const f of baked.mesh.faces)s.face(f.v.map(([vx,vy,vz])=>[x+vx,y+vy,vz]),f.c);
    if(!enemy){
     const {head,hand}=baked.mesh.meta?.anchors||{};
-    // Follow the pose anchors instead of overlaying the procedural arms/head.
+     const top=meshBounds(baked.mesh).z1;
+     // Broad front/back cloth panels carry the data color even at far gameplay zoom.
+     if(head){
+      const color=professionColor||coat,hz=head[2],bottom=hat==='robe'?.15:.29;
+      for(const side of [-1,1]){
+       const panel=[[x-.14,y+head[1]+side*.23,bottom],[x+.14,y+head[1]+side*.23,bottom],[x+.17,y+head[1]+side*.16,hz-.08],[x-.17,y+head[1]+side*.16,hz-.08]];
+       s.face(side>0?panel.reverse():panel,color,false);
+      }
+      if(hat==='apron')s.face([[x-.08,y+head[1]+.18,hz-.12],[x+.08,y+head[1]+.18,hz-.12],[x+.1,y+head[1]+.245,.24],[x-.1,y+head[1]+.245,.24]],'#d3b58b',false);
+      else if(role==='builder')s.box(x-.18,y+head[1]+.23,.3,.36,.035,.08,leather);
+     }
+     // Sleeves and cuffs follow the moving palm.
     if(professionColor&&hand&&head)beam(s,
      [x+hand[0],y+hand[1],hand[2]+.06],
      [x+hand[0]*.65+head[0]*.35,y+hand[1]*.65+head[1]*.35,hand[2]*.65+head[2]*.35+.06],.11,professionColor);
     if(hat==='lamp'&&head){
-     s.box(x+head[0]-.1,y+head[1]-.07,head[2]+.13,.2,.14,.045,'#86754f');
+      roundedHead(s,x+head[0],y+head[1],top+.015,.055,.16,.14,'#86754f');
      const emissive=s.emissive;s.emissive=.7;
-     s.box(x+head[0]-.045,y+head[1]+.065,head[2]+.13,.09,.04,.06,'#f6df9a');s.emissive=emissive;
+      s.box(x+head[0]-.045,y+head[1]+.14,top+.015,.09,.04,.06,'#f6df9a');s.emissive=emissive;
     }
     if(head&&hat!=='lamp'){
-     const hx=x+head[0],hy=y+head[1],hz=head[2];
+      const hx=x+head[0],hy=y+head[1],hz=top-.23;
      if(hat==='crest'){
       s.box(hx-.025,hy-.045,hz+.32,.05,.09,.15,brass);
       s.box(hx-.08,hy-.045,hz+.45,.16,.09,.04,'#b76053');
-     }else if(hat==='helmet')s.box(hx-.13,hy-.13,hz+.28,.26,.26,.045,metal);
+      }else if(hat==='helmet')roundedHead(s,hx,hy,top+.015,.055,.17,.15,metal);
      else if(hat==='hood'||hat==='robe'){
-      s.box(hx-.15,hy-.14,hz+.24,.3,.28,.07,coat);
-      s.pyramid(hx,hy,hz+.31,.13,.12,coat);
+       for(const side of [-1,1])beam(s,[hx+side*.15,hy+.1,head[2]+.04],[hx+side*.12,hy,top+.025],.045,coat);
+       beam(s,[hx-.12,hy,top+.025],[hx+.12,hy,top+.025],.045,coat);
      }else{
-      s.box(hx-.12,hy-.11,hz+.28,.24,.22,.07,hat==='straw'?'#d6bb78':coat);
-      if(hat==='straw')s.box(hx-.22,hy-.2,hz+.25,.44,.4,.035,'#cbb176');
+       roundedHead(s,hx,hy,top+.025,.07,.14,.13,hat==='straw'?'#d6bb78':coat);
+       if(hat==='straw')roundedHead(s,hx,hy,top+.01,.025,.25,.22,'#cbb176');
       if(hat==='goggles'){
        for(const dx of [-.1,.025])s.box(hx+dx,hy+.13,hz+.16,.075,.035,.055,'#c7d6d6');
        s.box(hx-.025,hy+.135,hz+.18,.05,.025,.025,leather);
       }
      }
-     if(hat==='apron')s.box(hx-.1,hy+.14,hz-.28,.2,.03,.25,'#d3b58b');
     }
    }
   }
@@ -443,17 +461,35 @@ export function characterModel(s,u,data,time,enemy=false){
  const toolAngle=s.r.calm||bow?0:attack?-1.1*Math.min(1,u.animation/.4):lift*4.2;
  const item=/cart/.test(gear)&&!s.r.calm?{...data.items[gear],wheelAngle:-gait.distance/.065}:bow&&!s.r.calm&&u.attackTimer>0&&u.attackTimer<.18?{...data.items[gear],draw:1-u.attackTimer/.18}:data.items[gear];
   const hand=baked?.mesh.meta?.anchors?.hand,toolScene=pivotMesh(s,[x+.24,y,.34],toolAngle);
-  if(hand){
-   // Rotate around the baked palm, not the old procedural grip.
-   const anchored=Object.create(s);
-   anchored.face=(vertices,color,split=true)=>s.face(vertices.map(([vx,vy,vz])=>[vx+hand[0]-.24,vy+hand[1],vz+hand[2]-.34]),color,split);
-   equipment(pivotMesh(anchored,[x+.24,y,.34],toolAngle),gear,item,x,y,0,detail);
+   if(hand){
+    // Rotate around the baked palm, not the old procedural grip.
+    const anchored=Object.create(s);
+    anchored.face=(vertices,color,split=true)=>s.face(vertices.map(([vx,vy,vz])=>[vx+hand[0]-.24,vy+hand[1],vz+hand[2]-.34]),color,split);
+    // A fixed outward cant separates the tool without moving its grip off the palm.
+    equipment(pivotMesh(anchored,[x+.24,y,.34],toolAngle-.25),gear,item,x,y,0,detail);
   }else equipment(toolScene,gear,item,x,y,0,detail);
-  if(enemy){enemyRoleSilhouette(s,u,x,y,bob,detail,coat);
+   if(enemy){
+    let overlay=s,roleOverlay=s;
+    if(baked){
+     const {head,hand}=baked.mesh.meta.anchors,bounds=meshBounds(baked.mesh);
+     const top=bounds.z1,width=bounds.x1-bounds.x0;
+     overlay=Object.create(s);
+     overlay.bakedHead=[x+head[0],y+head[1],head[2],top];
+     // Preserve role profiles, fitted to this pose's palm, neck and head envelope.
+     overlay.face=(v,c,split=true)=>s.face(v.map(([vx,vy,vz])=>{
+      return [x+(vx-x)*width/.56+head[0],vy+head[1],vz<=.56?vz*head[2]/.56:head[2]+(vz-.56)*(top-head[2])/.32];
+     }),c,split);
+     roleOverlay=overlay;
+     if(u.role==='ram'||u.role==='bombard'){
+      roleOverlay=Object.create(s);
+      roleOverlay.face=(v,c,split=true)=>s.face(v.map(([vx,vy,vz])=>[vx+hand[0],vy+hand[1],vz+hand[2]-.34]),c,split);
+     }
+    }
+    enemyRoleSilhouette(roleOverlay,u,x,y,bob,detail,coat);
    // Baked skeletons skip the bone-face/rib overlay: it is authored for the
    // procedural skull and cannot sit on the baked anatomy. The pale bone bake
    // and role gear carry the read; baked human factions keep their overlay.
-   if(!baked||baked.setId!=='skeleton')factionSilhouette(s,u,x,y,bob,detail);
+    if(!baked||baked.setId!=='skeleton')factionSilhouette(baked&&u.faction==='thornband'?Object.assign(Object.create(s),{bakedHead:overlay.bakedHead}):overlay,u,x,y,bob,detail);
   }
   if(!baked&&/bow/.test(gear)){
    s.box(x-.13,y-.21,.3,.14,.09,.34,leather);

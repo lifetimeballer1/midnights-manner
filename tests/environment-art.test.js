@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {Renderer} from '../src/renderer.js';
 import {MeshScene} from '../src/scene3d.js';
-import {sceneryForTile,occupiedTileKeys,sceneryPlan,addEnvironmentScenery} from '../src/environment-art.js';
+import {sceneryForTile,occupiedTileKeys,sceneryPlan,addEnvironmentScenery,drawProp} from '../src/environment-art.js';
 
 const data=Object.fromEntries(await Promise.all(
  ['world','buildings','biomes'].map(async n=>[n,JSON.parse(await readFile(new URL(`../data/${n}.json`,import.meta.url)))])
@@ -55,4 +55,21 @@ test('terrain cache exposes claim count so mesh scenery refreshes after expansio
  const a=r.staticCacheKey(world);assert.equal(r.claimedTileCount,1);
  world.tiles[1].claimed=true;const b=r.staticCacheKey(world);
  assert.equal(r.claimedTileCount,2);assert.notEqual(a,b);
+});
+
+test('wild small props form bounded static masses while claimed props stay sparse',()=>{
+ const r=new Renderer({getContext:()=>({})},data,{});r.resize(1280,900,1);r.cam.zoom=1.65;
+ for(const [kind,biome] of [['shrub','forest'],['grass','plains'],['reeds','water'],['rock','hills'],['stone','plains']]){
+  for(const x of [3,7,12]){
+   const item={x,y:4,kind,biome},render=claimed=>{
+    const s=new MeshScene(r);drawProp(s,{...item,claimed},11,false,r.cam.zoom);return s.faces;
+   };
+   const claimed=render(true),wild=render(false);
+   assert.ok(wild.length>claimed.length&&wild.length<=180,`${kind} has a bounded local group`);
+   assert.ok(Math.max(...wild.flatMap(f=>f.vertices.map(v=>v[2])))>Math.max(...claimed.flatMap(f=>f.vertices.map(v=>v[2]))),`${kind} main form is more visible`);
+   for(const f of wild)for(const [vx,vy,vz] of f.vertices)assert.ok(vx>=x&&vx<=x+1&&vy>=4&&vy<=5&&vz>=0,`${kind} stays inside its unoccupied tile`);
+   r.calm=true;r.anim=9000;assert.deepEqual(render(false),wild);r.calm=false;
+   assert.deepEqual(render(true),claimed,'claimed center geometry is unchanged');
+  }
+ }
 });

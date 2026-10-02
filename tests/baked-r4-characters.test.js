@@ -65,11 +65,11 @@ test('r4 retains verified staged-source hashes and CC0 provenance', async () => 
 
 function render(type, gear, time = 0, options = {}) {
   const r = new Renderer({getContext: () => ({})}, options.data || data, {});
-  r.cam.x = 0; r.cam.y = 0; r.cam.zoom = 1.65; r.cam.yaw = Math.PI / 4;
+  r.cam.x = 0; r.cam.y = 0; r.cam.zoom = options.zoom ?? 1.65; r.cam.yaw = options.yaw ?? Math.PI / 4;
   r.calm = true; r.meshes = options.meshes || meshes;
   const s = new MeshScene(r), raw = [], face = s.face;
   s.face = (v, c, split) => {raw.push({v, c, emissive: s.emissive}); return face.call(s, v, c, split);};
-  characterModel(s, {id: 'r4', type, gear, hp: 100, x: 0, y: 0, attackTimer: .1}, options.data || data, time);
+  characterModel(s, {id: 'r4', type, gear, hp: 100, x: 0, y: 0, attackTimer: .1, ...options.unit}, options.data || data, time, options.enemy === true);
   return {raw, faces: s.faces};
 }
 
@@ -77,7 +77,7 @@ test('r4 held shaft reaches the baked hand, miner lamp emits, and Calm freezes',
   const anchor = meshes['warrior-attack-lo'].meta.anchors?.hand;
   assert.ok(anchor, 'baked hand available');
   const armed = render('warrior', 'sword'), bare = render('warrior', '');
-  const equipment = armed.raw.slice(bare.raw.length);
+  const equipment = armed.raw.slice(bare.raw.length).filter(f => f.c === '#987046');
   assert.ok(equipment.flatMap(f => f.v).some(p => Math.hypot(...p.map((v, i) => v - anchor[i])) < .06), 'sword grip is in the baked palm');
   assert.ok(render('miner', 'pickaxe').raw.some(f => f.c === '#f6df9a' && f.emissive >= .7), 'baked miner lamp');
   assert.deepEqual(render('miner', 'pickaxe', 100).faces, render('miner', 'pickaxe', 3000).faces);
@@ -90,6 +90,10 @@ test('r4 baked professions retain data-colored accents and distinct work headwea
   const shape = type => JSON.stringify(render(type, '').raw.map(f => f.v));
   assert.notEqual(shape('farmer'), shape('builder'), 'straw brim versus work cap');
   assert.notEqual(shape('builder'), shape('haggler'), 'builder apron versus merchant cap');
+  for (const zoom of [1,1.65]) for (const yaw of [Math.PI/4,5*Math.PI/4]) {
+    const shown = render('farmer','',0,{zoom,yaw}).faces;
+    assert.ok(shown.some(f => f.color === data.troops.farmer.color && f.vertices.length === 4), 'outward cloth panel survives view culling');
+  }
 });
 
 test('r4 disabled, missing and empty pose meshes silently use procedural fallback', () => {
@@ -99,4 +103,45 @@ test('r4 disabled, missing and empty pose meshes silently use procedural fallbac
   assert.deepEqual(render('warrior', 'sword', 0, {data: disabled}).faces, missing);
   assert.deepEqual(render('warrior', 'sword', 0, {meshes: {'warrior-attack-lo': {faces: []}}}).faces, missing);
   assert.ok(missing.length > 0 && missing.length < 160);
+});
+
+test('r4 composed enemy factions and roles attach to baked anatomy at gameplay zoom and freeze', () => {
+  const factions = {'thornband':'human-thornband','cinder-clan':'human-cinder','ember-legion':'human-ember','pale-host':'skeleton','pale-court':'skeleton'};
+  for (const [faction, set] of Object.entries(factions)) for (const zoom of [1, 1.65]) {
+    const shapes = new Set();
+    for (const role of ['raider','scout','archer','breaker','ram','bombard','boss']) {
+      const unit = {faction, role, elite: role === 'raider', bossId: faction === 'cinder-clan' ? 'cinder-maul' : 'pale-queen'};
+      const options = {enemy:true, zoom, unit};
+      const rendered = render('enemy', '', 100, options);
+      assert.ok(rendered.faces.length > 0, `${faction} ${role}`);
+      assert.deepEqual(rendered.faces, render('enemy', '', 3000, options).faces, `${faction} ${role} Calm`);
+      shapes.add(JSON.stringify(rendered.raw.map(f => f.v)));
+      if (['raider','scout','archer','breaker'].includes(role)) {
+        const hand = meshes[`${set}-attack-lo`].meta.anchors.hand;
+        const tool = rendered.raw.slice(meshes[`${set}-attack-lo`].faces.length).filter(f => f.c === '#987046');
+        assert.ok(tool.flatMap(f => f.v).some(p => Math.hypot(...p.map((v,i) => v-hand[i])) < .08), `${faction} ${role} palm attachment`);
+      }
+    }
+    assert.equal(shapes.size, 7, `${faction} role profiles below detail cutoff`);
+  }
+});
+
+test('r4 siege roles keep faction armor on anatomy rather than the carried frame', () => {
+  for (const [faction,color] of [['cinder-clan','#3a3d3f'],['ember-legion','#b6402e']]) {
+    const cue = role => render('enemy','',0,{enemy:true,unit:{faction,role}}).raw.filter(f => f.c === color);
+    assert.ok(cue('raider').length > 0);
+    for(const role of ['ram','bombard'])assert.deepEqual(cue(role),cue('raider'),`${faction} ${role} anatomy attachment`);
+  }
+});
+
+test('r4 fitted Thornband cowl follows head anchors and selected pose bounds', () => {
+  const key = 'human-thornband-attack-lo', mesh = structuredClone(meshes[key]);
+  const original = render('enemy','',0,{enemy:true,unit:{faction:'thornband',role:'scout'}});
+  const delta = [.04,.06,.03];
+  mesh.meta.anchors.head = mesh.meta.anchors.head.map((v,i) => v+delta[i]);
+  mesh.faces.forEach(f => f.v.forEach(p => {p[2] += delta[2];}));
+  const moved = render('enemy','',0,{enemy:true,unit:{faction:'thornband',role:'scout'},meshes:{...meshes,[key]:mesh}});
+  const cowl = raw => raw.filter(f => f.c === '#4a5a3f').flatMap(f => f.v);
+  assert.ok(cowl(original.raw).length > 0);
+  cowl(original.raw).forEach((p,j) => p.forEach((v,i) => assert.ok(Math.abs(cowl(moved.raw)[j][i]-v-delta[i]) < 1e-8)));
 });

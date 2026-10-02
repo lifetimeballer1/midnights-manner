@@ -218,7 +218,7 @@ def kaykit_pose(glb, name, fraction):
 
 
 def bake_pose(glb, clip_name, fraction, texture, debug=False, exclude_nodes=(), tint=None,
-              tint_strength=0.0):
+              tint_strength=0.0, monk=False):
     authored = clip_name.startswith('KayKit_')
     if authored:
         duration = time = 0.0
@@ -231,6 +231,7 @@ def bake_pose(glb, clip_name, fraction, texture, debug=False, exclude_nodes=(), 
         overrides = sample_animation(glb, clip, time)
     world = world_matrices(glb, overrides)
     triangles = []
+    parts = {}
     stats = {'skinned': 0, 'rigid': 0}
     for node_index, node in enumerate(glb.doc['nodes']):
         if 'mesh' not in node:
@@ -266,6 +267,17 @@ def bake_pose(glb, clip_name, fraction, texture, debug=False, exclude_nodes=(), 
             # glTF right-handed Y-up -> game right-handed Z-up (matches
             # scripts/convert-external-assets.py: x, -z, y).
             positions = np.c_[positions[:, 0], -positions[:, 2], positions[:, 1]]
+            if monk and node.get('name') in ('Barbarian_Head', 'Barbarian_BearHat'):
+                head = next(i for i, n in enumerate(glb.doc['nodes']) if n.get('name') == 'head')
+                p = world(head)[:3, 3]
+                pivot = np.array([p[0], -p[2], p[1]])
+                # Keep the neck at the rig pivot; taper into a narrower face and
+                # still narrower hat so the skin plane is not buried in fur.
+                blend = np.clip((positions[:, 2] - pivot[2]) / .18, 0, 1)
+                width, depth = (.72, .85) if node['name'] == 'Barbarian_Head' else (.62, .62)
+                positions[:, :2] = pivot[:2] + (positions[:, :2] - pivot[:2]) * (
+                    1 - blend[:, None] * (1 - np.array([width, depth])))
+                positions[:, 2] = pivot[2] + (positions[:, 2] - pivot[2]) * (1 - .28 * blend)
             if debug:
                 low, high = positions.min(axis=0), positions.max(axis=0)
                 print('  node %-18s %s bbox %s .. %s' % (
@@ -293,13 +305,18 @@ def bake_pose(glb, clip_name, fraction, texture, debug=False, exclude_nodes=(), 
                     # keeps the pack's shape but reads the faction color.
                     color = color * (1.0 - tint_strength) + np.asarray(tint, dtype=np.float64) * tint_strength
                 triangles.append((positions[face], color))
+                if monk:
+                    part = node['name']
+                    if part == 'Barbarian_Head' and color[0] - color[2] > 10:
+                        part = 'Barbarian_Face'
+                    parts.setdefault(part, []).append(len(triangles) - 1)
     anchors = {}
     for node_index, node in enumerate(glb.doc['nodes']):
         key = {'handslot.l': 'hand', 'head': 'head'}.get(node.get('name'))
         if key:
             p = world(node_index)[:3, 3]
             anchors[key] = np.array([p[0], -p[2], p[1]])
-    return {'triangles': triangles, 'anchors': anchors, 'authored': authored,
+    return {'triangles': triangles, 'parts': parts, 'anchors': anchors, 'authored': authored,
             'clip': clip_name, 'fraction': fraction,
             'time': time, 'duration': duration, 'stats': stats}
 
@@ -432,6 +449,28 @@ def normalize(poses, target_height):
     return scale, height
 
 
+def simplify_monk(pose, max_faces):
+    # The staged source has overlapping part joins. Reducing each named part
+    # protects the neck/face and paired limbs from whole-body collapse at lo LOD.
+    weights = {'Barbarian_ArmLeft': 16, 'Barbarian_ArmRight': 16,
+               'Barbarian_BearHat': 24, 'Barbarian_Body': 38,
+               'Barbarian_Head': 22, 'Barbarian_Face': 24,
+               'Barbarian_LegLeft': 14, 'Barbarian_LegRight': 14}
+    triangles = []
+    cell = 0.0
+    for name, indices in pose['parts'].items():
+        budget = int((max_faces - 12) * weights[name] / sum(weights.values()))
+        vertices, faces, part_cell = simplify_and_cap(
+            [pose['triangles'][i] for i in indices], budget + 12)
+        cell = max(cell, part_cell)
+        faces = finish(vertices, faces, budget)
+        triangles.extend((np.asarray(vertices)[face], color) for face, color in faces)
+    flat = np.array([points for points, _ in triangles]).reshape(-1, 3)
+    vertices, inverse = np.unique(np.round(flat, 4), axis=0, return_inverse=True)
+    faces = list(zip(inverse.reshape(-1, 3), [color for _, color in triangles]))
+    return vertices, finish(vertices, faces, max_faces), cell
+
+
 def used_bounds(vertices, faces):
     used = np.unique([index for indices, _ in faces for index in indices])
     points = np.asarray(vertices, dtype=np.float64)[used]
@@ -469,6 +508,8 @@ def write_mesh(path, pose, meta, vertices, faces, cell):
             for indices, color in faces
         ],
     }
+    if meta.get('anatomy'):
+        document['meta']['anatomy'] = meta['anatomy']
     Path(path).write_text(json.dumps(document, separators=(',', ':')))
     points = np.array([v for face in document['faces'] for v in face['v']])
     print('wrote %-28s %4d faces  height %.3f  grounded %.4f' % (
@@ -523,7 +564,7 @@ def main():
         if args.debug:
             print('baking %s = %s @ %s' % (name, clip, fraction))
         baked = bake_pose(glb, clip, float(fraction), texture, args.debug,
-                          exclude_nodes, tint, args.tint_strength)
+                          exclude_nodes, tint, args.tint_strength, monk=args.prefix == 'monk')
         baked['name'] = name
         poses.append(baked)
 
@@ -558,9 +599,17 @@ def main():
         'color_floor': args.color_floor,
         'source_sha256': hashlib.sha256(Path(args.glb).read_bytes()).hexdigest(),
     }
+    if args.prefix == 'monk':
+        meta['anatomy'] = {
+            'head_width_scale': .72, 'head_depth_scale': .85,
+            'hat_width_scale': .62, 'hat_depth_scale': .62,
+            'upper_head_height_scale': .72, 'neck_taper_source_units': .18,
+            'simplification': 'named source parts with separate skin-face budget',
+        }
     # Simplify each pose, then refit them all with one shared scale taken from
     # the stand pose so poses stay consistent and exactly tile-scaled.
-    built = [(pose,) + simplify_and_cap(pose['triangles'], args.max_faces) for pose in poses]
+    built = [(pose,) + (simplify_monk(pose, args.max_faces) if args.prefix == 'monk'
+                       else simplify_and_cap(pose['triangles'], args.max_faces)) for pose in poses]
     stand_low, stand_high = used_bounds(built[0][1], built[0][2])
     refit = args.target_height / (stand_high[2] - stand_low[2])
     print('simplified stand height %.4f -> refit %.4f' % (stand_high[2] - stand_low[2], refit))
