@@ -103,6 +103,24 @@ export function sceneryPlan(world,data){
   const prop=sceneryForTile(data.biomes,tile,seed);
   if(prop)out.push({...prop,x:tile.x,y:tile.y,claimed:tile.claimed===true});
  }
+ // A few tree/log habitats own a shared 2x2 drift; each member still costs
+ // one scenery slot and stays within its eligible, unoccupied tile.
+ const tiles=new Map(world.tiles.map(t=>[t.x+','+t.y,t])),items=new Map(out.map(p=>[p.x+','+p.y,p])),groups=new Set();
+ for(const anchor of [...out]){
+  if(anchor.claimed||anchor.biome!=='unclaimed-fringe'||!['pine','log'].includes(anchor.kind))continue;
+  const gx=Math.floor(anchor.x/2)*2,gy=Math.floor(anchor.y/2)*2,clusterSeed=hash2(gx,gy,seed+1291);
+  if(clusterSeed%3||groups.has(gx+','+gy))continue;
+  groups.add(gx+','+gy);
+  for(let y=gy;y<gy+2;y++)for(let x=gx;x<gx+2;x++){
+   const key=x+','+y,tile=tiles.get(key),existing=items.get(key);
+   if(!tile||tile.claimed===true||tile.landmark||tile.biome!=='unclaimed-fringe'||occupied.has(key))continue;
+   if(existing&&!['shrub','grass','rock','stone'].includes(existing.kind))continue;
+   const item={x,y,kind:clusterSeed%2?'shrub':'rock',biome:tile.biome,claimed:false,clusterSeed,clusterX:gx+1,clusterY:gy+1};
+   const member=existing||item;
+   if(existing){Object.assign(existing,item);out.splice(out.indexOf(existing),1);}else items.set(key,item);
+   out.splice(out.indexOf(anchor)+1,0,member);
+  }
+ }
  return out;
 }
 // G1 scorched-ridge: expedition-only ash theme for ix-ashen-crown.
@@ -266,13 +284,14 @@ function frontierCamp(s,camp,faction){
  s.pyramid(x,y+.02,.08,.11,.22,'#e5a458',5);
 }
 export function drawProp(s,item,seed,scorched=false,zoom=1.8){
- const x=item.x+.5,y=item.y+.5,j=(hash2(item.x+13,item.y+29,seed)%1000)/1000;
+ const grouped=item.clusterSeed!==undefined;
+ const x=item.x+.5+(grouped?Math.sign(item.clusterX-item.x-.5)*.14:0),y=item.y+.5+(grouped?Math.sign(item.clusterY-item.y-.5)*.14:0),j=((item.clusterSeed??hash2(item.x+13,item.y+29,seed))%1000)/1000;
  const scale=.78+j*.35,cold=item.biome==='water',fringe=item.biome==='unclaimed-fringe';
  const ash=scorched===true&&item.biome==='hills',dark=fringe||ash;
- // Wild undergrowth interlocks locally; all three forms stay inside the
- // selected, unoccupied tile and share one scenery-budget slot.
+ // Shared habitat members lean toward their common center, not tile centers.
  if(item.claimed===false&&['shrub','grass','reeds','rock','stone'].includes(item.kind)){
-  for(const [dx,dy,k]of[[-.1,-.12,1.05+j*.2],[.21,.13,.65+j*.18],[-.12,.24,.6+(1-j)*.15]]){
+  const forms=grouped?[[0,0,1.1+j*.15],[-.1,-.08,.65+j*.1]]:[[-.1,-.12,1.05+j*.2],[.21,.13,.65+j*.18],[-.12,.24,.6+(1-j)*.15]];
+  for(const [dx,dy,k]of forms){
    if(item.kind==='shrub')shrub(s,x+dx,y+dy,k,cold,ash,item.biome==='hills',dark);
    else if(item.kind==='grass')grass(s,x+dx,y+dy,k,cold,dark);
    else if(item.kind==='reeds')reeds(s,x+dx,y+dy,k,cold,dark);
@@ -323,7 +342,7 @@ export function addEnvironmentScenery(scene,world,data){
  for(const item of plan){
   if(drawn>=max)break;
   if(zoom<.75&&item.kind!=='landmark')continue;
-  if(zoom<1.2&&item.kind!=='landmark'&&(hash2(item.x,item.y,seed+401)&1))continue;
+  if(zoom<1.2&&item.kind!=='landmark'&&((item.clusterSeed??hash2(item.x,item.y,seed+401))&1))continue;
   const p=r.project(item.x+.5,item.y+.5);
   if(p.x<-100||p.x>r.width+100||p.y<-120||p.y>r.height+80)continue;
   const homeSheet=world.tiles.length===(data?.world?.width||0)*(data?.world?.height||0);

@@ -374,10 +374,15 @@ export function characterModel(s,u,data,time,enemy=false){
     // The selected low LOD is already budgeted: area cropping loses face/limbs at 1x.
     for(const f of baked.mesh.faces)s.face(f.v.map(([vx,vy,vz])=>[x+vx,y+vy,vz]),f.c);
    if(!enemy){
-    const {head,hand}=baked.mesh.meta?.anchors||{};
+     // Local albedo wash preserves midnight cues without changing scene lighting.
+     const wash=s.emissive;s.emissive=Math.max(wash,.35);
+     const {head,hand}=baked.mesh.meta?.anchors||{};
      const top=meshBounds(baked.mesh).z1;
      // Broad front/back cloth panels carry the data color even at far gameplay zoom.
      if(head){
+      s.emissive=Math.max(wash,.95);
+      roundedHead(s,x+head[0],y+head[1]+.12,head[2]+.04,.18,.1,.12,skin);
+      s.emissive=Math.max(wash,.35);
       const color=professionColor||coat,hz=head[2],bottom=hat==='robe'?.15:.29;
       for(const side of [-1,1]){
        const panel=[[x-.14,y+head[1]+side*.23,bottom],[x+.14,y+head[1]+side*.23,bottom],[x+.17,y+head[1]+side*.16,hz-.08],[x-.17,y+head[1]+side*.16,hz-.08]];
@@ -413,6 +418,7 @@ export function characterModel(s,u,data,time,enemy=false){
       }
      }
     }
+     s.emissive=wash;
    }
   }
  else{
@@ -466,7 +472,10 @@ export function characterModel(s,u,data,time,enemy=false){
     const anchored=Object.create(s);
     anchored.face=(vertices,color,split=true)=>s.face(vertices.map(([vx,vy,vz])=>[vx+hand[0]-.24,vy+hand[1],vz+hand[2]-.34]),color,split);
     // A fixed outward cant separates the tool without moving its grip off the palm.
+    const wash=s.emissive;
+    if(!enemy)s.emissive=Math.max(wash,.4);
     equipment(pivotMesh(anchored,[x+.24,y,.34],toolAngle-.25),gear,item,x,y,0,detail);
+    s.emissive=wash;
   }else equipment(toolScene,gear,item,x,y,0,detail);
    if(enemy){
     let overlay=s,roleOverlay=s;

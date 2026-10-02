@@ -3,8 +3,9 @@ import assert from 'node:assert/strict';
 import {readFile, readdir, stat} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {Renderer} from '../src/renderer.js';
-import {MeshScene} from '../src/scene3d.js';
+import {MeshScene, shade} from '../src/scene3d.js';
 import {characterModel} from '../src/character-art.js';
+import {DAY_LENGTH, skyLightAt} from '../src/systems/daynight.js';
 
 const root = new URL('../', import.meta.url);
 const files = (await readdir(new URL('assets/meshes/baked/', root))).filter(f => f.endsWith('.json'));
@@ -103,6 +104,24 @@ test('r4 disabled, missing and empty pose meshes silently use procedural fallbac
   assert.deepEqual(render('warrior', 'sword', 0, {data: disabled}).faces, missing);
   assert.deepEqual(render('warrior', 'sword', 0, {meshes: {'warrior-attack-lo': {faces: []}}}).faces, missing);
   assert.ok(missing.length > 0 && missing.length < 160);
+});
+
+test('r4 night villager lineup separates face, profession cloth and palm-held tools', () => {
+  const nightLight = skyLightAt(DAY_LENGTH * .8, data, {calm:true});
+  const lum = hex => [1,3,5].map(i => parseInt(hex.slice(i,i+2),16)).reduce((n,v,i) => n+v*[.2126,.7152,.0722][i],0);
+  for (const type of ['warrior','archer','farmer','builder','haggler','miner']) for (const zoom of [1,1.65]) for (const yaw of [Math.PI/4,5*Math.PI/4]) {
+    const options = {zoom,yaw}, gear = data.troops[type].defaultGear;
+    const shown = render(type,gear,100,options).faces;
+    const painted = f => shade(f.color,f.normal,nightLight,f.emissive,0,f.ao);
+    const cloth = shown.filter(f => f.color === data.troops[type].color && f.vertices.length === 4);
+    const face = shown.filter(f => ['#dbb38c','#b98c64','#936a50'].includes(f.color));
+    const tool = shown.filter(f => f.color === '#987046');
+    assert.ok(cloth.some(f => lum(painted(f)) >= 45), `${type} ${yaw} night cloth`);
+    assert.ok(face.some(f => lum(painted(f)) >= 65), `${type} ${yaw} night face/neck`);
+    assert.ok(tool.some(f => lum(painted(f)) >= 45), `${type} ${yaw} night tool edge`);
+    assert.ok(Math.max(...face.map(f => lum(painted(f)))) > Math.max(...cloth.map(f => lum(painted(f)))) + 8, `${type} face separates from cloth`);
+    assert.deepEqual(shown,render(type,gear,3000,options).faces,`${type} night Calm freeze`);
+  }
 });
 
 test('r4 composed enemy factions and roles attach to baked anatomy at gameplay zoom and freeze', () => {

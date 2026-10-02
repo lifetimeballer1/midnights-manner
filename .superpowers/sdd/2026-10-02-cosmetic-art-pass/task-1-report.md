@@ -110,3 +110,33 @@ npm run capture
 - `git diff --check`: passed, with existing Windows line-ending warnings only.
 
 No gameplay, balance, troop/biome data, save fields, public renderer exports/signatures, UI or building art changed. Calm remains time-invariant under the tested compositions. A renewed independent visual score is still required: test and capture results do not certify the requested 90+ verdict. Full browser interaction smoke was not run.
+
+## R4 Fix Round 2/5
+
+Date: 2026-10-02
+Status: Both requested renderer fixes implemented and verified.
+Commit message: `art(r4): preserve night villager cues and connect fringe drifts`.
+This appended report is included in the scoped commit. No push performed.
+
+Changes limited to the two required notes in `judge-report-2.md`:
+
+- Friendly baked characters receive a small head-anchor-relative skin face/neck plane and local emissive albedo wash on face, profession panels/headwear and palm-attached tools. The existing shading mechanism leaves day illumination unchanged and requires no global lighting or palette edits. Wash state is restored, including around the retained miner lamp. Enemy and procedural fallback paths remain unchanged.
+- Selected unclaimed-fringe tree/log habitats now share deterministic 2x2 neighboring shrub/rock drifts. Members lean toward a common center and share the seed/scale and medium-LOD decision. Each member occupies its own eligible tile and costs one scenery slot. Members are ordered beside the anchor before cap truncation. Claimed tiles, landmarks and building footprints remain excluded; the 50/85/130 caps and existing biome colors remain unchanged.
+- Added a midnight-shaded lineup regression for warrior, archer, farmer, builder, haggler and miner at 1x/1.65x from front/reverse views. It checks face/neck, cloth and tool luminance, face-versus-cloth separation and Calm freeze. Added a neighboring shared-seed fringe regression checking rendered tile bounds, footprint/claim exclusions, determinism and unchanged world inputs.
+
+Verification:
+
+```sh
+node --test tests/baked-r4-characters.test.js tests/baked-r3.test.js tests/character-art.test.js tests/enemy-silhouettes.test.js tests/building-r4-tiers.test.js tests/terrain-r4-biomes.test.js tests/biomes.test.js tests/environment-art.test.js
+npm test
+npm run build
+git diff --check
+```
+
+- Both new regressions were observed failing before the implementation: missing readable warrior face/neck and missing neighboring shared-seed habitat.
+- Final targeted suites: 68 passed, 0 failed, 0 skipped.
+- Full `npm test`: 1298 passed, 0 failed, 0 skipped.
+- Build: successful, `0.3.0-c1be52e4e44ca7cf`, 763 precached assets.
+- Diff whitespace check passed; Git emitted Windows line-ending warnings only.
+
+Only the two renderer files, their two requested test files and this report are included. No gameplay/data edits, rebakes, export changes, building/UI changes or deployment occurred. No new screenshots, browser interaction run or independent re-judgment was performed; the prior 89/100 score remains the latest verdict, and 90+ is not claimed.

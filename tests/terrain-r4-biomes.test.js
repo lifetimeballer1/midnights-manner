@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {Renderer} from '../src/renderer.js';
 import {MeshScene} from '../src/scene3d.js';
-import {convertedId,drawProp,sceneryForTile,addEnvironmentScenery} from '../src/environment-art.js';
+import {convertedId,drawProp,sceneryForTile,sceneryPlan,addEnvironmentScenery} from '../src/environment-art.js';
 import {addWindLife} from '../src/wind-art.js';
 import {drawMesh} from '../src/asset-art.js';
 
@@ -104,4 +104,28 @@ test('r4 static terrain is calm-safe and shares the unchanged scene caps',()=>{
   const wind=new MeshScene(r);addWindLife(wind,world,1000);addWindLife(wind,world,9000);assert.equal(wind.faces.length,0);
  }
  assert.equal(JSON.stringify(world),before,'terrain does not alter saves or gameplay');
+});
+
+test('r4 unclaimed fringe shares habitat drifts across neighboring eligible tiles',()=>{
+ const tiles=[];
+ for(let y=0;y<12;y++)for(let x=0;x<12;x++)tiles.push({x,y,biome:'unclaimed-fringe',claimed:x===5&&y===5});
+ const world={tiles,buildings:[{type:'cottage',x:6,y:6}],biomeSeed:11},before=JSON.stringify(world);
+ const plan=sceneryPlan(world,data),groups=new Map();
+ for(const item of plan.filter(p=>p.clusterSeed!==undefined)){
+  const key=item.clusterSeed;
+  if(!groups.has(key))groups.set(key,[]);
+  groups.get(key).push(item);
+  assert.ok(!item.claimed&&!(item.x===5&&item.y===5),'claimed route stays open');
+  assert.ok(!(item.x>=6&&item.x<6+data.buildings.cottage.size&&item.y>=6&&item.y<6+data.buildings.cottage.size),'footprint excluded');
+ }
+ const cluster=[...groups.values()].find(g=>g.some(a=>g.some(b=>Math.abs(a.x-b.x)+Math.abs(a.y-b.y)===1)));
+ assert.ok(cluster,'a shared seed produces neighboring habitat patches');
+ const r=renderer();
+ for(const item of cluster){
+  const s=new MeshScene(r);drawProp(s,item,11,false,1.65);
+  assert.ok(s.faces.length>0);
+  assert.ok(s.faces.flatMap(f=>f.vertices).every(([x,y])=>x>=item.x&&x<=item.x+1&&y>=item.y&&y<=item.y+1),'members remain in eligible tiles');
+ }
+ assert.deepEqual(sceneryPlan(world,data),plan,'static seed stability');
+ assert.equal(JSON.stringify(world),before);
 });
