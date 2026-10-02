@@ -260,6 +260,119 @@
         "creator": "Quaternius"
       },
       "sourceSHA256": "e8d38b0e194e2d5a0c081fe7944fe4c9dde95cc85f99b7fe9eade993af956eda"
+    },
+    {
+      "id": "quaternius-rpg-characters",
+      "name": "LowPoly RPG Characters (Warrior, Ranger, Rogue, Wizard, Cleric, Monk)",
+      "creator": "Quaternius",
+      "source": "OpenGameArt",
+      "originalPage": "https://opengameart.org/content/lowpoly-rpg-characters",
+      "license": "CC0-1.0",
+      "licenseURL": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Made by Quaternius (CC0); adapted for Midnights Manner. Attribution voluntary.",
+      "sourceFile": "scripts/dev-rig/sources/Quaternius_RPG_Characters_License.txt",
+      "downloadURL": "https://opengameart.org/sites/default/files/rpg_characters_-_nov_2020.zip",
+      "localFiles": [
+        "scripts/dev-rig/bake_poses.py",
+        "scripts/dev-rig/rebuild_baked_r3.py",
+        "scripts/dev-rig/sources/Quaternius_RPG_Characters_License.txt"
+      ],
+      "modifications": [
+        "FBX armature and actions converted to GLB with FBX2glTF v0.9.7",
+        "animation channels sampled at fixed clip fractions and CPU linear-blend skinned offline",
+        "weapon mesh nodes excluded at bake time (the gear system draws weapons)",
+        "texture sampled per triangle and quantized to a shared flat palette",
+        "quadric-decimated to hi 260 / lo 110 face budgets, grounded at 1.1 tiles",
+        "glTF Y-up converted to game Z-up (x, -z, y)",
+        "no runtime glTF, texture, skin or animation loader is added",
+        "poses: stand Idle@0.0, walk-a Walk@0.0, walk-b Walk@0.5, attack class clip@0.45"
+      ],
+      "gameSystems": [
+        "baked villager pose bodies (R3 role groups)"
+      ],
+      "verifiedDate": "2026-10-01",
+      "licenseEvidence": {
+        "pageLabel": "CC0 1.0",
+        "creator": "Quaternius",
+        "includedRestrictions": "None; public-domain CC0 source listing (License.txt in the pack zip)."
+      },
+      "sourceSHA256": "5399e0cfaf313ff362455de4086488d093465434b1b93b0ced649f3773a15fd7"
+    },
+    {
+      "id": "quaternius-animated-monster-pack",
+      "name": "Animated Monster Pack (Skeleton)",
+      "creator": "Quaternius",
+      "source": "OpenGameArt",
+      "originalPage": "https://opengameart.org/content/lowpoly-animated-monsters",
+      "license": "CC0-1.0",
+      "licenseURL": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Made by Quaternius (CC0); adapted for Midnights Manner. Attribution voluntary.",
+      "sourceFile": "scripts/dev-rig/sources/Quaternius_Animated_Monster_Pack_License.txt",
+      "downloadURL": "https://opengameart.org/sites/default/files/Animated%20Monster%20Pack%20by%20%40Quaternius.zip",
+      "localFiles": [
+        "scripts/dev-rig/bake_poses.py",
+        "scripts/dev-rig/rebuild_baked_r3.py",
+        "scripts/dev-rig/sources/Quaternius_Animated_Monster_Pack_License.txt"
+      ],
+      "modifications": [
+        "FBX armature and actions converted to GLB with FBX2glTF v0.9.7",
+        "animation channels sampled at fixed clip fractions and CPU linear-blend skinned offline",
+        "weapon mesh nodes excluded at bake time (the gear system draws weapons)",
+        "texture sampled per triangle and quantized to a shared flat palette",
+        "quadric-decimated to hi 260 / lo 110 face budgets, grounded at 1.1 tiles",
+        "glTF Y-up converted to game Z-up (x, -z, y)",
+        "no runtime glTF, texture, skin or animation loader is added",
+        "poses: stand Skeleton_Idle@0.0, walk Skeleton_Running@0.0/0.5, attack Skeleton_Attack@0.45",
+        "pale-bone faction tint applied to the flat material at bake time"
+      ],
+      "gameSystems": [
+        "baked Pale Host / Pale Court enemy pose bodies (R3)"
+      ],
+      "verifiedDate": "2026-10-01",
+      "licenseEvidence": {
+        "pageLabel": "CC0 1.0",
+        "creator": "Quaternius",
+        "includedRestrictions": "None; public-domain CC0 source listing (License.txt in the pack zip)."
+      },
+      "sourceSHA256": "acab2bddc5939f9b1b92c930507d73e0fd80037a39631cf2049bb6cfcaec1acd"
+    },
+    {
+      "id": "quaternius-animated-human",
+      "name": "Animated Human Low Poly",
+      "creator": "Quaternius",
+      "source": "OpenGameArt",
+      "originalPage": "https://opengameart.org/content/animated-human-low-poly",
+      "license": "CC0-1.0",
+      "licenseURL": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Made by Quaternius (CC0); adapted for Midnights Manner. Attribution voluntary.",
+      "sourceFile": "scripts/dev-rig/sources/Quaternius_Animated_Human_License.txt",
+      "downloadURL": "https://opengameart.org/sites/default/files/Animated%20Human%20by%20%40Quaternius_0.zip",
+      "localFiles": [
+        "scripts/dev-rig/bake_poses.py",
+        "scripts/dev-rig/rebuild_baked_r3.py",
+        "scripts/dev-rig/sources/Quaternius_Animated_Human_License.txt"
+      ],
+      "modifications": [
+        "FBX armature and actions converted to GLB with FBX2glTF v0.9.7",
+        "animation channels sampled at fixed clip fractions and CPU linear-blend skinned offline",
+        "weapon mesh nodes excluded at bake time (the gear system draws weapons)",
+        "texture sampled per triangle and quantized to a shared flat palette",
+        "quadric-decimated to hi 260 / lo 110 face budgets, grounded at 1.1 tiles",
+        "glTF Y-up converted to game Z-up (x, -z, y)",
+        "no runtime glTF, texture, skin or animation loader is added",
+        "poses: stand Idle@0.0, walk Walk@0.0/0.5, attack Punch@0.4",
+        "one flat faction tint per enemy faction applied at bake time (Thornband moss, Cinder soot, Ember red)"
+      ],
+      "gameSystems": [
+        "baked Thornband / Cinder Clan / Ember Legion enemy pose bodies (R3)"
+      ],
+      "verifiedDate": "2026-10-01",
+      "licenseEvidence": {
+        "pageLabel": "CC0 1.0",
+        "creator": "Quaternius",
+        "includedRestrictions": "None; public-domain CC0 source listing (License.txt in the pack zip)."
+      },
+      "sourceSHA256": "dcd72162b5e59495efc629fb624d9e1deb12124b68291ad4fa3ce66b4fc24db3"
     }
   ],
   "skipped": [

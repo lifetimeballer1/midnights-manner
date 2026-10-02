@@ -14,6 +14,32 @@ All seven integrated models are **Quaternius, CC0 1.0**, individually verified o
 
 Six props share Quaternius's Medieval Village Pack visual language. The rock uses the same artist's simple faceted style. Buildings retain their original tier silhouettes, chimneys, source lights, moving doors and working mechanisms. No downloaded character rig, static cart or complete building replaces those systems.
 
+## Baked rigged characters (R3)
+
+Ten offline-baked pose sets from three **Quaternius, CC0 1.0** packs supply the R3 real-geometry pass. Each set is stand / walk-a / walk-b / attack at two face budgets (hi 260, lo 110), written to `assets/meshes/baked/<set>-<pose>-<hi|lo>.json` (80 files, 1.31 MiB). They render through the existing flat-face Canvas path; no runtime glTF, texture, skin or animation loader is added. Weapon mesh nodes are excluded at bake time because the game's gear system draws held tools; enemy sets receive a flat faction tint wash in the baker. The procedural body remains the automatic fallback when a set is disabled, missing, unknown or beyond the lo LOD. Provenance, source zip SHA-256 values and the exact clip/fraction choices live in `data/external_assets.json`.
+
+| Set | Pack (CC0 1.0) | Clips baked (fraction) | Poses × LODs | In-game consumers |
+| --- | --- | --- | --- | --- |
+| Warrior | LowPoly RPG Characters | Idle 0.0, Walk 0.0, Walk 0.5, Sword_Attack 0.45 | 4 × 2 | fighters: warrior, warden, pikewoman, halberdier, oathsworn, squire |
+| Ranger | LowPoly RPG Characters | Idle 0.0, Walk 0.0, Walk 0.5, Bow_Attack_Shoot 0.45 | 4 × 2 | archers/rangers: archer, ranger, longbowman |
+| Rogue | LowPoly RPG Characters | Idle 0.0, Walk 0.0, Walk 0.5, Dagger_Attack 0.45 | 4 × 2 | scouts/light: scout |
+| Wizard | LowPoly RPG Characters | Idle 0.0, Walk 0.0, Walk 0.5, Staff_Attack 0.45 | 4 × 2 | scholars/robes: scholar, chorister, tidecaller |
+| Cleric | LowPoly RPG Characters | Idle 0.0, Walk 0.0, Walk 0.5, Staff_Attack 0.45 | 4 × 2 | healers: healer |
+| Monk | LowPoly RPG Characters | Idle 0.0, Walk 0.0, Walk 0.5, Attack 0.45 | 4 × 2 | builders/labor: builders, collectors and trade keepers |
+| Skeleton | Animated Monster Pack | Skeleton_Idle 0.0, Skeleton_Running 0.0/0.5, Skeleton_Attack 0.45 | 4 × 2 | Pale Host and Pale Court enemies (pale-bone tint) |
+| Human — Thornband | Animated Human Low Poly | Idle 0.0, Walk 0.0/0.5, Punch 0.4 | 4 × 2 | Thornband enemies (moss tint) |
+| Human — Cinder | Animated Human Low Poly | Idle 0.0, Walk 0.0/0.5, Punch 0.4 | 4 × 2 | Cinder Clan enemies (soot tint) |
+| Human — Ember | Animated Human Low Poly | Idle 0.0, Walk 0.0/0.5, Punch 0.4 | 4 × 2 | Ember Legion enemies (ember tint) |
+
+Reproduce from the repository root with Python and development-only dependencies:
+
+```sh
+python -m pip install --user numpy Pillow fast-simplification
+python scripts/dev-rig/rebuild_baked_r3.py
+```
+
+The toolchain downloads FBX2glTF v0.9.7 and the three pack zips with SHA-256 checks, converts each FBX rig to GLB, and bakes the poses. The 10.5 MB converter and the pack zips stay outside the repository and the Pages build; `scripts/build.mjs` ships public files only. CC0 license texts are retained under `scripts/dev-rig/sources/`.
+
 ## Audit inventory and routing
 
 The current game projects Z-up flat-colored 3D faces onto Canvas, with `MeshScene` face culling/depth ordering, owner-based selection, cached static structures, existing lighting/AO and separate moving mechanisms. It has no runtime GLB, texture, skin or skeletal-animation pipeline. Sprites remain in inventory/build cards. Asset conversion must happen offline rather than introducing another renderer.
@@ -50,7 +76,8 @@ The seven source meshes total **3,652 triangles**, reduced to **825 Canvas polyg
 - **RG Poly Small Props Pack (itch.io):** the page says CC0, but the downloaded `License.txt` prohibits making assets available as standalone downloads and introduces authorization requirements. This contradicts an unrestricted public-domain grant; no files from the pack are included.
 - **Worn barrel variant:** rejected in visual review for an unsuitable damaged silhouette; the final barrel comes from the Medieval Village Pack.
 - **Quaternius Tree:** 1,366 source triangles, unsuitable crown and more cost than the existing procedural trees.
-- **Complete buildings and rigged characters:** require new import/animation architecture and risk losing authored tier/job behavior. Keep the established systems.
+- **Complete buildings:** require new import architecture and risk losing authored tier behavior. Keep the established procedural structures.
+- **Rigged characters (runtime import):** a live glTF/skin loader is still rejected; the R3 pass instead bakes discrete pose sets offline (see above) and keeps the procedural body as the automatic fallback, so no authored job/tool behavior is lost.
 - **Quaternius static cart:** would weaken existing animated wheels, correct pivots and loaded-state cues.
 
 This pass implements the reusable environment/prop wave and applies it to resource, settlement and late-game workplaces. Full building/character replacements remain deferred until they offer a clear gain within the existing renderer.
