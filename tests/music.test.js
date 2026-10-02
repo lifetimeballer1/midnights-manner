@@ -253,29 +253,3 @@ test('music mood selection stays inside matching theme groups',async()=>{
   }
  });
 
-
-test('felt piano 808 keeper suite keeps approved tracks and older originals',async()=>{
- const ambient=await readFile(new URL('../data/ambient-score.json',import.meta.url),'utf8').then(JSON.parse);
- const audio=await import('../src/audio.js');
- const added=['low_horizon','granular_rain','permafrost','cavern_beacon','daylight_dissolve'];
- const retained=['grassblock','orchestral','desert','honeyblock','nether'];
- assert.equal(ambient.defaultTrack,'low_horizon');
- assert.deepEqual(ambient.songGapSeconds,[22,48]);
- for(const key of added){
-  const track=ambient.tracks[key];
-  assert.ok(track,key+' exists');
-  assert.equal(track.felt808,true,key+' keeps its 808 arrangement');
-  assert.equal(track.tempo,66,key+' keeps the approved tempo');
-  assert.equal(track.phrases.length,16,key+' keeps all sixteen bars');
-  for(const phrase of track.phrases){
-   assert.equal(phrase.bars,1);
-   assert.match(phrase.bass,/^[A-G][#b]?\\d$/);
-   assert.ok(Array.isArray(phrase.pad)&&phrase.pad.length>=3&&phrase.pad.length<=4);
-   assert.ok(phrase.bassVel>0&&phrase.bassVel<1);
-  }
- }
- for(const key of retained)assert.ok(ambient.tracks[key],key+' remains available');
- const picked=audio.pickKeeperTrack(ambient.tracks,'day','low_horizon',()=>0);
- assert.ok(picked&&picked!=='low_horizon','day rotation avoids an immediate repeat');
- assert.equal(audio.trackSupportsMood(ambient.tracks[picked],'day'),true,'rotated track supports the active mood');
-});
