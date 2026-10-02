@@ -357,7 +357,7 @@ export class AmbientScoreEngine {
       osc.frequency.setValueAtTime(freq * 1.035, time);
       osc.frequency.exponentialRampToValueAtTime(freq, time + Math.min(0.09, dur * 0.08));
       osc.frequency.setValueAtTime(freq, glideStart);
-      osc.frequency.exponentialRampToValueAtTime(Math.max(30, targetFreq || freq), end * 0.98 + time * 0.02);
+      osc.frequency.exponentialRampToValueAtTime(Math.max(30, targetFreq || freq), time + dur * 0.98);
       filter.frequency.setValueAtTime(420, time);
 
       gain.gain.cancelScheduledValues(time);
