@@ -13,10 +13,14 @@ const ambient = JSON.parse(await readFile(new URL('../data/ambient-score.json', 
 const legacy = JSON.parse(await readFile(new URL('../data/music.json', import.meta.url), 'utf8'));
 const NOTE_RE = /^([A-G][#b]?)([0-8])$/;
 
-test('keeper soundtrack ships six playable songs', () => {
+test('keeper soundtrack ships retained originals plus the felt piano 808 suite', () => {
   const keys = Object.keys(ambient.tracks || {});
-  assert.deepEqual(keys, ['money_right', 'grassblock', 'orchestral', 'desert', 'honeyblock', 'nether']);
-  assert.equal(ambient.defaultTrack, 'money_right');
+  assert.deepEqual(keys, [
+    'money_right', 'grassblock', 'orchestral', 'desert', 'honeyblock', 'nether',
+    'low_horizon', 'granular_rain', 'permafrost', 'cavern_beacon', 'daylight_dissolve',
+  ]);
+  assert.equal(ambient.defaultTrack, 'low_horizon');
+  assert.deepEqual(ambient.songGapSeconds, [22, 48]);
   assert.ok(ambient.tracks[ambient.defaultTrack], 'default track exists');
   for (const [key, track] of Object.entries(ambient.tracks)) {
     assert.ok(track.title, `${key} has a title`);
@@ -35,7 +39,18 @@ test('keeper soundtrack ships six playable songs', () => {
         assert.ok(m.beat >= 1 && m.beat <= lastBeat + 1, `${key} phrase ${i} beat in phrase`);
         assert.ok(m.dur > 0 && m.vel > 0 && m.vel <= 1, `${key} phrase ${i} dur/vel sane`);
       }
+      for (const chime of phrase.chime || []) {
+        assert.match(String(chime.note), NOTE_RE, `${key} phrase ${i} chime ${chime.note} parses`);
+        assert.ok(chime.beat >= 1 && chime.beat <= lastBeat + 1, `${key} phrase ${i} chime beat in phrase`);
+        assert.ok(chime.dur > 0 && chime.vel > 0 && chime.vel <= 1, `${key} phrase ${i} chime mix sane`);
+      }
     }
+  }
+  for (const key of ['low_horizon', 'granular_rain', 'permafrost', 'cavern_beacon', 'daylight_dissolve']) {
+    const track = ambient.tracks[key];
+    assert.equal(track.felt808, true, `${key} keeps the approved 808 arrangement`);
+    assert.equal(track.tempo, 66, `${key} keeps the approved tempo`);
+    assert.equal(track.phrases.length, 16, `${key} keeps all sixteen bars`);
   }
 });
 
@@ -44,8 +59,8 @@ test('keeper moods cover every calm moment', () => {
   for (const mood of ['day', 'night', 'dawn', 'weather', 'prosperous']) {
     assert.ok(claims(mood).length >= 1, `${mood} has a keeper`);
   }
-  assert.deepEqual(claims('dawn'), ['desert', 'honeyblock']);
-  assert.deepEqual(claims('weather'), ['nether']);
+  assert.deepEqual(claims('dawn'), ['desert', 'honeyblock', 'daylight_dissolve']);
+  assert.deepEqual(claims('weather'), ['nether', 'granular_rain', 'cavern_beacon']);
   assert.equal(trackSupportsMood({}, 'day'), true, 'missing moods claim everything');
   assert.equal(trackSupportsMood({moods: []}, 'night'), true);
 });
