@@ -1,4 +1,5 @@
 import {addLogisticsMeshes,addRoadGeometry,drawLogisticsOverlay} from './logistics-art.js';
+import {addConvertedAccents} from './asset-art.js';
 import {roadRevision} from './systems/roads.js';
 import {addLivingMechanisms} from './mechanical-art.js';
 import {addLivingProps} from './living-props.js';
@@ -827,8 +828,9 @@ function buildingShape(s,b,spec,world,time){
 export function buildingModel(s,b,spec,world,time=0){
  buildingShape(s,b,spec,world,time);
  if(b.id==null)return; // placement previews already have a clear ghost treatment
- buildingDetailLayer(s,b,spec);
- addLivingProps(s,b,spec);
+  buildingDetailLayer(s,b,spec);
+  addLivingProps(s,b,spec);
+  addConvertedAccents(s,b,spec);
  const x=b.x,y=b.y,n=spec.size;
  if(b.hp<=0){
   s.alpha=.95;

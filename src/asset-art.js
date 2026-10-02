@@ -50,3 +50,36 @@ export function cachedMesh(key, doc) {
   if (!cache.has(key)) cache.set(key, doc);
   return cache.get(key);
 }
+
+// Converted-mesh workplace accents. Augment-only: targeted buildings keep
+// every procedural face, meshes add readable trade props at footprint edges.
+// Missing/disabled meshes, ruins and scaffolds render exactly the original
+// look. Pinned baseline buildings (hall, cottage, tower, walls, gates, mill,
+// sawmill, great works) are deliberately excluded so their frozen digests
+// only move in a dedicated architecture pass.
+const ACCENTS = {
+  barracks: [['dummy', .15, .15], ['weapon-stand', .55, .1]],
+  schoolroom: [['book-stand', .3, .3]],
+  scriptorium: [['book-stand', .3, .3]],
+  storehouse: [['crate', .1, .15], ['barrel', .6, .1]],
+  market: [['crate-apple', .1, .7]],
+  farm: [['crate-carrot', .1, .7]],
+  forge: [['workbench', .55, .05]],
+  longhouse: [['pennant', .45, .4, .95]],
+  timber_yard: [['log-stack', .1, .1]],
+  pasture: [['fence', .05, .05]],
+};
+export function addConvertedAccents(s, b, spec) {
+  const list = ACCENTS[b.type];
+  if (!list || b.hp <= 0 || b.remaining > 0) return 0;
+  const meshes = s.r?.meshes;
+  if (!meshes) return 0;
+  const n = spec?.size || 1;
+  let added = 0;
+  for (const [id, fx, fy, fz] of list) {
+    const doc = meshes[id];
+    if (!doc || !artEnabled(s.r?.data, id)) continue;
+    added += drawMesh(s, doc, b.x + n * fx, b.y + n * fy, {dz: fz ?? 0});
+  }
+  return added;
+}

@@ -22,7 +22,7 @@ function draw(mesh, zoom, yaw) {
 
 test('manifest enables only gated meshes (safe removal = flip the flag)', () => {
   const enabled = Object.entries(data['art-manifest'].meshes).filter(([, e]) => e.enabled).map(([id]) => id).sort();
-  assert.deepEqual(enabled, ['bush', 'flower-purple', 'flower-red', 'flower-yellow', 'lily-large', 'lily-small', 'log', 'rock-small-a', 'rock-small-d', 'stone-small']);
+  assert.deepEqual(enabled, ['barrel', 'book-stand', 'bush', 'crate', 'crate-apple', 'crate-carrot', 'dummy', 'fence', 'flower-purple', 'flower-red', 'flower-yellow', 'lily-large', 'lily-small', 'log', 'log-stack', 'pennant', 'rock-small-a', 'rock-small-d', 'stone-small', 'weapon-stand', 'workbench']);
 });
 
 test('converted samples are valid selectable geometry through a full orbit', () => {
