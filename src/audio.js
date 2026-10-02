@@ -5,8 +5,8 @@ import {isMuted, sharedAudioContext, sharedAudioOutput, unlock} from './systems/
  * Voice pooling, lookahead scheduling, procedural wind/rain, game-reactive tracks.
  * Uses the shared audio bus so global mute still works.
  *
- * Keeper soundtrack (six fixed songs): calm moods rotate through mood-tagged
- * keeper tracks via pickKeeperTrack; battle moods are handled by the legacy
+ * Keeper soundtrack: calm moods rotate through mood-tagged ambient tracks,
+ * including the felt-piano + 808 suite; battle moods are handled by the legacy
  * generative engine (see main.js mood routing). Per-track `groove` selects a
  * drum pattern from grooveHits; `box`/`strings`/`choir` select the lead and
  * pad voices. Calm mode (setCalm) drops the drums, keeps the harmony.
@@ -111,8 +111,9 @@ export class AmbientScoreEngine {
     this.noiseSrc = null;
 
     this.data = null;
-    this.currentTrackKey = 'money_right';
+    this.currentTrackKey = 'low_horizon';
     this.phraseIndex = 0;
+    this.mood = 'day';
     this.isPlaying = false;
     this.started = false;
     this.calm = false;
@@ -309,6 +310,7 @@ export class AmbientScoreEngine {
     // by the legacy generative engine (main.js routes those away from here),
     // so only switch when the current keeper does not claim this mood.
     const mood = typeof state.mood === 'string' && state.mood ? state.mood : 'day';
+    this.mood = mood;
     const current = this.data?.tracks?.[this.currentTrackKey];
     if (current && trackSupportsMood(current, mood)) return;
     const pick = pickKeeperTrack(this.data?.tracks, mood, this.currentTrackKey);
@@ -340,6 +342,29 @@ export class AmbientScoreEngine {
       gain.gain.setValueAtTime(0.0001, time);
       gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, vel * 0.35), time + attackTime);
       gain.gain.exponentialRampToValueAtTime(0.0001, time + dur * 0.95);
+    } catch {}
+  }
+
+  play808(freq, targetFreq, time, dur, vel = 0.44) {
+    if (!this.poolReady || isMuted()) return;
+    const voice = this.obtainVoice(time, dur);
+    const { osc, gain, filter } = voice;
+    const end = time + dur;
+    const glideStart = time + dur * 0.72;
+    try {
+      osc.type = 'sine';
+      osc.frequency.cancelScheduledValues(time);
+      osc.frequency.setValueAtTime(freq * 1.035, time);
+      osc.frequency.exponentialRampToValueAtTime(freq, time + Math.min(0.09, dur * 0.08));
+      osc.frequency.setValueAtTime(freq, glideStart);
+      osc.frequency.exponentialRampToValueAtTime(Math.max(30, targetFreq || freq), end * 0.98 + time * 0.02);
+      filter.frequency.setValueAtTime(420, time);
+
+      gain.gain.cancelScheduledValues(time);
+      gain.gain.setValueAtTime(0.0001, time);
+      gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, vel * 0.35), time + 0.045);
+      gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, vel * 0.17), time + dur * 0.74);
+      gain.gain.exponentialRampToValueAtTime(0.0001, end);
     } catch {}
   }
 
@@ -375,11 +400,36 @@ export class AmbientScoreEngine {
     const beatSec = 60 / (track.tempo || 48);
     const startTime = Math.max(this.nextPhraseTime, this.ctx.currentTime + 0.05);
 
+    const phraseDuration = phrase.bars * 4 * beatSec;
     if (phrase.bass) {
-      this.playPooledVoice(noteToFreq(phrase.bass), startTime, phrase.bars * 4 * beatSec * 0.9, 0.55, 'sine', 350);
+      if (track.felt808) {
+        const nextPhrase = track.phrases[(this.phraseIndex + 1) % track.phrases.length];
+        const nextBass = nextPhrase?.bass ? noteToFreq(nextPhrase.bass) : noteToFreq(phrase.bass);
+        this.play808(
+          noteToFreq(phrase.bass),
+          nextBass,
+          startTime,
+          phraseDuration * 0.95,
+          Number.isFinite(phrase.bassVel) ? phrase.bassVel : 0.44,
+        );
+      } else {
+        this.playPooledVoice(noteToFreq(phrase.bass), startTime, phraseDuration * 0.9, 0.55, 'sine', 350);
+      }
     }
     if (Array.isArray(phrase.pad)) {
-      if (track.strings) {
+      if (track.felt808) {
+        phrase.pad.forEach((n, index) => {
+          this.playPooledVoice(
+            noteToFreq(n),
+            startTime + 0.04 * index,
+            phraseDuration * 1.08,
+            Number.isFinite(phrase.pianoVel) ? phrase.pianoVel : 0.28,
+            'triangle',
+            track.filterCutoff || 920,
+            0.03,
+          );
+        });
+      } else if (track.strings) {
         for (const n of phrase.pad) {
           const f = noteToFreq(n);
           const dur = phrase.bars * 4 * beatSec * 0.85;
@@ -411,28 +461,51 @@ export class AmbientScoreEngine {
         }
       });
     }
-    if (!this.calm) {
+    if (track.felt808 && Array.isArray(phrase.chime)) {
+      phrase.chime.forEach(chime => {
+        const noteTime = startTime + (chime.beat - 1) * beatSec;
+        this.playPooledVoice(
+          noteToFreq(chime.note),
+          noteTime,
+          (chime.dur || 3.3) * beatSec,
+          Number.isFinite(chime.vel) ? chime.vel : 0.11,
+          'sine',
+          2200,
+          0.01,
+        );
+      });
+    }
+    if (!this.calm && !track.felt808) {
       for (const hit of grooveHits(track.groove || 'boom', phrase.bars * 4)) {
         this.playDrumHit(hit, startTime + (hit.beat - 1) * beatSec);
       }
     }
 
-    const phraseDuration = phrase.bars * 4 * beatSec;
     const restBars = track.restInterval ? track.restInterval[0] : 2;
     const restDuration = restBars * 4 * beatSec;
 
     this.nextPhraseTime = startTime + phraseDuration + restDuration;
     this.phraseIndex = (this.phraseIndex + 1) % track.phrases.length;
+    const wrapped = this.phraseIndex === 0;
 
     const egg = this.easterEggKey();
-    if (egg && this.easterEggActive && this.currentTrackKey === egg && this.phraseIndex === 0) {
+    if (egg && this.easterEggActive && this.currentTrackKey === egg && wrapped) {
       this.easterEggActive = false;
       const back = this.preEggKey && this.data.tracks[this.preEggKey] ? this.preEggKey : this.data.defaultTrack;
       this.preEggKey = null;
       if (back) this.setTrack(back);
+    } else if (wrapped) {
+      const pick = pickKeeperTrack(this.data.tracks, this.mood, this.currentTrackKey);
+      if (pick && pick !== this.currentTrackKey) {
+        this.setTrack(pick);
+        const gap = Array.isArray(this.data.songGapSeconds) ? this.data.songGapSeconds : [22, 48];
+        const minGap = Math.max(0, Number(gap[0]) || 0);
+        const maxGap = Math.max(minGap, Number(gap[1]) || minGap);
+        this.nextPhraseTime += minGap + Math.random() * (maxGap - minGap);
+      }
     }
 
-    const delayUntilNext = (phraseDuration + restDuration - 0.5) * 1000;
+    const delayUntilNext = (this.nextPhraseTime - this.ctx.currentTime - 0.5) * 1000;
     this.schedulerTimer = setTimeout(() => this.schedule(), Math.max(delayUntilNext, 100));
     this.schedulerTimer?.unref?.();
   }
