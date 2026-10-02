@@ -1,102 +1,367 @@
 {
-  "defaultTrack": "money_right",
+  "defaultTrack": "low_horizon",
   "tracks": {
     "money_right": {
       "title": "Money Right (Full Cover)",
       "tempo": 74,
       "style": "felt-piano",
       "filterCutoff": 1400,
-      "restInterval": [0, 0],
+      "restInterval": [
+        0,
+        0
+      ],
       "groove": "boom",
-      "moods": ["day"],
+      "moods": [
+        "day"
+      ],
       "phrases": [
         {
           "bars": 2,
           "bass": "F#1",
-          "pad": ["F#2", "A2", "C#3"],
+          "pad": [
+            "F#2",
+            "A2",
+            "C#3"
+          ],
           "melody": [
-            { "beat": 1.0, "note": "C#5", "dur": 1.0, "vel": 0.65 },
-            { "beat": 2.5, "note": "B4", "dur": 0.5, "vel": 0.55 },
-            { "beat": 3.0, "note": "A4", "dur": 0.5, "vel": 0.55 },
-            { "beat": 3.5, "note": "G#4", "dur": 0.5, "vel": 0.50 },
-            { "beat": 4.0, "note": "F#4", "dur": 2.0, "vel": 0.70 },
-            { "beat": 5.0, "note": "E4", "dur": 1.0, "vel": 0.60 },
-            { "beat": 6.5, "note": "F#4", "dur": 1.5, "vel": 0.65 }
+            {
+              "beat": 1,
+              "note": "C#5",
+              "dur": 1,
+              "vel": 0.65
+            },
+            {
+              "beat": 2.5,
+              "note": "B4",
+              "dur": 0.5,
+              "vel": 0.55
+            },
+            {
+              "beat": 3,
+              "note": "A4",
+              "dur": 0.5,
+              "vel": 0.55
+            },
+            {
+              "beat": 3.5,
+              "note": "G#4",
+              "dur": 0.5,
+              "vel": 0.5
+            },
+            {
+              "beat": 4,
+              "note": "F#4",
+              "dur": 2,
+              "vel": 0.7
+            },
+            {
+              "beat": 5,
+              "note": "E4",
+              "dur": 1,
+              "vel": 0.6
+            },
+            {
+              "beat": 6.5,
+              "note": "F#4",
+              "dur": 1.5,
+              "vel": 0.65
+            }
           ]
         },
         {
           "bars": 2,
           "bass": "E1",
-          "pad": ["E2", "G#2", "B2"],
+          "pad": [
+            "E2",
+            "G#2",
+            "B2"
+          ],
           "melody": [
-            { "beat": 1.0, "note": "A4", "dur": 1.0, "vel": 0.60 },
-            { "beat": 2.0, "note": "G#4", "dur": 1.0, "vel": 0.55 },
-            { "beat": 3.0, "note": "F#4", "dur": 1.0, "vel": 0.65 },
-            { "beat": 4.0, "note": "E4", "dur": 1.0, "vel": 0.60 },
-            { "beat": 5.0, "note": "F#4", "dur": 3.0, "vel": 0.75 }
+            {
+              "beat": 1,
+              "note": "A4",
+              "dur": 1,
+              "vel": 0.6
+            },
+            {
+              "beat": 2,
+              "note": "G#4",
+              "dur": 1,
+              "vel": 0.55
+            },
+            {
+              "beat": 3,
+              "note": "F#4",
+              "dur": 1,
+              "vel": 0.65
+            },
+            {
+              "beat": 4,
+              "note": "E4",
+              "dur": 1,
+              "vel": 0.6
+            },
+            {
+              "beat": 5,
+              "note": "F#4",
+              "dur": 3,
+              "vel": 0.75
+            }
           ]
         },
         {
           "bars": 2,
           "bass": "F#1",
-          "pad": ["F#2", "A2", "C#3"],
+          "pad": [
+            "F#2",
+            "A2",
+            "C#3"
+          ],
           "melody": [
-            { "beat": 1.0, "note": "F#4", "dur": 0.5, "vel": 0.55 },
-            { "beat": 1.5, "note": "F#4", "dur": 0.5, "vel": 0.50 },
-            { "beat": 2.0, "note": "F#4", "dur": 0.5, "vel": 0.55 },
-            { "beat": 2.5, "note": "A4", "dur": 0.5, "vel": 0.65 },
-            { "beat": 3.5, "note": "F#4", "dur": 0.5, "vel": 0.60 },
-            { "beat": 4.0, "note": "E4", "dur": 1.0, "vel": 0.60 },
-            { "beat": 5.0, "note": "F#4", "dur": 0.5, "vel": 0.55 },
-            { "beat": 5.5, "note": "F#4", "dur": 0.5, "vel": 0.50 },
-            { "beat": 6.0, "note": "F#4", "dur": 0.5, "vel": 0.55 },
-            { "beat": 6.5, "note": "A4", "dur": 0.5, "vel": 0.65 },
-            { "beat": 7.5, "note": "F#4", "dur": 0.5, "vel": 0.60 },
-            { "beat": 8.0, "note": "E4", "dur": 1.0, "vel": 0.60 }
+            {
+              "beat": 1,
+              "note": "F#4",
+              "dur": 0.5,
+              "vel": 0.55
+            },
+            {
+              "beat": 1.5,
+              "note": "F#4",
+              "dur": 0.5,
+              "vel": 0.5
+            },
+            {
+              "beat": 2,
+              "note": "F#4",
+              "dur": 0.5,
+              "vel": 0.55
+            },
+            {
+              "beat": 2.5,
+              "note": "A4",
+              "dur": 0.5,
+              "vel": 0.65
+            },
+            {
+              "beat": 3.5,
+              "note": "F#4",
+              "dur": 0.5,
+              "vel": 0.6
+            },
+            {
+              "beat": 4,
+              "note": "E4",
+              "dur": 1,
+              "vel": 0.6
+            },
+            {
+              "beat": 5,
+              "note": "F#4",
+              "dur": 0.5,
+              "vel": 0.55
+            },
+            {
+              "beat": 5.5,
+              "note": "F#4",
+              "dur": 0.5,
+              "vel": 0.5
+            },
+            {
+              "beat": 6,
+              "note": "F#4",
+              "dur": 0.5,
+              "vel": 0.55
+            },
+            {
+              "beat": 6.5,
+              "note": "A4",
+              "dur": 0.5,
+              "vel": 0.65
+            },
+            {
+              "beat": 7.5,
+              "note": "F#4",
+              "dur": 0.5,
+              "vel": 0.6
+            },
+            {
+              "beat": 8,
+              "note": "E4",
+              "dur": 1,
+              "vel": 0.6
+            }
           ]
         },
         {
           "bars": 2,
           "bass": "D1",
-          "pad": ["D2", "F#2", "A2", "C#3"],
+          "pad": [
+            "D2",
+            "F#2",
+            "A2",
+            "C#3"
+          ],
           "melody": [
-            { "beat": 1.0, "note": "F#4", "dur": 0.5, "vel": 0.60 },
-            { "beat": 1.5, "note": "A4", "dur": 0.5, "vel": 0.65 },
-            { "beat": 2.0, "note": "B4", "dur": 0.5, "vel": 0.70 },
-            { "beat": 2.5, "note": "C#5", "dur": 0.5, "vel": 0.75 },
-            { "beat": 3.5, "note": "B4", "dur": 0.5, "vel": 0.65 },
-            { "beat": 4.0, "note": "A4", "dur": 1.0, "vel": 0.60 },
-            { "beat": 6.0, "note": "F#4", "dur": 2.0, "vel": 0.65 }
+            {
+              "beat": 1,
+              "note": "F#4",
+              "dur": 0.5,
+              "vel": 0.6
+            },
+            {
+              "beat": 1.5,
+              "note": "A4",
+              "dur": 0.5,
+              "vel": 0.65
+            },
+            {
+              "beat": 2,
+              "note": "B4",
+              "dur": 0.5,
+              "vel": 0.7
+            },
+            {
+              "beat": 2.5,
+              "note": "C#5",
+              "dur": 0.5,
+              "vel": 0.75
+            },
+            {
+              "beat": 3.5,
+              "note": "B4",
+              "dur": 0.5,
+              "vel": 0.65
+            },
+            {
+              "beat": 4,
+              "note": "A4",
+              "dur": 1,
+              "vel": 0.6
+            },
+            {
+              "beat": 6,
+              "note": "F#4",
+              "dur": 2,
+              "vel": 0.65
+            }
           ]
         },
         {
           "bars": 2,
           "bass": "F#1",
-          "pad": ["F#2", "A2", "C#3"],
+          "pad": [
+            "F#2",
+            "A2",
+            "C#3"
+          ],
           "melody": [
-            { "beat": 1.0, "note": "F#4", "dur": 0.5, "vel": 0.70 },
-            { "beat": 1.5, "note": "A4", "dur": 0.5, "vel": 0.75 },
-            { "beat": 2.0, "note": "B4", "dur": 0.5, "vel": 0.75 },
-            { "beat": 2.5, "note": "C#5", "dur": 0.5, "vel": 0.85 },
-            { "beat": 3.0, "note": "C#5", "dur": 0.5, "vel": 0.80 },
-            { "beat": 3.5, "note": "B4", "dur": 0.5, "vel": 0.75 },
-            { "beat": 4.0, "note": "A4", "dur": 0.5, "vel": 0.70 },
-            { "beat": 4.5, "note": "F#4", "dur": 2.5, "vel": 0.85 }
+            {
+              "beat": 1,
+              "note": "F#4",
+              "dur": 0.5,
+              "vel": 0.7
+            },
+            {
+              "beat": 1.5,
+              "note": "A4",
+              "dur": 0.5,
+              "vel": 0.75
+            },
+            {
+              "beat": 2,
+              "note": "B4",
+              "dur": 0.5,
+              "vel": 0.75
+            },
+            {
+              "beat": 2.5,
+              "note": "C#5",
+              "dur": 0.5,
+              "vel": 0.85
+            },
+            {
+              "beat": 3,
+              "note": "C#5",
+              "dur": 0.5,
+              "vel": 0.8
+            },
+            {
+              "beat": 3.5,
+              "note": "B4",
+              "dur": 0.5,
+              "vel": 0.75
+            },
+            {
+              "beat": 4,
+              "note": "A4",
+              "dur": 0.5,
+              "vel": 0.7
+            },
+            {
+              "beat": 4.5,
+              "note": "F#4",
+              "dur": 2.5,
+              "vel": 0.85
+            }
           ]
         },
         {
           "bars": 2,
           "bass": "E1",
-          "pad": ["E2", "G#2", "B2"],
+          "pad": [
+            "E2",
+            "G#2",
+            "B2"
+          ],
           "melody": [
-            { "beat": 1.0, "note": "E4", "dur": 0.5, "vel": 0.65 },
-            { "beat": 1.5, "note": "E4", "dur": 0.5, "vel": 0.65 },
-            { "beat": 2.0, "note": "A4", "dur": 0.5, "vel": 0.75 },
-            { "beat": 2.5, "note": "A4", "dur": 0.5, "vel": 0.75 },
-            { "beat": 3.0, "note": "G#4", "dur": 0.5, "vel": 0.70 },
-            { "beat": 3.5, "note": "F#4", "dur": 0.5, "vel": 0.65 },
-            { "beat": 4.0, "note": "E4", "dur": 0.5, "vel": 0.65 },
-            { "beat": 4.5, "note": "F#4", "dur": 2.5, "vel": 0.80 }
+            {
+              "beat": 1,
+              "note": "E4",
+              "dur": 0.5,
+              "vel": 0.65
+            },
+            {
+              "beat": 1.5,
+              "note": "E4",
+              "dur": 0.5,
+              "vel": 0.65
+            },
+            {
+              "beat": 2,
+              "note": "A4",
+              "dur": 0.5,
+              "vel": 0.75
+            },
+            {
+              "beat": 2.5,
+              "note": "A4",
+              "dur": 0.5,
+              "vel": 0.75
+            },
+            {
+              "beat": 3,
+              "note": "G#4",
+              "dur": 0.5,
+              "vel": 0.7
+            },
+            {
+              "beat": 3.5,
+              "note": "F#4",
+              "dur": 0.5,
+              "vel": 0.65
+            },
+            {
+              "beat": 4,
+              "note": "E4",
+              "dur": 0.5,
+              "vel": 0.65
+            },
+            {
+              "beat": 4.5,
+              "note": "F#4",
+              "dur": 2.5,
+              "vel": 0.8
+            }
           ]
         }
       ]
@@ -106,46 +371,117 @@
       "tempo": 70,
       "style": "felt-piano",
       "filterCutoff": 1200,
-      "restInterval": [0, 0],
+      "restInterval": [
+        0,
+        0
+      ],
       "groove": "calm",
       "box": true,
-      "moods": ["night", "calm"],
+      "moods": [
+        "night",
+        "calm"
+      ],
       "phrases": [
         {
           "bars": 4,
           "bass": "C2",
-          "pad": ["C3", "E3", "G3", "B3"],
+          "pad": [
+            "C3",
+            "E3",
+            "G3",
+            "B3"
+          ],
           "melody": [
-            { "beat": 3.0, "note": "E5", "dur": 3.0, "vel": 0.42 },
-            { "beat": 8.0, "note": "G5", "dur": 4.0, "vel": 0.38 }
+            {
+              "beat": 3,
+              "note": "E5",
+              "dur": 3,
+              "vel": 0.42
+            },
+            {
+              "beat": 8,
+              "note": "G5",
+              "dur": 4,
+              "vel": 0.38
+            }
           ]
         },
         {
           "bars": 4,
           "bass": "A1",
-          "pad": ["A2", "C3", "E3", "G3"],
+          "pad": [
+            "A2",
+            "C3",
+            "E3",
+            "G3"
+          ],
           "melody": [
-            { "beat": 3.0, "note": "A4", "dur": 3.0, "vel": 0.42 },
-            { "beat": 9.0, "note": "C5", "dur": 4.0, "vel": 0.40 }
+            {
+              "beat": 3,
+              "note": "A4",
+              "dur": 3,
+              "vel": 0.42
+            },
+            {
+              "beat": 9,
+              "note": "C5",
+              "dur": 4,
+              "vel": 0.4
+            }
           ]
         },
         {
           "bars": 4,
           "bass": "F1",
-          "pad": ["F2", "A2", "C3", "E3"],
+          "pad": [
+            "F2",
+            "A2",
+            "C3",
+            "E3"
+          ],
           "melody": [
-            { "beat": 2.0, "note": "C5", "dur": 3.0, "vel": 0.42 },
-            { "beat": 7.0, "note": "A4", "dur": 3.0, "vel": 0.40 },
-            { "beat": 11.0, "note": "F4", "dur": 4.0, "vel": 0.38 }
+            {
+              "beat": 2,
+              "note": "C5",
+              "dur": 3,
+              "vel": 0.42
+            },
+            {
+              "beat": 7,
+              "note": "A4",
+              "dur": 3,
+              "vel": 0.4
+            },
+            {
+              "beat": 11,
+              "note": "F4",
+              "dur": 4,
+              "vel": 0.38
+            }
           ]
         },
         {
           "bars": 4,
           "bass": "G1",
-          "pad": ["G2", "B2", "D3", "G3"],
+          "pad": [
+            "G2",
+            "B2",
+            "D3",
+            "G3"
+          ],
           "melody": [
-            { "beat": 4.0, "note": "D5", "dur": 3.5, "vel": 0.42 },
-            { "beat": 10.0, "note": "B4", "dur": 4.0, "vel": 0.40 }
+            {
+              "beat": 4,
+              "note": "D5",
+              "dur": 3.5,
+              "vel": 0.42
+            },
+            {
+              "beat": 10,
+              "note": "B4",
+              "dur": 4,
+              "vel": 0.4
+            }
           ]
         }
       ]
@@ -155,49 +491,133 @@
       "tempo": 92,
       "style": "felt-piano",
       "filterCutoff": 1300,
-      "restInterval": [0, 0],
+      "restInterval": [
+        0,
+        0
+      ],
       "groove": "lush",
       "strings": true,
-      "moods": ["prosperous", "day"],
+      "moods": [
+        "prosperous",
+        "day"
+      ],
       "phrases": [
         {
           "bars": 2,
           "bass": "D2",
-          "pad": ["D3", "F3", "A3", "D4"],
+          "pad": [
+            "D3",
+            "F3",
+            "A3",
+            "D4"
+          ],
           "melody": [
-            { "beat": 1.0, "note": "A4", "dur": 1.5, "vel": 0.60 },
-            { "beat": 3.5, "note": "F4", "dur": 1.0, "vel": 0.60 },
-            { "beat": 5.5, "note": "E4", "dur": 2.0, "vel": 0.62 }
+            {
+              "beat": 1,
+              "note": "A4",
+              "dur": 1.5,
+              "vel": 0.6
+            },
+            {
+              "beat": 3.5,
+              "note": "F4",
+              "dur": 1,
+              "vel": 0.6
+            },
+            {
+              "beat": 5.5,
+              "note": "E4",
+              "dur": 2,
+              "vel": 0.62
+            }
           ]
         },
         {
           "bars": 2,
           "bass": "Bb1",
-          "pad": ["Bb2", "D3", "F3"],
+          "pad": [
+            "Bb2",
+            "D3",
+            "F3"
+          ],
           "melody": [
-            { "beat": 1.0, "note": "F4", "dur": 1.5, "vel": 0.60 },
-            { "beat": 4.0, "note": "D4", "dur": 1.5, "vel": 0.60 },
-            { "beat": 6.5, "note": "C4", "dur": 1.0, "vel": 0.58 }
+            {
+              "beat": 1,
+              "note": "F4",
+              "dur": 1.5,
+              "vel": 0.6
+            },
+            {
+              "beat": 4,
+              "note": "D4",
+              "dur": 1.5,
+              "vel": 0.6
+            },
+            {
+              "beat": 6.5,
+              "note": "C4",
+              "dur": 1,
+              "vel": 0.58
+            }
           ]
         },
         {
           "bars": 2,
           "bass": "F1",
-          "pad": ["F2", "A2", "C3", "F3"],
+          "pad": [
+            "F2",
+            "A2",
+            "C3",
+            "F3"
+          ],
           "melody": [
-            { "beat": 1.0, "note": "C5", "dur": 1.5, "vel": 0.62 },
-            { "beat": 3.5, "note": "A4", "dur": 1.0, "vel": 0.60 },
-            { "beat": 5.5, "note": "G4", "dur": 2.0, "vel": 0.60 }
+            {
+              "beat": 1,
+              "note": "C5",
+              "dur": 1.5,
+              "vel": 0.62
+            },
+            {
+              "beat": 3.5,
+              "note": "A4",
+              "dur": 1,
+              "vel": 0.6
+            },
+            {
+              "beat": 5.5,
+              "note": "G4",
+              "dur": 2,
+              "vel": 0.6
+            }
           ]
         },
         {
           "bars": 2,
           "bass": "C2",
-          "pad": ["C3", "E3", "G3"],
+          "pad": [
+            "C3",
+            "E3",
+            "G3"
+          ],
           "melody": [
-            { "beat": 1.0, "note": "G4", "dur": 1.0, "vel": 0.60 },
-            { "beat": 3.0, "note": "E4", "dur": 1.0, "vel": 0.60 },
-            { "beat": 5.0, "note": "D4", "dur": 3.0, "vel": 0.65 }
+            {
+              "beat": 1,
+              "note": "G4",
+              "dur": 1,
+              "vel": 0.6
+            },
+            {
+              "beat": 3,
+              "note": "E4",
+              "dur": 1,
+              "vel": 0.6
+            },
+            {
+              "beat": 5,
+              "note": "D4",
+              "dur": 3,
+              "vel": 0.65
+            }
           ]
         }
       ]
@@ -207,49 +627,131 @@
       "tempo": 69,
       "style": "felt-piano",
       "filterCutoff": 1200,
-      "restInterval": [0, 0],
+      "restInterval": [
+        0,
+        0
+      ],
       "groove": "calm",
       "box": true,
-      "moods": ["day", "dawn"],
+      "moods": [
+        "day",
+        "dawn"
+      ],
       "phrases": [
         {
           "bars": 4,
           "bass": "E2",
-          "pad": ["E3", "G#3", "B3"],
+          "pad": [
+            "E3",
+            "G#3",
+            "B3"
+          ],
           "melody": [
-            { "beat": 3.0, "note": "B4", "dur": 3.0, "vel": 0.44 },
-            { "beat": 8.0, "note": "G#4", "dur": 3.5, "vel": 0.42 },
-            { "beat": 12.0, "note": "E4", "dur": 3.5, "vel": 0.40 }
+            {
+              "beat": 3,
+              "note": "B4",
+              "dur": 3,
+              "vel": 0.44
+            },
+            {
+              "beat": 8,
+              "note": "G#4",
+              "dur": 3.5,
+              "vel": 0.42
+            },
+            {
+              "beat": 12,
+              "note": "E4",
+              "dur": 3.5,
+              "vel": 0.4
+            }
           ]
         },
         {
           "bars": 4,
           "bass": "C#2",
-          "pad": ["C#3", "E3", "G#3"],
+          "pad": [
+            "C#3",
+            "E3",
+            "G#3"
+          ],
           "melody": [
-            { "beat": 2.0, "note": "G#4", "dur": 3.0, "vel": 0.44 },
-            { "beat": 7.0, "note": "E4", "dur": 3.0, "vel": 0.42 },
-            { "beat": 11.0, "note": "C#4", "dur": 4.0, "vel": 0.40 }
+            {
+              "beat": 2,
+              "note": "G#4",
+              "dur": 3,
+              "vel": 0.44
+            },
+            {
+              "beat": 7,
+              "note": "E4",
+              "dur": 3,
+              "vel": 0.42
+            },
+            {
+              "beat": 11,
+              "note": "C#4",
+              "dur": 4,
+              "vel": 0.4
+            }
           ]
         },
         {
           "bars": 4,
           "bass": "A1",
-          "pad": ["A2", "C#3", "E3"],
+          "pad": [
+            "A2",
+            "C#3",
+            "E3"
+          ],
           "melody": [
-            { "beat": 2.0, "note": "C#5", "dur": 3.0, "vel": 0.43 },
-            { "beat": 7.0, "note": "A4", "dur": 3.0, "vel": 0.42 },
-            { "beat": 11.0, "note": "E4", "dur": 4.0, "vel": 0.40 }
+            {
+              "beat": 2,
+              "note": "C#5",
+              "dur": 3,
+              "vel": 0.43
+            },
+            {
+              "beat": 7,
+              "note": "A4",
+              "dur": 3,
+              "vel": 0.42
+            },
+            {
+              "beat": 11,
+              "note": "E4",
+              "dur": 4,
+              "vel": 0.4
+            }
           ]
         },
         {
           "bars": 4,
           "bass": "B1",
-          "pad": ["B2", "D#3", "F#3"],
+          "pad": [
+            "B2",
+            "D#3",
+            "F#3"
+          ],
           "melody": [
-            { "beat": 4.0, "note": "D#5", "dur": 3.0, "vel": 0.44 },
-            { "beat": 8.0, "note": "C#5", "dur": 3.0, "vel": 0.43 },
-            { "beat": 12.0, "note": "B4", "dur": 3.5, "vel": 0.42 }
+            {
+              "beat": 4,
+              "note": "D#5",
+              "dur": 3,
+              "vel": 0.44
+            },
+            {
+              "beat": 8,
+              "note": "C#5",
+              "dur": 3,
+              "vel": 0.43
+            },
+            {
+              "beat": 12,
+              "note": "B4",
+              "dur": 3.5,
+              "vel": 0.42
+            }
           ]
         }
       ]
@@ -259,50 +761,135 @@
       "tempo": 71,
       "style": "felt-piano",
       "filterCutoff": 1250,
-      "restInterval": [0, 0],
+      "restInterval": [
+        0,
+        0
+      ],
       "groove": "calm",
       "box": true,
       "choir": true,
-      "moods": ["prosperous", "dawn", "day"],
+      "moods": [
+        "prosperous",
+        "dawn",
+        "day"
+      ],
       "phrases": [
         {
           "bars": 4,
           "bass": "Bb1",
-          "pad": ["Bb2", "D3", "F3", "Bb3"],
+          "pad": [
+            "Bb2",
+            "D3",
+            "F3",
+            "Bb3"
+          ],
           "melody": [
-            { "beat": 2.0, "note": "D5", "dur": 3.0, "vel": 0.44 },
-            { "beat": 7.0, "note": "F5", "dur": 3.0, "vel": 0.42 },
-            { "beat": 12.0, "note": "D5", "dur": 3.5, "vel": 0.40 }
+            {
+              "beat": 2,
+              "note": "D5",
+              "dur": 3,
+              "vel": 0.44
+            },
+            {
+              "beat": 7,
+              "note": "F5",
+              "dur": 3,
+              "vel": 0.42
+            },
+            {
+              "beat": 12,
+              "note": "D5",
+              "dur": 3.5,
+              "vel": 0.4
+            }
           ]
         },
         {
           "bars": 4,
           "bass": "G1",
-          "pad": ["G2", "Bb2", "D3"],
+          "pad": [
+            "G2",
+            "Bb2",
+            "D3"
+          ],
           "melody": [
-            { "beat": 3.0, "note": "Bb4", "dur": 3.0, "vel": 0.44 },
-            { "beat": 8.0, "note": "D5", "dur": 3.0, "vel": 0.43 },
-            { "beat": 12.0, "note": "G4", "dur": 3.5, "vel": 0.40 }
+            {
+              "beat": 3,
+              "note": "Bb4",
+              "dur": 3,
+              "vel": 0.44
+            },
+            {
+              "beat": 8,
+              "note": "D5",
+              "dur": 3,
+              "vel": 0.43
+            },
+            {
+              "beat": 12,
+              "note": "G4",
+              "dur": 3.5,
+              "vel": 0.4
+            }
           ]
         },
         {
           "bars": 4,
           "bass": "Eb2",
-          "pad": ["Eb3", "G3", "Bb3"],
+          "pad": [
+            "Eb3",
+            "G3",
+            "Bb3"
+          ],
           "melody": [
-            { "beat": 2.0, "note": "Bb4", "dur": 3.0, "vel": 0.44 },
-            { "beat": 6.0, "note": "G4", "dur": 3.0, "vel": 0.42 },
-            { "beat": 11.0, "note": "Eb4", "dur": 4.0, "vel": 0.40 }
+            {
+              "beat": 2,
+              "note": "Bb4",
+              "dur": 3,
+              "vel": 0.44
+            },
+            {
+              "beat": 6,
+              "note": "G4",
+              "dur": 3,
+              "vel": 0.42
+            },
+            {
+              "beat": 11,
+              "note": "Eb4",
+              "dur": 4,
+              "vel": 0.4
+            }
           ]
         },
         {
           "bars": 4,
           "bass": "F1",
-          "pad": ["F2", "A2", "C3", "F3"],
+          "pad": [
+            "F2",
+            "A2",
+            "C3",
+            "F3"
+          ],
           "melody": [
-            { "beat": 4.0, "note": "A4", "dur": 3.0, "vel": 0.44 },
-            { "beat": 8.0, "note": "C5", "dur": 3.0, "vel": 0.43 },
-            { "beat": 12.0, "note": "F4", "dur": 3.5, "vel": 0.42 }
+            {
+              "beat": 4,
+              "note": "A4",
+              "dur": 3,
+              "vel": 0.44
+            },
+            {
+              "beat": 8,
+              "note": "C5",
+              "dur": 3,
+              "vel": 0.43
+            },
+            {
+              "beat": 12,
+              "note": "F4",
+              "dur": 3.5,
+              "vel": 0.42
+            }
           ]
         }
       ]
@@ -312,54 +899,1783 @@
       "tempo": 73,
       "style": "felt-piano",
       "filterCutoff": 1250,
-      "restInterval": [0, 0],
+      "restInterval": [
+        0,
+        0
+      ],
       "groove": "soulcalm",
       "box": true,
-      "moods": ["night", "weather"],
+      "moods": [
+        "night",
+        "weather"
+      ],
       "phrases": [
         {
           "bars": 4,
           "bass": "G1",
-          "pad": ["G2", "Bb2", "D3"],
+          "pad": [
+            "G2",
+            "Bb2",
+            "D3"
+          ],
           "melody": [
-            { "beat": 1.5, "note": "D5", "dur": 2.5, "vel": 0.45 },
-            { "beat": 5.0, "note": "Bb4", "dur": 2.5, "vel": 0.43 },
-            { "beat": 9.0, "note": "G4", "dur": 2.5, "vel": 0.43 },
-            { "beat": 12.0, "note": "F4", "dur": 3.0, "vel": 0.40 }
+            {
+              "beat": 1.5,
+              "note": "D5",
+              "dur": 2.5,
+              "vel": 0.45
+            },
+            {
+              "beat": 5,
+              "note": "Bb4",
+              "dur": 2.5,
+              "vel": 0.43
+            },
+            {
+              "beat": 9,
+              "note": "G4",
+              "dur": 2.5,
+              "vel": 0.43
+            },
+            {
+              "beat": 12,
+              "note": "F4",
+              "dur": 3,
+              "vel": 0.4
+            }
           ]
         },
         {
           "bars": 4,
           "bass": "Eb2",
-          "pad": ["Eb3", "G3", "Bb3"],
+          "pad": [
+            "Eb3",
+            "G3",
+            "Bb3"
+          ],
           "melody": [
-            { "beat": 2.0, "note": "Bb4", "dur": 2.5, "vel": 0.44 },
-            { "beat": 6.0, "note": "G4", "dur": 2.5, "vel": 0.43 },
-            { "beat": 10.0, "note": "Eb4", "dur": 4.0, "vel": 0.40 }
+            {
+              "beat": 2,
+              "note": "Bb4",
+              "dur": 2.5,
+              "vel": 0.44
+            },
+            {
+              "beat": 6,
+              "note": "G4",
+              "dur": 2.5,
+              "vel": 0.43
+            },
+            {
+              "beat": 10,
+              "note": "Eb4",
+              "dur": 4,
+              "vel": 0.4
+            }
           ]
         },
         {
           "bars": 4,
           "bass": "Bb1",
-          "pad": ["Bb2", "D3", "F3"],
+          "pad": [
+            "Bb2",
+            "D3",
+            "F3"
+          ],
           "melody": [
-            { "beat": 1.5, "note": "D5", "dur": 2.5, "vel": 0.44 },
-            { "beat": 5.0, "note": "C5", "dur": 2.5, "vel": 0.43 },
-            { "beat": 9.0, "note": "Bb4", "dur": 2.5, "vel": 0.43 },
-            { "beat": 12.0, "note": "A4", "dur": 3.0, "vel": 0.40 }
+            {
+              "beat": 1.5,
+              "note": "D5",
+              "dur": 2.5,
+              "vel": 0.44
+            },
+            {
+              "beat": 5,
+              "note": "C5",
+              "dur": 2.5,
+              "vel": 0.43
+            },
+            {
+              "beat": 9,
+              "note": "Bb4",
+              "dur": 2.5,
+              "vel": 0.43
+            },
+            {
+              "beat": 12,
+              "note": "A4",
+              "dur": 3,
+              "vel": 0.4
+            }
           ]
         },
         {
           "bars": 4,
           "bass": "F1",
-          "pad": ["F2", "A2", "C3"],
+          "pad": [
+            "F2",
+            "A2",
+            "C3"
+          ],
           "melody": [
-            { "beat": 3.0, "note": "A4", "dur": 2.5, "vel": 0.44 },
-            { "beat": 7.0, "note": "C5", "dur": 2.5, "vel": 0.43 },
-            { "beat": 11.0, "note": "F4", "dur": 4.0, "vel": 0.40 }
+            {
+              "beat": 3,
+              "note": "A4",
+              "dur": 2.5,
+              "vel": 0.44
+            },
+            {
+              "beat": 7,
+              "note": "C5",
+              "dur": 2.5,
+              "vel": 0.43
+            },
+            {
+              "beat": 11,
+              "note": "F4",
+              "dur": 4,
+              "vel": 0.4
+            }
+          ]
+        }
+      ]
+    },
+    "low_horizon": {
+      "title": "Low Horizon",
+      "tempo": 66,
+      "style": "felt-piano-808",
+      "felt808": true,
+      "filterCutoff": 920,
+      "restInterval": [
+        0,
+        0
+      ],
+      "moods": [
+        "day",
+        "calm",
+        "prosperous"
+      ],
+      "phrases": [
+        {
+          "bars": 1,
+          "bass": "E1",
+          "bassVel": 0.52,
+          "pianoVel": 0.28,
+          "pad": [
+            "E3",
+            "G#3",
+            "B3",
+            "D#4"
+          ],
+          "chime": [
+            {
+              "beat": 3,
+              "note": "G#4",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "F#1",
+          "bassVel": 0.36,
+          "pianoVel": 0.28,
+          "pad": [
+            "F#3",
+            "A#3",
+            "C#4",
+            "F#4"
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "G#1",
+          "bassVel": 0.47,
+          "pianoVel": 0.28,
+          "pad": [
+            "G#3",
+            "B3",
+            "D#4",
+            "F#4"
+          ],
+          "chime": [
+            {
+              "beat": 2.5,
+              "note": "D#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "B1",
+          "bassVel": 0.31,
+          "pianoVel": 0.28,
+          "pad": [
+            "F#3",
+            "A3",
+            "B3",
+            "E4"
+          ],
+          "chime": [
+            {
+              "beat": 4,
+              "note": "C#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "E1",
+          "bassVel": 0.52,
+          "pianoVel": 0.28,
+          "pad": [
+            "E3",
+            "G#3",
+            "B3",
+            "D#4"
+          ],
+          "chime": [
+            {
+              "beat": 2,
+              "note": "B4",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "F#1",
+          "bassVel": 0.36,
+          "pianoVel": 0.28,
+          "pad": [
+            "F#3",
+            "A#3",
+            "C#4",
+            "F#4"
+          ],
+          "chime": [
+            {
+              "beat": 3.5,
+              "note": "A#4",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "G#1",
+          "bassVel": 0.47,
+          "pianoVel": 0.28,
+          "pad": [
+            "G#3",
+            "B3",
+            "D#4",
+            "F#4"
+          ],
+          "chime": [
+            {
+              "beat": 2,
+              "note": "F#4",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "B1",
+          "bassVel": 0.31,
+          "pianoVel": 0.28,
+          "pad": [
+            "F#3",
+            "A3",
+            "B3",
+            "D#4"
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "E1",
+          "bassVel": 0.52,
+          "pianoVel": 0.28,
+          "pad": [
+            "E3",
+            "B3",
+            "D#4",
+            "G#4"
+          ],
+          "chime": [
+            {
+              "beat": 2,
+              "note": "D#5",
+              "dur": 3.3,
+              "vel": 0.11
+            },
+            {
+              "beat": 2,
+              "note": "F#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "F#1",
+          "bassVel": 0.36,
+          "pianoVel": 0.28,
+          "pad": [
+            "F#3",
+            "C#4",
+            "F#4",
+            "A#4"
+          ],
+          "chime": [
+            {
+              "beat": 3,
+              "note": "C#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "G#1",
+          "bassVel": 0.47,
+          "pianoVel": 0.28,
+          "pad": [
+            "G#3",
+            "D#4",
+            "F#4",
+            "B4"
+          ],
+          "chime": [
+            {
+              "beat": 1.5,
+              "note": "B4",
+              "dur": 3.3,
+              "vel": 0.11
+            },
+            {
+              "beat": 1.5,
+              "note": "D#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "C#2",
+          "bassVel": 0.31,
+          "pianoVel": 0.28,
+          "pad": [
+            "E3",
+            "G#3",
+            "B3",
+            "E4"
+          ],
+          "chime": [
+            {
+              "beat": 3.5,
+              "note": "G#4",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "A1",
+          "bassVel": 0.52,
+          "pianoVel": 0.28,
+          "pad": [
+            "E3",
+            "A3",
+            "C#4",
+            "E4"
+          ],
+          "chime": [
+            {
+              "beat": 2.5,
+              "note": "C#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "F#1",
+          "bassVel": 0.36,
+          "pianoVel": 0.28,
+          "pad": [
+            "F#3",
+            "A3",
+            "C#4",
+            "F#4"
+          ],
+          "chime": [
+            {
+              "beat": 4,
+              "note": "F#4",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "G#1",
+          "bassVel": 0.47,
+          "pianoVel": 0.28,
+          "pad": [
+            "G#3",
+            "B3",
+            "D#4",
+            "G#4"
+          ],
+          "chime": [
+            {
+              "beat": 3,
+              "note": "D#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "B1",
+          "bassVel": 0.31,
+          "pianoVel": 0.28,
+          "pad": [
+            "F#3",
+            "A3",
+            "B3",
+            "E4"
+          ],
+          "chime": [
+            {
+              "beat": 4.2,
+              "note": "B4",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        }
+      ]
+    },
+    "granular_rain": {
+      "title": "Granular Rain",
+      "tempo": 66,
+      "style": "felt-piano-808",
+      "felt808": true,
+      "filterCutoff": 920,
+      "restInterval": [
+        0,
+        0
+      ],
+      "moods": [
+        "weather",
+        "day"
+      ],
+      "phrases": [
+        {
+          "bars": 1,
+          "bass": "C#2",
+          "bassVel": 0.44,
+          "pianoVel": 0.27,
+          "pad": [
+            "C#4",
+            "E4",
+            "G#4",
+            "B4"
+          ],
+          "chime": [
+            {
+              "beat": 1.5,
+              "note": "E5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "B1",
+          "bassVel": 0.32,
+          "pianoVel": 0.27,
+          "pad": [
+            "B3",
+            "D#4",
+            "F#4",
+            "B4"
+          ],
+          "chime": [
+            {
+              "beat": 2,
+              "note": "D#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "A1",
+          "bassVel": 0.42,
+          "pianoVel": 0.27,
+          "pad": [
+            "A3",
+            "C#4",
+            "E4",
+            "G#4"
+          ],
+          "chime": [
+            {
+              "beat": 3,
+              "note": "C#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "B1",
+          "bassVel": 0.28,
+          "pianoVel": 0.27,
+          "pad": [
+            "F#3",
+            "B3",
+            "D#4",
+            "F#4"
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "C#2",
+          "bassVel": 0.44,
+          "pianoVel": 0.27,
+          "pad": [
+            "C#4",
+            "E4",
+            "G#4",
+            "C#5"
+          ],
+          "chime": [
+            {
+              "beat": 2.5,
+              "note": "G#4",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "B1",
+          "bassVel": 0.32,
+          "pianoVel": 0.27,
+          "pad": [
+            "B3",
+            "D#4",
+            "F#4",
+            "D#5"
+          ],
+          "chime": [
+            {
+              "beat": 3.5,
+              "note": "F#4",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "A1",
+          "bassVel": 0.42,
+          "pianoVel": 0.27,
+          "pad": [
+            "A3",
+            "C#4",
+            "E4",
+            "A4"
+          ],
+          "chime": [
+            {
+              "beat": 1.5,
+              "note": "E4",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "G#1",
+          "bassVel": 0.28,
+          "pianoVel": 0.27,
+          "pad": [
+            "G#3",
+            "B3",
+            "D#4",
+            "G#4"
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "A1",
+          "bassVel": 0.44,
+          "pianoVel": 0.27,
+          "pad": [
+            "C#4",
+            "E4",
+            "G#4",
+            "B4"
+          ],
+          "chime": [
+            {
+              "beat": 2,
+              "note": "G#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "E1",
+          "bassVel": 0.32,
+          "pianoVel": 0.27,
+          "pad": [
+            "B3",
+            "E4",
+            "G#4",
+            "B4"
+          ],
+          "chime": [
+            {
+              "beat": 3,
+              "note": "E5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "F#1",
+          "bassVel": 0.42,
+          "pianoVel": 0.27,
+          "pad": [
+            "A3",
+            "C#4",
+            "F#4",
+            "A4"
+          ],
+          "chime": [
+            {
+              "beat": 2.5,
+              "note": "F#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "C#2",
+          "bassVel": 0.28,
+          "pianoVel": 0.27,
+          "pad": [
+            "G#3",
+            "C#4",
+            "E4",
+            "G#4"
+          ],
+          "chime": [
+            {
+              "beat": 4,
+              "note": "C#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "A1",
+          "bassVel": 0.44,
+          "pianoVel": 0.27,
+          "pad": [
+            "E3",
+            "A3",
+            "C#4",
+            "G#4"
+          ],
+          "chime": [
+            {
+              "beat": 2,
+              "note": "E5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "F#1",
+          "bassVel": 0.32,
+          "pianoVel": 0.27,
+          "pad": [
+            "F#3",
+            "A3",
+            "C#4",
+            "F#4"
+          ],
+          "chime": [
+            {
+              "beat": 3.5,
+              "note": "C#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "E1",
+          "bassVel": 0.42,
+          "pianoVel": 0.27,
+          "pad": [
+            "E3",
+            "G#3",
+            "B3",
+            "E4"
+          ],
+          "chime": [
+            {
+              "beat": 2.5,
+              "note": "B4",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "B1",
+          "bassVel": 0.28,
+          "pianoVel": 0.27,
+          "pad": [
+            "F#3",
+            "B3",
+            "E4",
+            "F#4"
+          ],
+          "chime": [
+            {
+              "beat": 4.5,
+              "note": "D#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        }
+      ]
+    },
+    "permafrost": {
+      "title": "Permafrost",
+      "tempo": 66,
+      "style": "felt-piano-808",
+      "felt808": true,
+      "filterCutoff": 920,
+      "restInterval": [
+        0,
+        0
+      ],
+      "moods": [
+        "night",
+        "calm"
+      ],
+      "phrases": [
+        {
+          "bars": 1,
+          "bass": "A1",
+          "bassVel": 0.48,
+          "pianoVel": 0.27,
+          "pad": [
+            "C#4",
+            "E4",
+            "G#4",
+            "B4"
+          ],
+          "chime": [
+            {
+              "beat": 3,
+              "note": "G#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "G#1",
+          "bassVel": 0.34,
+          "pianoVel": 0.27,
+          "pad": [
+            "B3",
+            "E4",
+            "G#4",
+            "B4"
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "F#1",
+          "bassVel": 0.44,
+          "pianoVel": 0.27,
+          "pad": [
+            "A3",
+            "C#4",
+            "E4",
+            "F#4"
+          ],
+          "chime": [
+            {
+              "beat": 2.5,
+              "note": "C#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "E1",
+          "bassVel": 0.3,
+          "pianoVel": 0.27,
+          "pad": [
+            "G#3",
+            "B3",
+            "E4",
+            "G#4"
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "A1",
+          "bassVel": 0.48,
+          "pianoVel": 0.27,
+          "pad": [
+            "C#4",
+            "E4",
+            "G#4",
+            "C#5"
+          ],
+          "chime": [
+            {
+              "beat": 2,
+              "note": "E5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "G#1",
+          "bassVel": 0.34,
+          "pianoVel": 0.27,
+          "pad": [
+            "B3",
+            "D#4",
+            "G#4",
+            "B4"
+          ],
+          "chime": [
+            {
+              "beat": 3.5,
+              "note": "D#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "F#1",
+          "bassVel": 0.44,
+          "pianoVel": 0.27,
+          "pad": [
+            "A3",
+            "C#4",
+            "F#4",
+            "A4"
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "B1",
+          "bassVel": 0.3,
+          "pianoVel": 0.27,
+          "pad": [
+            "F#3",
+            "B3",
+            "D#4",
+            "F#4"
+          ],
+          "chime": [
+            {
+              "beat": 4,
+              "note": "F#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "C#2",
+          "bassVel": 0.48,
+          "pianoVel": 0.27,
+          "pad": [
+            "E3",
+            "G#3",
+            "B3",
+            "E4"
+          ],
+          "chime": [
+            {
+              "beat": 1.5,
+              "note": "G#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "B1",
+          "bassVel": 0.34,
+          "pianoVel": 0.27,
+          "pad": [
+            "D#3",
+            "F#3",
+            "B3",
+            "D#4"
+          ],
+          "chime": [
+            {
+              "beat": 2.5,
+              "note": "F#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "A1",
+          "bassVel": 0.44,
+          "pianoVel": 0.27,
+          "pad": [
+            "C#3",
+            "E3",
+            "A3",
+            "C#4"
+          ],
+          "chime": [
+            {
+              "beat": 3.5,
+              "note": "E5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "G#1",
+          "bassVel": 0.3,
+          "pianoVel": 0.27,
+          "pad": [
+            "B2",
+            "D#3",
+            "G#3",
+            "B3"
+          ],
+          "chime": [
+            {
+              "beat": 1.5,
+              "note": "D#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "F#1",
+          "bassVel": 0.48,
+          "pianoVel": 0.27,
+          "pad": [
+            "A2",
+            "C#3",
+            "F#3",
+            "A3"
+          ],
+          "chime": [
+            {
+              "beat": 2,
+              "note": "C#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "A1",
+          "bassVel": 0.34,
+          "pianoVel": 0.27,
+          "pad": [
+            "C#3",
+            "E3",
+            "A3",
+            "C#4"
+          ],
+          "chime": [
+            {
+              "beat": 3,
+              "note": "E5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "B1",
+          "bassVel": 0.44,
+          "pianoVel": 0.27,
+          "pad": [
+            "D#3",
+            "F#3",
+            "B3",
+            "D#4"
+          ],
+          "chime": [
+            {
+              "beat": 2.5,
+              "note": "F#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "E1",
+          "bassVel": 0.3,
+          "pianoVel": 0.27,
+          "pad": [
+            "E3",
+            "G#3",
+            "B3",
+            "F#4"
+          ],
+          "chime": [
+            {
+              "beat": 4,
+              "note": "G#4",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        }
+      ]
+    },
+    "cavern_beacon": {
+      "title": "Cavern Beacon",
+      "tempo": 66,
+      "style": "felt-piano-808",
+      "felt808": true,
+      "filterCutoff": 920,
+      "restInterval": [
+        0,
+        0
+      ],
+      "moods": [
+        "night",
+        "weather"
+      ],
+      "phrases": [
+        {
+          "bars": 1,
+          "bass": "G#1",
+          "bassVel": 0.5,
+          "pianoVel": 0.28,
+          "pad": [
+            "G#3",
+            "B3",
+            "D#4",
+            "F#4"
+          ],
+          "chime": [
+            {
+              "beat": 2,
+              "note": "D#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "F#1",
+          "bassVel": 0.35,
+          "pianoVel": 0.28,
+          "pad": [
+            "F#3",
+            "A3",
+            "C#4",
+            "E4"
+          ],
+          "chime": [
+            {
+              "beat": 3,
+              "note": "C#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "E1",
+          "bassVel": 0.46,
+          "pianoVel": 0.28,
+          "pad": [
+            "E3",
+            "G#3",
+            "B3",
+            "D#4"
+          ],
+          "chime": [
+            {
+              "beat": 4,
+              "note": "B4",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "F#1",
+          "bassVel": 0.31,
+          "pianoVel": 0.28,
+          "pad": [
+            "F#3",
+            "B3",
+            "C#4",
+            "F#4"
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "G#1",
+          "bassVel": 0.5,
+          "pianoVel": 0.28,
+          "pad": [
+            "G#3",
+            "B3",
+            "D#4",
+            "G#4"
+          ],
+          "chime": [
+            {
+              "beat": 2.5,
+              "note": "G#4",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "F#1",
+          "bassVel": 0.35,
+          "pianoVel": 0.28,
+          "pad": [
+            "F#3",
+            "A3",
+            "C#4",
+            "F#4"
+          ],
+          "chime": [
+            {
+              "beat": 3.5,
+              "note": "F#4",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "E1",
+          "bassVel": 0.46,
+          "pianoVel": 0.28,
+          "pad": [
+            "E3",
+            "G#3",
+            "B3",
+            "E4"
+          ],
+          "chime": [
+            {
+              "beat": 1.5,
+              "note": "E4",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "D#2",
+          "bassVel": 0.31,
+          "pianoVel": 0.28,
+          "pad": [
+            "D#3",
+            "F#3",
+            "B3",
+            "D#4"
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "C#2",
+          "bassVel": 0.5,
+          "pianoVel": 0.28,
+          "pad": [
+            "C#4",
+            "E4",
+            "G#4",
+            "B4"
+          ],
+          "chime": [
+            {
+              "beat": 1.5,
+              "note": "E5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "B1",
+          "bassVel": 0.35,
+          "pianoVel": 0.28,
+          "pad": [
+            "B3",
+            "D#4",
+            "F#4",
+            "A4"
+          ],
+          "chime": [
+            {
+              "beat": 2.5,
+              "note": "D#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "A1",
+          "bassVel": 0.46,
+          "pianoVel": 0.28,
+          "pad": [
+            "A3",
+            "C#4",
+            "E4",
+            "G#4"
+          ],
+          "chime": [
+            {
+              "beat": 3.5,
+              "note": "C#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "G#1",
+          "bassVel": 0.31,
+          "pianoVel": 0.28,
+          "pad": [
+            "G#3",
+            "B3",
+            "D#4",
+            "F#4"
+          ],
+          "chime": [
+            {
+              "beat": 4.5,
+              "note": "B4",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "A1",
+          "bassVel": 0.5,
+          "pianoVel": 0.28,
+          "pad": [
+            "A3",
+            "C#4",
+            "E4",
+            "A4"
+          ],
+          "chime": [
+            {
+              "beat": 2,
+              "note": "C#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "B1",
+          "bassVel": 0.35,
+          "pianoVel": 0.28,
+          "pad": [
+            "B3",
+            "D#4",
+            "F#4",
+            "B4"
+          ],
+          "chime": [
+            {
+              "beat": 3,
+              "note": "D#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "C#2",
+          "bassVel": 0.46,
+          "pianoVel": 0.28,
+          "pad": [
+            "C#4",
+            "E4",
+            "G#4",
+            "C#5"
+          ],
+          "chime": [
+            {
+              "beat": 2.5,
+              "note": "E5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "F#1",
+          "bassVel": 0.31,
+          "pianoVel": 0.28,
+          "pad": [
+            "F#3",
+            "B3",
+            "C#4",
+            "F#4"
+          ],
+          "chime": [
+            {
+              "beat": 4,
+              "note": "F#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        }
+      ]
+    },
+    "daylight_dissolve": {
+      "title": "Daylight Dissolve",
+      "tempo": 66,
+      "style": "felt-piano-808",
+      "felt808": true,
+      "filterCutoff": 920,
+      "restInterval": [
+        0,
+        0
+      ],
+      "moods": [
+        "dawn",
+        "day",
+        "prosperous"
+      ],
+      "phrases": [
+        {
+          "bars": 1,
+          "bass": "E1",
+          "bassVel": 0.42,
+          "pianoVel": 0.27,
+          "pad": [
+            "E3",
+            "G#3",
+            "B3",
+            "E4"
+          ],
+          "chime": [
+            {
+              "beat": 1.5,
+              "note": "G#4",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "A1",
+          "bassVel": 0.3,
+          "pianoVel": 0.27,
+          "pad": [
+            "E3",
+            "A3",
+            "B3",
+            "C#4"
+          ],
+          "chime": [
+            {
+              "beat": 2.5,
+              "note": "B4",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "C#2",
+          "bassVel": 0.39,
+          "pianoVel": 0.27,
+          "pad": [
+            "E3",
+            "G#3",
+            "C#4",
+            "E4"
+          ],
+          "chime": [
+            {
+              "beat": 3.5,
+              "note": "C#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "B1",
+          "bassVel": 0.26,
+          "pianoVel": 0.27,
+          "pad": [
+            "D#3",
+            "F#3",
+            "B3",
+            "D#4"
+          ],
+          "chime": [
+            {
+              "beat": 4.5,
+              "note": "D#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "E1",
+          "bassVel": 0.42,
+          "pianoVel": 0.27,
+          "pad": [
+            "G#3",
+            "B3",
+            "E4",
+            "G#4"
+          ],
+          "chime": [
+            {
+              "beat": 2,
+              "note": "E5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "A1",
+          "bassVel": 0.3,
+          "pianoVel": 0.27,
+          "pad": [
+            "A3",
+            "C#4",
+            "E4",
+            "A4"
+          ],
+          "chime": [
+            {
+              "beat": 3,
+              "note": "C#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "C#2",
+          "bassVel": 0.39,
+          "pianoVel": 0.27,
+          "pad": [
+            "G#3",
+            "C#4",
+            "E4",
+            "G#4"
+          ],
+          "chime": [
+            {
+              "beat": 2.5,
+              "note": "G#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "B1",
+          "bassVel": 0.26,
+          "pianoVel": 0.27,
+          "pad": [
+            "F#3",
+            "B3",
+            "D#4",
+            "F#4"
+          ],
+          "chime": [
+            {
+              "beat": 4,
+              "note": "F#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "A1",
+          "bassVel": 0.42,
+          "pianoVel": 0.27,
+          "pad": [
+            "C#4",
+            "E4",
+            "G#4",
+            "B4"
+          ],
+          "chime": [
+            {
+              "beat": 1.5,
+              "note": "G#5",
+              "dur": 3.3,
+              "vel": 0.11
+            },
+            {
+              "beat": 1.5,
+              "note": "B5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "G#1",
+          "bassVel": 0.3,
+          "pianoVel": 0.27,
+          "pad": [
+            "B3",
+            "E4",
+            "G#4",
+            "B4"
+          ],
+          "chime": [
+            {
+              "beat": 2.5,
+              "note": "E5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "F#1",
+          "bassVel": 0.39,
+          "pianoVel": 0.27,
+          "pad": [
+            "A3",
+            "C#4",
+            "E4",
+            "F#4"
+          ],
+          "chime": [
+            {
+              "beat": 3.5,
+              "note": "C#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "E1",
+          "bassVel": 0.26,
+          "pianoVel": 0.27,
+          "pad": [
+            "G#3",
+            "B3",
+            "E4",
+            "G#4"
+          ],
+          "chime": [
+            {
+              "beat": 4.5,
+              "note": "B4",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "A1",
+          "bassVel": 0.42,
+          "pianoVel": 0.27,
+          "pad": [
+            "E3",
+            "A3",
+            "C#4",
+            "E4"
+          ],
+          "chime": [
+            {
+              "beat": 2,
+              "note": "C#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "C#2",
+          "bassVel": 0.3,
+          "pianoVel": 0.27,
+          "pad": [
+            "G#3",
+            "C#4",
+            "E4",
+            "G#4"
+          ],
+          "chime": [
+            {
+              "beat": 3,
+              "note": "E5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "B1",
+          "bassVel": 0.39,
+          "pianoVel": 0.27,
+          "pad": [
+            "F#3",
+            "B3",
+            "D#4",
+            "F#4"
+          ],
+          "chime": [
+            {
+              "beat": 2.5,
+              "note": "F#5",
+              "dur": 3.3,
+              "vel": 0.11
+            }
+          ]
+        },
+        {
+          "bars": 1,
+          "bass": "E1",
+          "bassVel": 0.26,
+          "pianoVel": 0.27,
+          "pad": [
+            "E3",
+            "B3",
+            "E4",
+            "F#4"
+          ],
+          "chime": [
+            {
+              "beat": 4,
+              "note": "G#4",
+              "dur": 3.3,
+              "vel": 0.11
+            }
           ]
         }
       ]
     }
-  }
+  },
+  "songGapSeconds": [
+    22,
+    48
+  ]
 }
