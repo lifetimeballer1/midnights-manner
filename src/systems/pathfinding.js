@@ -1,10 +1,12 @@
 import {recordTravel,trailMultiplier} from './trails.js';
 import {mudMult} from './daynight.js';
 import {roadRevision} from './roads.js';
-const movementCaches=new WeakMap(),actorRoutes=new WeakMap(),searchCounters=new WeakMap();
+const movementCaches=new WeakMap(),actorRoutes=new WeakMap(),sharedRoutes=new WeakMap(),searchCounters=new WeakMap();
 export function movementMetrics(world){const c=searchCounters.get(world);return {movementSearches:c?.total||0,movementIntervalSearches:c?.interval===Math.floor((world.elapsed||0)/2)?c.count:0};}
 function countSearch(world){let c=searchCounters.get(world);if(!c){c={total:0,count:0,interval:-1};searchCounters.set(world,c);}const interval=Math.floor((world.elapsed||0)/2);if(c.interval!==interval){c.interval=interval;c.count=0;}c.total++;c.count++;}
 function movementRevision(world,data){let c=movementCaches.get(world);const now=world.elapsed||0;if(c&&c.now===now&&c.count===world.buildings.length&&c.road===roadRevision(world))return c.signature;let signature=`${data.world.width},${data.world.height}|${roadRevision(world)}|`;for(const b of world.buildings)signature+=`${b.id},${b.type},${b.x},${b.y},${b.hp>0?1:0};`;c={now,count:world.buildings.length,road:roadRevision(world),signature};movementCaches.set(world,c);return signature;}
+function routePool(world,revision){let c=sharedRoutes.get(world);if(!c||c.revision!==revision){c={revision,routes:new Map()};sharedRoutes.set(world,c);}return c.routes;}
+function rememberShared(pool,key,step){if(!pool||!key||!step)return;pool.set(key,{x:step.x,y:step.y,path:step.path||null});if(pool.size>256)pool.delete(pool.keys().next().value);}
 // Breadth-first routing on a small grid. Walls obstruct units; raiders attack
 // the first barrier when a completely enclosed target cannot be reached.
 // Gates read as walls for row-building, barriers and art, but friendly
@@ -77,8 +79,13 @@ export function nextStep(world,data,actor,target,range=.9,avoidThreats=false,pas
  if(Math.hypot(sx+.5-target.x,sy+.5-target.y)<=range)return {x:sx+.5,y:sy+.5};
 
  const cacheable=cacheRoutes&&passGates,revision=cacheable?movementRevision(world,data):null,goal=cacheable?`${target.x},${target.y},${range},${avoidThreats}`:null;
- if(cacheable){const cached=actorRoutes.get(actor);if(cached&&cached.world===world&&cached.revision===revision&&cached.goal===goal){let i=cached.index;while(i<cached.path.length-1&&Math.floor(cached.path[i+1].x)===sx&&Math.floor(cached.path[i+1].y)===sy)i++;cached.index=i;if(Math.floor(cached.path[i].x)===sx&&Math.floor(cached.path[i].y)===sy){const step=cached.path[Math.min(i+1,cached.path.length-1)];if(!avoidThreats||!world.enemies.some(e=>e.hp>0&&Math.hypot(step.x-e.x,step.y-e.y)<2.5))return step;}}}
- const remember=step=>{if(cacheable&&step?.path)actorRoutes.set(actor,{world,revision,goal,path:step.path,index:0});return step?{x:step.x,y:step.y}:step;};
+ const shareKey=cacheable&&!avoidThreats?`${sx},${sy}|${goal}`:null,pool=shareKey?routePool(world,revision):null;
+ if(cacheable){
+  const cached=actorRoutes.get(actor);
+  if(cached&&cached.world===world&&cached.revision===revision&&cached.goal===goal){let i=cached.index;while(i<cached.path.length-1&&Math.floor(cached.path[i+1].x)===sx&&Math.floor(cached.path[i+1].y)===sy)i++;cached.index=i;if(Math.floor(cached.path[i].x)===sx&&Math.floor(cached.path[i].y)===sy){const step=cached.path[Math.min(i+1,cached.path.length-1)];if(!avoidThreats||!world.enemies.some(e=>e.hp>0&&Math.hypot(step.x-e.x,step.y-e.y)<2.5))return step;}}
+  if(pool){const shared=pool.get(shareKey);if(shared){if(shared.path?.length)actorRoutes.set(actor,{world,revision,goal,path:shared.path,index:0});return {x:shared.x,y:shared.y};}}
+ }
+ const remember=step=>{if(cacheable&&step){if(step.path)actorRoutes.set(actor,{world,revision,goal,path:step.path,index:0});rememberShared(pool,shareKey,step);}return step?{x:step.x,y:step.y}:step;};
  // Primary route: all solid buildings block (gates open for friendlies).
  let step=bfs(world,data,sx,sy,target,range,fullShut(world,data,width,passGates),avoidThreats,cacheable);
  if(step)return remember(step);
@@ -98,7 +105,7 @@ export function nextStep(world,data,actor,target,range=.9,avoidThreats=false,pas
    const d=Math.hypot(nx+.5-tx,ny+.5-ty);
    if(d<bestD){bestD=d;best={x:nx+.5,y:ny+.5};}
   }
-  if(best)return best;
+  if(best)return remember(best);
  }
  return null;
 }
