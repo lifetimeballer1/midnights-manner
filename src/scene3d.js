@@ -538,10 +538,11 @@ function farmFamily(s,b,n,l){
  if(l===5)famMesh(s,'overhang',x+.24,y+n-.6,.5);
   if(l>=6){if(l!==6){s.box(x+n-.55,y+.15,.12,.3,.3,.4,plaster);s.roof(x+n-.6,y+.1,.52,.4,.4,.14,roof);}
    s.box(x+n-.68,y+.82,.12,.3,.3,.48+l*.03+(l===6?.25:0),stone);s.pyramid(x+n-.53,y+.97,.6+l*.03+(l===6?.25:0),.21,.18,roof,4);
-   if(l===6){ // Mature-farm read: tall granary tower with a windmill sail cross.
-    const hub=x+n-.53,hubY=y+.97,hubZ=1.13;
-    s.box(hub-.05,hubY-.05,hubZ-.05,.1,.1,.1,'#725039');
-    s.box(hub-.3,hubY-.02,hubZ-.06,.6,.04,.12,'#8a6a48');s.box(hub-.02,hubY-.3,hubZ-.06,.04,.6,.12,'#8a6a48');
+   if(l===6){ // Mature-farm read: tall granary tower with a vertical windmill sail.
+    const hub=x+n-.53,hubY=y+.97;
+    s.box(hub-.03,hubY-.03,1.21,.06,.06,.25,'#725039');
+    s.box(hub-.3,hubY-.02,1.2,.6,.04,.5,'#8a6a48');s.box(hub-.02,hubY-.3,1.2,.04,.6,.5,'#8a6a48');
+    s.box(hub-.05,hubY-.05,1.42,.1,.1,.1,'#725039');
    }
    if(l!==6)s.box(x+n-.7,y+.8,.34,.05,.05,.16,'#6a6f65');}
   if(s.alpha===1&&l!==6){const fixture=s.fixture;s.fixture=true;
@@ -1850,10 +1851,10 @@ if(t==='bellcote'){
     s.box(x+.2,y+.2,.1,n-.4,n-.4,.18,specStone);
     s.box(x+n*.32,y+n*.32,.12,n*.36,n*.36,kh,specStone);
     s.box(x+n*.32,y+n*.32,kh+.12,n*.36,n*.36,.22,l>=3?'#eee7d6':'#8a6f4d');
-    for(const [ax,ay]of[[.32,.32],[n-.68,.32],[.32,n-.68],[n-.68,n-.68]])s.box(x+n*ax,y+n*ay,kh+.12,.3,.3,.3,specStone);
+    for(const [ax,ay]of[[n*.32,n*.32],[n*.32+n*.36-.3,n*.32],[n*.32,n*.32+n*.36-.3],[n*.32+n*.36-.3,n*.32+n*.36-.3]])s.box(x+ax,y+ay,kh+.12,.3,.3,.3,specStone);
     s.box(x+n*.42,y+n-.28,.12,n*.16,.3,kh*.62,'#3a2f26');
     if(l>=2){for(const wx of [x+.14,x+n-.5]){s.box(wx,y+.5,.12,.36,n-1,.55,specStone);s.roof(wx-.04,y+.45,.67,.44,n-.9,.2,'#60897b');}}
-    if(l>=4&&fine){s.box(x+n*.32,y+n*.32,kh+.56,n*.36,n*.36,.07,gold);s.box(x+n*.5-.04,y+n*.5-.04,kh+.63,.08,.08,.4,gold);}
+    if(l>=4&&fine){s.box(x+n*.32,y+n*.32,kh+.42,n*.36,n*.36,.07,gold);s.box(x+n*.5-.04,y+n*.5-.04,kh+.49,.08,.08,.4,gold);}
     lanternPost(s,x+.3,y+.3,.7,1,.42);lanternPost(s,x+n-.3,y+n-.3,.7,1,.42);
     workplaceDetails(s,b,n);return;
    }

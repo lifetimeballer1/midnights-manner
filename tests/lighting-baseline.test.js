@@ -84,7 +84,7 @@ const CASES = [
   ["tower-3","tower",3,120,"19491a4138f208d5","dbe9492d7aab2582","9cc32f00ad2b41a2","0601c1e981cb53ce"],
   ["sawmill-2","sawmill",2,196,"917c15c36a251eff","c7c776db313aaac6","18dc92a0f6aa5081","805f241cd5bba972"],
   ["mill-2","mill",2,263,"15ebfa44adb29af6","0360e170e2a2dcc6","297135221a0a9573","75840c3ab0c5da88"],
-  ["citadel-4","manner-citadel",4,414,"e3db5c0cefae3d01","4c5deb2a8b50cfea","fffcd2e45ff1a157","17786f53a7e15179"],
+  ["citadel-4","manner-citadel",4,414,"b43d51e064ffbf34","45805b62b32b3867","0164c3fceab35f49","60fdf3408f26e038"],
   ["grand-watch-4","grand-watchtower",4,245,"06bc41f3ddc801b4","84a4e7ec461c777f","72f185ad1c1c06d8","3e72306ef484ef69"],
   ["stone-road-6","stone-road",6,314,"4531e4853534c2a2","933c015668f79a6d","aa31e2ce16d33880","b520695bbbfe107f"],
   ["city-wall-6","city-wall",6,365,"18bce402babf7e2a","aef0cf1087ddfbf6","c0cfb8df7236ecc3","1cde1056bb7e2c21"],
