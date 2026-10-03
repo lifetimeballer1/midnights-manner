@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createWorld,makeBuilding,center} from '../src/model.js';
-import {nextStep,move} from '../src/systems/pathfinding.js';
+import {nextStep,move,movementMetrics} from '../src/systems/pathfinding.js';
 
 const data=Object.fromEntries(await Promise.all(
  ['world','troops','items','abilities','buildings'].map(async n=>[n,JSON.parse(await readFile(new URL(`../data/${n}.json`,import.meta.url)))])
@@ -50,4 +50,19 @@ test('enemy routing still respects closed gates (passGates false)',()=>{
  const u={x:.5,y:.5},target={x:7.5,y:.5};
  assert.equal(nextStep(w,narrow,u,target,.1,false,false),null,'enemies cannot pass a closed gate corridor');
  assert.ok(nextStep(w,narrow,u,target,.1,false,true),'friendlies walk through the gate');
+});
+
+
+test('friendlies sharing a start cell and goal reuse one cached route search',()=>{
+ const w=createWorld(data);
+ const hall=w.buildings.find(b=>b.type==='hall');
+ const goal=center(hall,data);
+ const a={id:'route-a',x:.5,y:.5},b={id:'route-b',x:.7,y:.6};
+ const before=movementMetrics(w).movementSearches;
+ assert.ok(nextStep(w,data,a,goal,.2,false,true,true));
+ const afterFirst=movementMetrics(w).movementSearches;
+ assert.ok(afterFirst>before,'first traveler computes a route');
+ assert.ok(nextStep(w,data,b,goal,.2,false,true,true));
+ const afterSecond=movementMetrics(w).movementSearches;
+ assert.equal(afterSecond,afterFirst,'second traveler reuses the shared route');
 });
