@@ -132,46 +132,105 @@ function planCraft(game,cache){
 export function automationMaterialNeeds(world){return {...runtime.get(world)?.materialNeeds};}
 export function automationConstructionNeeds(world){return {...runtime.get(world)?.constructionNeeds};}
 const priority=(b,d)=>b.type==='hall'?0:isWall(b)||d.buildings[b.type]?.tiers[b.level-1]?.damage?1:2;
+const builderCrewCap=(b,d)=>{
+ const size=Math.max(1,Number(d.buildings[b.type]?.size)||1);
+ if(b.type==='hall'||size>=3)return 3;
+ if(size>=2)return 2;
+ return 1;
+};
+const sameTask=(a,b)=>!!a&&!!b&&a.kind===b.kind&&(a.kind==='road'?a.seed===b.seed:a.target===b.target);
+const jobPoint=(job,w,d)=>{
+ if(job.task.kind==='road'){
+  const [x,y]=String(job.task.seed||'').split(',').map(Number);
+  return {x:(x+.5)/2,y:(y+.5)/2};
+ }
+ const b=w.buildings.find(x=>x.id===job.task.target);
+ return b?center(b,d):{x:0,y:0};
+};
+function dispatchBuilders(builders,jobs,w,d){
+ const free=new Set(builders),prepared=jobs.map(job=>({...job,point:jobPoint(job,w,d)}));
+ let round=0;
+ while(free.size&&prepared.some(job=>round<job.slots)){
+  for(const job of prepared){
+   if(!free.size)break;
+   if(round>=job.slots)continue;
+   let pick=null,best=Infinity;
+   for(const u of free){
+    const distance=Math.hypot(u.x-job.point.x,u.y-job.point.y);
+    const score=distance+(sameTask(u.builderTask,job.task)?-1000:0);
+    if(score<best){best=score;pick=u;}
+   }
+   if(!pick)continue;
+   const prev=pick.builderTask;
+   pick.builderTask={...job.task,working:sameTask(prev,job.task)?!!prev.working:false};
+   free.delete(pick);
+  }
+  round++;
+ }
+ for(const u of free)delete u.builderTask;
+ return [...free];
+}
 function planBuilders(game,cache){
  const {world:w,data:d}=game,builders=w.troops.filter(u=>eligible(u,d));
  cache.constructionNeeds={};
- for(const u of w.troops)delete u.builderTask;
- if(activeRaid(w))return;
+ if(activeRaid(w)){for(const u of builders)delete u.builderTask;return;}
  const repairs=w.buildings.filter(b=>b.remaining<=0&&b.hp<buildingMaxHp(b,d)).sort((a,b)=>priority(a,d)-priority(b,d)+(priority(a,d)===priority(b,d)?Number(!!w.steward?.enabled&&w.steward.districts?.some(x=>x.priority==='repair'&&x.buildingIds.includes(b.id)))-Number(!!w.steward?.enabled&&w.steward.districts?.some(x=>x.priority==='repair'&&x.buildingIds.includes(a.id))):0));
  const construction=w.buildings.filter(b=>b.hp>0&&b.remaining>0);
- for(const b of repairs)if(spendingAvailable(game,'wood',{purpose:'repair',buildingId:b.id})<=0)cache.status.set(b.id,'Waiting for wood above reserve');
- const target=repairs.find(b=>spendingAvailable(game,'wood',{purpose:'repair',buildingId:b.id})>0)||construction[0];
-  if(target){for(const u of builders)u.builderTask={kind:target.remaining>0?'construction':'repair',target:target.id,working:false};return;}
-   // Living Kingdom slice 1: idle-only builder road jobs (2s tick only, never
-   // per-frame). Gated by stone-road tiers with reserves enforced. The
-   // policies guard tolerates the pre-Task-2 world via `?.` and legacy
-   // boolean `false` saves.
-   const roadsPol=settings(w).policies?.roads;
-   if(!(roadsPol===false||roadsPol?.on===false)){
-   const net=greatWorkTier(w,'stone-road');
-   if(net)for(const row of busyRoutes(w,4,d)){
-    const tier=row.road?2:1;if(tier===2&&net<3)continue;
-    const q=roadQuote(w,d,row.key,tier);if(q.error)continue;
-    if(!canSpend(game,q.cost,{purpose:'road'}))continue;
-    for(const u of builders)u.builderTask={kind:'road',seed:row.key,tier,cells:q.cells,working:false};
-    break;
-   }
-  }
-  if(!settings(w).autoUpgrade||!builders.length||repairs.length||construction.length)return;
- for(const b of w.buildings){
-  if(!autoUpgradeTypeEnabled(w,b.type,b)||w.steward?.enabled&&w.steward.queue?.some(e=>e.buildingId===b.id))continue;
-  const spec=d.buildings[b.type],limit=Math.min(spec.tiers.length,b.autoUpgradeMaxTier||spec.tiers.length);
-  let note='Waiting for upgrade';
-  if(b.hp<=0||b.remaining>0)note='Building unfinished';
-  else if(b.level>=limit)note='At chosen tier';
-  else if(game.locked(b.type)||spec.tierGates?.[b.level+1]>(game.state.vlevel||1))note='Village level or unlock required';
-  else{
-   const cost=b.type==='hall'?{wood:200*b.level,gold:150*b.level}:buildingCost(b.type,b.level+1,w,d);
-   if(!canSpend(game,cost,{purpose:'upgrade',buildingId:b.id})){note='Waiting for materials or reserves';for(const [k,n] of Object.entries(cost))cache.constructionNeeds[k]=Math.max(cache.constructionNeeds[k]||0,(w.resources[k]||0)+Math.max(0,n-spendingAvailable(game,k,{purpose:'upgrade',buildingId:b.id})));}
-   else{game.upgrade(b.id);if(b.remaining>0){note='Builders upgrading';for(const u of builders)u.builderTask={kind:'construction',target:b.id,working:false};cache.status.set(b.id,note);break;}}
-  }
-  cache.status.set(b.id,note);
+ const fundedRepairs=[];
+ for(const b of repairs){
+  if(spendingAvailable(game,'wood',{purpose:'repair',buildingId:b.id})<=0)cache.status.set(b.id,'Waiting for wood above reserve');
+  else fundedRepairs.push(b);
  }
+ if(repairs.length||construction.length){
+  const jobs=[
+   ...fundedRepairs.map(b=>({task:{kind:'repair',target:b.id},slots:builderCrewCap(b,d)})),
+   ...construction.map(b=>({task:{kind:'construction',target:b.id},slots:builderCrewCap(b,d)})),
+  ];
+  dispatchBuilders(builders,jobs,w,d);
+  return;
+ }
+
+ // Only one automatic upgrade starts per planning pass, preserving the
+ // existing resource pacing. The dispatcher gives it a small crew and lets
+ // spare builders take road work instead of forming one long train.
+ let upgradeJob=null;
+ if(settings(w).autoUpgrade&&builders.length){
+  for(const b of w.buildings){
+   if(!autoUpgradeTypeEnabled(w,b.type,b)||w.steward?.enabled&&w.steward.queue?.some(e=>e.buildingId===b.id))continue;
+   const spec=d.buildings[b.type],limit=Math.min(spec.tiers.length,b.autoUpgradeMaxTier||spec.tiers.length);
+   let note='Waiting for upgrade';
+   if(b.hp<=0||b.remaining>0)note='Building unfinished';
+   else if(b.level>=limit)note='At chosen tier';
+   else if(game.locked(b.type)||spec.tierGates?.[b.level+1]>(game.state.vlevel||1))note='Village level or unlock required';
+   else{
+    const cost=b.type==='hall'?{wood:200*b.level,gold:150*b.level}:buildingCost(b.type,b.level+1,w,d);
+    if(!canSpend(game,cost,{purpose:'upgrade',buildingId:b.id})){
+     note='Waiting for materials or reserves';
+     for(const [k,n] of Object.entries(cost))cache.constructionNeeds[k]=Math.max(cache.constructionNeeds[k]||0,(w.resources[k]||0)+Math.max(0,n-spendingAvailable(game,k,{purpose:'upgrade',buildingId:b.id})));
+    }else{
+     game.upgrade(b.id);
+     if(b.remaining>0){note='Builders upgrading';upgradeJob={task:{kind:'construction',target:b.id},slots:builderCrewCap(b,d)};cache.status.set(b.id,note);break;}
+    }
+   }
+   cache.status.set(b.id,note);
+  }
+ }
+
+ // Permanent-road work is deliberately one builder per route. Distinct busy
+ // routes make the workforce spread through town instead of marching in a
+ // single file to the same half-tile.
+ const roadJobs=[];
+ const roadsPol=settings(w).policies?.roads;
+ if(!(roadsPol===false||roadsPol?.on===false)){
+  const net=greatWorkTier(w,'stone-road');
+  if(net)for(const row of busyRoutes(w,Math.min(12,Math.max(4,builders.length)),d)){
+   const tier=row.road?2:1;if(tier===2&&net<3)continue;
+   const q=roadQuote(w,d,row.key,tier);if(q.error)continue;
+   if(!canSpend(game,q.cost,{purpose:'road'}))continue;
+   roadJobs.push({task:{kind:'road',seed:row.key,tier,cells:q.cells},slots:1});
+  }
+ }
+ dispatchBuilders(builders,[...(upgradeJob?[upgradeJob]:[]),...roadJobs],w,d);
 }
 export function tickAutomation(game,dt){
  if(!Number.isFinite(dt)||dt<=0||game.state.mission)return;

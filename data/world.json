@@ -2,6 +2,12 @@
   "width": 52,
   "height": 44,
   "seed": 7,
+  "builderLimit": {
+    "base": 2,
+    "perHallTier": 1,
+    "perVillageLevels": 2,
+    "max": 10
+  },
   "tiles": [
     {
       "x": 3,
