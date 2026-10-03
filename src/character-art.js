@@ -513,9 +513,13 @@ export function characterModel(s,u,data,time,enemy=false){
       else if(u.type==='mudlark')s.box(hx-.14,hy-.02,.4,.1,.1,.12,'#4a3f2c');
       else if(u.type==='sapper'){const e=s.emissive;s.emissive=.6;s.box(hx+.05,hy+.1,head[2]-.28,.05,.05,.1,'#9fe8d8');s.emissive=e;}
       else if(u.type==='woodward')s.box(hx-.1,hy-.02,head[2]-.15,.2,.04,.06,'#dfe9ef');
-      else if(u.type==='heartwarden')s.box(hx-.06,hy+.12,head[2]-.2,.12,.03,.12,'#7c4a2d');
-      else if(u.type==='lumberjack'||u.type==='sawyer')s.box(hx-.16,hy-.08,.3,.34,.03,.12,'#5e4630');
-      else if(u.type==='fisherman')s.box(hx-.13,hy-.04,.36,.24,.03,.2,'#47626b');
+       else if(u.type==='heartwarden')s.box(hx-.06,hy+.12,head[2]-.2,.12,.03,.12,'#7c4a2d');
+       else if(u.type==='lumberjack'||u.type==='sawyer')s.box(hx-.16,hy-.08,.3,.34,.03,.12,'#5e4630');
+       else if(u.type==='miller')s.box(hx-.12,hy-.08,.37,.24,.04,.2,'#d8c99f');
+       else if(u.type==='forager')s.box(hx-.16,hy-.06,.32,.32,.045,.18,'#6e5032');
+       else if(u.type==='haggler')s.box(hx-.13,hy+.12,head[2]-.34,.26,.045,.16,'#b89443');
+       else if(u.type==='apprentice')s.box(hx-.16,hy-.07,.3,.18,.08,.22,'#725039');
+       else if(u.type==='fisherman')s.box(hx-.13,hy-.04,.36,.24,.03,.2,'#47626b');
       else if(u.type==='shepherd')s.box(hx-.15,hy-.06,.5,.32,.03,.1,'#c9bd9a');
       else if(u.type==='butcher'){s.box(hx-.08,hy+.16,head[2]-.3,.16,.03,.2,'#b08383');}
       else if(smithTypes.has(u.type))s.box(hx-.1,hy+.14,head[2]-.34,.2,.03,.24,'#4c423a');

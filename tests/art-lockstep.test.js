@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile, readdir } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { readFile, readdir, stat } from 'node:fs/promises';
 // Art lockstep (ART_DIRECTION §3.7): data/*.json sprite names and sprite
 // filenames stay in lockstep — boot rejects a missing sprite, so this fails
 // loudly in CI before the browser white-screens.
@@ -30,4 +31,14 @@ test('every tier has a distinct sprite file (no palette-swap reuse)', () => {
 });
 test('all sprites are 32px-grid names the renderer can load', () => {
   for (const s of refs) assert.match(s, /\.png$/, `${s} must be a PNG`);
+});
+test('market fallback tiers contain authored pixel art, not blank placeholders', async () => {
+  const hashes = [];
+  for (let tier = 1; tier <= 6; tier++) {
+    const path = new URL(`../assets/sprites/market-${tier}.png`, import.meta.url);
+    const info = await stat(path);
+    assert.ok(info.size > 200, `market tier ${tier} has visible fallback art`);
+    hashes.push(createHash('sha256').update(await readFile(path)).digest('hex'));
+  }
+  assert.equal(new Set(hashes).size, 6, 'each market tier changes its silhouette or finish');
 });
