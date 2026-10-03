@@ -25,6 +25,7 @@ create table villages (
   user_id uuid primary key references auth.users(id) on delete cascade,
   username text unique not null,
   friend_code text unique not null,
+  last_renamed_at timestamptz, -- Jesce privacy rule: one rename per 30 days (null = never renamed)
   save jsonb not null default '{}'::jsonb,
   public jsonb not null default '{}'::jsonb,
   updated_at timestamptz not null default now()
@@ -113,3 +114,30 @@ Privacy law, enforced in code (`src/multiplayer.js`): identity is **username +
 village** only. Friend-add accepts a name and a code — never an email, never a
 contact search. Public snapshots expose `username, vlevel, xp, population,
 buildings, updatedAt` — nothing else.
+
+## 6. Rename rule + collision behavior (Jesce privacy requirement)
+
+- **Usernames are UNIQUE** in the `villages` table. `last_renamed_at` records
+  the last rename (`null` = never renamed).
+- **One rename per 30 days.** `renameUsername(mp, newName)` in
+  `src/multiplayer.js` reuses the normal username validation, then blocks
+  renames inside the cooldown with a clear error naming the days left
+  (e.g. “Village names rest for 30 days — 12 days left…”). First-ever
+  naming is always allowed.
+- **Existing tables:** run this once to add the column:
+
+```sql
+-- One-time migration for villages tables created before the rename rule.
+alter table villages add column if not exists last_renamed_at timestamptz;
+```
+
+- **Collisions get a suggestion, never a dead end.** `suggestUsername(base,
+  takenList)` (pure, no network) returns the nearest free name — `base`
+  itself when free, otherwise `base` + a number (`Ash` → `Ash1` → `Ash2`
+  …), always within the 3–16 `letters/digits/_/-` rule. Callers use it:
+  - **Signup / cloud:** if the cloud rejects a username as taken (UNIQUE
+    violation on push), offer `suggestUsername(name, takenUsernames)`.
+  - **Friend add:** adding a name already on the local list fails with an
+    error that includes a free alternative (same helper).
+  - **Rename:** same — a rename colliding with a friend-list name fails
+    with a suggested alternative.
