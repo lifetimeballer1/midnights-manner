@@ -15,6 +15,7 @@ import {drawAtmosphere} from './atmosphere-art.js';
 import {insideWorkplace} from './systems/villagers.js';
 import {isSheltered} from './systems/shelter.js';
 import {trackStride, footstepFor, surfaceAt} from './systems/footsteps.js';
+import {selectPopulationRenderUnits} from './systems/population-lod.js';
 // Wood-framed status bars: pure geometry so the frame math is unit-tested;
 // the draw call only paints the three rects. Fill color stays caller-owned
 // (hp green/red, reserves, build progress keep their meaning).
@@ -110,7 +111,18 @@ export class Renderer {
    // shadows, labels and footsteps. Never retain it across simulation ticks.
    const visibleUnits=this._visibleUnits??=[];visibleUnits.length=0;
    const visibleIds=this._visibleUnitIds??=new Set();visibleIds.clear();
-   for(const u of world.troops)if(!isSheltered(world,this.data,u)&&!insideWorkplace(world,this.data,u)){visibleUnits.push(u);visibleIds.add(u.id);}
+   const outdoor=this._outdoorUnits??=[];outdoor.length=0;
+   for(const u of world.troops)if(!isSheltered(world,this.data,u)&&!insideWorkplace(world,this.data,u))outdoor.push(u);
+   const crowd=selectPopulationRenderUnits(outdoor,{
+    project:u=>this.project(u.x,u.y),
+    width:this.width,height:this.height,zoom:this.cam.zoom,selectedId:this.selection,
+    important:u=>{
+     const role=this.data.troops[u.type]?.role;
+     return role==='combat'||!!u.order||!!u.emergency||!!u.builderTask||(u.attackTimer||0)>0||(u.animation||0)>0;
+    },
+   });
+   visibleUnits.push(...crowd.units);for(const u of visibleUnits)visibleIds.add(u.id);
+   this.populationStats={total:world.troops.length,...crowd.stats};
    this._visibleWorld=world;
    const c=this.ctx;c.setTransform(this.dpr,0,0,this.dpr,0,0);c.clearRect(0,0,this.width,this.height);this.recordFrame(time);c.fillStyle='#29472f';c.fillRect(0,0,this.width,this.height);c.imageSmoothingEnabled=false;this.hitAreas=[];setListener({zoom:this.cam.zoom});this.trackTransitions(world,time);const didShake=!this.calm&&this.shake>.2;
   if(didShake){c.save();c.translate((Math.random()-.5)*this.shake,(Math.random()-.5)*this.shake);this.shake*=.88;}
@@ -434,7 +446,7 @@ export class Renderer {
  spriteFlash(name,x,y,size,key,time,dy=0){const until=this.flash.get(key);if(!until||time>until)return;const t=this.tint(name);if(!t)return;const p=this.project(x,y),raw=size*this.cam.zoom,s=32*Math.max(1,Math.round(raw/32)),c=this.ctx;c.globalAlpha=Math.min(1,(until-time)/150);c.drawImage(t,Math.round(p.x-s/2),Math.round(p.y-s+12*this.cam.zoom+dy),s,s);c.globalAlpha=1;}
   recordFrame(now){if(this._lastFrame==null){this._lastFrame=now;return;}const dt=now-this._lastFrame;this._lastFrame=now;if(dt>=0&&dt<1000){this.frameTimes.push(dt);if(this.frameTimes.length>240)this.frameTimes.shift();}}
   recordRender(ms){if(!Number.isFinite(ms)||ms<0||ms>1000)return;this.renderTimes.push(ms);if(this.renderTimes.length>240)this.renderTimes.shift();}
-  frameReport(){const a=[...this.frameTimes].sort((x,y)=>x-y);if(!a.length)return null;const avg=a.reduce((n,v)=>n+v,0)/a.length;const q=f=>a[Math.min(a.length-1,Math.floor(a.length*f))];const r=[...this.renderTimes].sort((x,y)=>x-y);const renderAvg=r.length?r.reduce((n,v)=>n+v,0)/r.length:0;const rq=f=>r.length?r[Math.min(r.length-1,Math.floor(r.length*f))]:0;return {n:a.length,avg:Math.round(avg*100)/100,p50:Math.round(q(.5)*100)/100,p95:Math.round(q(.95)*100)/100,renderAvg:Math.round(renderAvg*100)/100,renderP95:Math.round(rq(.95)*100)/100,faces:(this.sceneFaces||[]).length,staticFaces:(this._meshStatic?.faces||[]).length,quality:this.quality||'High',lighting:{...this.lightingStats,sources:(this.sceneSources||[]).length}};}
+  frameReport(){const a=[...this.frameTimes].sort((x,y)=>x-y);if(!a.length)return null;const avg=a.reduce((n,v)=>n+v,0)/a.length;const q=f=>a[Math.min(a.length-1,Math.floor(a.length*f))];const r=[...this.renderTimes].sort((x,y)=>x-y);const renderAvg=r.length?r.reduce((n,v)=>n+v,0)/r.length:0;const rq=f=>r.length?r[Math.min(r.length-1,Math.floor(r.length*f))]:0;return {n:a.length,avg:Math.round(avg*100)/100,p50:Math.round(q(.5)*100)/100,p95:Math.round(q(.95)*100)/100,renderAvg:Math.round(renderAvg*100)/100,renderP95:Math.round(rq(.95)*100)/100,faces:(this.sceneFaces||[]).length,staticFaces:(this._meshStatic?.faces||[]).length,quality:this.quality||'High',population:this.populationStats?{...this.populationStats}:null,lighting:{...this.lightingStats,sources:(this.sceneSources||[]).length}};}
  staticCacheKey(world){const b=world.bounds||{w:20,h:16};const seed=this.data.world?.seed??0;const lm=Array.isArray(this.data.world?.tiles)?this.data.world.tiles.length:0;let claimed=-1;try{if(Array.isArray(world.tiles)){claimed=0;for(const t of world.tiles)if(t.claimed)claimed++;}}catch{}this.claimedTileCount=claimed;return [this.cam.x.toFixed(2),this.cam.y.toFixed(2),this.cam.zoom,this.cam.yaw??DEFAULT_YAW,this.cam.pitch??DEFAULT_PITCH,this.width,this.height,this.dpr,this.grid?1:0,b.w,b.h,seed,lm,claimed].join('|');}
  blitCachedStatic(world){if(this._noCache)return false;const key=this.staticCacheKey(world);if(this.staticLayer&&key===this.staticKey){try{this.ctx.drawImage(this.staticLayer,0,0,this.width,this.height);}catch{this._noCache=true;return false;}return true;}this._pendingStaticKey=key;return false;}
  captureStatic(world){const key=this._pendingStaticKey;this._pendingStaticKey=null;if(!key||this._noCache||typeof document==='undefined')return;if(this.shake>0.2)return;try{const pw=Math.round(this.width*this.dpr),ph=Math.round(this.height*this.dpr);if(!this.staticLayer)this.staticLayer=document.createElement('canvas');if(this.staticLayer.width!==pw||this.staticLayer.height!==ph){this.staticLayer.width=pw;this.staticLayer.height=ph;}const g=this.staticLayer.getContext('2d');g.setTransform(1,0,0,1,0,0);g.drawImage(this.canvas,0,0);this.staticKey=key;}catch{this._noCache=true;this.staticLayer=null;this.staticKey='';}}
