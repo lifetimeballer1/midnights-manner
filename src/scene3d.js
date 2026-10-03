@@ -1355,9 +1355,15 @@ if(l>=6)s.box(x+.42,y+.42,h+.2,.16,.16,.3,gold);
   const torchSlot=((Math.floor(x)*31+Math.floor(y)*17)%3+3)%3;
   if(torchSide&&torchSlot===0){const [dx,dy]=torchSide;torch(s,x+.5+dx*.3,y+.5+dy*.3,h+.27,[dx,dy],1.02,.46);}
   return;}
-  if(t.includes('trap')){const armed=trapArmed(b),fire=t==='fire-trap';s.box(x+.18,y+.18,.12,.64,.64,.08,'#665445');s.box(x+.25,y+.25,.2,.5,.5,.035,armed?(fire?'#815338':'#75664c'):'#4d4840');
-    if(fire){s.emissive=0;s.face(Array.from({length:8},(_,i)=>[x+.5+Math.cos(i*Math.PI/4)*.31,y+.5+Math.sin(i*Math.PI/4)*.31,.236]),'#3e3630',false);}
-    if(fire&&armed)s.emissive=.7;
+  if(t.includes('trap')){const armed=trapArmed(b),fire=t==='fire-trap',kerb='#9ca29a',frame='#725039';
+   // A stone kerb ring grounds the pit and a dark timber frame caps it, so the
+   // trap reads as built masonry instead of a raw plate. The pit floor stays
+   // dark stone; only the flame carries emissive.
+   s.box(x+.16,y+.16,.12,.68,.68,.08,'#3f443f');s.box(x+.25,y+.25,.2,.5,.5,.035,armed?(fire?'#5b5145':'#5f6259'):'#41453d');
+   for(const [kx,ky,kw,kd]of[[.16,.16,.68,.1],[.16,.74,.68,.1],[.16,.26,.1,.48],[.74,.26,.1,.48]])s.box(x+kx,y+ky,.12,kw,kd,.17,kerb);
+   for(const [px,py]of[[.2,.2],[.72,.2],[.2,.72],[.72,.72]])s.box(x+px,y+py,.12,.08,.08,.22,frame);
+   for(const [ax,ay,aw,ad]of[[.24,.18,.56,.05],[.24,.77,.56,.05],[.18,.26,.05,.56],[.77,.26,.05,.56]])s.box(x+ax,y+ay,.29,aw,ad,.05,frame);
+    if(fire){s.emissive=0;s.face(Array.from({length:8},(_,i)=>[x+.5+Math.cos(i*Math.PI/4)*.31,y+.5+Math.sin(i*Math.PI/4)*.31,.236]),'#454b46',false);}
     if(fire)s.face(Array.from({length:8},(_,i)=>[x+.5+Math.cos(i*Math.PI/4)*.21,y+.5+Math.sin(i*Math.PI/4)*.21,.239]),'#b64b24',false);
     for(let i=0;i<3;i++)for(let j=0;j<3;j++)if(!fire||i!==1||j!==1)s.pyramid(x+.28+i*.21,y+.28+j*.21,armed?.2:.16,armed?.09:.055,armed?.3:.055,armed?(fire?'#eb9a4f':'#c0cdcd'):(fire?'#754330':'#665d52'));
     if(!fire){
@@ -1370,17 +1376,40 @@ if(l>=6)s.box(x+.42,y+.42,h+.2,.16,.16,.3,gold);
      for(let i=0;i<3;i++)s.pyramid(x+.36+i*.14,y+.5,.26,.05,armed?.2:.07,armed?'#c9d4d6':'#7d7364',3);
      s.face([[x+.36,y+.82,.3],[x+.66,y+.82,.3],[x+.66,y+.94,.3],[x+.36,y+.94,.3]],armed?'#8e8a74':'#4d4840',false);
     }
-   if(fire&&armed){s.source([x+.5,y+.5,.43],null,1.05,.7,'trap');s.pyramid(x+.5,y+.5,.21,.11,.2,'#f2ca6d',5);}
+   if(fire&&armed){s.source([x+.5,y+.5,.43],null,1.05,.7,'trap');s.emissive=1;s.pyramid(x+.5,y+.5,.21,.11,.2,'#f2ca6d',5);s.emissive=0;}
    s.emissive=0;return;}
- if(['farm','pasture'].includes(t)){s.box(x+.2,y+.2,.12,n-.4,n-.4,.05,t==='farm'?'#72553b':'#8da964');if(t==='farm'){for(let i=.32;i<n-.2;i+=.28)for(let j=.32;j<n-.2;j+=.32){s.box(x+i,y+j,.17,.045,.045,.18+l*.03,'#799658');s.pyramid(x+i,y+j,.3,.085,.16,'#e1c776');}}else{for(const [a,c]of[[.6,.7],[1.3,1.1]]){s.box(x+a,y+c,.3,.36,.22,.2,'#eee5d0');s.box(x+a+.3,y+c,.28,.12,.14,.18,'#76674f');for(const k of [0,.26])s.box(x+a+k,y+c,.12,.05,.18,.2,'#5e5543');}}if(l>1||t==='pasture')fence(s,x+.13,y+.13,n-.26,n-.26);lanternPost(s,x+n-.28,y+n-.28,.7+l*.04,1.12,.43);
+ if(['farm','pasture'].includes(t)){s.box(x+.2,y+.2,.12,n-.4,n-.4,.05,t==='farm'?'#72553b':'#8da964');if(t==='farm'){for(let i=.32;i<n-.2;i+=.28)for(let j=.32;j<n-.2;j+=.32){s.box(x+i,y+j,.17,.045,.045,.18+l*.03,'#799658');s.pyramid(x+i,y+j,.3,.085,.16,'#e1c776');}}else{
+   // Pasture reads as built ground: stone troughs, a stone path strip and the
+   // fence. Tier shows as trough count, and from tier 3 a small timber shelter
+   // roof shades the first trough.
+   const specStone='#9ca29a',frame='#725039',spots=l>=6?[[.5,.44],[1.2,.66],[.5,1.18]]:l>=2?[[.5,.56],[1.2,1.12]]:[[.66,.7]];
+   for(const [a,c]of spots){s.box(x+a-.03,y+c-.03,.12,.46,.32,.2,specStone);s.box(x+a+.03,y+c+.02,.32,.34,.24,.05,'#3f443f');}
+   for(const py of [.36,.64,.92,1.2,1.48])s.box(x+.24,y+py,.11,.2,.22,.05,specStone);
+   if(l>=3){const[sa,sc]=spots[0];s.box(x+sa-.09,y+sc-.07,.12,.05,.05,.5,frame);s.box(x+sa+.48,y+sc-.07,.12,.05,.05,.5,frame);s.roof(x+sa-.15,y+sc-.16,.6,.66,.48,.16,frame);}
+  }if(l>1||t==='pasture')fence(s,x+.13,y+.13,n-.26,n-.26);lanternPost(s,x+n-.28,y+n-.28,.7+l*.04,1.12,.43);
   if(t==='farm'&&l>=4){s.box(x+.5,y+.5,.13,.06,.06,.6,timber);s.box(x+.38,y+.5,.55,.3,.06,.06,timber);s.pyramid(x+.5,y+.5,.73,.12,.14,'#d5bf8f',6);}
   if(t==='farm'&&l>=5){s.box(x+.2,y+.2,.1,n-.4,.1,.06,'#4e9aaa');}
   if(t==='farm'&&l>=6){s.box(x+n-.55,y+.15,.12,.3,.3,.4,timber);s.roof(x+n-.6,y+.1,.52,.4,.4,.14,'#8a6a48');}
   return;}
- if(['pond','deephole'].includes(t)){s.box(x+.18,y+.18,.13,n-.36,n-.36,.02,'#4e9aaa');for(let i=.22;i<n-.1;i+=.32)s.box(x+i,y+.14,.13,.22,.12,.1,stone);s.box(x+.2,y+n-.45,.16,n-.4,.23,.1,timber);s.box(x+.25,y+n-.45,.16,.08,.08,.65,timber);s.box(x+n-.35,y+n-.45,.16,.08,.08,.65,timber);lanternPost(s,x+n-.31,y+n-.39,.77,1.05,.42);return;}
+ if(['pond','deephole'].includes(t)){const specStone='#9ca29a',frame='#725039';
+   // Solid stone kerb slabs bound the water instead of a brick-by-brick course,
+   // and the U stays open on the dock side so the walkable deck is unobstructed.
+   s.box(x+.18,y+.18,.13,n-.36,n-.36,.02,'#4e9aaa');
+   for(const [kx,ky,kw,kd]of[[.16,.16,.12,n-.32],[n-.28,.16,.12,n-.32],[.16,.16,n-.32,.12]])s.box(x+kx,y+ky,.13,kw,kd,.15,specStone);
+   s.box(x+.2,y+n-.45,.16,n-.4,.23,.1,frame);s.box(x+.25,y+n-.45,.16,.08,.08,.65,frame);s.box(x+n-.35,y+n-.45,.16,.08,.08,.65,frame);
+   // Reeds are the only tier ladder here: at most three three-sided clumps.
+   for(let i=0;i<Math.min(3,l-1);i++)s.pyramid(x+n*(.3+i*.2),y+n*(.4+(i%2)*.14),.15,.05,.24,'#699358',3);
+   lanternPost(s,x+n-.31,y+n-.39,.77,1.05,.42);return;}
   if(t==='blackwater-weir'){
+   const specStone='#9ca29a',race=l>=3?.4:.34;
    s.box(x+.14,y+.14,.13,.72,.72,.025,'#385f68');
    for(let i=0;i<5;i++)s.box(x+.2+i*.13,y+.3,.14,.035,.46,.28,timber);
+   // Stone abutments take both ends of the race, a darker strip marks the
+   // shaded spill below the crest, and tiers 3-6 only lengthen the channel
+   // walls instead of hanging new parts off the weir.
+   s.box(x+.16,y+.16,.13,.62,.11,.32,specStone);s.box(x+.16,y+.75,.13,.62,.11,.25,specStone);
+   s.box(x+.2,y+.34,.15,.55,.07,.04,'#2c4b52');
+   for(const wx of [.14,.77])s.box(x+wx,y+.3,.14,.09,race,.22,specStone);
    s.box(x+.17,y+.28,.41,.61,.06,.045,'#d9c8a1');s.box(x+.18,y+.66,.16,.61,.15,.08,timber);
    s.box(x+.65,y+.21,.14,.08,.08,.58,timber);s.box(x+.64,y+.29,.55,.1,.025,.16,'#eee5d0');
    if(l>=2){for(const a of [.18,.51])s.box(x+a,y+.19,.14,.05,.05,.58,timber);s.box(x+.18,y+.19,.72,.38,.06,.045,timber);s.box(x+.24,y+.22,.39,.2,.025,.27,'#8d7654');s.box(x+.24,y+.71,.24,.24,.13,.18,'#8c704e');s.roof(x+.19,y+.67,.42,.34,.22,.09,'#60897b');}
