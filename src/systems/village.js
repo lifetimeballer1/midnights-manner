@@ -1,7 +1,7 @@
 // Village-sim systems: quest walkthrough + XP levels, housing/population,
 // map expansion, and assigned-job trickles. All content from data/quests.json;
 // numbers below are gentle pacing constants, not content.
-import {levelForXp, EXPANSION, auras, housing, center, stats, unlockedAbilities} from '../model.js';
+import {levelForXp, EXPANSION, auras, housing, center, stats, unlockedAbilities, builderLimit, builderCount} from '../model.js';
 import {sfx} from './audio.js';
 import {ensureIdentity} from './villagers.js';
 import {edibleFood, BREAD_FOOD_VALUE} from './crafting.js';
@@ -142,7 +142,14 @@ function tickPopulation(state, data, dt, notify) {
   w.childTimer += dt * (1 + supplyBonus(w, data, 'growth') + wellFedBonus(w, data, 'growth') + festivalBonus(w, data, 'growth'));
   if (w.childTimer >= CHILD_SECONDS) {
     w.childTimer = 0;
-    const type = START_CHILD_TYPES[w.troops.length % START_CHILD_TYPES.length];
+    const start = w.troops.length % START_CHILD_TYPES.length;
+    let type = START_CHILD_TYPES[start];
+    if (type === 'builder' && builderCount(w) >= builderLimit(w, data, state.vlevel || 1)) {
+      for (let i = 1; i < START_CHILD_TYPES.length; i++) {
+        const next = START_CHILD_TYPES[(start + i) % START_CHILD_TYPES.length];
+        if (next !== 'builder') { type = next; break; }
+      }
+    }
     if (!data.troops[type]) return;
     const existing = w.troops.length;
     const s = data.troops[type];

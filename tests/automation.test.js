@@ -70,3 +70,20 @@ test('posted masons and smelters retain their workplace rather than taking build
  const {g,w}=fixture(),hall=makeBuilding('hall',4,4,data);hall.hp-=20;w.buildings.push(hall);
  const u=makeUnit('smelter',data);u.workplace='manual-smeltery';u.manualPost=true;w.troops.push(u);advance(g);assert.equal(u.builderTask,undefined);assert.equal(u.workplace,'manual-smeltery');
 });
+
+
+test('builder dispatcher spreads a large crew across distinct repair and construction jobs',()=>{
+ const {g,w}=fixture();
+ const hall=makeBuilding('hall',4,4,data),wall=makeBuilding('wall',10,10,data),farm=makeBuilding('farm',14,5,data);
+ hall.hp-=60;wall.hp-=40;farm.remaining=12;
+ w.buildings.push(hall,wall,farm);
+ const builders=Array.from({length:5},(_,i)=>{const u=makeUnit('builder',data);u.x=2+i*.2;u.y=2;w.troops.push(u);return u;});
+ advance(g);
+ const tasks=builders.map(u=>u.builderTask).filter(Boolean);
+ const targets=tasks.filter(t=>t.kind!=='road').map(t=>t.target);
+ assert.ok(targets.includes(hall.id),'hall repair gets a builder');
+ assert.ok(targets.includes(wall.id),'wall repair gets a builder');
+ assert.ok(targets.includes(farm.id),'construction gets a builder');
+ assert.ok(new Set(targets).size>=3,'crew fans out before adding helpers');
+ assert.ok(Math.max(...[...new Set(targets)].map(id=>targets.filter(x=>x===id).length))<=3,'no site attracts an unlimited builder train');
+});

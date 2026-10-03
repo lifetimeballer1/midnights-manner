@@ -388,6 +388,20 @@ export function builderBonuses(world,data,preAura) {
   const price=gid=>{const s=(gid&&data.items[gid]&&data.items[gid].stats)||{};return s.discount||s.costReduction||0;};
   return {speed:1+aura.build+crew.reduce((n,t)=>n+(data.items[t.gear].stats.buildSpeed||1)-1,0),discount:Math.min(.5,aura.discount+Math.max(0,...crew.flatMap(t=>[price(t.gear),price(t.armor)])))};
 }
+export function builderLimit(world,data,vlevel=1) {
+  const cfg=data?.world?.builderLimit||{};
+  const base=Number.isFinite(+cfg.base)?Math.max(0,Math.floor(+cfg.base)):2;
+  const perHall=Number.isFinite(+cfg.perHallTier)?Math.max(0,Math.floor(+cfg.perHallTier)):1;
+  const every=Number.isFinite(+cfg.perVillageLevels)?Math.max(1,Math.floor(+cfg.perVillageLevels)):2;
+  const max=Number.isFinite(+cfg.max)?Math.max(base,Math.floor(+cfg.max)):10;
+  const hallLevel=Math.max(1,...(world?.buildings||[]).filter(b=>b.type==='hall').map(b=>Math.max(1,Math.floor(Number(b.level)||1))));
+  const villageLevel=Math.max(1,Math.floor(Number(vlevel)||1));
+  return Math.min(max,base+Math.max(0,hallLevel-1)*perHall+Math.floor((villageLevel-1)/every));
+}
+export function builderCount(world) {
+  return (world?.troops||[]).filter(u=>u?.type==='builder').length;
+}
+
 export function housing(world, data) {
   let beds = 0;
   for (const b of world.buildings) {

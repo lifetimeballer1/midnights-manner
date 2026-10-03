@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile, access} from 'node:fs/promises';
-import {createWorld, makeUnit, makeBuilding, canPlace, inBounds, auras, housing, assignmentValid, gatherBonus, levelForXp, START_BOUNDS} from '../src/model.js';
+import {createWorld, makeUnit, makeBuilding, canPlace, inBounds, auras, housing, assignmentValid, gatherBonus, levelForXp, START_BOUNDS, builderLimit, builderCount} from '../src/model.js';
 import {tickEconomy, reserveMult} from '../src/systems/economy.js';
 import {tickVillage, currentQuest, questProgress, gainXp} from '../src/systems/village.js';
 import {migrate,VERSION} from '../src/storage.js';
@@ -218,4 +218,24 @@ test('assigned collectors gather faster at their matched source', () => {
   posted.workplace = pond.id;
   assert.equal(gatherBonus(free, w, data), 1);
   assert.equal(gatherBonus(posted, w, data), 1.25);
+});
+
+
+test('builder crew cap grows with settlement progression and recruitment respects it',()=>{
+ const w=createWorld(data),hall=w.buildings.find(b=>b.type==='hall');
+ assert.equal(builderLimit(w,data,1),2);
+ hall.level=3;
+ assert.equal(builderLimit(w,data,5),6);
+ hall.level=6;
+ assert.equal(builderLimit(w,data,20),10);
+
+ const g=new Game(data);
+ g.world.resources={...g.world.resources,food:10000,gold:10000,wood:10000};
+ g.state.vlevel=1;
+ assert.equal(builderCount(g.world),1);
+ assert.ok(g.recruit('builder'));
+ assert.equal(builderCount(g.world),2);
+ assert.equal(g.recruit('builder'),undefined);
+ assert.equal(builderCount(g.world),2);
+ assert.match(g.message,/Builder crew is full/);
 });
