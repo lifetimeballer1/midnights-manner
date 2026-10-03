@@ -82,12 +82,12 @@ const CASES = [
   ["tower-3","tower",3,72,"ebc9c087acf5f1e3","b10ea680d2afed94","c01b2692645a3315","7f68f3801e65e545"],
   ["sawmill-2","sawmill",2,196,"917c15c36a251eff","c7c776db313aaac6","18dc92a0f6aa5081","805f241cd5bba972"],
   ["mill-2","mill",2,263,"15ebfa44adb29af6","0360e170e2a2dcc6","297135221a0a9573","75840c3ab0c5da88"],
-  ["citadel-4","manner-citadel",4,418,"1047474d6e566a85","7e2d07fc14915b82","c18f1bf044480e49","98d09698fe88e9a1"],
-  ["grand-watch-4","grand-watchtower",4,245,"e86e604e34d4e0dc","d59ef3e2f7f4839f","55767aeb28eb51ca","7ecfd33a300a89f9"],
-  ["stone-road-6","stone-road",6,406,"101ec1c683599c15","7260147591595cb4","4e3262c00bdbc287","53a9065ac746bbc8"],
-  ["city-wall-6","city-wall",6,419,"2f6de9c549d34dc9","16981a1f255c1ae9","b67403196b0f365b","d801ecbfb384d17e"],
-  ["forge-quarter-6","forge-quarter",6,437,"87e1f3c3241aa2d2","09ed1e77b5eaab30","7130f8b22f29f3ea","aaeb0a3b93c3d18d"],
-  ["lantern-rows-6","lantern-rows",6,398,"9a4b5d6adab2855c","bb95e11a6cc87f81","7c6c6a3a8fff6e4b","0d4a4ed367306e82"],
+  ["citadel-4","manner-citadel",4,418,"a0de04852787d6ee","ae36ddcb4a392f22","6dfbf28c618616ed","7c561c22c0f8b576"],
+  ["grand-watch-4","grand-watchtower",4,245,"06bc41f3ddc801b4","84a4e7ec461c777f","72f185ad1c1c06d8","3e72306ef484ef69"],
+  ["stone-road-6","stone-road",6,406,"4ad5ff1348e01117","66de0db5baf430a0","ad97e2e4bfa579bd","f662a2a95b74ec5d"],
+  ["city-wall-6","city-wall",6,419,"dd265fd12073903c","125aee6d045729cc","693739134b226ae1","089f5703922f496e"],
+  ["forge-quarter-6","forge-quarter",6,437,"98be0e7ee3c0401b","77d53b20e29a6c46","7ef45857f09a909d","79a1c3c27fd45c78"],
+  ["lantern-rows-6","lantern-rows",6,398,"b575838f573705ac","9fbee37cf4027dcc","b0af699ea2f62c7c","80ce1ce821af5432"],
 ];
 const ORBIT = {"faces":816,"day":"390bf1a9a8be7a48","night":"4bc094c97d1b5428","dawn":"f11f9da413b7c3ee"};
 // Canonical tool and outfit lineups at the mobile/gameplay zoom.
