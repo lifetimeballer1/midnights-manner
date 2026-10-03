@@ -164,9 +164,11 @@ function windows(s,x,y,w,d,h){
  s.depthBias=bias;
 }
 function hut(s,x,y,w,d,h,roofColor,level,chimney=true,materials={}){
-  const rise=.35+level*.08,frame=level>=3?gold:(materials.frame||'#73563d');
+  // Material grammar: warm plaster infill over dark timber frame. The frame
+  // stays timber at every tier — gold is one small door accent, never a skin.
+  const rise=.35+level*.08,plaster='#eee7d6',frame=materials.frame||'#725039';
   // Recess the walls beneath the eaves and omit their hidden top plane.
-  s.box(x,y,.1,w,d,h-.1,level===1?timber:(materials.wall||stone),false);
+  s.box(x,y,.1,w,d,h-.1,level===1?timber:(materials.wall||plaster),false);
  s.roof(x-.09,y-.09,h+.1,w+.18,d+.18,rise,roofColor);
  windows(s,x,y,w,d,h);
  // Ridge caps and exposed corner posts give timber cottages a framed silhouette.
