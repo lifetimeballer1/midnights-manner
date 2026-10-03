@@ -72,6 +72,7 @@ const dayLight = canon(0.3), nightLight = canon(0.8), dawnLight = canon(0.01);
 // (8-family tier rebuild) and the equipment lineup (rig-baked bodies).
 // R5 civic identity pass deliberately repins citadel-4 +
 // stone-road/city-wall/lantern-rows-6 (own massing, no hut fallback).
+// R6 repins procedural skin albedo; baked skin/cloth are asserted in baked-r4-characters.test.js.
 const CASES = [
   ["hall-1","hall",1,144,"4a01c5cb33f45e90","af1dacefc6436bce","6752c79f6bc06596","bac14ebef4feeb7f"],
   ["hall-2","hall",2,198,"cef43961a8d931d9","6eab374b4226b902","bd862814f17cf94d","36a1744411f782a2"],
@@ -96,7 +97,7 @@ const ORBIT = {"faces":816,"day":"390bf1a9a8be7a48","night":"4bc094c97d1b5428","
 // P3 deliberately adds quiver/belt/satchel/hem faces (villager readability);
 // R3/A deliberately replaces procedural bodies with rig-baked CC0 geometry.
 // Shading formula verified drift-free at each update.
-const EQUIPMENT_BASELINE={"faces":3038,"raw":"94457a62042c64bb","frozen":"02136e9580ba522c","day":"79aca5fe17913126","night":"2956374739593eda","dawn":"0c43a545a390e3f1"};
+const EQUIPMENT_BASELINE={"faces":3038,"raw":"f89fc850c9423cea","frozen":"f4d56ae0056ecf20","day":"8a7078fc8eae7f91","night":"5c87284a3ff58be0","dawn":"9f6e22fc16e94d46"};
 
 test('baseline: canonical meshes keep their raw geometry and albedo', () => {
   const r = renderer();

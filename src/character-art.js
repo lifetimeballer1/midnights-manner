@@ -9,6 +9,7 @@ import {RARITY_COLORS} from './rarity.js';
 import {drawLevelFlair, drawHitFlash} from './fx/level-flair.js';
 
 const wood='#987046',metal='#b7c8ca',leather='#624b37',brass='#dfba6a';
+const SKIN=['#e8bd91','#d49a68','#ad704d'];
 const uniforms={
  farmer:['#6b853b','straw'],shepherd:['#a08f69','straw'],miller:['#c3b391','straw'],
  miner:['#747f88','lamp'],sapper:['#4f9e9c','lamp'],diver:['#5f87bd','lamp'],
@@ -215,7 +216,7 @@ const BAKED_TROOPS={
 };
 const BAKED_FACTIONS={'pale-host':'skeleton','pale-court':'skeleton',thornband:'human-thornband','cinder-clan':'human-cinder','ember-legion':'human-ember'};
 const BOSS_SCALE={'ashen-warlord':1.25,'grey-sovereign':1.18,'ember-cindral':1.15,'ironshield-warden':1.15,'cinder-sorr':1.12,'cinder-maul':1.12,'thornband-vex':1.15,'palehost-herald':1.2,'pale-queen':1.22};
-export const BAKED_HI_ZOOM=2,BAKED_MIN_ZOOM=.75;
+export const BAKED_HI_ZOOM=1.65,BAKED_MIN_ZOOM=.75;
 const BOSS_BODIES={'ironshield-warden':'warrior','thornband-vex':'human-thornband','cinder-sorr':'human-cinder','palehost-herald':'skeleton','ember-cindral':'human-ember','grey-sovereign':'skeleton','ashen-warlord':'warrior','cinder-maul':'human-cinder','pale-queen':'skeleton'};
 export function bakedSetId(u,troop,enemy){
  if(!u)return null;
@@ -347,7 +348,7 @@ function enemyRoleSilhouette(s,u,x,y,bob,detail,coat){
    }else if(bid==='ironshield-warden'){
     // Brannoc: open-face captain — skin face, blue nasal helm, tower shield.
     const bhx=s.bakedHead?s.bakedHead[0]:x,bhy=s.bakedHead?s.bakedHead[1]:y,bhz=s.bakedHead?s.bakedHead[2]:.8;
-    s.box(bhx-.07,bhy+.14,bhz-.05,.14,.03,.12,'#dbb38c');
+    s.box(bhx-.07,bhy+.14,bhz-.05,.14,.03,.12,SKIN[0]);
     s.box(bhx-.09,bhy+.1,bhz+.09,.18,.05,.06,'#7b96b8');
     s.box(bhx-.38,y-.14,.24,.1,.36,.44,'#7b96b8');
     s.box(x-.4,y-.12,.4,.03,.1,.12,'#ddbb75');
@@ -468,7 +469,7 @@ export function characterModel(s,u,data,time,enemy=false){
  const [coat,hat]=enemy?[bossCoat||faction?.color||'#a65c54',u.role==='archer'||u.role==='scout'||u.bossId==='pale-queen'?'hood':'helmet']
   :uniforms[u.type]||[role==='combat'?'#5d8093':'#8c946c',role==='combat'?'helmet':'cap'];
  const detail=s.characterDetail!==false&&s.r.cam.zoom>=1.8,seed=phaseSeed(u.id);
- const skin=['#dbb38c','#b98c64','#936a50'][Math.floor(seed*100)%3];
+ const skin=SKIN[Math.floor(seed*100)%SKIN.length];
  const hair=['#594532','#a47d4b','#6e6353'][Math.floor(seed*71)%3];
  const gait=gaitFor(s.r,u,time),bob=s.r.calm?0:gait.bob+Math.sin(time/350+seed)*.012,x=u.x,y=u.y;
   const post=s.r._motionWorld?.buildings?.find(b=>b.id===u.workplace);
@@ -482,19 +483,19 @@ export function characterModel(s,u,data,time,enemy=false){
   if(baked){
     // The selected low LOD is already budgeted: area cropping loses face/limbs at 1x.
     for(const f of baked.mesh.faces)s.face(f.v.map(([vx,vy,vz])=>[x+vx*bodyScale,y+vy*bodyScale,vz*bodyScale]),f.c);
-   if(!enemy){
-     // Local albedo wash preserves midnight cues without changing scene lighting.
-     const wash=s.emissive;s.emissive=Math.max(wash,.35);
-     const {head,hand}=bakedAnchors||{};
-     const top=meshBounds(baked.mesh).z1;
+    if(!enemy){
+      // Local albedo wash preserves midnight cues without changing scene lighting.
+      const wash=s.emissive;s.emissive=Math.max(wash,.35);
+      const {head,hand}=bakedAnchors||{},bounds=meshBounds(baked.mesh);
+      const top=head?head[2]+Math.max(.3,Math.min(.55,bounds.z1-head[2])):bounds.z1;
      // Broad front/back cloth panels carry the data color even at far gameplay zoom.
      if(head){
       s.emissive=Math.max(wash,.95);
-      roundedHead(s,x+head[0],y+head[1]+.12,head[2]+.04,.18,.1,.12,skin);
+      roundedHead(s,x+head[0],y+head[1]+.12,head[2]+.04,.2,.14,.13,skin);
       s.emissive=Math.max(wash,.35);
-      const color=professionColor||coat,hz=head[2],bottom=hat==='robe'?.15:.29;
+      const color=professionColor||coat,hz=head[2],bottom=hat==='robe'?.12:.17,top=hz-.02;
       for(const side of [-1,1]){
-       const panel=[[x-.14,y+head[1]+side*.23,bottom],[x+.14,y+head[1]+side*.23,bottom],[x+.17,y+head[1]+side*.16,hz-.08],[x-.17,y+head[1]+side*.16,hz-.08]];
+       const panel=[[x-.19,y+head[1]+side*.26,bottom],[x+.19,y+head[1]+side*.26,bottom],[x+.21,y+head[1]+side*.18,top],[x-.21,y+head[1]+side*.18,top]];
        s.face(side>0?panel.reverse():panel,color,false);
       }
       if(hat==='apron')s.face([[x-.08,y+head[1]+.18,hz-.12],[x+.08,y+head[1]+.18,hz-.12],[x+.1,y+head[1]+.245,.24],[x-.1,y+head[1]+.245,.24]],'#d3b58b',false);
@@ -528,14 +529,13 @@ export function characterModel(s,u,data,time,enemy=false){
      if(head&&hand&&baked?.setId==='monk'){
       const hx=x+head[0],hy=y+head[1],hz=head[2];
       // Wide warm face plate over the grey bake, jaw beard below it.
-      s.box(hx-.1,hy+.17,hz-.06,.2,.035,.16,skin);
-      s.box(hx-.025,hy+.19,hz-.04,.05,.02,.05,skin);
-      if(detail)for(const dx of [-.05,.05])s.box(hx+dx-.016,hy+.19,hz+.02,.032,.015,.035,'#33443a');
+      roundedHead(s,hx,hy+.17,hz-.06,.16,.12,.025,skin);
+       if(detail)for(const dx of [-.05,.05])s.box(hx+dx-.016,hy+.19,hz+.02,.032,.015,.035,'#33443a');
       s.box(hx-.09,hy+.165,hz-.17,.18,.035,.1,hair);
       s.box(hx-.06,hy+.16,hz-.25,.12,.03,.07,hair);
       for(const side of [-1,1])s.box(hx+side*.17-.04,hy-.04,hz-.27,.08,.1,.1,coat);
       // Chunky boots cap the baked legs at the ground line.
-      for(const dx of [-.1,.03])s.box(x+dx,y-.03,.015,.1,.12,.09,'#41453d');
+      for(const dx of [-.1,.03])s.box(x+dx,y-.03,.015,.1,.12,.09,'#5a4632');
      }
     if(hat==='lamp'&&head){
       roundedHead(s,x+head[0],y+head[1],top+.015,.055,.16,.14,'#86754f');
@@ -585,7 +585,7 @@ export function characterModel(s,u,data,time,enemy=false){
    }
  else{
  const smith=!enemy&&smithTypes.has(u.type);
- const boot=!enemy&&u.type==='miner'?'#4a5560':'#41453d';
+ const boot=!enemy&&u.type==='miner'?'#4a5560':'#5a4632';
  for(const dx of [-.13,.05]){
   const stride=gait.swing*(dx<0?1:-1),px=x+dx+gait.dx*stride,py=y+gait.dy*stride;
   if(gait.moving)beam(s,[x+dx+.05,y,.3],[px+.05,py,.08],.1,leather);else s.box(x+dx-.005,y-.07,.08,.11,.14,.23,leather);

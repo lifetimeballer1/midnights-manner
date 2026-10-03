@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile, readdir, stat} from 'node:fs/promises';
 import {Renderer} from '../src/renderer.js';
 import {MeshScene, shade} from '../src/scene3d.js';
-import {characterModel} from '../src/character-art.js';
+import {characterModel, bakedPoseFor} from '../src/character-art.js';
 import {DAY_LENGTH, skyLightAt} from '../src/systems/daynight.js';
 
 const root = new URL('../', import.meta.url);
@@ -118,6 +118,47 @@ test('r4 baked professions retain data-colored accents and distinct work headwea
   }
 });
 
+test('gameplay zoom uses detailed bodies only while character detail is enabled', () => {
+  assert.equal(bakedPoseFor({}, null, 1.65, true).lod, 'hi');
+  assert.equal(bakedPoseFor({}, null, 1.65, false).lod, 'lo');
+  assert.equal(bakedPoseFor({}, null, 1.65, true).pose, 'stand');
+});
+
+test('worker skin and profession cloth read as broad warm and colored surfaces', () => {
+  const colors = ['#e8bd91', '#d49a68', '#ad704d'];
+  const area = points => {
+    return Math.abs(points.reduce((sum, p, i) => {
+      const q = points[(i + 1) % points.length];
+      return sum + p.x * q.y - q.x * p.y;
+    }, 0)) / 2;
+  };
+  for (const yaw of [0, Math.PI / 2, Math.PI, Math.PI * 1.5]) {
+    const shown = render('farmer', '', 0, {zoom: 1.65, yaw});
+    const skin = shown.faces.filter(f => colors.includes(f.color));
+    const cloth = shown.faces.filter(f => f.color === data.troops.farmer.color && f.vertices.length === 4
+      && Math.max(...f.vertices.map(v => v[2])) - Math.min(...f.vertices.map(v => v[2])) > .3);
+    assert.ok(skin.length && skin.every(f => {
+      const rgb = [1, 3, 5].map(i => parseInt(f.color.slice(i, i + 2), 16));
+      return Math.max(...rgb) - Math.min(...rgb) >= 45;
+    }), `visible skin keeps warm chroma at yaw ${yaw}`);
+    assert.ok(cloth.some(f => area(f.points) > 1), `profession cloth stays visible at yaw ${yaw}`);
+  }
+});
+
+test('raised baked poses keep villager headwear seated on the head', () => {
+  for (const attackTimer of [0, .1, .3]) {
+    const pose = attackTimer > .2 ? 'attack-2' : attackTimer > 0 ? 'attack' : 'stand';
+    const mesh = meshes[`warrior-${pose}-hi`], head = mesh.meta.anchors.head;
+    const top = Math.max(...mesh.faces.flatMap(f => f.v.map(v => v[2])));
+    const shown = render('warrior', '', 0, {zoom: 1.65, unit: {attackTimer, animation: pose === 'attack-2' ? .3 : 0}});
+    const helmet = shown.raw.slice(mesh.faces.length).filter(f => f.c === '#b7c8ca');
+    assert.ok(helmet.length, `${pose} helmet renders`);
+    const helmetTop = Math.max(...helmet.flatMap(f => f.v.map(v => v[2])));
+    const headTop = head[2] + Math.max(.3, Math.min(.55, top - head[2]));
+    assert.ok(helmetTop <= headTop + .1, `${pose} helmet ${helmetTop.toFixed(3)} exceeds head envelope ${headTop.toFixed(3)}`);
+  }
+});
+
 test('r4 baked KayKit hand-gear attaches at the palm with fallback', async () => {
   const gearFiles = (await readdir(new URL('assets/meshes/gear/', root))).filter(f => f.endsWith('.json'));
   assert.ok(gearFiles.length >= 14, 'Sol gear library committed');
@@ -149,7 +190,7 @@ test('r4 night villager lineup separates face, profession cloth and palm-held to
     const shown = render(type,gear,100,options).faces;
     const painted = f => shade(f.color,f.normal,nightLight,f.emissive,0,f.ao);
     const cloth = shown.filter(f => f.color === data.troops[type].color && f.vertices.length === 4);
-    const face = shown.filter(f => ['#dbb38c','#b98c64','#936a50'].includes(f.color));
+    const face = shown.filter(f => ['#e8bd91','#d49a68','#ad704d'].includes(f.color));
     const tool = shown.filter(f => f.color === '#987046');
     assert.ok(cloth.some(f => lum(painted(f)) >= 45), `${type} ${yaw} night cloth`);
     assert.ok(face.some(f => lum(painted(f)) >= 65), `${type} ${yaw} night face/neck`);
@@ -190,11 +231,11 @@ test('r4 siege roles keep faction armor on anatomy rather than the carried frame
 
 test('r4 fitted Thornband cowl follows head anchors and selected pose bounds', () => {
   const key = 'human-thornband-attack-lo', mesh = structuredClone(meshes[key]);
-  const original = render('enemy','',0,{enemy:true,unit:{faction:'thornband',role:'scout'}});
+  const original = render('enemy','',0,{enemy:true,zoom:1.5,unit:{faction:'thornband',role:'scout'}});
   const delta = [.04,.06,.03];
   mesh.meta.anchors.head = mesh.meta.anchors.head.map((v,i) => v+delta[i]);
   mesh.faces.forEach(f => f.v.forEach(p => {p[2] += delta[2];}));
-  const moved = render('enemy','',0,{enemy:true,unit:{faction:'thornband',role:'scout'},meshes:{...meshes,[key]:mesh}});
+  const moved = render('enemy','',0,{enemy:true,zoom:1.5,unit:{faction:'thornband',role:'scout'},meshes:{...meshes,[key]:mesh}});
   const cowl = raw => raw.filter(f => f.c === '#5d7348').flatMap(f => f.v);
   assert.ok(cowl(original.raw).length > 0);
   cowl(original.raw).forEach((p,j) => p.forEach((v,i) => assert.ok(Math.abs(cowl(moved.raw)[j][i]-v-delta[i]) < 1e-8)));
@@ -224,7 +265,7 @@ test('b4 head, palm, chest and back attachments follow scaled baked anchors', ()
   const shown = armor => render('enemy','',0,{enemy:true,zoom:4,unit:{...unit,armor}}).raw.slice(mesh.faces.length);
   const near = (raw,color,p) => raw.filter(f => f.c === color).flatMap(f => f.v).some(v => Math.hypot(...v.map((n,i) => n-p[i])) < 1e-8);
   const plate = shown('iron-plate');
-  assert.ok(['#dbb38c','#b98c64','#936a50'].some(color => near(plate,color,[1+anchors.head[0]-.055,2+anchors.head[1]+.15,anchors.head[2]-.035])),'head face');
+  assert.ok(['#e8bd91','#d49a68','#ad704d'].some(color => near(plate,color,[1+anchors.head[0]-.055,2+anchors.head[1]+.15,anchors.head[2]-.035])),'head face');
   assert.ok(plate.filter(f => f.c === '#987046').flatMap(f => f.v).some(p => Math.hypot(p[0]-1-anchors.hand[0],p[1]-2-anchors.hand[1],p[2]-anchors.hand[2]) < .08),'palm grip');
   assert.ok(plate.flatMap(f => f.v).some(p => Math.hypot(p[0]-1-anchors.chest[0],p[1]-2-anchors.chest[1],p[2]-anchors.chest[2]) < 1e-8),'chest plate');
   assert.ok(shown('kite-shield').flatMap(f => f.v).some(p => Math.hypot(p[0]-1-anchors.back[0]+.09,p[1]-2-anchors.back[1]+.02,p[2]-anchors.back[2]) < 1e-8),'back shield');
