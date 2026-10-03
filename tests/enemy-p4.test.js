@@ -29,19 +29,19 @@ test('every faction x role renders valid selectable enemy geometry', () => {
 });
 
 test('pale factions read skeletal: bone face, pits, ribs', () => {
-  for (const faction of ['pale-host', 'pale-court']) {
+  for (const [faction, bone] of [['pale-host', '#d6cfb8'], ['pale-court', '#e8e2d2']]) {
     const faces = mesh({id: 'p', hp: 50, x: 0, y: 0, role: 'raider', faction});
-    assert.ok(faces.some(f => f.color === '#d8d3c2'), faction + ' bone present');
-    assert.ok(faces.some(f => f.color === '#1c2226'), faction + ' eye pits present');
+    assert.ok(faces.some(f => f.color === bone), faction + ' bone present');
+    assert.ok(faces.some(f => f.color === '#14181c'), faction + ' eye pits present');
   }
   const thorn = mesh({id: 't', hp: 50, x: 0, y: 0, role: 'raider', faction: 'thornband'});
-  assert.ok(!thorn.some(f => f.color === '#d8d3c2'), 'no bone leaks to thornband');
+  assert.ok(!thorn.some(f => f.color === '#d6cfb8'), 'no bone leaks to thornband');
 });
 
 test('thornband hoods, cinder guards and ember crests mark their factions', () => {
-  assert.ok(mesh({id: 't', hp: 50, x: 0, y: 0, role: 'raider', faction: 'thornband'}).some(f => f.color === '#4a5a3f'), 'moss hood');
-  assert.ok(mesh({id: 'c', hp: 50, x: 0, y: 0, role: 'breaker', faction: 'cinder-clan'}).some(f => f.color === '#3a3d3f'), 'soot guards');
-  assert.ok(mesh({id: 'e', hp: 50, x: 0, y: 0, role: 'raider', faction: 'ember-legion'}).some(f => f.color === '#b6402e'), 'red crest');
+  assert.ok(mesh({id: 't', hp: 50, x: 0, y: 0, role: 'raider', faction: 'thornband'}).some(f => f.color === '#5d7348'), 'moss hood');
+  assert.ok(mesh({id: 'c', hp: 50, x: 0, y: 0, role: 'breaker', faction: 'cinder-clan'}).some(f => f.color === '#c76b43'), 'rust guards');
+  assert.ok(mesh({id: 'e', hp: 50, x: 0, y: 0, role: 'raider', faction: 'ember-legion'}).some(f => f.color === '#c2502f'), 'red crest');
 });
 
 test('faction silhouettes stay distinct at gameplay zoom', () => {

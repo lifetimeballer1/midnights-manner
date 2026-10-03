@@ -186,12 +186,16 @@ def texture_sampler(texture):
 
 def kaykit_pose(glb, name, fraction):
     """Author discrete bone poses for staged KayKit rigs (which ship no clips)."""
-    if name not in ('KayKit_Stand', 'KayKit_Walk', 'KayKit_Attack'):
+    if name not in ('KayKit_Stand', 'KayKit_Walk', 'KayKit_Attack', 'KayKit_Work', 'KayKit_Attack2'):
         raise SystemExit('unknown authored KayKit pose ' + name)
     rest = world_matrices(glb, {})
     parents = glb.parent_map()
     overrides = {}
-    stride = (.38 if fraction < .5 else -.38) if name == 'KayKit_Walk' else 0
+    work = name == 'KayKit_Work'
+    strike2 = name == 'KayKit_Attack2'
+    stride = (.5 if fraction < .5 else -.5) if name == 'KayKit_Walk' else 0
+    # Work-b leans further (fraction .5); attack-2 is the follow-through.
+    lean = .28 + .14 * fraction if work else 0
     for i, node in enumerate(glb.doc['nodes']):
         bone = node.get('name', '')
         side = 1 if bone.endswith('.l') else -1
@@ -202,8 +206,17 @@ def kaykit_pose(glb, name, fraction):
             if name == 'KayKit_Attack':
                 rx = -1.05 if side == 1 else -.35
                 rz = -side * .8
+            elif strike2:
+                rx = -.75 if side == 1 else -.55
+                rz = -side * .95
+            elif work:
+                # Two-hand work grip: both arms forward over the tool.
+                rx = -.95 - .25 * fraction
+                rz = -side * .35
+        elif bone.startswith('spine') or bone.startswith('chest'):
+            rx = lean
         elif bone.startswith('upperleg.'):
-            rx = side * stride
+            rx = side * stride + (-.18 if work else 0)
         elif bone.startswith('lowerleg.') and stride * side > 0:
             rx = -.22
         else:
@@ -271,13 +284,44 @@ def bake_pose(glb, clip_name, fraction, texture, debug=False, exclude_nodes=(), 
                 head = next(i for i, n in enumerate(glb.doc['nodes']) if n.get('name') == 'head')
                 p = world(head)[:3, 3]
                 pivot = np.array([p[0], -p[2], p[1]])
-                # Keep the neck at the rig pivot; taper into a narrower face and
-                # still narrower hat so the skin plane is not buried in fur.
-                blend = np.clip((positions[:, 2] - pivot[2]) / .18, 0, 1)
-                width, depth = (.72, .85) if node['name'] == 'Barbarian_Head' else (.62, .62)
+                # Broaden and round the head/hood so ears and muzzle read, and
+                # keep the exposed face and beard mass instead of tapering the
+                # head into a narrow spike that buries the skin plane in fur.
+                band = .09 if node['name'] == 'Barbarian_BearHat' else .18
+                blend = np.clip((positions[:, 2] - pivot[2]) / band, 0, 1)
+                width, depth = (1.3, 1.26) if node['name'] == 'Barbarian_Head' else (1.08, 1.1)
                 positions[:, :2] = pivot[:2] + (positions[:, :2] - pivot[:2]) * (
-                    1 - blend[:, None] * (1 - np.array([width, depth])))
-                positions[:, 2] = pivot[2] + (positions[:, 2] - pivot[2]) * (1 - .28 * blend)
+                    1 + blend[:, None] * (np.array([width, depth]) - 1))
+                if node['name'] == 'Barbarian_BearHat':
+                    # Lift the fur rim off the face so the exposed face mass
+                    # and beard read instead of burying the skin plane.
+                    positions[:, 2] += blend * .09
+            if monk and node.get('name') == 'Barbarian_Body':
+                hip = next(i for i, n in enumerate(glb.doc['nodes'])
+                           if n.get('name') in ('hips', 'pelvis'))
+                h = world(hip)[:3, 3]
+                hip_pivot = np.array([h[0], -h[2], h[1]])
+                torso = np.clip((positions[:, 2] - hip_pivot[2]) / .3, 0, 1)
+                positions[:, 0] = hip_pivot[0] + (positions[:, 0] - hip_pivot[0]) * (1 + .36 * torso)
+                positions[:, 1] = hip_pivot[1] + (positions[:, 1] - hip_pivot[1]) * (1 + .16 * torso)
+            if monk and node.get('name') in ('Barbarian_ArmLeft', 'Barbarian_ArmRight',
+                                             'Barbarian_LegLeft', 'Barbarian_LegRight'):
+                center = positions.mean(axis=0)
+                cov = (positions - center).T @ (positions - center)
+                axis = np.linalg.eigh(cov)[1][:, -1]
+                proj = (positions - center) @ axis
+                radial = (positions - center) - proj[:, None] * axis
+                positions = positions + radial * .32
+                if node['name'].startswith('Barbarian_Leg'):
+                    hip = next(i for i, n in enumerate(glb.doc['nodes'])
+                               if n.get('name') in ('hips', 'pelvis'))
+                    h = world(hip)[:3, 3]
+                    hip_x = h[0]
+                    z_lo, z_hi = positions[:, 2].min(), positions[:, 2].max()
+                    ankle = z_lo + .3 * (z_hi - z_lo)
+                    boot = np.clip((ankle - positions[:, 2]) / max(ankle - z_lo, 1e-6), 0, 1)
+                    outward = np.where(positions[:, 0] >= hip_x, 1.0, -1.0)
+                    positions[:, 0] += boot * .05 * outward
             if debug:
                 low, high = positions.min(axis=0), positions.max(axis=0)
                 print('  node %-18s %s bbox %s .. %s' % (
@@ -311,11 +355,20 @@ def bake_pose(glb, clip_name, fraction, texture, debug=False, exclude_nodes=(), 
                         part = 'Barbarian_Face'
                     parts.setdefault(part, []).append(len(triangles) - 1)
     anchors = {}
+    name_map = {'handslot.l': 'hand', 'head': 'head', 'spine': 'chest', 'chest': 'chest',
+                'hips': 'hip', 'pelvis': 'hip', 'back': 'back', 'quiver': 'back'}
     for node_index, node in enumerate(glb.doc['nodes']):
-        key = {'handslot.l': 'hand', 'head': 'head'}.get(node.get('name'))
-        if key:
+        key = name_map.get(node.get('name'))
+        if key and key not in anchors:
             p = world(node_index)[:3, 3]
             anchors[key] = np.array([p[0], -p[2], p[1]])
+    # Synthesize missing gear anchors from head so attached sub-meshes
+    # (armor/quiver/tools) have a stable attach even on minimal rigs.
+    if 'head' in anchors:
+        h = anchors['head']
+        anchors.setdefault('chest', h * np.array([1, 1, .55]))
+        anchors.setdefault('back', h * np.array([1, 1, .62]) + np.array([0, -.18, 0]))
+        anchors.setdefault('hip', h * np.array([1, 1, .35]))
     return {'triangles': triangles, 'parts': parts, 'anchors': anchors, 'authored': authored,
             'clip': clip_name, 'fraction': fraction,
             'time': time, 'duration': duration, 'stats': stats}
@@ -446,16 +499,22 @@ def normalize(poses, target_height):
                               for triangle, color in scaled]
         pose['anchors'] = {name: np.r_[(p[:2] - center) * scale, p[2] * scale - min_z]
                            for name, p in pose['anchors'].items()}
+        # Face the default camera: staged KayKit rigs look down -y, which reads
+        # as backs at the default yaw. Turn 180 degrees about z (triangles and
+        # anchors together so palm/head gear stays attached).
+        pose['triangles'] = [(np.c_[-triangle[:, 0], -triangle[:, 1], triangle[:, 2]], color)
+                              for triangle, color in pose['triangles']]
+        pose['anchors'] = {name: np.r_[-p[0], -p[1], p[2]] for name, p in pose['anchors'].items()}
     return scale, height
 
 
 def simplify_monk(pose, max_faces):
     # The staged source has overlapping part joins. Reducing each named part
     # protects the neck/face and paired limbs from whole-body collapse at lo LOD.
-    weights = {'Barbarian_ArmLeft': 16, 'Barbarian_ArmRight': 16,
-               'Barbarian_BearHat': 24, 'Barbarian_Body': 38,
-               'Barbarian_Head': 22, 'Barbarian_Face': 24,
-               'Barbarian_LegLeft': 14, 'Barbarian_LegRight': 14}
+    weights = {'Barbarian_ArmLeft': 15, 'Barbarian_ArmRight': 15,
+               'Barbarian_BearHat': 20, 'Barbarian_Body': 40,
+               'Barbarian_Head': 26, 'Barbarian_Face': 30,
+               'Barbarian_LegLeft': 16, 'Barbarian_LegRight': 16}
     triangles = []
     cell = 0.0
     for name, indices in pose['parts'].items():

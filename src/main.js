@@ -31,6 +31,11 @@ async function boot(){
     if(!entry?.enabled)continue;
     try{const res=await fetch(new URL('../'+entry.file,import.meta.url));if(res.ok)meshes[id]=await res.json();}catch{}
    }
+   // Baked hand-gear sub-meshes preload the same way, keyed gear-<name>.
+   if(manifest)for(const [id,entry] of Object.entries(manifest.gear||{})){
+    if(!entry?.enabled)continue;
+    try{const res=await fetch(new URL('../'+entry.file,import.meta.url));if(res.ok)meshes[`gear-${id}`]=await res.json();}catch{}
+   }
    // R3 baked character sets preload the same way, keyed <set>-<pose>-<lod>.
    if(manifest)for(const [id,entry] of Object.entries(manifest.baked||{})){
     if(!entry?.enabled)continue;

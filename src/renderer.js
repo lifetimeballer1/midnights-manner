@@ -129,10 +129,10 @@ export class Renderer {
    const bounds=world.bounds||{w:20,h:16};
    // Wild rows: inside the map but outside the settled bounds — darker, red grid.
    const usable=edge||(x>=1&&y>=1&&x<=bounds.w-2&&y<=bounds.h-2);
-   // Low-contrast soil variation lets traffic wear, crops and buildings lead the eye.
-   const inner=['#68894b','#6a8b4d','#698d50','#65884a','#6b8c4f','#678b4e'][Math.abs(n)%6];
-   const wild=['#3e6039','#41623b','#3f613a'][Math.abs(n)%3];
-   this.diamond(x,y,edge?['#355931','#3a5f35','#32572e'][Math.abs(n)%3]:(usable?inner:wild),this.grid&&!edge?(usable?'#9db87a':'#c9766a'):null);
+   // Palettes retain 60% of their RGB spread around the mean, warmed by (+3,+1,-2).
+   const inner=['#6b8b4a','#6c8c4b','#6c8d4d','#698a49','#6d8c4c','#6b8c4c'][Math.abs(n)%6];
+   const wild=['#426137','#436339','#426238'][Math.abs(n)%3];
+   this.diamond(x,y,edge?['#385b2f','#3b5e32','#36592d'][Math.abs(n)%3]:(usable?inner:wild),this.grid&&!edge?(usable?'#9db87a':'#c9766a'):null);
    // Biome tint overlay (Phase 1, visual only — no gameplay change).
    // Reads data/biomes.json tints via deterministic tileFor lookup.
    if(!edge){

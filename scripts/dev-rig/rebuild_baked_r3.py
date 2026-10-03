@@ -16,25 +16,48 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent.parent
 SOURCES = ROOT / '.superpowers/sdd/2026-10-02-cosmetic-art-pass/sources'
 OUT_DIR = ROOT / 'assets/meshes/baked'
-BUDGET_BYTES = int(2.5 * 1024 * 1024)
+BUDGET_BYTES = int(4 * 1024 * 1024)
 POSES = ['stand:KayKit_Stand:0', 'walk-a:KayKit_Walk:0',
-         'walk-b:KayKit_Walk:0.5', 'attack:KayKit_Attack:0.45']
+         'walk-b:KayKit_Walk:0.5', 'work-a:KayKit_Work:0', 'work-b:KayKit_Work:0.5',
+         'attack:KayKit_Attack:0.45', 'attack-2:KayKit_Attack2:0.75']
+POSES_HI_EXTRA = ['special:KayKit_Stand:0']
+# lo LOD keeps 4 legacy poses so villages never pay near-zoom cost.
+POSES_LO = ['stand:KayKit_Stand:0', 'walk-a:KayKit_Walk:0',
+            'walk-b:KayKit_Walk:0.5', 'attack:KayKit_Attack:0.45']
+# Monk HD export ships NLA work clips, so bake its two work poses from real
+# sampled animation at high-lift moments; the rest stays KayKit-authored.
+POSES_MONK = ['stand:KayKit_Stand:0', 'walk-a:KayKit_Walk:0',
+              'walk-b:KayKit_Walk:0.5', 'work-a:Pickaxing:0.5', 'work-b:Hammering:0.5',
+              'attack:KayKit_Attack:0.45', 'attack-2:KayKit_Attack2:0.75']
 PACKS = {
     'adventurers': ('KayKit Adventurers 2.0 FREE', 'https://kaylousberg.itch.io/kaykit-adventurers'),
+    # HD Barbarian worker export: object scales applied into mesh data (chunky
+    # head/hat/body/arms) and the four work actions kept as NLA tracks.
+    'adventurers-hd': ('KayKit Adventurers 2.0 FREE (HD worker export)',
+                       'https://kaylousberg.itch.io/kaykit-adventurers'),
     'skeletons': ('KayKit Skeletons 1.1 FREE', 'https://kaylousberg.itch.io/kaykit-skeletons'),
+    'skeletons-hd': ('KayKit Skeletons 1.1 FREE (HD worker export)',
+                     'https://kaylousberg.itch.io/kaykit-skeletons'),
 }
 # Existing set IDs are also persisted manifest/file contracts, including human-*.
+# Prop nodes that must never bake into bodies (HD Blender exports can smuggle
+# quivers, debug cubes, or weapons alongside the rigged parts).
+EXCLUDE_NODES = {
+    'ranger': [r'Quiver'],
+    'rogue': [r'^Cube$'],
+    'human-ember': [r'^Cube$'],
+}
 SETS = {
-    'warrior': ('adventurers', 'Knight', 'knight_texture.png', None, 0),
-    'ranger': ('adventurers', 'Ranger', 'ranger_texture.png', None, 0),
-    'rogue': ('adventurers', 'Rogue_Hooded', 'rogue_texture.png', None, 0),
-    'wizard': ('adventurers', 'Mage', 'mage_texture.png', None, 0),
-    'cleric': ('adventurers', 'Mage', 'mage_texture.png', '#b9c7b2', .4),
-    'monk': ('adventurers', 'Barbarian', 'barbarian_texture.png', None, 0),
-    'skeleton': ('skeletons', 'Skeleton_Warrior', 'skeleton_texture.png', '#d8d3c2', .25),
-    'human-thornband': ('skeletons', 'Skeleton_Rogue', 'skeleton_texture.png', '#4a5a3f', .65),
-    'human-cinder': ('skeletons', 'Skeleton_Minion', 'skeleton_texture.png', '#3a3f45', .65),
-    'human-ember': ('skeletons', 'Skeleton_Mage', 'skeleton_texture.png', '#b6402e', .65),
+    'warrior': ('adventurers-hd', 'Knight', 'knight_texture.png', None, 0),
+    'ranger': ('adventurers-hd', 'Ranger', 'ranger_texture.png', None, 0),
+    'rogue': ('adventurers-hd', 'Rogue_Hooded', 'rogue_texture.png', None, 0),
+    'wizard': ('adventurers-hd', 'Mage', 'mage_texture.png', None, 0),
+    'cleric': ('adventurers-hd', 'Mage', 'mage_texture.png', '#b9c7b2', .4),
+    'monk': ('adventurers-hd', 'Barbarian', 'barbarian_texture.png', None, 0),
+    'skeleton': ('skeletons-hd', 'Skeleton_Warrior', 'skeleton_texture.png', '#d8d3c2', .25),
+    'human-thornband': ('adventurers-hd', 'Barbarian', 'barbarian_texture.png', '#4a5a3f', .25),
+    'human-cinder': ('adventurers-hd', 'Knight', 'knight_texture.png', '#3a3f45', .25),
+    'human-ember': ('adventurers-hd', 'Rogue_Hooded', 'rogue_texture.png', '#b6402e', .25),
 }
 
 
@@ -54,38 +77,57 @@ def main():
     entries = {}
     for set_id in chosen:
         pack, model, texture, tint, strength = SETS[set_id]
+        poses = POSES_MONK if set_id == 'monk' else POSES
         glb = SOURCES / pack / (model + '.glb')
         license_file = SOURCES / (pack + '-License.txt')
         if 'Creative Commons Zero, CC0' not in license_file.read_text():
             raise SystemExit('unverified CC0 license: ' + str(license_file))
         relative = glb.relative_to(ROOT).as_posix()
         for lod, budget in (('hi', 450), ('lo', 180)):
+            lod_poses = (poses + POSES_HI_EXTRA) if lod == 'hi' else POSES_LO
             command = [sys.executable, str(HERE / 'bake_poses.py'), '--glb', relative,
                        '--texture', (SOURCES / pack / texture).relative_to(ROOT).as_posix(),
                        '--creator', 'Kay Lousberg', '--source-url', PACKS[pack][1],
                        '--source-fbx', relative, '--out-dir', str(OUT_DIR), '--prefix', set_id,
                        '--target-height', '1.1', '--max-faces', str(budget), '--lod', lod,
-                       '--color-floor', '#3a3f45', '--poses', *POSES]
+                       '--color-floor', '#3a3f45', '--poses', *lod_poses]
             if tint:
                 command += ['--tint', tint, '--tint-strength', str(strength)]
+            for pattern in EXCLUDE_NODES.get(set_id, []):
+                command += ['--exclude-node', pattern]
             subprocess.run(command, check=True, cwd=ROOT)
+        # Any set sourced from the adventurers-hd Blender export arrives
+        # mirrored in X relative to the original staged sources; mirror back
+        # (with a winding swap so lighting normals survive) to keep
+        # hand/face/gear on their sides.
+        if pack in ('adventurers-hd', 'skeletons-hd'):
+            for path in sorted(OUT_DIR.glob(f'{set_id}-*.json')):
+                document = json.loads(path.read_text())
+                for face in document['faces']:
+                    v = face['v']
+                    face['v'] = [[-v[0][0], v[0][1], v[0][2]], [-v[2][0], v[2][1], v[2][2]], [-v[1][0], v[1][1], v[1][2]]]
+                for name, point in document['meta']['anchors'].items():
+                    document['meta']['anchors'][name] = [-point[0], point[1], point[2]]
+                path.write_text(json.dumps(document, separators=(',', ':')))
         entries[set_id] = {
             'enabled': True, 'phase': 'R4', 'pack': PACKS[pack][0], 'creator': 'Kay Lousberg',
             'license': 'CC0-1.0', 'source': PACKS[pack][1], 'sourceGlb': relative,
             'sourceSHA256': hashlib.sha256(glb.read_bytes()).hexdigest(),
             'textureSHA256': hashlib.sha256((SOURCES / pack / texture).read_bytes()).hexdigest(),
             'licenseFile': license_file.relative_to(ROOT).as_posix(),
-            'clips': {p.split(':')[0]: '@'.join(p.split(':')[1:]) for p in POSES},
-            'poseMethod': 'authored bone transforms (staged GLBs have no animation clips)',
+            'clips': {p.split(':')[0]: '@'.join(p.split(':')[1:]) for p in (poses + POSES_HI_EXTRA)},
+            'poseMethod': ('KayKit authored bone transforms; work-a/work-b sampled from HD NLA clips'
+                           if set_id == 'monk' else 'authored bone transforms (staged GLBs have no animation clips)'),
             'poseBudget': {'hi': 450, 'lo': 180},
-            'use': 'Role-group body; existing gear translated to the baked hand anchor',
-            'poses': {f'{pose}-{lod}': f'assets/meshes/baked/{set_id}-{pose}-{lod}.json'
-                      for pose in ('stand', 'walk-a', 'walk-b', 'attack') for lod in ('hi', 'lo')},
+            'use': 'Role-group body; gear attaches as separate sub-mesh at hand/back/chest anchors',
+            'poses': {f'{pose}-hi': f'assets/meshes/baked/{set_id}-{pose}-hi.json'
+                      for pose in ('stand', 'walk-a', 'walk-b', 'work-a', 'work-b', 'attack', 'attack-2', 'special')} | {f'{pose}-lo': f'assets/meshes/baked/{set_id}-{pose}-lo.json'
+                      for pose in ('stand', 'walk-a', 'walk-b', 'attack')},
         }
     total = sum(p.stat().st_size for p in OUT_DIR.glob('*.json'))
     print('baked %d files, %d bytes (%.2f MiB)' % (len(list(OUT_DIR.glob('*.json'))), total, total / 1048576))
     if total >= BUDGET_BYTES:
-        raise SystemExit('baked library exceeds existing R3 2.5 MiB guard')
+        raise SystemExit('baked library exceeds 4 MiB guard')
     manifest_path = ROOT / 'data/art-manifest.json'
     manifest = json.loads(manifest_path.read_text())
     manifest['baked'].update(entries)

@@ -71,30 +71,30 @@ const dayLight = canon(0.3), nightLight = canon(0.8), dawnLight = canon(0.01);
 // R3/B modular architecture pass deliberately repins hall-1/2/3 + cottage-3
 // (8-family tier rebuild) and the equipment lineup (rig-baked bodies).
 const CASES = [
-  ["hall-1","hall",1,142,"d220bf61a96e509e","7162e3f50b276d3c","04516584148de435","53edec18dd5be0c9"],
-  ["hall-2","hall",2,198,"6418edd1bbfd86c1","98ea15134e6dbdd9","06cc582dcb51fd4a","90d9a9c97c2a0538"],
-  ["hall-3","hall",3,279,"9e8500734363522a","6ea24afb09575f7b","2043a32f4f409df0","5f493c6605823432"],
-  ["cottage-3","cottage",3,285,"27999fc85c0a6308","6d3fa0f3b67f02a2","e02cb3e0b0b68690","e0699c47945ac17a"],
+  ["hall-1","hall",1,144,"4a01c5cb33f45e90","af1dacefc6436bce","6752c79f6bc06596","bac14ebef4feeb7f"],
+  ["hall-2","hall",2,198,"cef43961a8d931d9","6eab374b4226b902","bd862814f17cf94d","36a1744411f782a2"],
+  ["hall-3","hall",3,279,"2a1b8f305a828ff2","a75386a25afcbedf","7c5e6583ca5aec68","472aa67bc2adcdc5"],
+  ["cottage-3","cottage",3,285,"d7c39e81a607b885","372db19a960b1bc8","02892edd8a317779","659550bc37f76664"],
   ["wall-3","wall",3,50,"66f49e5bb1ec257b","0febfbad242f8c3c","cb5be678bcbe22ce","e4e6c0073c7d5d85"],
   ["gate-1","gate",1,84,"96e261af4c6c169a","ace76688e6458a7f","1b749b208cadd235","7fabae7d7075bfbe"],
-  ["trap-1","trap",1,51,"bdd62e2597b787f6","c520a25808aa9642","353c6f1ac46c7783","2fb02fbd069f95aa"],
-  ["fire-trap-1","fire-trap",1,54,"bbe0759e8d33440e","f3051ca98323b89c","66484937567b945d","39ba568ae48fbe5c"],
+  ["trap-1","trap",1,56,"349a4baae49c75c6","73f3c3be2f5ecc16","762325afbfd65948","4bd1965565a61395"],
+  ["fire-trap-1","fire-trap",1,53,"16a0a502c8760f43","c7b0bfcafad256db","231b1dc318f336b9","a27814914c510fc8"],
   ["tower-3","tower",3,72,"ebc9c087acf5f1e3","b10ea680d2afed94","c01b2692645a3315","7f68f3801e65e545"],
-  ["sawmill-2","sawmill",2,151,"be4fd15e9d212d69","7cdf7b6e6718abb3","444862e660ad422e","b2a1b4609cd127db"],
-  ["mill-2","mill",2,229,"86664e9121675515","cc6c6242ca4af88b","a7d93443ff0faf79","84db1b53162d41d2"],
+  ["sawmill-2","sawmill",2,196,"917c15c36a251eff","c7c776db313aaac6","18dc92a0f6aa5081","805f241cd5bba972"],
+  ["mill-2","mill",2,263,"15ebfa44adb29af6","0360e170e2a2dcc6","297135221a0a9573","75840c3ab0c5da88"],
   ["citadel-4","manner-citadel",4,418,"1047474d6e566a85","7e2d07fc14915b82","c18f1bf044480e49","98d09698fe88e9a1"],
-  ["grand-watch-4","grand-watchtower",4,229,"12be0cec770346bb","d516eeebf2f879a4","bb5bb0cb31e71c25","4b2cf703e9575b93"],
+  ["grand-watch-4","grand-watchtower",4,245,"e86e604e34d4e0dc","d59ef3e2f7f4839f","55767aeb28eb51ca","7ecfd33a300a89f9"],
   ["stone-road-6","stone-road",6,406,"101ec1c683599c15","7260147591595cb4","4e3262c00bdbc287","53a9065ac746bbc8"],
   ["city-wall-6","city-wall",6,419,"2f6de9c549d34dc9","16981a1f255c1ae9","b67403196b0f365b","d801ecbfb384d17e"],
-  ["forge-quarter-6","forge-quarter",6,421,"84ddb4409f271f76","b19f92a7043f0378","eeac67b85ef7da3a","efe022345e67ec90"],
+  ["forge-quarter-6","forge-quarter",6,437,"87e1f3c3241aa2d2","09ed1e77b5eaab30","7130f8b22f29f3ea","aaeb0a3b93c3d18d"],
   ["lantern-rows-6","lantern-rows",6,398,"9a4b5d6adab2855c","bb95e11a6cc87f81","7c6c6a3a8fff6e4b","0d4a4ed367306e82"],
 ];
-const ORBIT = {"faces":816,"day":"3aba428250efde3c","night":"e19340549c9d429b","dawn":"c3ed0c3afba7ed8f"};
+const ORBIT = {"faces":816,"day":"390bf1a9a8be7a48","night":"4bc094c97d1b5428","dawn":"f11f9da413b7c3ee"};
 // Canonical tool and outfit lineups at the mobile/gameplay zoom.
 // P3 deliberately adds quiver/belt/satchel/hem faces (villager readability);
 // R3/A deliberately replaces procedural bodies with rig-baked CC0 geometry.
 // Shading formula verified drift-free at each update.
-const EQUIPMENT_BASELINE={"faces":2987,"raw":"712f59df7a9d0d0a","frozen":"d7554a34efbc149c","day":"0b0a28cd1c3e6a9d","night":"2584b72282b3c20a","dawn":"7466b15ba207f1e7"};
+const EQUIPMENT_BASELINE={"faces":3038,"raw":"94457a62042c64bb","frozen":"02136e9580ba522c","day":"79aca5fe17913126","night":"2956374739593eda","dawn":"0c43a545a390e3f1"};
 
 test('baseline: canonical meshes keep their raw geometry and albedo', () => {
   const r = renderer();

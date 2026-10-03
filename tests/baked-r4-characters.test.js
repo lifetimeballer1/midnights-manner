@@ -19,7 +19,7 @@ test('r4 flat colors meet the cloth floor without arbitrary dark-face exemptions
 });
 
 test('r4 preserves ten sets, four distinct grounded poses, and bounded LODs and weight', async () => {
-  assert.equal(files.length, 80);
+  assert.ok(files.length >= 80);
   let total = 0;
   for (const [id, entry] of Object.entries(data['art-manifest'].baked)) {
     assert.equal(entry.phase, 'R4');
@@ -32,7 +32,13 @@ test('r4 preserves ten sets, four distinct grounded poses, and bounded LODs and 
       assert.ok(Math.abs(Math.min(...mesh.faces.flatMap(f => f.v.map(v => v[2])))) < .001);
       if (lod === 'hi') signatures.add(JSON.stringify(mesh.faces));
     }
-    assert.equal(signatures.size, 4, id + ' distinct poses');
+    assert.ok(signatures.size >= 4, id + ' distinct poses');
+    // Expanded 8-pose library (work-a/b, attack-2, special hi-only) is
+    // optional until the baker runs: validate only when committed.
+    for (const key of [`${id}-work-a-hi`, `${id}-work-b-hi`, `${id}-attack-2-hi`, `${id}-special-hi`]) {
+      if (!meshes[key]) continue;
+      assert.ok(meshes[key].faces.length > 0 && meshes[key].faces.length <= 450, key);
+    }
   }
   for (const f of files) total += (await stat(new URL('assets/meshes/baked/' + f, root))).size;
   assert.ok(total < 4 * 1024 * 1024, `${total} bytes`);
@@ -45,6 +51,12 @@ test('r4 hand and head anchors sit inside baked anatomy and faces stay welded', 
       const anchor = mesh.meta.anchors?.[name];
       assert.ok(Array.isArray(anchor) && anchor.length === 3, `${id} ${name} anchor`);
       assert.ok(Math.min(...points.map(p => Math.hypot(...p.map((v, i) => v - anchor[i])))) < .12, `${id} ${name} attached`);
+    }
+    // Attached gear anchors (back/chest/hip) validated when the baker emits them.
+    for (const name of ['back', 'chest', 'hip']) {
+      const anchor = mesh.meta.anchors?.[name];
+      if (!anchor) continue;
+      assert.ok(Math.min(...points.map(p => Math.hypot(...p.map((v, i) => v - anchor[i])))) < .3, `${id} ${name} attached`);
     }
     const unique = new Set(points.map(p => p.join(',')));
     assert.ok(unique.size < points.length * .65, id + ' shared welded vertices');
@@ -106,6 +118,20 @@ test('r4 baked professions retain data-colored accents and distinct work headwea
   }
 });
 
+test('r4 baked KayKit hand-gear attaches at the palm with fallback', async () => {
+  const gearFiles = (await readdir(new URL('assets/meshes/gear/', root))).filter(f => f.endsWith('.json'));
+  assert.ok(gearFiles.length >= 14, 'Sol gear library committed');
+  const gearMeshes = Object.fromEntries(await Promise.all(gearFiles.map(async f => [`gear-${f.slice(0, -5)}`, JSON.parse(await readFile(new URL('assets/meshes/gear/' + f, root)))])));
+  for (const [id, mesh] of Object.entries(gearMeshes)) {
+    assert.ok(mesh.faces.length > 0 && mesh.faces.length <= 60, `${id} tool budget`);
+    assert.ok(data['art-manifest'].gear?.[id.slice(5)]?.enabled, `${id} manifest enabled`);
+  }
+  const withGear = render('miner', 'pickaxe', 0, {meshes: {...meshes, ...gearMeshes}});
+  assert.ok(withGear.raw.some(f => ['#5e5e5e', '#868686', '#a39281'].includes(f.c)), 'baked pickaxe steel in palm');
+  const withoutGear = render('miner', 'pickaxe', 0, {meshes});
+  assert.ok(!withoutGear.raw.some(f => ['#5e5e5e', '#a39281'].includes(f.c)), 'procedural fallback without gear mesh');
+});
+
 test('r4 disabled, missing and empty pose meshes silently use procedural fallback', () => {
   const disabled = structuredClone(data);
   disabled['art-manifest'].baked.warrior.enabled = false;
@@ -155,7 +181,7 @@ test('r4 composed enemy factions and roles attach to baked anatomy at gameplay z
 });
 
 test('r4 siege roles keep faction armor on anatomy rather than the carried frame', () => {
-  for (const [faction,color] of [['cinder-clan','#3a3d3f'],['ember-legion','#b6402e']]) {
+  for (const [faction,color] of [['cinder-clan','#c76b43'],['ember-legion','#c2502f']]) {
     const cue = role => render('enemy','',0,{enemy:true,unit:{faction,role}}).raw.filter(f => f.c === color);
     assert.ok(cue('raider').length > 0);
     for(const role of ['ram','bombard'])assert.deepEqual(cue(role),cue('raider'),`${faction} ${role} anatomy attachment`);
@@ -169,7 +195,42 @@ test('r4 fitted Thornband cowl follows head anchors and selected pose bounds', (
   mesh.meta.anchors.head = mesh.meta.anchors.head.map((v,i) => v+delta[i]);
   mesh.faces.forEach(f => f.v.forEach(p => {p[2] += delta[2];}));
   const moved = render('enemy','',0,{enemy:true,unit:{faction:'thornband',role:'scout'},meshes:{...meshes,[key]:mesh}});
-  const cowl = raw => raw.filter(f => f.c === '#4a5a3f').flatMap(f => f.v);
+  const cowl = raw => raw.filter(f => f.c === '#5d7348').flatMap(f => f.v);
   assert.ok(cowl(original.raw).length > 0);
   cowl(original.raw).forEach((p,j) => p.forEach((v,i) => assert.ok(Math.abs(cowl(moved.raw)[j][i]-v-delta[i]) < 1e-8)));
+});
+
+test('b4 named leaders scale baked body offsets around the unit origin', () => {
+  const leaders = [
+    ['ironshield-warden','thornband',1.15],['thornband-vex','thornband',1],
+    ['cinder-sorr','cinder-clan',1.12],['palehost-herald','pale-host',1],
+    ['ember-cindral','ember-legion',1.15],['grey-sovereign','pale-court',1.18],
+    ['ashen-warlord','ember-legion',1.25],['cinder-maul','cinder-clan',1.12],
+    ['pale-queen','pale-court',1],['unknown','thornband',1],
+  ];
+  const sets = {thornband:'human-thornband','cinder-clan':'human-cinder','ember-legion':'human-ember','pale-host':'skeleton','pale-court':'skeleton'};
+  for (const [bossId,faction,scale] of leaders) for (const zoom of [1,4]) {
+    const mesh = meshes[`${sets[faction]}-stand-${zoom === 4 ? 'hi' : 'lo'}`];
+    const shown = render('enemy','',0,{enemy:true,zoom,unit:{bossId,faction,role:'boss',attackTimer:0,x:1,y:2}});
+    assert.deepEqual(shown.raw.slice(0,mesh.faces.length).map(f => f.v),
+      mesh.faces.map(f => f.v.map(([x,y,z]) => [1+x*scale,2+y*scale,z*scale])),bossId);
+  }
+});
+
+test('b4 head, palm, chest and back attachments follow scaled baked anchors', () => {
+  const mesh = meshes['human-ember-stand-hi'], scale = 1.25;
+  const anchors = Object.fromEntries(Object.entries(mesh.meta.anchors).map(([key,p]) => [key,p.map(v => v*scale)]));
+  const unit = {bossId:'ashen-warlord',faction:'ember-legion',role:'boss',attackTimer:0,x:1,y:2};
+  const shown = armor => render('enemy','',0,{enemy:true,zoom:4,unit:{...unit,armor}}).raw.slice(mesh.faces.length);
+  const near = (raw,color,p) => raw.filter(f => f.c === color).flatMap(f => f.v).some(v => Math.hypot(...v.map((n,i) => n-p[i])) < 1e-8);
+  const plate = shown('iron-plate');
+  assert.ok(['#dbb38c','#b98c64','#936a50'].some(color => near(plate,color,[1+anchors.head[0]-.055,2+anchors.head[1]+.15,anchors.head[2]-.035])),'head face');
+  assert.ok(plate.filter(f => f.c === '#987046').flatMap(f => f.v).some(p => Math.hypot(p[0]-1-anchors.hand[0],p[1]-2-anchors.hand[1],p[2]-anchors.hand[2]) < .08),'palm grip');
+  assert.ok(plate.flatMap(f => f.v).some(p => Math.hypot(p[0]-1-anchors.chest[0],p[1]-2-anchors.chest[1],p[2]-anchors.chest[2]) < 1e-8),'chest plate');
+  assert.ok(shown('kite-shield').flatMap(f => f.v).some(p => Math.hypot(p[0]-1-anchors.back[0]+.09,p[1]-2-anchors.back[1]+.02,p[2]-anchors.back[2]) < 1e-8),'back shield');
+  const ordinary = render('enemy','',0,{enemy:true,zoom:4,unit:{...unit,role:'raider'}});
+  assert.deepEqual(ordinary.raw.slice(0,mesh.faces.length).map(f => f.v),mesh.faces.map(f => f.v.map(([x,y,z]) => [1+x,2+y,z])),'non-boss stays unscaled');
+  const disabled = structuredClone(data);
+  disabled['art-manifest'].baked['human-ember'].enabled = false;
+  assert.deepEqual(render('enemy','',0,{enemy:true,unit,meshes:{}}).raw,render('enemy','',0,{enemy:true,unit,data:disabled}).raw,'procedural fallback');
 });

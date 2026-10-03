@@ -67,7 +67,7 @@ test('faction overlays stay present on the rebuilt enemy bodies',()=>{
  r.calm=true;r.cam.zoom=2;r.cam.yaw=Math.PI/4;
  assert.equal(enemyGearFor({role:'archer'}),'bow');
  assert.equal(enemyGearFor({role:'breaker'}),'warhammer');
- const markers={'pale-host':['#d8d3c2','#1c2226'],'pale-court':['#d8d3c2','#1c2226','#e8c673'],'thornband':['#4a5a3f'],'cinder-clan':['#3a3d3f'],'ember-legion':['#b6402e']};
+  const markers={'pale-host':['#d6cfb8','#14181c'],'pale-court':['#e8e2d2','#14181c','#e8c673'],'thornband':['#5d7348'],'cinder-clan':['#c76b43'],'ember-legion':['#c2502f']};
  for(const faction of data.world.enemyFactions){
   const colors=new Set();
   for(const role of ['raider','scout','archer','breaker','ram','bombard']){

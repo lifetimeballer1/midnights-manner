@@ -373,6 +373,36 @@
         "includedRestrictions": "None; public-domain CC0 source listing (License.txt in the pack zip)."
       },
       "sourceSHA256": "dcd72162b5e59495efc629fb624d9e1deb12124b68291ad4fa3ce66b4fc24db3"
+    },
+    {
+      "id": "kaykit-adventurers-rpgtools-animations",
+      "name": "KayKit Adventurers + RPGToolsBits + Character Animations (pose/tool reference)",
+      "creator": "Kay Lousberg",
+      "source": "itch.io",
+      "originalPage": "https://kaylousberg.itch.io/kaykit-adventurers",
+      "license": "CC0-1.0",
+      "licenseURL": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Made by KayKit (CC0); reskinned to village palette. Attribution voluntary.",
+      "sourceFile": "scripts/dev-rig/rebuild_baked_r3.py",
+      "localFiles": [
+        "scripts/dev-rig/bake_poses.py",
+        "scripts/dev-rig/rebuild_baked_r3.py",
+        "src/character-art.js"
+      ],
+      "modifications": [
+        "Authored poses: stand, walk-a/b, work-a/b, attack, attack-2, special hi-only",
+        "Gear as attached sub-mesh at hand/back/chest anchors",
+        "Two-hand off-hand beam; work pose from workPhase",
+        "Prototypes: Builder, Miner, Scholar, Thornband raider, Brannoc 1.15x"
+      ],
+      "gameSystems": [
+        "baked villager/enemy pose bodies + attached gear"
+      ],
+      "verifiedDate": "2026-10-02",
+      "licenseEvidence": {
+        "pageLabel": "CC0 1.0",
+        "creator": "Kay Lousberg"
+      }
     }
   ],
   "skipped": [

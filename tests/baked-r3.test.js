@@ -75,5 +75,5 @@ test('provenance exists and the baked library fits its weight budget', async () 
   assert.ok(/Quaternius/i.test(credits), 'credits row present');
   let total = 0;
   for (const f of bakedFiles) total += (await stat(new URL('../assets/meshes/baked/' + f, import.meta.url))).size;
-  assert.ok(total < 2.5 * 1024 * 1024, `baked weight ${(total / 1048576).toFixed(2)}MB < 2.5MB`);
+  assert.ok(total < 4 * 1024 * 1024, `baked weight ${(total / 1048576).toFixed(2)}MB < 4MB`);
 });
