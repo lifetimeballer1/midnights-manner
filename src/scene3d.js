@@ -123,7 +123,7 @@ function lanternPost(s,x,y,z=.72,radius=1.05,power=.46){
  s.source([x,y,z+.035],null,radius,power,'lantern');
 }
 function pine(s,x,y,height=1.7,cold=false){s.box(x-.045,y-.045,0,.09,.09,height*.65,'#73543c');for(let i=0;i<3;i++)s.pyramid(x,y,height*(.23+i*.21),height*(.31-i*.055),height*.53,cold?['#598c83','#80b8ae','#b6ded0'][i]:['#315d43','#477953','#699358'][i],6);}
-function tower(s,x,y,size,h,color=stone){s.box(x,y,.12,size,size,h,color);s.box(x-.08,y-.08,h+.1,size+.16,size+.16,.16,color);for(const [dx,dy]of[[0,0],[size-.16,0],[0,size-.16],[size-.16,size-.16]])s.box(x+dx-.025,y+dy-.025,h+.26,.21,.21,.23,color);s.box(x+size*.38,y+size+.006,h*.48,size*.2,.012,.27,'#324a41');s.box(x+size+.006,y+size*.38,h*.48,.012,size*.2,.27,'#324a41');}
+function tower(s,x,y,size,h,color=stone,level=1){const plaster='#eee7d6',frame='#725039',specStone='#9ca29a';s.box(x,y,.12,size,size,h,color);if(level>1&&color!==timber){s.box(x,y,h*.65,size,size,h*.35,plaster);for(const dx of[0,size-.08])for(const dy of[0,size-.08])s.box(x+dx,y+dy,.12,.08,.08,h,frame);}s.box(x-.08,y-.08,h+.1,size+.16,size+.16,.16,color);for(const [dx,dy]of[[0,0],[size-.16,0],[0,size-.16],[size-.16,size-.16]])s.box(x+dx-.025,y+dy-.025,h+.26,.21,.21,.23,level>=4?specStone:color);s.box(x+size*.38,y+size+.006,h*.48,size*.2,.012,.27,'#324a41');s.box(x+size+.006,y+size*.38,h*.48,.012,size*.2,.27,'#324a41');}
 // Moon dial: a pale emissive plate, a three-sided needle and three phase pips.
 // The plate and pips are flat and horizontal, so they survive every orbit
 // angle and carry the dial once the sky clock dims. The needle drops from the
@@ -1341,14 +1341,14 @@ function buildingShape(s,b,spec,world,time){
    else{torch(s,x+.31,y+.26,h*.74,[-1,0],1.08,.55);torch(s,x+.69,y+.74,h*.74,[1,0],1.08,.55);}
    if(l>=6){lanternPost(s,x+.2,y+.2,h+.3,1,.42);lanternPost(s,x+.8,y+.8,h+.3,1,.42);}
    return;}
- if(isWall(b)){const ramp=t==='rampart',h=.38+l*.17+(t==='stonewall'?.15:0)+(ramp?.12:0),color=ramp?'#8a6f4d':l>1||t==='stonewall'?stone:timber,neighbors=wallNeighbors(b,world);for(const [dx,dy]of neighbors.filter(([a,c])=>a+c<0))s.box(x+.4+Math.min(0,dx*.5),y+.4+Math.min(0,dy*.5),.1,.2+Math.abs(dx)*.5,.2+Math.abs(dy)*.5,h-.13,color);s.box(x+.28,y+.28,.1,.44,.44,h,color);
-  if(ramp){s.box(x+.2,y+.2,.1,.6,.6,.1,timber);s.box(x+.2,y+.2,h-.12,.6,.07,.07,'#6b543a');}
-   if(l===1&&t==='wall')s.pyramid(x+.5,y+.5,h+.1,.32,.2,color);else for(const [a,c]of[[.25,.25],[.6,.25],[.25,.6],[.6,.6]])s.box(x+a,y+c,h+.1,.16,.16,.18,l>=3||ramp&&l>=2?gold:color);
-  for(const [dx,dy]of neighbors.filter(([a,c])=>a+c>=0))s.box(x+.4+Math.min(0,dx*.5),y+.4+Math.min(0,dy*.5),.1,.2+Math.abs(dx)*.5,.2+Math.abs(dy)*.5,h-.13,color);
-   const cap=ramp?'#b89c70':l>1||t==='stonewall'?'#d3d9d0':WALL_CAP;
-   for(const [dx,dy]of wallEnds(neighbors)){const alongX=!!dx,px=dx<0?.15:dx>0?.65:.37,py=dy<0?.15:dy>0?.65:.37,w=alongX?.2:.26,d=alongX?.26:.2;s.box(x+px,y+py,.1,w,d,h+.12,cap);}
-   if(l>=5)s.box(x+.2,y+.2,.04,.6,.6,.2,l>1||t==='stonewall'?stone:timber);
-   if(l>=6)s.box(x+.42,y+.42,h+.2,.16,.16,.3,gold);
+if(isWall(b)){const ramp=t==='rampart',specStone='#9ca29a',h=.38+l*.17+(t==='stonewall'?.15:0)+(ramp?.12:0),color=ramp?'#8a6f4d':l>1||t==='stonewall'?specStone:timber,neighbors=wallNeighbors(b,world),isGateAdjacent=neighbors.some(([dx,dy])=>world.buildings.some(bb=>bb.x===b.x+dx&&bb.y===b.y+dy&&bb.type==='gate')),footingW=l>=3?.3:.2;for(const [dx,dy]of neighbors.filter(([a,c])=>a+c<0))s.box(x+.4+Math.min(0,dx*.5),y+.4+Math.min(0,dy*.5),.1,footingW+Math.abs(dx)*.5,footingW+Math.abs(dy)*.5,h-.13,color);s.box(x+.28,y+.28,.1,.44,.44,h,color);
+if(ramp){s.box(x+.2,y+.2,.1,.6,.6,.1,timber);s.box(x+.2,y+.2,h-.12,.6,.07,.07,'#6b543a');}
+if(l===1&&t==='wall')s.pyramid(x+.5,y+.5,h+.1,.32,.2,color);else for(const [a,c]of[[.25,.25],[.6,.25],[.25,.6],[.6,.6]])s.box(x+a,y+c,h+.1,.16,.16,.18,isGateAdjacent?gold:specStone);
+for(const [dx,dy]of neighbors.filter(([a,c])=>a+c>=0))s.box(x+.4+Math.min(0,dx*.5),y+.4+Math.min(0,dy*.5),.1,footingW+Math.abs(dx)*.5,footingW+Math.abs(dy)*.5,h-.13,color);
+const cap=ramp?'#b89c70':l>1||t==='stonewall'?'#d3d9d0':WALL_CAP;
+for(const [dx,dy]of wallEnds(neighbors)){const alongX=!!dx,px=dx<0?.15:dx>0?.65:.37,py=dy<0?.15:dy>0?.65:.37,w=alongX?.2:.26,d=alongX?.26:.2;s.box(x+px,y+py,.1,w,d,h+.12,cap);}
+if(l>=5){for(const [a,c]of[[.25,.25],[.6,.25],[.25,.6],[.6,.6]])s.box(x+a-.02,y+c-.02,h+.12,.2,.2,.06,'#1a1a1a');}
+if(l>=6)s.box(x+.42,y+.42,h+.2,.16,.16,.3,gold);
   // One torch roughly every three wall tiles keeps long defenses legible
   // without turning every segment into an expensive light source.
   const torchSide=WALL_DIRECTIONS.find(([dx,dy])=>!neighbors.some(([nx,ny])=>nx===dx&&ny===dy));
@@ -1408,31 +1408,33 @@ function buildingShape(s,b,spec,world,time){
    if(l>=5){s.box(x+.13,y+.3,.16,.3,.24,.2,'#6f6253');s.pyramid(x+.27,y+.41,.36,.09,.12,'#a29074',5);}
    if(l>=6){s.box(x+.44,y+.86,.14,.05,.05,.7,timber);s.box(x+.44,y+.86,.7,.34,.05,.05,timber);lanternPost(s,x+.5,y+.3,.6,.9,.4);}
    return;}
- if(['tower','bell-tower','bellcote','scout_post','archer_tower','ballista'].includes(t)){const width=t==='archer_tower'?n*.45:t==='ballista'?n*.62:n*.55,h=t==='archer_tower'?1+l*.3:t==='ballista'?.62+l*.18:.85+l*.24;tower(s,x+(n-width)/2,y+(n-width)/2,width,h,l===1?timber:stone);if(t.includes('bell')){s.box(x+n*.4,y+n*.4,h+.3,n*.2,n*.2,.28,gold);s.roof(x+.15,y+.15,h+.7,n-.3,n-.3,.45,'#648b90');
+ if(['tower','bell-tower','bellcote','scout_post','archer_tower','ballista'].includes(t)){const width=t==='archer_tower'?n*.45:t==='ballista'?n*.62:n*.55,h=t==='archer_tower'?1+l*.3:t==='ballista'?.62+l*.18:.85+l*.24;tower(s,x+(n-width)/2,y+(n-width)/2,width,h,l===1?timber:stone,l);if(t.includes('bell')){s.box(x+n*.4,y+n*.4,h+.3,n*.2,n*.2,.28,gold);s.roof(x+.15,y+.15,h+.7,n-.3,n-.3,.45,'#648b90');
    // Bellcote trade props only: the brass bell hangs in the belfry face on its
    // rope, and a votive shelf below carries candle dots that carry the night.
    // Bell-tower keeps its own path, so nothing else in this branch pays for it.
    // One unsplit rope quad, a three-sided cone, a clapper sliver and three shelf
    // quads hold the whole set inside the branch's face budget; the second candle
    // arrives with the top tier.
-   if(t==='bellcote'){
-    const cx=x+n*.5,fy=y+n*.6+.012,zTop=h+.57,zCrown=zTop-.12,zSkirt=zCrown-.11;
-    // Rope: a single quad dropped from the belfry lintel to the bell crown.
-    s.face([[cx-.012,fy,zTop],[cx+.012,fy,zTop],[cx+.012,fy,zCrown],[cx-.012,fy,zCrown]],'#a08a63',false);
-    // Bell: a cone flaring to its skirt, hung the way the chapel hangs its own,
-    // with the clapper clearing the lip below.
-    s.pyramid(cx,fy-.01,zSkirt,.085,.11,'#c9a24e',3);
-    s.face([[cx-.018,fy,zSkirt+.012],[cx+.018,fy,zSkirt+.012],[cx+.018,fy,zSkirt-.028],[cx-.018,fy,zSkirt-.028]],'#6b5a3c',false);
-    // Votive shelf: a slab on the shaft face, braced underneath from tier 3.
-    if(l>=2){
-     const sz=h*.5,sy=y+n-.225+.012;
-     s.face([[x+.28,sy,sz],[x+.72,sy,sz],[x+.72,sy+.09,sz],[x+.28,sy+.09,sz]],'#8d6844',false);
-     if(l>=3)s.face([[x+.4,sy,sz],[x+.46,sy,sz],[x+.46,sy,sz-.09],[x+.4,sy,sz-.09]],'#6f6253',false);
-     // Candle dots are emissive, so they only read once the sky clock dims.
-     if(l>=5){s.emissive=1;s.face([[x+.36,sy+.03,sz+.053],[x+.41,sy+.03,sz+.053],[x+.41,sy+.03,sz+.003],[x+.36,sy+.03,sz+.003]],'#ffdf9e',false);s.emissive=0;}
-     if(l>=6){s.emissive=1;s.face([[x+.5,sy+.03,sz+.053],[x+.55,sy+.03,sz+.053],[x+.55,sy+.03,sz+.003],[x+.5,sy+.03,sz+.003]],'#ffdf9e',false);s.emissive=0;}
+if(t==='bellcote'){
+     const cx=x+n*.5,fy=y+n*.6+.012,zTop=h+.57,zCrown=zTop-.12,zSkirt=zCrown-.11;
+     // Rope: a single quad dropped from the belfry lintel to the bell crown.
+     s.face([[cx-.012,fy,zTop],[cx+.012,fy,zTop],[cx+.012,fy,zCrown],[cx-.012,fy,zCrown]],'#a08a63',false);
+     // Bell: a cone flaring to its skirt, hung the way the chapel hangs its own,
+     // with the clapper clearing the lip below.
+     s.pyramid(cx,fy-.01,zSkirt,.085,.11,'#c9a24e',3);
+     s.face([[cx-.018,fy,zSkirt+.012],[cx+.018,fy,zSkirt+.012],[cx+.018,fy,zSkirt-.028],[cx-.018,fy,zSkirt-.028]],'#6b5a3c',false);
+     // Votive shelf: a slab on the shaft face, braced underneath from tier 3.
+     if(l>=2){
+      const sz=h*.5,sy=y+n-.225+.012;
+      s.face([[x+.28,sy,sz],[x+.72,sy,sz],[x+.72,sy+.09,sz],[x+.28,sy+.09,sz]],'#8d6844',false);
+      if(l>=3)s.face([[x+.4,sy,sz],[x+.46,sy,sz],[x+.46,sy,sz-.09],[x+.4,sy,sz-.09]],'#6f6253',false);
+      // Candle dots are emissive, so they only read once the sky clock dims.
+      if(l>=5){s.emissive=1;s.face([[x+.36,sy+.03,sz+.053],[x+.41,sy+.03,sz+.053],[x+.41,sy+.03,sz+.003],[x+.36,sy+.03,sz+.003]],'#ffdf9e',false);s.emissive=0;}
+      if(l>=6){s.emissive=1;s.face([[x+.5,sy+.03,sz+.053],[x+.55,sy+.03,sz+.053],[x+.55,sy+.03,sz+.003],[x+.5,sy+.03,sz+.003]],'#ffdf9e',false);s.emissive=0;}
+     }
+     // Arched opening cue at belfry face (mass/color accent only)
+     if(l>=3){s.box(cx-.06,fy+.01,zCrown-.08,.12,.02,.18,'#2a2a2a');}
     }
-   }
   }
   // Archer tower: slim shaft, hooded crown and a level-2 pennant — the
   // longest reach on the wall, paid for in fragility.
@@ -1444,6 +1446,8 @@ function buildingShape(s,b,spec,world,time){
    if(t==='ballista'){s.box(x+.14,y+.14,h,width+.1,width+.1,.12,timber);s.box(x+n/2-.3,y+n/2-.03,h+.12,.6,.06,.06,stone);s.box(x+n/2-.03,y+n/2-.3,h+.12,.06,.6,.06,stone);s.box(x+n/2-.02,y+n/2-.02,h+.12,.04,.5,.05,gold);
     if(l>=4){s.box(x+.1,y+.4,h+.05,.06,.2,.3,timber);s.box(x+.84,y+.4,h+.05,.06,.2,.3,timber);}
     if(l>=6)s.box(x+n/2-.02,y+n/2-.02,h+.18,.04,.5,.05,gold);}
+   // Platform rail cue at tier>=4 (mass/color accent only)
+   if(t==='ballista'&&l>=4){s.box(x+.1,y+.1,h+.13,width+.2,width+.2,.03,'#2a2a2a');}
   torch(s,x+n/2,y+(n+width)/2+.035,h*.58,[0,1],1.02,.45);
   return;}
   if(['watchfire','oathstone','moon-dial','cairnfield'].includes(t)){const spots=t==='cairnfield'?[[.5,.5],[1.3,.6],[.6,1.4],[1.35,1.35]]:[[n/2,n/2]];s.emissive=t==='watchfire'?1:0;for(const [a,c]of spots){s.box(x+a-.18,y+c-.18,.13,.36,.36,.22,stone);if(t==='watchfire'){s.source([x+a,y+c,.55],null,2.1,1,'fire');s.pyramid(x+a,y+c,.36,.26,.55,'#f2b35c',5);if(l>=4)s.pyramid(x+a,y+c,.2,.15,.3,'#e8883f',5);if(l>=5)for(const [ox,oy]of[[-.3,0],[.3,0],[0,-.3],[0,.3]])s.box(x+a+ox-.06,y+c+oy-.06,.13,.12,.12,.16,stone);if(l>=6){s.box(x+a-.05,y+c-.05,.13,.1,.1,.5,timber);s.box(x+a-.09,y+c-.09,.55,.18,.18,.08,'#4d514b');}}else if(t==='moon-dial')moonDial(s,x+a,y+c);else if(t==='cairnfield'&&a===.5)cairnSlab(s,x+a,y+c);else{s.box(x+a-.09,y+c-.06,.35,.18,.12,.6,t==='oathstone'?'#90b5b5':stone);if(t==='oathstone'){s.box(x+a-.1,y+c-.07,.52,.2,.14,.05,'#31413f');s.box(x+a-.1,y+c-.07,.72,.2,.14,.05,'#31413f');s.box(x+a+.06,y+c+.04,.35,.1,.1,.05,'#6e5a40');s.emissive=1;s.box(x+a+.085,y+c+.065,.4,.05,.05,.09,'#ffd98a');s.emissive=0;for(const [ox,oy]of[[-.14,0],[.14,0],[0,-.13],[0,.13]])s.box(x+a+ox-.025,y+c+oy-.025,.35,.05,.05,.06,'#7e837c');}}}if(t==='cairnfield')cairnRings(s,x,y,spots);s.emissive=0;return;}
