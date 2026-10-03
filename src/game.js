@@ -19,7 +19,7 @@ import {ensureDirector,directorConfig,directorParty,directorPatrol,territoryPatr
 import {resourceLabel,resourceInfo} from './resources.js';
 import {wallRowQuote,wallLine,isWall} from './systems/walls.js';
 import {nextStep,blocked} from './systems/pathfinding.js';
-import {createWorld,makeBuilding,makeUnit,canPlace,inBounds,pay,afford,stats,buildingCost,center,assignmentValid,promotionOptions,housing,buildingLimit,buildingCount} from './model.js';
+import {createWorld,makeBuilding,makeUnit,canPlace,inBounds,pay,afford,stats,buildingCost,center,assignmentValid,promotionOptions,housing,buildingLimit,buildingCount,builderLimit,builderCount} from './model.js';
 import {buildTiles} from './systems/biomes.js';
 import {claimCheck,setClaimed,claimRect,claimRegion,claimPreclaimed,regionFor} from './systems/expansion.js';
 import {tickVillage,gainXp} from './systems/village.js';
@@ -401,6 +401,10 @@ export class Game {
   if(!this.world.buildings.some(b=>b.type==='barracks'&&b.hp>0&&b.remaining<=0))return this.notify('Build a barracks first.');
   const mission=this.data.missions.find(m=>m.id===this.state.mission?.id),limit=mission?mission.troopLimit||16:Math.max(16,housing(this.world,this.data).beds+renownTroopBonus(this.world,this.data));
   if(this.world.troops.length>=limit)return this.notify(`Your troop limit is ${limit}${mission?'':' — build homes to raise it'}.`);
+  if(!mission&&type==='builder'){
+   const cap=builderLimit(this.world,this.data,this.state.vlevel||1),count=builderCount(this.world);
+   if(count>=cap)return this.notify(`Builder crew is full (${count}/${cap}). Upgrade the Manor Hall or raise the village level to open more builder slots.`);
+  }
   const unit=makeUnit(type,this.data,this.world.troops.length%5);
   // Phase 7: every hire arrives named and tempered, and finds the post
   // that suits them best (trait affinity, then nearest) — not just the
