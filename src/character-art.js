@@ -130,7 +130,7 @@ function fieldEquipment(s,gear,x,y,z,steel,detail,wheelAngle=0){
  }
  return false;
 }
-function workshopEquipment(s,gear,x,y,z,steel){
+function workshopEquipment(s,gear,x,y,z,steel,detail){
  if(gear.includes('warhammer')){
   shaft(s,x,y,z,.62);s.box(x+.1,y-.09,z+.5,.35,.18,.19,steel);
   s.box(x+.1,y-.095,z+.53,.06,.19,.13,brass);s.box(x+.37,y-.06,z+.54,.11,.12,.14,steel);return true;
@@ -159,6 +159,11 @@ function workshopEquipment(s,gear,x,y,z,steel){
   shaft(s,x,y,z,.52);s.box(x+.15,y-.025,z+.41,.035,.04,.28,steel);
   s.box(x+.25,y-.025,z+.41,.035,.04,.28,steel);s.box(x+.15,y-.03,z+.65,.14,.045,.05,steel);return true;
  }
+ if(gear.includes('apron')){ // Apprentice kit: hip satchel + primer tome.
+  s.box(x-.24,y-.1,z+.12,.2,.13,.26,leather);s.box(x-.24,y-.12,z+.3,.2,.05,.05,leather);
+  s.box(x+.2,y-.06,z+.07,.1,.2,.15,'#7b6a8f');
+  if(detail)s.box(x+.29,y-.035,z+.09,.015,.15,.11,'#e1d7b4');return true;
+ }
  if(gear.includes('hammer')||gear.includes('kit')){
   shaft(s,x,y,z,.46);s.box(x+.17,y-.06,z+.4,.22,.1,.08,steel);s.box(x+.35,y-.06,z+.39,.06,.1,.11,steel);return true;
  }
@@ -169,7 +174,7 @@ function bakedGearMesh(s,gear){const entry=BAKED_GEAR[gear];if(!entry)return nul
 function equipment(s,gear,item,x,y,lift,detail){
  const steel=rarityColor(item?.rarity),z=.3+lift;
  if(bookEquipment(s,gear,x,y,z,detail)||fieldEquipment(s,gear,x,y,z,steel,detail,item?.wheelAngle||0)
-  ||weaponEquipment(s,gear,item,x,y,z,lift,steel,detail)||workshopEquipment(s,gear,x,y,z,steel)||relicEquipment(s,gear,x,y,z,steel))return;
+  ||weaponEquipment(s,gear,item,x,y,z,lift,steel,detail)||workshopEquipment(s,gear,x,y,z,steel,detail)||relicEquipment(s,gear,x,y,z,steel))return;
  if(gear&&gear!=='apron')shaft(s,x,y,z,.48);
 }
 
@@ -209,7 +214,7 @@ const BAKED_TROOPS={
  forager:'monk',woodward:'monk',heartwarden:'monk',diver:'monk',mudlark:'monk',sapper:'monk',
 };
 const BAKED_FACTIONS={'pale-host':'skeleton','pale-court':'skeleton',thornband:'human-thornband','cinder-clan':'human-cinder','ember-legion':'human-ember'};
-const BOSS_SCALE={'ashen-warlord':1.25,'grey-sovereign':1.18,'ember-cindral':1.15,'ironshield-warden':1.15,'cinder-sorr':1.12,'cinder-maul':1.12};
+const BOSS_SCALE={'ashen-warlord':1.25,'grey-sovereign':1.18,'ember-cindral':1.15,'ironshield-warden':1.15,'cinder-sorr':1.12,'cinder-maul':1.12,'thornband-vex':1.15,'palehost-herald':1.2,'pale-queen':1.22};
 export const BAKED_HI_ZOOM=2,BAKED_MIN_ZOOM=.75;
 const BOSS_BODIES={'ironshield-warden':'warrior','thornband-vex':'human-thornband','cinder-sorr':'human-cinder','palehost-herald':'skeleton','ember-cindral':'human-ember','grey-sovereign':'skeleton','ashen-warlord':'warrior','cinder-maul':'human-cinder','pale-queen':'skeleton'};
 export function bakedSetId(u,troop,enemy){
@@ -658,7 +663,7 @@ export function characterModel(s,u,data,time,enemy=false){
       // Design constants scale with the body so oversized leaders keep trim on anatomy.
       overlay.face=(v,c,split=true)=>s.face(v.map(([vx,vy,vz])=>{
        const t=.56*bodyScale,d=.32*bodyScale;
-       return [x+(vx-x)*width/.56+head[0],vy+head[1],vz<=t?vz*head[2]/t:head[2]+(vz-t)*(top-head[2])/d];
+       return [x+(vx-x)*width/.56+head[0],y+(vy-y)*bodyScale+head[1],vz<=t?vz*head[2]/t:head[2]+(vz-t)*(top-head[2])/d];
       }),c,split);
      roleOverlay=overlay;
      if(u.role==='ram'||u.role==='bombard'){

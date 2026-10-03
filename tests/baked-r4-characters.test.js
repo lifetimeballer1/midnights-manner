@@ -202,11 +202,11 @@ test('r4 fitted Thornband cowl follows head anchors and selected pose bounds', (
 
 test('b4 named leaders scale baked body offsets around the unit origin', () => {
   const leaders = [
-    ['ironshield-warden','thornband',1.15],['thornband-vex','thornband',1],
-    ['cinder-sorr','cinder-clan',1.12],['palehost-herald','pale-host',1],
+    ['ironshield-warden','thornband',1.15],['thornband-vex','thornband',1.15],
+    ['cinder-sorr','cinder-clan',1.12],['palehost-herald','pale-host',1.2],
     ['ember-cindral','ember-legion',1.15],['grey-sovereign','pale-court',1.18],
     ['ashen-warlord','ember-legion',1.25],['cinder-maul','cinder-clan',1.12],
-    ['pale-queen','pale-court',1],['unknown','thornband',1],
+    ['pale-queen','pale-court',1.22],['unknown','thornband',1],
   ];
   const sets = {thornband:'human-thornband','cinder-clan':'human-cinder','ember-legion':'human-ember','pale-host':'skeleton','pale-court':'skeleton'};
   for (const [bossId,faction,scale] of leaders) for (const zoom of [1,4]) {

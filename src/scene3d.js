@@ -492,7 +492,7 @@ function barracksFamily(s,b,n,l){
 }
 function farmFamily(s,b,n,l){
  const x=b.x,y=b.y,band=famBand(l),roof=['#448b58','#48935c','#428e57','#46965b','#40915a','#44995e'][Math.min(l,6)-1],bw=1.28,bd=.82,bh=.4+l*.11,bx=x+.24,by=y+.24;
- const plaster='#bd7656',frame='#a65e42',stone='#bcc0ad',rise=.28+l*.035;
+ const plaster='#eee7d6',frame='#725039',stone='#bcc0ad',rise=.28+l*.035;
   // Tier 6 reuses the ground slab; buried soil, footings and props add no silhouette.
   if(l!==6)s.box(x+.12,y+.12,.12,n-.24,n-.24,.07,'#b27a50');
  // Broad low barn and chunky exposed edging keep the field readable at night.
@@ -537,7 +537,12 @@ function farmFamily(s,b,n,l){
   if(l>=5&&l!==6)s.box(x+.2,y+.2,.1,n-.4,.1,.06,'#4e9aaa');
  if(l===5)famMesh(s,'overhang',x+.24,y+n-.6,.5);
   if(l>=6){if(l!==6){s.box(x+n-.55,y+.15,.12,.3,.3,.4,plaster);s.roof(x+n-.6,y+.1,.52,.4,.4,.14,roof);}
-  s.box(x+n-.68,y+.82,.12,.3,.3,.48+l*.03,stone);s.pyramid(x+n-.53,y+.97,.6+l*.03,.21,.18,roof,4);
+   s.box(x+n-.68,y+.82,.12,.3,.3,.48+l*.03+(l===6?.25:0),stone);s.pyramid(x+n-.53,y+.97,.6+l*.03+(l===6?.25:0),.21,.18,roof,4);
+   if(l===6){ // Mature-farm read: tall granary tower with a windmill sail cross.
+    const hub=x+n-.53,hubY=y+.97,hubZ=1.13;
+    s.box(hub-.05,hubY-.05,hubZ-.05,.1,.1,.1,'#725039');
+    s.box(hub-.3,hubY-.02,hubZ-.06,.6,.04,.12,'#8a6a48');s.box(hub-.02,hubY-.3,hubZ-.06,.04,.6,.12,'#8a6a48');
+   }
    if(l!==6)s.box(x+n-.7,y+.8,.34,.05,.05,.16,'#6a6f65');}
   if(s.alpha===1&&l!==6){const fixture=s.fixture;s.fixture=true;
   s.box(x+n-.55,y+.26,.18,.34,.42,.18,'#d7af6d');s.roof(x+n-.57,y+.25,.36,.38,.44,.15,'#c49a59');
