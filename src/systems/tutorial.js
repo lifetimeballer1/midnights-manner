@@ -3,7 +3,7 @@
 import {grantCentral} from './storage.js';
 const KEY = 'midnights-manner-guide-v1';
 export const STEPS = [
-  { id: 'build', text: 'Raise a building — open BUILD, pick a card, tap an empty tile. A Watchtower or extra Farm is a fine start.' },
+  { id: 'build', text: 'Raise a building — open BUILD, pick a card, tap an empty tile to preview, then press BUILD to confirm. Cards marked LOCKED unlock through RESEARCH (Technology tree). A Watchtower or extra Farm is a fine start.' },
   { id: 'collect', text: 'Tap a farm (gold badge) or its +N bubble to gather 20 food into your stores.' },
   { id: 'recruit', text: 'Open PEOPLE and recruit a Warrior (+ Warrior). Needs a barracks and a little food + gold.' },
   { id: 'raid', text: 'Brave the night — tap TEST YOUR DEFENSES below the map. A small scouting party is coming.' },
@@ -31,7 +31,7 @@ export function updateGuide(g, game) {
   else if (g.step === 1 && Math.floor(w.gathered.food) >= g.food + 20) { g.step = 2; g.troops = w.troops.length; store(g); }
   else if (g.step === 2 && w.troops.length > g.troops) { g.step = 3; store(g); }
   else if (g.step === 3 && (w.enemies.length > 0 || w.raidPending)) { g.step = 4; store(g); }
-  else if (g.step === 4 && !w.enemies.length && !w.raidPending && w.wave > 0) {
+  else if (g.step === 4 && w.raidResult && w.raidResult.won === true) {
     g.done = true; g.step = STEPS.length; store(g);
     const bonus = { wood: 50, food: 60, gold: 60 };
     for (const [k, v] of Object.entries(bonus)) grantCentral(w, game.data, k, v);

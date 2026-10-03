@@ -380,7 +380,6 @@
   "homeRaids": {
     "firstAt": 300,
     "interval": 240,
-    "warning": 15,
     "firstCount": 2,
     "baseCount": 3,
     "perWave": 1,

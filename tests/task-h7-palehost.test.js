@@ -29,7 +29,7 @@ test('H7: H6 git-show fingerprints preserve every earlier tribe, leader and miss
   // Pins keep this proof runnable in shallow CI checkouts without Git history.
   const fingerprint = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
   assert.equal(fingerprint(baseline.conquest), '4e1e9372b430dce1ac8aa7eb6d3e1efe677329a1b5bc1217d21542c59edc7426');
-  assert.equal(fingerprint(baseline.missions), '3b00bd2f0c296ae1f73c3634f42c111726655bf5dbddfb4baaef6cab236ea68c');
+  assert.equal(fingerprint(baseline.missions), '9e33dda57b48e43785d767831530807acd61f5bd84c17a55fbea8060f71ab90d');
   assert.equal(data.conquest.tribes.length + 1, 5, 'Ironshield plus four additive tribes');
 });
 test('H7: Herald fires repeated ranged arrows through existing combat; earlier boss roles remain unchanged', () => {

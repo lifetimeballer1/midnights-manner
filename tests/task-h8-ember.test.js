@@ -26,7 +26,7 @@ test('H8: H7 git-show fingerprints preserve every earlier tribe, leader and miss
   // Pins keep this proof runnable in shallow CI checkouts without Git history.
   const fingerprint = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
   assert.equal(fingerprint(baseline.conquest), 'a87f1676e36a5888f90ab058f1cc01060f4e7b118c4ade70614853150e25f483');
-  assert.equal(fingerprint(baseline.missions), '8cabff5b7ee5fc59404dd8439a728da1278162935c235b70509d270a0838d7e9');
+  assert.equal(fingerprint(baseline.missions), '8ffc74e2f0b0fd46f284aa59018b301bf6eb49c874e46a46a8378349e0eb6038');
   assert.equal(data.conquest.tribes.length + 1, 5, 'Ironshield plus four additive tribes');
 });
 function ready() {

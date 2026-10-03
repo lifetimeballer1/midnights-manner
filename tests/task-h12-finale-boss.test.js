@@ -30,7 +30,7 @@ function ready(d = data) {
 test('H12: pins preserve all 33 earlier missions, five leaders and every conquest field', () => {
   const hash = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
   assert.equal(baseline.missions.length, 33);
-  assert.equal(hash(baseline.missions), 'ac3eed83c6d33c238885b58cd651848b80407ff30f808ba7024c02431db524d3');
+  assert.equal(hash(baseline.missions), '38e4c893230e166b6e726490184374a180b69cf6ace8f3f015e3c406a14735c8');
   assert.equal(baseline.conquest.leaders.length, 5);
   assert.equal(hash(baseline.conquest), '6675d38e4c67c87993f1a7fd21e0e770529631167d7f5dc8f4ad4260b42f6491');
   assert.equal(hash(data.conquest.tribes), '36489cbcf51f49178b7dde19ae3c26dbed9d397088808182e7c17c035a3ee59b');

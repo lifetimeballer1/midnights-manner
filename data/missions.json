@@ -6,7 +6,7 @@
     "act": "III",
     "beat": "Pure build sprint; the village learns it can finish something.",
     "ceremony": {
-      "warning": "Dust on the west road is only dust — this time. Fill the granary before dusk.",
+      "warning": "Dust on the west road is only dust — this time. Fill the granary before the bell.",
       "victory": "The granary stands full and the bell rings long. The Manner has finished something.",
       "defeat": "The stores ran short and the bell rang thin. Eat, sleep, walk the road again."
     },
@@ -105,11 +105,11 @@
     },
     "raids": [
       {
-        "at": 35,
+        "at": 70,
         "count": 3
       },
       {
-        "at": 85,
+        "at": 140,
         "count": 4
       }
     ],
@@ -186,11 +186,11 @@
     },
     "raids": [
       {
-        "at": 25,
+        "at": 60,
         "count": 4
       },
       {
-        "at": 90,
+        "at": 140,
         "count": 6
       }
     ],

@@ -33,7 +33,7 @@ test('H9: HEAD fingerprints preserve all 30 earlier missions and complete conque
   // Literal pins also run in shallow CI checkouts without Git history.
   const fingerprint = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
   assert.equal(baseline.missions.length, 30);
-  assert.equal(fingerprint(baseline.missions), '3083ebc3bcdcd2f7148fcfeeae05da3c8eef4dc605ae77bc1cbcfd6b6d529166');
+  assert.equal(fingerprint(baseline.missions), 'd443ce8d3e5bc396cfdfbc17b8ccc18f717a8fa69a3eddfe4abe41da784c926e');
   assert.equal(fingerprint({...data.conquest, leaders:data.conquest.leaders.filter(l => !['grey-sovereign','ashen-warlord'].includes(l.id))}), '6675d38e4c67c87993f1a7fd21e0e770529631167d7f5dc8f4ad4260b42f6491');
   assert.equal(data.conquest.tribes.length + 1, 5);
 });

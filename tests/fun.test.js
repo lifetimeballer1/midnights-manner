@@ -16,11 +16,24 @@ test('guide walks place-collect-recruit-raid-survive without touching saves', ()
   g.raid(2); assert.ok(g.world.raidPending); hint = updateGuide(guide, g); assert.equal(hint.index, 4);
   for (let i = 0; i < 70; i++) g.tick(.05);
   assert.equal(g.world.raidPending, null); assert.ok(g.world.enemies.length > 0);
-  g.world.enemies = []; g.tick(.05);
+  for (const e of g.world.enemies) e.hp = 1;
+  for (let i = 0; i < 3000 && g.world.enemies.length; i++) g.tick(.05);
+  assert.ok(g.world.raidResult && g.world.raidResult.won, 'raid resolves won through combat');
   assert.equal(updateGuide(guide, g), null); assert.equal(guide.done, true);
 });
+test('guide withholds the bonus when the raid is lost', () => {
+  const g = new Game(data); g.state.world = createWorld(data);
+  const guide = loadGuide(); guide.step = 4; guide.done = false;
+  g.raid(2);
+  for (let i = 0; i < 70; i++) g.tick(.05);
+  assert.ok(g.world.enemies.length > 0);
+  g.world.buildings.find(b => b.type === 'hall').hp = 0; g.tick(.05);
+  assert.ok(g.world.raidResult && g.world.raidResult.won === false, 'defeat recorded');
+  const hint = updateGuide(guide, g);
+  assert.equal(guide.done, false); assert.equal(hint.index, 4);
+});
 test('raid warning spawns the party, tracks loot, and reports victory', () => {
-  const g = new Game(data);
+  const g = new Game(data); g.state.world = createWorld(data);
   g.raid(3); assert.equal(g.world.raidPending.count, 3);
   for (let i = 0; i < 70; i++) g.tick(.05);
   assert.equal(g.world.enemies.length, 3); assert.equal(g.world.wave, 1);
