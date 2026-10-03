@@ -70,6 +70,8 @@ const dayLight = canon(0.3), nightLight = canon(0.8), dawnLight = canon(0.01);
 // other structure, defense, equipment and lighting formula pins stay intact.
 // R3/B modular architecture pass deliberately repins hall-1/2/3 + cottage-3
 // (8-family tier rebuild) and the equipment lineup (rig-baked bodies).
+// R5 civic identity pass deliberately repins citadel-4 +
+// stone-road/city-wall/lantern-rows-6 (own massing, no hut fallback).
 const CASES = [
   ["hall-1","hall",1,144,"4a01c5cb33f45e90","af1dacefc6436bce","6752c79f6bc06596","bac14ebef4feeb7f"],
   ["hall-2","hall",2,198,"cef43961a8d931d9","6eab374b4226b902","bd862814f17cf94d","36a1744411f782a2"],
@@ -82,12 +84,12 @@ const CASES = [
   ["tower-3","tower",3,120,"19491a4138f208d5","dbe9492d7aab2582","9cc32f00ad2b41a2","0601c1e981cb53ce"],
   ["sawmill-2","sawmill",2,196,"917c15c36a251eff","c7c776db313aaac6","18dc92a0f6aa5081","805f241cd5bba972"],
   ["mill-2","mill",2,263,"15ebfa44adb29af6","0360e170e2a2dcc6","297135221a0a9573","75840c3ab0c5da88"],
-  ["citadel-4","manner-citadel",4,418,"a0de04852787d6ee","ae36ddcb4a392f22","6dfbf28c618616ed","7c561c22c0f8b576"],
+  ["citadel-4","manner-citadel",4,414,"e3db5c0cefae3d01","4c5deb2a8b50cfea","fffcd2e45ff1a157","17786f53a7e15179"],
   ["grand-watch-4","grand-watchtower",4,245,"06bc41f3ddc801b4","84a4e7ec461c777f","72f185ad1c1c06d8","3e72306ef484ef69"],
-  ["stone-road-6","stone-road",6,406,"4ad5ff1348e01117","66de0db5baf430a0","ad97e2e4bfa579bd","f662a2a95b74ec5d"],
-  ["city-wall-6","city-wall",6,419,"dd265fd12073903c","125aee6d045729cc","693739134b226ae1","089f5703922f496e"],
+  ["stone-road-6","stone-road",6,314,"4531e4853534c2a2","933c015668f79a6d","aa31e2ce16d33880","b520695bbbfe107f"],
+  ["city-wall-6","city-wall",6,365,"18bce402babf7e2a","aef0cf1087ddfbf6","c0cfb8df7236ecc3","1cde1056bb7e2c21"],
   ["forge-quarter-6","forge-quarter",6,437,"98be0e7ee3c0401b","77d53b20e29a6c46","7ef45857f09a909d","79a1c3c27fd45c78"],
-  ["lantern-rows-6","lantern-rows",6,398,"b575838f573705ac","9fbee37cf4027dcc","b0af699ea2f62c7c","80ce1ce821af5432"],
+  ["lantern-rows-6","lantern-rows",6,287,"e0ac02ee38b40238","bdef05f98cb7d514","3744530a0a08a306","cc1bc6cb8517e957"],
 ];
 const ORBIT = {"faces":816,"day":"390bf1a9a8be7a48","night":"4bc094c97d1b5428","dawn":"f11f9da413b7c3ee"};
 // Canonical tool and outfit lineups at the mobile/gameplay zoom.

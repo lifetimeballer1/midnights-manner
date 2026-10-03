@@ -1809,6 +1809,54 @@ if(t==='bellcote'){
     }
     return;
    }
+   // Civic works read as themselves, never dwellings: a lantern row is a
+   // lamp-post curb with a keeper shelter, the road office stages curb
+   // stones and survey stakes, the wall office raises a demonstration wall
+   // run, and the citadel is a keep with wings and a crown.
+   if(t==='lantern-rows'){
+    const curb='#9ca29a',frame='#725039',fine=s.r.cam.zoom>=1.65;
+    s.box(x+.2,y+.2,.12,n-.4,n-.4,.1,curb);
+    const posts=l>=6?4:l>=4?3:2;
+    for(let i=0;i<posts;i++){const px=x+.42+i*(n-.84)/Math.max(1,posts-1),pz=.5+l*.06;
+     if(l>=6)lanternPost(s,px,y+n*.5,pz,1,.42);
+     else{s.box(px-.035,y+n*.5-.035,.12,.07,.07,Math.max(.18,pz-.18),timber);s.box(px-.09,y+n*.5-.09,pz-.1,.18,.18,.08,'#4d514b');}
+    }
+    for(const [px,py]of[[x+n-.62,y+.1],[x+n-.2,y+.1],[x+n-.62,y+.66],[x+n-.2,y+.66]])s.box(px,py,.12,.06,.06,.5,frame);
+    s.roof(x+n-.66,y+.04,.6,.62,.7,.12,'#8a6a48');
+    if(l>=6&&fine)s.box(x+.42,y+n*.5-.03,.95,.06,.06,.06,gold);
+    workplaceDetails(s,b,n);return;
+   }
+   if(t==='stone-road'){
+    const curb='#9ca29a',frame='#725039',fine=s.r.cam.zoom>=1.65;
+    s.face([[x+.2,y+.2,.13],[x+n-.2,y+.2,.13],[x+n-.2,y+n-.2,.13],[x+.2,y+n-.2,.13]],'#8a7354',false);
+    const stacks=l>=5?3:l>=3?2:1;
+    for(let i=0;i<stacks;i++){const sx=x+.3+i*.5;s.box(sx,y+.35,.13,.34,.3,.22+l*.04,curb);s.box(sx+.04,y+.39,.35+l*.04,.26,.22,.09,'#7d869e');}
+    for(const [ax,ay]of[[.5,1.35],[1.5,.6]]){for(const o of[-.09,0,.09])s.box(x+ax+o,y+ay,.13,.05,.05,.7,frame);s.box(x+ax-.14,y+ay-.02,.6,.36,.04,.05,frame);}
+    if(l>=4){s.box(x+.25,y+n-.5,.13,n-.5,.12,.1,curb);s.box(x+.25,y+.38,.13,n-.5,.12,.1,curb);}
+    if(l>=6&&fine)s.box(x+n*.5-.04,y+n*.5-.04,.5,.08,.08,.3,gold);
+    workplaceDetails(s,b,n);return;
+   }
+   if(t==='city-wall'){
+    const specStone='#9ca29a',frame='#725039',fine=s.r.cam.zoom>=1.65,h=.5+l*.14;
+    s.box(x+.3,y+.3,.1,n-.6,n-.6,.16,specStone);
+    s.box(x+.55,y+.55,.12,.9,.9,h,l>=2?specStone:'#8a6f4d');
+    for(let i=0;i<(l>=5?4:l>=3?3:2);i++)s.box(x+.55+i*.42,y+.55,h+.12,.2,.9,.2,l>=4?specStone:'#8a6f4d');
+    for(const bx of [x+.4,x+n-.55]){s.box(bx,y+.7,.12,.12,.6,h*.7,frame);s.box(bx-.03,y+.68,h*.5,.18,.64,.08,frame);}
+    if(l>=6&&fine)s.box(x+.9,y+.9,h+.2,.2,.2,.3,gold);
+    workplaceDetails(s,b,n);return;
+   }
+   if(t==='manner-citadel'){
+    const specStone='#9ca29a',frame='#725039',fine=s.r.cam.zoom>=1.65,kh=.9+l*.3;
+    s.box(x+.2,y+.2,.1,n-.4,n-.4,.18,specStone);
+    s.box(x+n*.32,y+n*.32,.12,n*.36,n*.36,kh,specStone);
+    s.box(x+n*.32,y+n*.32,kh+.12,n*.36,n*.36,.22,l>=3?'#eee7d6':'#8a6f4d');
+    for(const [ax,ay]of[[.32,.32],[n-.68,.32],[.32,n-.68],[n-.68,n-.68]])s.box(x+n*ax,y+n*ay,kh+.12,.3,.3,.3,specStone);
+    s.box(x+n*.42,y+n-.28,.12,n*.16,.3,kh*.62,'#3a2f26');
+    if(l>=2){for(const wx of [x+.14,x+n-.5]){s.box(wx,y+.5,.12,.36,n-1,.55,specStone);s.roof(wx-.04,y+.45,.67,.44,n-.9,.2,'#60897b');}}
+    if(l>=4&&fine){s.box(x+n*.32,y+n*.32,kh+.56,n*.36,n*.36,.07,gold);s.box(x+n*.5-.04,y+n*.5-.04,kh+.63,.08,.08,.4,gold);}
+    lanternPost(s,x+.3,y+.3,.7,1,.42);lanternPost(s,x+n-.3,y+n-.3,.7,1,.42);
+    workplaceDetails(s,b,n);return;
+   }
    const colors={hall:'#658d99',barracks:'#b96d5a',cottage:'#9ba061',longhouse:'#977851',chapel:'#8e8dae','sunken-chapel':'#679fa5',forge:'#976b54',smeltery:'#846f67',armory:'#667b91',workshop:'#789380',tannery:'#bd9a69',schoolroom:'#ba9369',scriptorium:'#798ca7',butchery:'#a75e54',fletcher:'#7c9868','shieldwall-yard':'#668a91',mason_yard:'#949b90'};
  hut(s,x+.22,y+.22,n-.44,n-.44,.42+l*.16,colors[t]||'#829a78',l);
  if(t==='hall'){
