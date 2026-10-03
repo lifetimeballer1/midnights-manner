@@ -395,7 +395,7 @@
    "license": "CC0-1.0",
    "source": "https://kaylousberg.itch.io/kaykit-adventurers",
    "sourceGlb": ".superpowers/sdd/2026-10-02-cosmetic-art-pass/sources/adventurers-hd/Knight.glb",
-   "sourceSHA256": "2c49ecdd551b70d57f9e44dccc2fa69fe9fe26c19e6e5248eec4475a4fef67be",
+   "sourceSHA256": "8b2ebcf91f019bd9565a53853babe621bdcf0e963c8ab5aeed8ef6b775517e36",
    "textureSHA256": "028db4d1cd8b3471e6ba21686515abd4e36ae582f8b314b71ad2ab1fb5453b12",
    "licenseFile": ".superpowers/sdd/2026-10-02-cosmetic-art-pass/sources/adventurers-hd-License.txt",
    "clips": {
@@ -404,11 +404,11 @@
     "walk-b": "KayKit_Walk@0.5",
     "work-a": "KayKit_Work@0",
     "work-b": "KayKit_Work@0.5",
-    "attack": "KayKit_Attack@0.45",
-    "attack-2": "KayKit_Attack2@0.75",
+    "attack": "Melee_1H_Attack_Slice_Horizontal@0.6",
+    "attack-2": "Melee_1H_Attack_Stab@0.5",
     "special": "KayKit_Stand@0"
    },
-   "poseMethod": "authored bone transforms (staged GLBs have no animation clips)",
+   "poseMethod": "KayKit authored bone transforms; attack/attack-2 sampled from CC0 combat clips",
    "poseBudget": {
     "hi": 450,
     "lo": 180
@@ -731,7 +731,7 @@
    "license": "CC0-1.0",
    "source": "https://kaylousberg.itch.io/kaykit-adventurers",
    "sourceGlb": ".superpowers/sdd/2026-10-02-cosmetic-art-pass/sources/adventurers-hd/Knight.glb",
-   "sourceSHA256": "2c49ecdd551b70d57f9e44dccc2fa69fe9fe26c19e6e5248eec4475a4fef67be",
+   "sourceSHA256": "8b2ebcf91f019bd9565a53853babe621bdcf0e963c8ab5aeed8ef6b775517e36",
    "textureSHA256": "028db4d1cd8b3471e6ba21686515abd4e36ae582f8b314b71ad2ab1fb5453b12",
    "licenseFile": ".superpowers/sdd/2026-10-02-cosmetic-art-pass/sources/adventurers-hd-License.txt",
    "clips": {
@@ -740,11 +740,11 @@
     "walk-b": "KayKit_Walk@0.5",
     "work-a": "KayKit_Work@0",
     "work-b": "KayKit_Work@0.5",
-    "attack": "KayKit_Attack@0.45",
-    "attack-2": "KayKit_Attack2@0.75",
+    "attack": "Melee_1H_Attack_Slice_Horizontal@0.6",
+    "attack-2": "Melee_1H_Attack_Stab@0.5",
     "special": "KayKit_Stand@0"
    },
-   "poseMethod": "authored bone transforms (staged GLBs have no animation clips)",
+   "poseMethod": "KayKit authored bone transforms; attack/attack-2 sampled from CC0 combat clips",
    "poseBudget": {
     "hi": 450,
     "lo": 180

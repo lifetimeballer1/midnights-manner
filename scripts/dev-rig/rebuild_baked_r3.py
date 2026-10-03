@@ -24,6 +24,14 @@ POSES_HI_EXTRA = ['special:KayKit_Stand:0']
 # lo LOD keeps 4 legacy poses so villages never pay near-zoom cost.
 POSES_LO = ['stand:KayKit_Stand:0', 'walk-a:KayKit_Walk:0',
             'walk-b:KayKit_Walk:0.5', 'attack:KayKit_Attack:0.45']
+# Knight HD source ships real combat clips (augmented via c1-augment.py from
+# the CC0 Character Animations pack), so bake attacks from sampled animation;
+# the rest stays KayKit-authored. Slice contact reads best at 0.65.
+POSES_KNIGHT = ['stand:KayKit_Stand:0', 'walk-a:KayKit_Walk:0',
+                'walk-b:KayKit_Walk:0.5', 'work-a:KayKit_Work:0', 'work-b:KayKit_Work:0.5',
+                'attack:Melee_1H_Attack_Slice_Horizontal:0.6', 'attack-2:Melee_1H_Attack_Stab:0.5']
+POSES_LO_KNIGHT = ['stand:KayKit_Stand:0', 'walk-a:KayKit_Walk:0',
+                   'walk-b:KayKit_Walk:0.5', 'attack:Melee_1H_Attack_Slice_Horizontal:0.6']
 # Monk HD export ships NLA work clips, so bake its two work poses from real
 # sampled animation at high-lift moments; the rest stays KayKit-authored.
 POSES_MONK = ['stand:KayKit_Stand:0', 'walk-a:KayKit_Walk:0',
@@ -46,7 +54,10 @@ EXCLUDE_NODES = {
     'ranger': [r'Quiver'],
     'rogue': [r'^Cube$'],
     'human-ember': [r'^Cube$'],
+    'warrior': [r'Icosphere'],
+    'human-cinder': [r'Icosphere'],
 }
+KNIGHT_SETS = ('warrior', 'human-cinder')
 SETS = {
     'warrior': ('adventurers-hd', 'Knight', 'knight_texture.png', None, 0),
     'ranger': ('adventurers-hd', 'Ranger', 'ranger_texture.png', None, 0),
@@ -77,14 +88,20 @@ def main():
     entries = {}
     for set_id in chosen:
         pack, model, texture, tint, strength = SETS[set_id]
-        poses = POSES_MONK if set_id == 'monk' else POSES
+        if set_id == 'monk':
+            poses, lo_poses = POSES_MONK, POSES_LO
+        elif set_id in KNIGHT_SETS:
+            poses, lo_poses = POSES_KNIGHT, POSES_LO_KNIGHT
+        else:
+            poses, lo_poses = POSES, POSES_LO
         glb = SOURCES / pack / (model + '.glb')
         license_file = SOURCES / (pack + '-License.txt')
         if 'Creative Commons Zero, CC0' not in license_file.read_text():
             raise SystemExit('unverified CC0 license: ' + str(license_file))
         relative = glb.relative_to(ROOT).as_posix()
         for lod, budget in (('hi', 450), ('lo', 180)):
-            lod_poses = (poses + POSES_HI_EXTRA) if lod == 'hi' else POSES_LO
+            base = lo_poses if lod == 'lo' else poses
+            lod_poses = (base + POSES_HI_EXTRA) if lod == 'hi' else base
             command = [sys.executable, str(HERE / 'bake_poses.py'), '--glb', relative,
                        '--texture', (SOURCES / pack / texture).relative_to(ROOT).as_posix(),
                        '--creator', 'Kay Lousberg', '--source-url', PACKS[pack][1],
@@ -117,7 +134,10 @@ def main():
             'licenseFile': license_file.relative_to(ROOT).as_posix(),
             'clips': {p.split(':')[0]: '@'.join(p.split(':')[1:]) for p in (poses + POSES_HI_EXTRA)},
             'poseMethod': ('KayKit authored bone transforms; work-a/work-b sampled from HD NLA clips'
-                           if set_id == 'monk' else 'authored bone transforms (staged GLBs have no animation clips)'),
+                             if set_id == 'monk' else
+                             'KayKit authored bone transforms; attack/attack-2 sampled from CC0 combat clips'
+                             if set_id in KNIGHT_SETS else
+                             'authored bone transforms (staged GLBs have no animation clips)'),
             'poseBudget': {'hi': 450, 'lo': 180},
             'use': 'Role-group body; gear attaches as separate sub-mesh at hand/back/chest anchors',
             'poses': {f'{pose}-hi': f'assets/meshes/baked/{set_id}-{pose}-hi.json'
