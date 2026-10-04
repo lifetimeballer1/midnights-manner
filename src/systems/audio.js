@@ -69,6 +69,12 @@ function ac() { return muted ? null : context(); }
 export function sharedAudioContext() { return context(); }
 export function sharedAudioOutput() { return context() ? output : null; }
 export function unlock() { ac(); }
+export function suspendAudio() {
+  try { if (ctx?.state === 'running') void ctx.suspend(); } catch {}
+}
+export function resumeAudio() {
+  try { if (!muted && ctx?.state === 'suspended') void ctx.resume(); } catch {}
+}
 function clockNow() { return typeof performance !== 'undefined' ? performance.now() : Date.now(); }
 function ready(key, gap) {
   const now = clockNow();

@@ -20,3 +20,40 @@ test('quality change reapplies DPR cap immediately',()=>{
   assert.equal(calls.length,1);
   assert.equal(renderer.dpr,1);
 });
+
+
+test('battery saver forces low quality and restores the preferred profile',()=>{
+  const oldStorage=globalThis.localStorage;
+  const values=new Map([['midnights-manner-quality','High']]);
+  globalThis.localStorage={getItem:k=>values.get(k)??null,setItem:(k,v)=>values.set(k,String(v))};
+  try{
+    const renderer={width:390,height:844,dpr:2,resize(w,h,dpr){this.dpr=Math.min(dpr,this.qualityCfg.dprCap);}};
+    attachQuality(renderer);
+    assert.equal(renderer.quality,'High');
+    renderer.setPowerSaver(true);
+    assert.equal(renderer.powerSaver,true);
+    assert.equal(renderer.quality,'Low');
+    assert.equal(renderer.dpr,1);
+    assert.equal(values.get('midnights-manner-battery'),'on');
+    renderer.setPowerSaver(false);
+    assert.equal(renderer.powerSaver,false);
+    assert.equal(renderer.quality,'High');
+    assert.equal(values.get('midnights-manner-battery'),'off');
+  }finally{
+    if(oldStorage===undefined)delete globalThis.localStorage;else globalThis.localStorage=oldStorage;
+  }
+});
+
+test('persisted battery saver boots directly into low quality',()=>{
+  const oldStorage=globalThis.localStorage;
+  const values=new Map([['midnights-manner-quality','High'],['midnights-manner-battery','on']]);
+  globalThis.localStorage={getItem:k=>values.get(k)??null,setItem:(k,v)=>values.set(k,String(v))};
+  try{
+    const renderer={width:390,height:844,dpr:2};
+    attachQuality(renderer);
+    assert.equal(renderer.powerSaver,true);
+    assert.equal(renderer.quality,'Low');
+  }finally{
+    if(oldStorage===undefined)delete globalThis.localStorage;else globalThis.localStorage=oldStorage;
+  }
+});

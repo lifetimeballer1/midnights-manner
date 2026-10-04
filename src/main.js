@@ -5,7 +5,7 @@ import {GameUpdates} from './updates.js';
 import {Renderer} from './renderer.js';
 import {UI} from './ui.js';
 import {MapInput} from './input.js';
-import {unlock, isMuted} from './systems/audio.js';
+import {unlock, isMuted, suspendAudio, resumeAudio} from './systems/audio.js';
 import {AmbiencePlayer, ambienceProfile, soundtrackMood} from './systems/ambience.js';
 import {MusicPlayer} from './music.js';
 import {AmbientScoreEngine} from './audio.js';
@@ -119,9 +119,11 @@ async function boot(){
 
  window.addEventListener('pointerdown',()=>unlock(),{passive:true});window.addEventListener('keydown',()=>unlock());
  const mobilePowerProfile=(()=>{try{return Math.min(innerWidth,innerHeight)<900&&(matchMedia('(pointer: coarse)').matches||navigator.maxTouchPoints>0);}catch{return false;}})();
- const targetRenderMs=mobilePowerProfile?1000/30:0;
+ const baseTargetRenderMs=mobilePowerProfile?1000/30:0;
  let last=performance.now(),lastRender=0,accumulator=0;
- document.addEventListener('visibilitychange',()=>{if(document.hidden){game.persist();ambience.reset();}last=performance.now();lastRender=0;accumulator=0;});window.addEventListener('pagehide',()=>game.persist());
+ document.addEventListener('visibilitychange',()=>{if(document.hidden){game.persist();ambience.reset();suspendAudio();}else resumeAudio();last=performance.now();lastRender=0;accumulator=0;});
+ window.addEventListener('pagehide',()=>{game.persist();suspendAudio();});
+ window.addEventListener('pageshow',()=>resumeAudio());
 
  function stateFromWorld(g, d){
   const profile=ambienceProfile(g.world, d);
@@ -142,6 +144,7 @@ async function boot(){
   if(!document.hidden){
    accumulator+=dt;
    while(accumulator>=.05){game.tick(.05);accumulator-=.05;}
+   const targetRenderMs=renderer.powerSaver?1000/24:baseTargetRenderMs;
    const due=!targetRenderMs||!lastRender||now-lastRender>=targetRenderMs-1;
    if(due){
     const renderDt=lastRender?Math.min((now-lastRender)/1000,.15):dt;lastRender=now;
