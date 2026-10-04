@@ -8,7 +8,7 @@ export function drawEnvironmentFx(r, world, time, opts = {}) {
   let glints = 0;
   for (const b of world.buildings || []) {
     if (b.type !== 'pond' && b.type !== 'deephole') continue;
-    if (glints >= 12) break;
+    if (glints >= Math.min(12, r.qualityCfg?.glintCap ?? 12)) break;
     const spec = r.data.buildings[b.type];
     if (!spec) continue;
     const n = spec.size || 1;
@@ -25,7 +25,8 @@ export function drawEnvironmentFx(r, world, time, opts = {}) {
   const rainy = !!opts.weather?.streaks || (opts.weather?.id || '') === 'rain';
   if (!r.calm && (phase === 'day' || phase === 'dawn') && !rainy && r.cam.zoom < 1.6) {
     c.fillStyle = 'rgba(24,48,40,0.12)';
-    for (let i = 0; i < 3; i++) {
+    const cloudCount = Math.min(3, r.qualityCfg?.cloudCap ?? 3);
+    for (let i = 0; i < cloudCount; i++) {
       const bx = ((time * .008 * (1 + i * .2) + i * 430) % (r.width + 360)) - 180;
       const by = r.height * (0.3 + i * 0.18);
       c.beginPath();
