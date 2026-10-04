@@ -118,8 +118,10 @@ async function boot(){
  try{if(new URLSearchParams(location.search).has('meshes')){const badge=document.createElement('div');badge.id='meshes';document.body.appendChild(badge);setInterval(()=>{const r=renderer.frameReport();badge.textContent='buildings '+Object.keys(data.buildings).length+' · troops '+Object.keys(data.troops).length+' · items '+Object.keys(data.items).length+' · quality '+renderer.quality+' · faces '+(r?.faces||0);},500);}}catch{}
 
  window.addEventListener('pointerdown',()=>unlock(),{passive:true});window.addEventListener('keydown',()=>unlock());
- let last=performance.now(),accumulator=0;
- document.addEventListener('visibilitychange',()=>{if(document.hidden){game.persist();ambience.reset();}last=performance.now();accumulator=0;});window.addEventListener('pagehide',()=>game.persist());
+ const mobilePowerProfile=(()=>{try{return Math.min(innerWidth,innerHeight)<900&&(matchMedia('(pointer: coarse)').matches||navigator.maxTouchPoints>0);}catch{return false;}})();
+ const targetRenderMs=mobilePowerProfile?1000/30:0;
+ let last=performance.now(),lastRender=0,accumulator=0;
+ document.addEventListener('visibilitychange',()=>{if(document.hidden){game.persist();ambience.reset();}last=performance.now();lastRender=0;accumulator=0;});window.addEventListener('pagehide',()=>game.persist());
 
  function stateFromWorld(g, d){
   const profile=ambienceProfile(g.world, d);
@@ -140,22 +142,26 @@ async function boot(){
   if(!document.hidden){
    accumulator+=dt;
    while(accumulator>=.05){game.tick(.05);accumulator-=.05;}
-   const mood=soundtrackMood(game.world,data,{memory:moodMemory,vlevel:game.state.vlevel});
-   music.setMood(mood);
-   if(ambientScore){
-    // Route live: calm moods get the keepers, battle moods get the legacy
-    // generative themes. The celebration hold keeps the choir on stage.
-    const wantAmbient=calmMood(mood)&&!music.celebrationHold;
-    if(wantAmbient&&!usingAmbient)playAmbient({calm:music.calm,mood});
-    else if(!wantAmbient&&usingAmbient)playGenerative({calm:music.calm,mood});
-    else if(usingAmbient&&ambient.started)ambient.updateGameState(stateFromWorld(game, data));
-   }else if(usingAmbient && ambient.started){
-    ambient.updateGameState(stateFromWorld(game, data));
+   const due=!targetRenderMs||!lastRender||now-lastRender>=targetRenderMs-1;
+   if(due){
+    const renderDt=lastRender?Math.min((now-lastRender)/1000,.15):dt;lastRender=now;
+    const mood=soundtrackMood(game.world,data,{memory:moodMemory,vlevel:game.state.vlevel});
+    music.setMood(mood);
+    if(ambientScore){
+     // Route live: calm moods get the keepers, battle moods get the legacy
+     // generative themes. The celebration hold keeps the choir on stage.
+     const wantAmbient=calmMood(mood)&&!music.celebrationHold;
+     if(wantAmbient&&!usingAmbient)playAmbient({calm:music.calm,mood});
+     else if(!wantAmbient&&usingAmbient)playGenerative({calm:music.calm,mood});
+     else if(usingAmbient&&ambient.started)ambient.updateGameState(stateFromWorld(game, data));
+    }else if(usingAmbient && ambient.started){
+     ambient.updateGameState(stateFromWorld(game, data));
+    }
+    ui.tick(renderDt);
+    if(ui.started)ambience.tick();
+    renderer.draw(game.world,now);
+    try{const r=renderer.frameReport();if(r&&renderer.autoDegrade)renderer.autoDegrade(r.avg,now,r.renderAvg);}catch{}
    }
-   ui.tick(dt);
-   if(ui.started)ambience.tick();
-   renderer.draw(game.world,now);
-   try{const r=renderer.frameReport();if(r&&renderer.autoDegrade)renderer.autoDegrade(r.avg,now,r.renderAvg);}catch{}
   }
   requestAnimationFrame(frame);
  }
