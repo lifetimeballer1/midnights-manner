@@ -64,7 +64,7 @@ function clipDirectional(c,d,profile){
  c.lineTo(d[0]*end-sx*farWidth,d[1]*end-sy*farWidth);
  c.closePath();c.clip();
 }
-export function visibleLightBudget(r){return r.cam.zoom<1.05?48:Math.min(r.width,r.height)<=700?72:120;}
+export function visibleLightBudget(r){const q=r.qualityCfg?.lightCap,base=r.cam.zoom<1.05?48:Math.min(r.width,r.height)<=700?72:120;return Number.isFinite(q)?Math.min(base,q):base;}
 export function drawSourceSpill(scene,time=0){
  const r=scene.r,c=r.ctx;r.sceneSources=scene.sources;
  const stats=r.lightingStats??={};stats.spill=0;stats.spillCulled=0;
