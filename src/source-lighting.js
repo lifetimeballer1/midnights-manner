@@ -67,17 +67,18 @@ function clipDirectional(c,d,profile){
 export function visibleLightBudget(r){const q=r.qualityCfg?.lightCap,base=r.cam.zoom<1.05?48:Math.min(r.width,r.height)<=700?72:120;return Number.isFinite(q)?Math.min(base,q):base;}
 export function drawSourceSpill(scene,time=0){
  const r=scene.r,c=r.ctx;r.sceneSources=scene.sources;
- const stats=r.lightingStats??={};stats.spill=0;stats.spillCulled=0;
+ const stats=r.lightingStats??={};stats.spill=0;stats.spillCulled=0;stats.spillBudgetCulled=0;
  const strength=scene.light.overlay?.glow||0;if(!strength)return;
  const cap=visibleLightBudget(r);
  for(const source of scene.sources){
-  if(stats.spill>=cap)break;
-  const profile=sourceProfile(source),flicker=sourceFlicker(source,time,r.calm);
+  const profile=sourceProfile(source);
   const [x,y]=source.position,d=source.direction,reach=source.radius*profile.reach;
   const push=d?profile.push*reach:0,cx=x+(d?d[0]*push:0),cy=y+(d?d[1]*push:0);
   const p=r.project(cx,cy,.015),px=r.project(cx+reach,cy,.015),py=r.project(cx,cy+reach,.015);
   const extent=Math.hypot(px.x-p.x,px.y-p.y)+Math.hypot(py.x-p.x,py.y-p.y);
   if(p.x+extent<0||p.x-extent>r.width||p.y+extent<0||p.y-extent>r.height){stats.spillCulled++;continue;}
+  if(stats.spill>=cap){stats.spillBudgetCulled=(stats.spillBudgetCulled||0)+1;continue;}
+  const flicker=sourceFlicker(source,time,r.calm);
   c.save();
   // An affine ground-plane gradient follows yaw, pitch, zoom and resize.
   // Directional sources clip that pool into a facade/torch spill; open flames
