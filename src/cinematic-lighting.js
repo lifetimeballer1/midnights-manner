@@ -146,7 +146,7 @@ export function drawCelestialAir(r,sky){
 export function drawGodRays(r,sky,time=0){
  const stats=r.lightingStats??={};stats.rays=0;
  if(sky.weatherId!=='clear'||(sky.fog||0)>.02||sky.phase?.id==='night')return 0;
- const count=Math.min(r.width,r.height)<=700?3:5,c=r.ctx,t=r.calm?0:time*.00004;
+ const q=r.qualityCfg?.ambientCap,count=Math.min(Math.min(r.width,r.height)<=700?3:5,Number.isFinite(q)?Math.max(1,Math.ceil(q/4)):5),c=r.ctx,t=r.calm?0:time*.00004;
  const direction=sky.keyDir?.[0]||0,origin=r.width*(direction>0?.8:.2);
  c.save();
  for(let i=0;i<count;i++){
