@@ -3,12 +3,13 @@
 // untouched (cache-safe); these read as sun and life on top.
 export function drawEnvironmentFx(r, world, time, opts = {}) {
   const c = r.ctx;
+  const ambientCap=Number.isFinite(r.qualityCfg?.ambientCap)?r.qualityCfg.ambientCap:20;
   // Pond glints: 3-frame shimmer per pond, frozen frame under Calm.
   const frame = r.calm ? 0 : Math.floor(time / 400) % 3;
   let glints = 0;
   for (const b of world.buildings || []) {
     if (b.type !== 'pond' && b.type !== 'deephole') continue;
-    if (glints >= 12) break;
+    if (glints >= Math.min(12, ambientCap)) break;
     const spec = r.data.buildings[b.type];
     if (!spec) continue;
     const n = spec.size || 1;
@@ -25,7 +26,7 @@ export function drawEnvironmentFx(r, world, time, opts = {}) {
   const rainy = !!opts.weather?.streaks || (opts.weather?.id || '') === 'rain';
   if (!r.calm && (phase === 'day' || phase === 'dawn') && !rainy && r.cam.zoom < 1.6) {
     c.fillStyle = 'rgba(24,48,40,0.12)';
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < Math.min(3, Math.max(1, Math.ceil(ambientCap / 6))); i++) {
       const bx = ((time * .008 * (1 + i * .2) + i * 430) % (r.width + 360)) - 180;
       const by = r.height * (0.3 + i * 0.18);
       c.beginPath();
@@ -38,7 +39,7 @@ export function drawEnvironmentFx(r, world, time, opts = {}) {
   const t = (time / 24000) % 1;
   c.strokeStyle = 'rgba(26,32,44,0.7)';
   c.lineWidth = 1.5;
-  for (let i = 0; i < 2; i++) {
+  for (let i = 0; i < Math.min(2, Math.max(1, Math.ceil(ambientCap / 8))); i++) {
     const bx = r.width * ((t + i * 0.5) % 1);
     const by = r.height * (0.18 + i * 0.07) + Math.sin(time / 600 + i * 3) * 6;
     c.beginPath();
