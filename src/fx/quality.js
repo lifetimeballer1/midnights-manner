@@ -1,9 +1,10 @@
 // Quality presets + auto-degrade. Renderer-only, no save fields.
 // Low/Med/High map to existing caches/LOD; Calm still wins for motion.
 const PRESETS = {
-  Low: { dprCap: 1, maxEffects: 20, hideDecalsBelow: 0.6, fullAnimAbove: 2.2, ambientCap: 6, lightCap: 16 },
-  Med: { dprCap: 1.5, maxEffects: 40, hideDecalsBelow: 0.6, fullAnimAbove: 1.5, ambientCap: 12, lightCap: 28 },
-  High: { dprCap: 2, maxEffects: 60, hideDecalsBelow: 0.6, fullAnimAbove: 1.5, ambientCap: 20, lightCap: 40 },
+  Low: { dprCap: 1, maxEffects: 20, hideDecalsBelow: 0.6, fullAnimAbove: 2.2, ambientCap: 6, lightCap: 18, shadowCap: 48, shadowPasses: 1, mistCap: 2, emberCap: 2, chimneyCap: 3, rayCap: 1, trailCap: 6, smokeCap: 4, rainCap: 3, glintCap: 4, cloudCap: 1 },
+  Med: { dprCap: 1.5, maxEffects: 40, hideDecalsBelow: 0.6, fullAnimAbove: 1.5, ambientCap: 12, lightCap: 36, shadowCap: 96, shadowPasses: 2, mistCap: 3, emberCap: 6, chimneyCap: 5, rayCap: 3, trailCap: 10, smokeCap: 6, rainCap: 4, glintCap: 8, cloudCap: 2 },
+  // High preserves the pre-power-pass visual ceilings on desktop.
+  High: { dprCap: 2, maxEffects: 60, hideDecalsBelow: 0.6, fullAnimAbove: 1.5, ambientCap: 20, lightCap: 120, shadowCap: 180, shadowPasses: 3, mistCap: 5, emberCap: 12, chimneyCap: 8, rayCap: 5, trailCap: 12, smokeCap: 8, rainCap: 6, glintCap: 12, cloudCap: 3 },
 };
 const ORDER = ['Low', 'Med', 'High'];
 function stored() {
