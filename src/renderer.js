@@ -56,10 +56,10 @@ export class Renderer {
  trackGroundWear(world){
   const now=Number.isFinite(world.elapsed)?world.elapsed:0;
   if(this._wearWorld!==world||now<(this._wearTime??0)){this.wornGround=new Map();this._wearActors=new Map();this._wearWorld=world;this._wearTime=-Infinity;}
-  // Wear is simulation-derived, not animation-derived. Ten samples/second is
-  // enough to preserve crossed tiles while avoiding a full population scan
-  // on every rendered frame.
-  if(Number.isFinite(this._wearTime)&&now-this._wearTime<.1)return;
+  // Wear is simulation-derived, not animation-derived. If no simulation tick
+  // advanced since the last paint, the population cannot have new travel to
+  // record, so skip the full roster scan without dropping real movement.
+  if(Number.isFinite(this._wearTime)&&now===this._wearTime)return;
   this._wearTime=now;
   for(const [key,wear] of this.wornGround)if(now-wear.last>=300)this.wornGround.delete(key);
   const seen=new Set();
