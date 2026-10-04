@@ -55,11 +55,7 @@ export class Renderer {
  tree(x,y,n){const c=this.ctx,p=this.project(x,y),z=this.cam.zoom,h=32+Math.abs(n)%3*9;c.save();c.translate(p.x,p.y);c.scale(z,z);c.fillStyle='#102e2155';c.beginPath();c.ellipse(8,7,18,7,0,0,Math.PI*2);c.fill();c.fillStyle='#60442b';c.fillRect(-3,-h/3,6,h/3+7);for(let l=0;l<3;l++){const top=-h+l*9;c.fillStyle=['#214b32','#2d6340','#407d48'][l];c.beginPath();c.moveTo(0,top);c.lineTo(17-l*2,top+23);c.lineTo(-17+l*2,top+23);c.closePath();c.fill();c.fillStyle=['#376b3c','#4a8547','#699b55'][l];c.beginPath();c.moveTo(0,top);c.lineTo(0,top+23);c.lineTo(-17+l*2,top+23);c.closePath();c.fill();}c.restore();}
  trackGroundWear(world){
   const now=Number.isFinite(world.elapsed)?world.elapsed:0;
-  if(this._wearWorld!==world||now<(this._wearTime??0)){this.wornGround=new Map();this._wearActors=new Map();this._wearWorld=world;this._wearTime=-Infinity;}
-  // Wear is simulation-derived, not animation-derived. If no simulation tick
-  // advanced since the last paint, the population cannot have new travel to
-  // record, so skip the full roster scan without dropping real movement.
-  if(Number.isFinite(this._wearTime)&&now===this._wearTime)return;
+  if(this._wearWorld!==world||now<this._wearTime){this.wornGround=new Map();this._wearActors=new Map();this._wearWorld=world;}
   this._wearTime=now;
   for(const [key,wear] of this.wornGround)if(now-wear.last>=300)this.wornGround.delete(key);
   const seen=new Set();
