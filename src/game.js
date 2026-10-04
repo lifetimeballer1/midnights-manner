@@ -767,7 +767,9 @@ export class Game {
   if(slowDt){tickRefine(this.world,this.data,slowDt,!this.state.mission,!this.state.mission&&this.world.steward?.enabled?(refinePolicy(this)||((k)=>spendingAvailable(this,k,{purpose:'refine'}))):null);for(const c of tickCraft(this.world,this.data,slowDt)){const name=this.data.items[c.item]?.name||c.item;this.notify(name+' finished — fit it from the People panel.');}}
   tickExpeditions(this.world,this.data,dt,Math.random,{state:this.state,notify:m=>this.notify(m)});
   tickCombat(this.world,this.data,dt);
-  if(slowDt)tickVillage(this.state,this.data,slowDt,m=>this.notify(m));
+  // Quest/level progression stays tick-synchronous because commands/tests can
+  // complete a task and expect the next progression state immediately.
+  tickVillage(this.state,this.data,dt,m=>this.notify(m));
   const before=this.state.mission?.status;tickMission(this.state,this.data);if(this.state.mission?.herald){this.notify(this.state.mission.herald);this.state.mission.herald=null;}
   if(raided&&!this.world.enemies.length&&!this.world.raidPending&&this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)){const recovered=warChestRecovery(this.world,this.data);spendWarChest(this.world);const kills=this.world.raidKills??0,loot=this.world.raidLoot??0;
    const damaged=this.world.buildings.filter(b=>b.hp<buildingMaxHp(b,this.data));
