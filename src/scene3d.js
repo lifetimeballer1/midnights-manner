@@ -1992,7 +1992,7 @@ export function drawVillage3D(r,world,time,light,visibleUnits){const s=new MeshS
  // and the static geometry cache below stays light-agnostic (clock is not a key).
  s.light=light||skyLightAt(world.elapsed,r.data,{calm:r.calm});
  // Large settlements keep outfit/weapon silhouettes but omit tiny face/trim meshes.
- s.characterDetail=world.troops.length+world.enemies.length<=64;
+ s.characterDetail=world.troops.length+world.enemies.length<=64&&r.cam.zoom>=(r.qualityCfg?.fullAnimAbove??1.5);
  // Dense phone overviews retain silhouettes while coarsening only coplanar
  // occlusion subdivisions. Close-up mechanisms/outfits stay unchanged.
  s.subdivision=r.width<600&&world.troops.length+world.enemies.length>=96&&r.cam.zoom<1.6?.8:.4;
