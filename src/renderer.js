@@ -55,7 +55,11 @@ export class Renderer {
  tree(x,y,n){const c=this.ctx,p=this.project(x,y),z=this.cam.zoom,h=32+Math.abs(n)%3*9;c.save();c.translate(p.x,p.y);c.scale(z,z);c.fillStyle='#102e2155';c.beginPath();c.ellipse(8,7,18,7,0,0,Math.PI*2);c.fill();c.fillStyle='#60442b';c.fillRect(-3,-h/3,6,h/3+7);for(let l=0;l<3;l++){const top=-h+l*9;c.fillStyle=['#214b32','#2d6340','#407d48'][l];c.beginPath();c.moveTo(0,top);c.lineTo(17-l*2,top+23);c.lineTo(-17+l*2,top+23);c.closePath();c.fill();c.fillStyle=['#376b3c','#4a8547','#699b55'][l];c.beginPath();c.moveTo(0,top);c.lineTo(0,top+23);c.lineTo(-17+l*2,top+23);c.closePath();c.fill();}c.restore();}
  trackGroundWear(world){
   const now=Number.isFinite(world.elapsed)?world.elapsed:0;
-  if(this._wearWorld!==world||now<this._wearTime){this.wornGround=new Map();this._wearActors=new Map();this._wearWorld=world;}
+  if(this._wearWorld!==world||now<(this._wearTime??0)){this.wornGround=new Map();this._wearActors=new Map();this._wearWorld=world;this._wearTime=-Infinity;}
+  // Wear is simulation-derived, not animation-derived. Ten samples/second is
+  // enough to preserve crossed tiles while avoiding a full population scan
+  // on every rendered frame.
+  if(Number.isFinite(this._wearTime)&&now-this._wearTime<.1)return;
   this._wearTime=now;
   for(const [key,wear] of this.wornGround)if(now-wear.last>=300)this.wornGround.delete(key);
   const seen=new Set();
@@ -112,7 +116,11 @@ export class Renderer {
    const visibleUnits=this._visibleUnits??=[];visibleUnits.length=0;
    const visibleIds=this._visibleUnitIds??=new Set();visibleIds.clear();
    const outdoor=this._outdoorUnits??=[];outdoor.length=0;
-   for(const u of world.troops)if(!isSheltered(world,this.data,u)&&!insideWorkplace(world,this.data,u))outdoor.push(u);
+   // One building lookup table per frame replaces a buildings.find for every
+   // posted villager when deciding whether their body is hidden by the shop.
+   const buildingIndex=this._frameBuildingIndex??=new Map();buildingIndex.clear();
+   for(const b of world.buildings)buildingIndex.set(b.id,b);
+   for(const u of world.troops)if(!isSheltered(world,this.data,u)&&!insideWorkplace(world,this.data,u,buildingIndex))outdoor.push(u);
    const crowd=selectPopulationRenderUnits(outdoor,{
     project:u=>this.project(u.x,u.y),
     width:this.width,height:this.height,zoom:this.cam.zoom,selectedId:this.selection,
