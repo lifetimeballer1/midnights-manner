@@ -112,7 +112,11 @@ export class Renderer {
    const visibleUnits=this._visibleUnits??=[];visibleUnits.length=0;
    const visibleIds=this._visibleUnitIds??=new Set();visibleIds.clear();
    const outdoor=this._outdoorUnits??=[];outdoor.length=0;
-   for(const u of world.troops)if(!isSheltered(world,this.data,u)&&!insideWorkplace(world,this.data,u))outdoor.push(u);
+   // One building lookup table per frame replaces a buildings.find for every
+   // posted villager when deciding whether their body is hidden by the shop.
+   const buildingIndex=this._frameBuildingIndex??=new Map();buildingIndex.clear();
+   for(const b of world.buildings)buildingIndex.set(b.id,b);
+   for(const u of world.troops)if(!isSheltered(world,this.data,u)&&!insideWorkplace(world,this.data,u,buildingIndex))outdoor.push(u);
    const crowd=selectPopulationRenderUnits(outdoor,{
     project:u=>this.project(u.x,u.y),
     width:this.width,height:this.height,zoom:this.cam.zoom,selectedId:this.selection,

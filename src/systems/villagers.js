@@ -78,12 +78,12 @@ export function hasTrait(unit, id) {
 // economy's readout. Any manual order, emergency duty or expedition brings
 // the worker back out; rangers en route to a new post stay visible until
 // they arrive. Renderer-only — no simulation or save state reads this.
-export function insideWorkplace(world, data, unit) {
+export function insideWorkplace(world, data, unit, buildingIndex=null) {
   if (!unit || unit.hp <= 0 || unit.emergency || unit.expedition || unit.order) return false;
   if (!unit.workplace) return false;
   if (data?.troops?.[unit.type]?.role === 'collector') return false;
   if (!Number.isFinite(unit.x) || !Number.isFinite(unit.y)) return false;
-  const b = (world?.buildings || []).find(x => x.id === unit.workplace);
+  const b = buildingIndex?.get ? buildingIndex.get(unit.workplace) : (world?.buildings || []).find(x => x.id === unit.workplace);
   if (!b || b.hp <= 0 || b.remaining > 0) return false;
   const size = Number.isFinite(data?.buildings?.[b.type]?.size) ? data.buildings[b.type].size : 1;
   const cx = b.x + size / 2, cy = b.y + size / 2;
