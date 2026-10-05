@@ -1,11 +1,14 @@
 """Offline GLB -> flat Canvas geometry. Requires numpy, Pillow, fast-simplification.
 
-Run from the repo root. Only reviewed CC0 sources in the manifest are converted.
+Run from the repo root. The manifest path converts reviewed CC0 sources; --node
+converts one named user-provided mesh locally without granting redistribution rights.
 Reject unsupported animation/compression rather than silently damaging an asset.
 """
+import hashlib
 import io
 import json
 import struct
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -17,7 +20,15 @@ PALETTE = ['#604a39', '#8d6844', '#b88a55', '#d5bf8f', '#53544e',
 RGB = np.array([[int(c[i:i+2], 16) for i in (1, 3, 5)] for c in PALETTE])
 
 
-def convert(path):
+def convert(path, only_nodes=None, target_height=1.0, include_source=False):
+    path = Path(path)
+    try:
+        target_height = float(target_height)
+    except (TypeError, ValueError) as error:
+        raise ValueError('target height must be positive and finite') from error
+    if not np.isfinite(target_height) or target_height <= 0:
+        raise ValueError('target height must be positive and finite')
+    only_nodes = set(only_nodes) if only_nodes is not None else None
     raw = path.read_bytes()
     assert raw[:4] == b'glTF' and struct.unpack_from('<I', raw, 4)[0] == 2
     length = struct.unpack_from('<I', raw, 12)[0]
@@ -41,7 +52,9 @@ def convert(path):
                           offset=a.get('byteOffset', 0), strides=(step, np.dtype(dtype).itemsize)).copy()
 
     images = [Image.open(io.BytesIO(view(i['bufferView']))).convert('RGB') for i in doc.get('images', [])]
+    sampled_images = set()
     triangles = []
+    found_nodes = set()
 
     def visit(index, parent):
         node = doc['nodes'][index]
@@ -56,7 +69,8 @@ def convert(path):
                 [2*(x*z-y*w), 2*(y*z+x*w), 1-2*(x*x+y*y)]]) @ np.diag(node.get('scale', [1, 1, 1]))
             local[:3, 3] = node.get('translation', [0, 0, 0])
         matrix = parent @ local
-        if 'mesh' in node:
+        if 'mesh' in node and (only_nodes is None or node.get('name') in only_nodes):
+            found_nodes.add(node.get('name'))
             for p in doc['meshes'][node['mesh']]['primitives']:
                 assert p.get('mode', 4) == 4
                 vertices = accessor(p['attributes']['POSITION'])
@@ -65,12 +79,14 @@ def convert(path):
                 material = doc.get('materials', [{}])[p.get('material', 0)]
                 mat = material.get('pbrMetallicRoughness', {})
                 factor = np.array(mat.get('baseColorFactor', [1, 1, 1, 1])[:3])
-                image = images[doc['textures'][mat['baseColorTexture']['index']]['source']] if 'baseColorTexture' in mat else None
+                image_index = doc['textures'][mat['baseColorTexture']['index']]['source'] if 'baseColorTexture' in mat else None
+                image = images[image_index] if image_index is not None else None
                 indices = accessor(p['indices']).flatten() if 'indices' in p else np.arange(len(vertices))
                 for face in indices.reshape(-1, 3):
                     # glTF factors are linear; Canvas hex colors are sRGB.
                     color = np.where(factor <= .0031308, factor*12.92, 1.055*factor**(1/2.4)-.055)*255
                     if image is not None and uv is not None:
+                        sampled_images.add(image_index)
                         u, v = uv[face].mean(axis=0)
                         color = np.array(image.getpixel((min(image.width-1, int((u % 1)*image.width)), min(image.height-1, int((v % 1)*image.height)))))*factor
                     palette = {'DarkWood': '#604a39', 'Wood': '#8d6844', 'Stone': '#53544e', 'Bag': '#d5bf8f', 'Hay': '#b88a55'}.get(material.get('name'), PALETTE[int(np.argmin(((RGB-color)**2).sum(axis=1)))])
@@ -83,6 +99,10 @@ def convert(path):
 
     for root in doc['scenes'][doc.get('scene', 0)]['nodes']:
         visit(root, np.eye(4))
+    if only_nodes is not None and found_nodes != only_nodes:
+        raise ValueError('Missing requested GLB node: ' + ', '.join(sorted(only_nodes - found_nodes)))
+    if not triangles:
+        raise ValueError('No usable triangles in GLB')
     # Per-asset art-direction adaptation uses the existing workplace palette.
     if path.stem == 'crate':
         triangles = [(t, '#b88a55' if c == '#8d6844' and np.cross(t[1]-t[0], t[2]-t[0])[1] > .5*np.linalg.norm(np.cross(t[1]-t[0], t[2]-t[0])) else c) for t, c in triangles]
@@ -96,7 +116,7 @@ def convert(path):
         group = [t for t, c in triangles if c == color]
         points, inverse = np.unique(np.concatenate(group), axis=0, return_inverse=True)
         indices = inverse.reshape(-1, 3)
-        if len(indices) > 120:
+        if len(indices) > 120 and not include_source:
             points, indices = fast_simplification.simplify(points, indices,
                 target_count=max(24, int(len(indices)*(.15 if source_count>1000 else .28))), agg=5)
         simplified.extend((points[face], color) for face in indices)
@@ -108,12 +128,13 @@ def convert(path):
     # Right-handed Y-up glTF -> Z-up game. Ground pivot at footprint center.
     origin = np.array([(low[0]+high[0])/2, low[1], (low[2]+high[2])/2])
     vertices, lookup, faces = [], {}, []
+    scale = target_height / height
     for triangle, color in triangles:
         face = []
-        for point in (triangle-origin)/height:
+        for point in (triangle-origin)*scale:
             # 1/32-height vertex clustering removes tiny bevels below normal
             # game-scale readability. Recompute normals after clustering.
-            key = tuple(round(round(float(v)*32)/32, 5) for v in [point[0], -point[2], point[1]])
+            key = tuple(round(float(v), 6) if include_source else round(round(float(v)*32)/32, 5) for v in [point[0], -point[2], point[1]])
             if key not in lookup:
                 lookup[key] = len(vertices)
                 vertices.append(list(key))
@@ -177,10 +198,52 @@ def convert(path):
                 changed = True
                 break
         faces = [f for i, f in enumerate(faces) if i not in removed]
-    return {'vertices': vertices, 'faces': faces, 'sourceTriangles': source_count}
+    result = {'vertices': vertices, 'faces': faces, 'sourceTriangles': source_count}
+    if include_source:
+        if len(sampled_images) > 1:
+            raise ValueError('Multiple sampled textures cannot be represented by singular textureSHA256 provenance')
+        texture_hash = None
+        if sampled_images:
+            image_bytes = view(doc['images'][next(iter(sampled_images))]['bufferView'])
+            texture_hash = hashlib.sha256(image_bytes).hexdigest()
+        result['sourceSHA256'] = hashlib.sha256(raw).hexdigest()
+        result['textureSHA256'] = texture_hash
+    return result
+
+
+def convert_node(path, node_name, target_height=1.0):
+    path = Path(path)
+    converted = convert(path, {node_name}, target_height, include_source=True)
+    vertices = converted['vertices']
+    faces = [{'v': [vertices[i] for i in indices], 'c': color} for indices, color in converted['faces']]
+    if not faces:
+        raise ValueError('Empty converted mesh after vertex clustering')
+    return {
+        'meta': {
+            'format': 'flat-face-v1',
+            'sourceObject': node_name,
+            'sourceFile': path.name,
+            'sourceSHA256': converted['sourceSHA256'],
+            'textureSHA256': converted['textureSHA256'],
+            'sourceTriangles': converted['sourceTriangles'],
+            'height': float(target_height),
+            'releaseStatus': 'local-only',
+        },
+        'faces': faces,
+    }
 
 
 if __name__ == '__main__':
+    if len(sys.argv) > 1 and sys.argv[1] == '--node':
+        if len(sys.argv) != 6:
+            sys.exit('Usage: python scripts/convert-external-assets.py --node source.glb output.json node-name target-height')
+        mesh = convert_node(Path(sys.argv[2]), sys.argv[4], float(sys.argv[5]))
+        if len(mesh['faces']) > 3000:
+            raise ValueError('Over the 3000-face conversion safety limit; runtime budgets are checked at registration')
+        output = Path(sys.argv[3]); output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(json.dumps(mesh, separators=(',', ':')), encoding='utf8')
+        print(mesh['meta']['sourceObject'], mesh['meta']['sourceTriangles'], 'triangles ->', len(mesh['faces']), 'faces')
+        sys.exit(0)
     manifest = json.loads(Path('data/external_assets.json').read_text())
     output = {}
     for asset in manifest['assets']:

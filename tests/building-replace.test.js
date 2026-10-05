@@ -101,7 +101,7 @@ test('ruins and scaffolds stay clean: geometry only, no lights or smoke anchors'
 });
 
 test('converted meshes are enabled exactly for pieces the families place',()=>{
- const enabled=Object.entries(manifest.meshes).filter(([,e])=>e.enabled).map(([id])=>id).sort();
+  const enabled=Object.entries(manifest.meshes).filter(([,e])=>e.enabled&&!['environment','production'].includes(e.domain)).map(([id])=>id).sort();
  assert.deepEqual(enabled,['barrel','book-stand','bush','chimney','crate','crate-apple','crate-carrot','dummy','fence','flower-purple','flower-red','flower-yellow','lantern-wall','lily-large','lily-small','log','log-stack','overhang','pennant','roof-gable','roof-window','rock-small-a','rock-small-d','shutters','stairs-stone','stone-small','torch-metal','town-lantern','weapon-stand','wood-door','workbench'].sort());
  for(const id of PLACED)assert.ok(enabled.includes(id),`${id} is placed by the family pass`);
  for(const id of ['anvil','tree-simple','bush-small'])assert.equal(manifest.meshes[id].enabled,false,`${id} stays disabled until something places it`);

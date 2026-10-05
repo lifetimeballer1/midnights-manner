@@ -22,17 +22,19 @@ try{
  const endpoint=await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Chrome startup timeout')),20000);let log='';chrome.on('error',reject);chrome.stderr.on('data',chunk=>{log+=chunk;const match=log.match(/DevTools listening on (ws:\/\/\S+)/);if(match){clearTimeout(timer);resolve(match[1]);}});});
  ws=new WebSocket(endpoint);await new Promise((r,j)=>{ws.onopen=r;ws.onerror=j;});
  let seq=0;const pending=new Map(),errors=[];
- ws.onmessage=event=>{const response=JSON.parse(event.data);if(response.id){const cb=pending.get(response.id);if(cb){pending.delete(response.id);response.error?cb.reject(Error(JSON.stringify(response.error))):cb.resolve(response.result);}}else if(response.method==='Runtime.exceptionThrown')errors.push(response.params.exceptionDetails.text);};
- const send=(method,params={},sessionId)=>new Promise((resolve,reject)=>{const id=++seq;pending.set(id,{resolve,reject});ws.send(JSON.stringify({id,method,params,sessionId}));});
+   ws.onmessage=event=>{const response=JSON.parse(event.data);if(response.id){const cb=pending.get(response.id);if(cb){pending.delete(response.id);clearTimeout(cb.timer);response.error?cb.reject(Error(JSON.stringify(response.error))):cb.resolve(response.result);}}else if(response.method==='Runtime.exceptionThrown')errors.push(response.params.exceptionDetails.exception?.description||response.params.exceptionDetails.text);else if(response.method==='Network.loadingFailed')errors.push('NETWORK '+JSON.stringify(response.params));else if(response.method==='Page.javascriptDialogOpening')console.error('Unexpected browser dialog',response.params.type,response.params.message);};
+  const send=(method,params={},sessionId)=>new Promise((resolve,reject)=>{const id=++seq,timer=setTimeout(()=>{pending.delete(id);reject(Error('CDP request timed out: '+method+' '+(params.expression||'').slice(0,160)));},90000);pending.set(id,{resolve,reject,timer});ws.send(JSON.stringify({id,method,params,sessionId}));});
  const {targetId}=await send('Target.createTarget',{url:'about:blank'});
  const {sessionId}=await send('Target.attachToTarget',{targetId,flatten:true});
  const call=(method,params={})=>send(method,params,sessionId);
- await call('Runtime.enable');await call('Page.enable');await call('Emulation.setDeviceMetricsOverride',{width:1440,height:1100,deviceScaleFactor:1,mobile:false});
+  await call('Runtime.enable');await call('Page.enable');await call('Network.enable');await call('Emulation.setDeviceMetricsOverride',{width:1440,height:1100,deviceScaleFactor:1,mobile:false});
  await call('Page.addScriptToEvaluateOnNewDocument',{source:`window.__audioProbe={starts:0,stops:0,analyser:null};const AC=window.AudioContext;if(AC){const create=AC.prototype.createOscillator;AC.prototype.createOscillator=function(...args){const node=create.apply(this,args),start=node.start.bind(node),stop=node.stop.bind(node);node.start=(...values)=>{window.__audioProbe.starts++;return start(...values);};node.stop=(...values)=>{window.__audioProbe.stops++;return stop(...values);};return node;};const connect=AudioNode.prototype.connect;AudioNode.prototype.connect=function(destination,...args){if(destination===this.context.destination&&!window.__audioProbe.analyser){const analyser=this.context.createAnalyser();analyser.fftSize=2048;window.__audioProbe.analyser=analyser;connect.call(this,analyser);connect.call(analyser,destination);return destination;}return connect.call(this,destination,...args);};}`});
  await call('Page.navigate',{url:`http://127.0.0.1:${port}/midnights-manner/`});
  const evaluate=async expression=>{const r=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(r.exceptionDetails.exception?.description||'Browser evaluation failed');return r.result.value;};
- for(let i=0;i<100;i++){if(await evaluate('Boolean(window.midnightsManner)'))break;await new Promise(r=>setTimeout(r,100));}
- assert.ok(await evaluate('Boolean(window.midnightsManner)'),'game loaded');
+  for(let i=0;i<300;i++){if(await evaluate('Boolean(window.midnightsManner)'))break;await new Promise(r=>setTimeout(r,100));}
+  const gameLoaded=await evaluate('Boolean(window.midnightsManner)');
+  if(!gameLoaded)console.error('Browser startup diagnostics',{errors,page:await evaluate('({ready:document.readyState,fatal:document.querySelector("#fatal")?.textContent,scripts:[...document.scripts].map(s=>s.src),probe:Boolean(window.__audioProbe),resources:performance.getEntriesByType("resource").map(e=>({name:e.name,duration:e.duration,transfer:e.transferSize})).slice(-40)})')});
+  assert.ok(gameLoaded,'game loaded');
  await mkdir('artifacts',{recursive:true});
  const screenshot=async name=>{const {data}=await call('Page.captureScreenshot',{format:'png',captureBeyondViewport:true});await writeFile(`artifacts/${name}.png`,Buffer.from(data,'base64'));};
  const waitFor=async (expression,tries=100)=>{for(let i=0;i<tries;i++){if(await evaluate(expression))return;await new Promise(r=>setTimeout(r,75));}throw Error('Timed out: '+expression);};
@@ -215,7 +217,10 @@ try{
   if(!expectedSeen){try{expectedSeen=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8')).version;}catch{}}
   assert.equal(await evaluate('window.midnightsManner.snapshot().seenUpdatesVersion'),expectedSeen,'dismissing the board marks the version seen');
  await click('#resume');
- await call('Page.reload');await waitFor('Boolean(window.midnightsManner)');await click('#begin');
+  await call('Page.reload');
+  try{await waitFor('Boolean(window.midnightsManner)',400);}
+  catch(error){console.error('Reload diagnostics',JSON.stringify({errors,page:await evaluate('({ready:document.readyState,fatal:document.querySelector("#fatal")?.textContent,begin:!document.querySelector("#begin")?.hidden,resources:performance.getEntriesByType("resource").map(e=>({name:e.name,duration:e.duration,status:e.responseStatus,transfer:e.transferSize})).slice(-40)})')},null,2));throw error;}
+  await click('#begin');
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[0].level'),2,'level restored');
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[2].gear'),'cart','gear restored');
  await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:2,mobile:true});await new Promise(r=>setTimeout(r,200));
@@ -292,7 +297,8 @@ try{
 })()`);
  for(const report of settlement){await writeFile('artifacts/settlement-browser-'+report.mode+'.png',Buffer.from(report.image,'base64'));delete report.image;}
  await writeFile('artifacts/settlement-browser-benchmark.json',JSON.stringify({environment:'Headless Chromium in CI; desktop CPU, not physical phone',reports:settlement},null,2));
- console.log('Living settlement Chromium benchmark',settlement);
+  console.log('Living settlement Chromium benchmark',settlement);
+  console.log('Browser checkpoint: management import');
  // Exercise the actual management UI against an imported mature village,
  // then restore the interactive save before the remaining update tests.
  await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:2,mobile:true});
@@ -305,10 +311,11 @@ try{
   const state={...original,world:w,home:null,mission:null,vlevel:11,unlocks:[...d.world.locked]};
   window.__automationSmoke={original:storage.exportSave(original),fixture:storage.exportSave(state),camera:window.midnightsManner.camera(),prompt:window.prompt};
  })()`);
- const managementOriginal=await evaluate('window.__automationSmoke.original'),managementCamera=await evaluate('window.__automationSmoke.camera');
+  const managementOriginal=await evaluate('window.__automationSmoke.original'),managementCamera=await evaluate('window.__automationSmoke.camera');
  await fire('#pause');
  await evaluate('window.prompt=()=>window.__automationSmoke.fixture');await fire('#opt-import');
- await evaluate('window.prompt=window.__automationSmoke.prompt');
+  await evaluate('window.prompt=window.__automationSmoke.prompt');
+  console.log('Browser checkpoint: management controls');
  await ensureResources();await fire('[data-resource="wood"]');
  await waitFor('document.querySelector("#panel").textContent.includes("What the village needs")');
  assert.ok(await evaluate('document.querySelector("#panel").textContent.includes("Delivery bottlenecks")||document.querySelector("#panel").textContent.includes("Current priority baskets")||document.querySelector("#panel").textContent.includes("short")'),'Stores exposes supply diagnostics');
@@ -406,8 +413,14 @@ try{
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.buildings.find(b=>b.id==="automation-forge").autoUpgradeMaxTier'),4,'building inspector sets its upgrade ceiling');
  await evaluate('document.activeElement.blur()');await fire('#inspector [data-action="close"]');
  await fire('#pause');await fire('#opt-save');await fire('#resume');
- await call('Page.reload');await new Promise(r=>setTimeout(r,300));
- await waitFor('Boolean(window.midnightsManner)&&!document.querySelector("#title").hidden');
+  console.log('Browser checkpoint: management save/reload');
+  await call('Page.reload');await new Promise(r=>setTimeout(r,300));
+  try{await waitFor('Boolean(window.midnightsManner)&&!document.querySelector("#title").hidden',400);}
+  catch(error){
+   const state=await evaluate('navigator.serviceWorker?.getRegistration().then(r=>({ready:document.readyState,loaded:Boolean(window.midnightsManner),fatal:document.querySelector("#fatal")?.textContent,titleHidden:document.querySelector("#title")?.hidden,controller:!!navigator.serviceWorker.controller,active:r?.active?.state,resources:performance.getEntriesByType("resource").map(e=>({name:e.name,status:e.responseStatus,transfer:e.transferSize})).slice(-30)}))');
+   console.error('Management reload diagnostics',{state,errors});
+   throw error;
+  }
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.automation.reserves.wood'),321,'protected reserve survives browser reload');
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.steward.main.buildingId'),'automation-forge','steward goal survives browser reload');
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.steward.protectMeals'),false,'steward protection choice survives browser reload');
@@ -422,11 +435,12 @@ try{
 
  await ensureResources();await fire('[data-resource="wood"]');await waitFor('!!document.querySelector("[data-logistics-view]")');await fire('[data-logistics-view="traffic"]');await click('#close-panel');
 
- await click('[data-tab="troops"]');await click('[data-category="recruit"]');
+  await fire('[data-tab="troops"]');await waitFor('Boolean(document.querySelector(\'[data-category="recruit"]\'))');await fire('[data-category="recruit"]');
  assert.ok((await evaluate('document.querySelectorAll("[data-recruit]").length'))>=20,'all professions retained');
  // Serve a second build while the standalone-sized page stays open.
- await click('#close-panel');await click('#pause');
- await evaluate('navigator.serviceWorker.ready.then(()=>true)');
+  await fire('#close-panel');await fire('#pause');await waitFor('!document.querySelector("#pause-overlay").hidden');
+  console.log('Browser checkpoint: service-worker update');
+  await evaluate('navigator.serviceWorker.ready.then(()=>true)');
  await waitFor('!!navigator.serviceWorker.controller');
  const savedUnit=await evaluate('window.midnightsManner.snapshot().world.troops[0].id');
  await call('Network.enable');
@@ -443,18 +457,24 @@ try{
  assert.equal(await evaluate('document.querySelector("#title").hidden'),true,'update check does not reload before approval');
  if(await evaluate('document.querySelector("#pause-overlay").hidden')){await click('#pause');await waitFor('!document.querySelector("#pause-overlay").hidden');}
  await waitFor('document.querySelector("#opt-update")?.getClientRects().length>0 && !document.querySelector("#opt-update").disabled');
- await click('#opt-update');await waitFor('!document.querySelector("#update-notice").hidden');
+  await click('#opt-update');
+  try{await waitFor('!document.querySelector("#update-notice").hidden',400);}
+  catch(error){
+   const state=await evaluate('navigator.serviceWorker.getRegistration().then(r=>({online:navigator.onLine,status:document.querySelector("#update-status")?.textContent,buttonDisabled:document.querySelector("#opt-update")?.disabled,noticeHidden:document.querySelector("#update-notice")?.hidden,controller:!!navigator.serviceWorker.controller,installing:r?.installing?.state,waiting:r?.waiting?.state,active:r?.active?.state}))');
+   console.error('Update readiness diagnostics',{state,errors:errors.filter(e=>e.startsWith('NETWORK'))});
+   throw error;
+  }
  assert.notEqual(await evaluate('document.querySelector("meta[name=game-build]").content'),'browser-update-fixture','update waits for a click');
  await screenshot('update-ready');
  assert.equal(await evaluate('document.querySelector("#title").hidden'),true,'ready update still waits for player approval');
  if(await evaluate('document.querySelector("#pause-overlay").hidden')){await click('#pause');await waitFor('!document.querySelector("#pause-overlay").hidden');}
  await waitFor('document.querySelector("#opt-update")?.getClientRects().length>0 && !document.querySelector("#opt-update").disabled');
  await click('#opt-update');
- await waitFor('document.querySelector("meta[name=game-build]")?.content==="browser-update-fixture" && !!window.midnightsManner && !document.querySelector("#title").hidden');
+  await waitFor('document.querySelector("meta[name=game-build]")?.content==="browser-update-fixture" && !!window.midnightsManner && !document.querySelector("#title").hidden',400);
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[0].id'),savedUnit,'update preserves village');
  await fire('#begin');await waitFor('window.midnightsManner.ready && document.querySelector("#title").hidden');
  await fire('#pause');await waitFor('!document.querySelector("#pause-overlay").hidden && document.querySelector("#opt-refresh").getClientRects().length>0 && !document.querySelector("#opt-refresh").disabled');await click('#opt-refresh');
- await waitFor('!!window.midnightsManner && !document.querySelector("#title").hidden');
+  await waitFor('!!window.midnightsManner && !document.querySelector("#title").hidden',400);
  assert.equal(await evaluate('window.midnightsManner.snapshot().world.troops[0].id'),savedUnit,'ordinary in-app refresh preserves village');
  assert.deepEqual(errors,[],'no browser runtime errors');
  console.log(JSON.stringify({resourceCollection:true,menuSearch:true,mobileMenuPolish:true,inAppUpdate:true,saveAndRefresh:true,noticeBoard:true,offlineUpdateCheck:true,placementConfirmation:true,touchWallRows:true,sawmillRefinery:true,wallRowUpgrade:true,equipment:true,training:true,mission:true,raid:true,saveReload:true,portrait:true,landscape:true,touchPan:true,pinchZoom:true,consoleErrors:errors}));

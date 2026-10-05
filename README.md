@@ -12,9 +12,15 @@ A browser-based village builder with an isometric HTML5 Canvas map, farming econ
 
 **Status:** mobile-first playable prototype. The systems below are implemented; long-term balancing, richer combat AI, final art, and broader online features remain future work. Synthesized sound effects, an original generative music score, responsive full-screen controls and 15 campaign chapters are implemented. Progress is saved locally in the browser every five seconds and on page exit. Hidden tabs pause simulation; there is no offline production. Campaign expeditions use separate maps and preserve the home village.
 
+## Actual Mixar Building Catalog
+
+The catalog contains **62 game building families and 334 converted tiers**. This rollout enables **324 tiers across 59 families**; gate and trap families retain their native orientation and defensive-state visuals until source parts/pivots are mapped. Complete bodies use the existing flat-face Canvas path, bounded on-demand loading, and procedural fallback. Building IDs, footprints, collisions, gameplay, tiers, and saves are unchanged. See [coverage and provenance](docs/ART_COVERAGE.md) and [conversion/runtime details](docs/MIXAR-PILOT.md).
+
+On 2026-10-05 the user confirmed ownership of the entire catalog and authorized public-repository redistribution. That user attestation is recorded in `data/external_assets.json`; it is not an independently verified CC0 license. One pine, two complete tree-cluster forms, and stone/lumber piles are enabled. Four larger clusters remain disabled because intact geometry exceeds the existing nature budget. Other character/equipment/environment/animation work remains queued or partial. No online deployment was made. The build rejects unverified catalog permissions; `npm run build:preview` explicitly permits local-only testing when rights have not been cleared.
+
 ## Reviewed free low-poly props
 
-Seven CC0 models by Quaternius supplement the existing architecture: barrels, crates, supply sacks, open grain bags, hay, benches and rocks. Models are converted offline to the current Canvas face format, adapted to the village palette, and cached with the existing scene. No runtime glTF loader, texture downloads or third-party requests are added. Procedural building tiers, character rigs, machinery, saves and gameplay stay on their existing paths.
+Seven CC0 models by Quaternius supplement the building catalog: barrels, crates, supply sacks, open grain bags, hay, benches and rocks. Models are converted offline to the current Canvas face format, adapted to the village palette, and cached with the existing scene. No runtime glTF loader, texture downloads or third-party requests are added. Character rigs, machinery, saves and gameplay stay on their existing paths.
 
 Close views use the reviewed meshes within shared face budgets; distant, crowded and offscreen cases use the original procedural props. See [asset credits and conversion](docs/ASSET_CREDITS.md) and the machine-readable [manifest](data/external_assets.json).
 

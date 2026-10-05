@@ -2,6 +2,12 @@
 
 All seven integrated models are **Quaternius, CC0 1.0**, individually verified on Poly Pizza on 2026-10-01. Attribution is voluntary. Public repository distribution, commercial game use and adaptation are permitted by CC0. Exact pages, download URLs, local files, modifications and consumers are retained in `data/external_assets.json`.
 
+## User-Owned Mixar Catalog
+
+The user attested ownership of the entire `Game Assets.mixar` catalog, including geometry, textures, and modifications, and authorized public-repository redistribution on 2026-10-05. The retained permission record is `data/external_assets.json` → `catalogSources.game-assets-mixar`. This is a user ownership assertion, not independent CC0 verification; no third-party license is inferred merely from a matching atlas.
+
+The catalog provides 334 converted building meshes (324 enabled, 10 held for native gate/trap state), seven intact tree meshes, and stone/lumber piles. The enabled pine has 28 flat faces; the two enabled clusters have 268 and 300. Four larger cluster meshes remain disabled at 339–791 faces rather than shipping fragmented simplifications. The stone and lumber piles each contain 130 complete faces; lumber reserve geometry grows in three visible steps. Source and texture hashes, transformation notes, rollout holds, and remaining work are retained in the art manifest and coverage ledger.
+
 | Asset | Original page | Uses | Source triangles → Canvas faces |
 | --- | --- | --- | --- |
 | Barrel | https://poly.pizza/m/zjCQP1TAci | Water/cargo props at farms, trade, Longhouse and upgraded workplaces | 1,312 → 173 |

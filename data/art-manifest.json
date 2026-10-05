@@ -1,6 +1,1657 @@
 {
  "version": 1,
- "note": "Converted CC0 mesh registry. All entries default disabled until their rollout phase passes its gate. Removal = set enabled:false or revert the phase commit; the game falls back to original procedural meshes. Source archives stay outside assets/.",
+ "buildings": {
+  "hall": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-hall-1",
+     "file": "assets/meshes/mmr-hall-1.json"
+    },
+    "2": {
+     "id": "mmr-hall-2",
+     "file": "assets/meshes/mmr-hall-2.json"
+    },
+    "3": {
+     "id": "mmr-hall-3",
+     "file": "assets/meshes/mmr-hall-3.json"
+    },
+    "4": {
+     "id": "mmr-hall-4",
+     "file": "assets/meshes/mmr-hall-4.json"
+    },
+    "5": {
+     "id": "mmr-hall-5",
+     "file": "assets/meshes/mmr-hall-5.json"
+    },
+    "6": {
+     "id": "mmr-hall-6",
+     "file": "assets/meshes/mmr-hall-6.json"
+    }
+   }
+  },
+  "farm": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-farm-1",
+     "file": "assets/meshes/mmr-farm-1.json"
+    },
+    "2": {
+     "id": "mmr-farm-2",
+     "file": "assets/meshes/mmr-farm-2.json"
+    },
+    "3": {
+     "id": "mmr-farm-3",
+     "file": "assets/meshes/mmr-farm-3.json"
+    },
+    "4": {
+     "id": "mmr-farm-4",
+     "file": "assets/meshes/mmr-farm-4.json"
+    },
+    "5": {
+     "id": "mmr-farm-5",
+     "file": "assets/meshes/mmr-farm-5.json"
+    },
+    "6": {
+     "id": "mmr-farm-6",
+     "file": "assets/meshes/mmr-farm-6.json"
+    }
+   }
+  },
+  "lumber": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-lumber-1",
+     "file": "assets/meshes/mmr-lumber-1.json"
+    },
+    "2": {
+     "id": "mmr-lumber-2",
+     "file": "assets/meshes/mmr-lumber-2.json"
+    },
+    "3": {
+     "id": "mmr-lumber-3",
+     "file": "assets/meshes/mmr-lumber-3.json"
+    },
+    "4": {
+     "id": "mmr-lumber-4",
+     "file": "assets/meshes/mmr-lumber-4.json"
+    },
+    "5": {
+     "id": "mmr-lumber-5",
+     "file": "assets/meshes/mmr-lumber-5.json"
+    },
+    "6": {
+     "id": "mmr-lumber-6",
+     "file": "assets/meshes/mmr-lumber-6.json"
+    }
+   }
+  },
+  "timber_yard": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-timber_yard-1",
+     "file": "assets/meshes/mmr-timber_yard-1.json"
+    },
+    "2": {
+     "id": "mmr-timber_yard-2",
+     "file": "assets/meshes/mmr-timber_yard-2.json"
+    },
+    "3": {
+     "id": "mmr-timber_yard-3",
+     "file": "assets/meshes/mmr-timber_yard-3.json"
+    },
+    "4": {
+     "id": "mmr-timber_yard-4",
+     "file": "assets/meshes/mmr-timber_yard-4.json"
+    },
+    "5": {
+     "id": "mmr-timber_yard-5",
+     "file": "assets/meshes/mmr-timber_yard-5.json"
+    },
+    "6": {
+     "id": "mmr-timber_yard-6",
+     "file": "assets/meshes/mmr-timber_yard-6.json"
+    }
+   }
+  },
+  "mine": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-mine-1",
+     "file": "assets/meshes/mmr-mine-1.json"
+    },
+    "2": {
+     "id": "mmr-mine-2",
+     "file": "assets/meshes/mmr-mine-2.json"
+    },
+    "3": {
+     "id": "mmr-mine-3",
+     "file": "assets/meshes/mmr-mine-3.json"
+    },
+    "4": {
+     "id": "mmr-mine-4",
+     "file": "assets/meshes/mmr-mine-4.json"
+    },
+    "5": {
+     "id": "mmr-mine-5",
+     "file": "assets/meshes/mmr-mine-5.json"
+    },
+    "6": {
+     "id": "mmr-mine-6",
+     "file": "assets/meshes/mmr-mine-6.json"
+    }
+   }
+  },
+  "barracks": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-barracks-1",
+     "file": "assets/meshes/mmr-barracks-1.json"
+    },
+    "2": {
+     "id": "mmr-barracks-2",
+     "file": "assets/meshes/mmr-barracks-2.json"
+    },
+    "3": {
+     "id": "mmr-barracks-3",
+     "file": "assets/meshes/mmr-barracks-3.json"
+    },
+    "4": {
+     "id": "mmr-barracks-4",
+     "file": "assets/meshes/mmr-barracks-4.json"
+    },
+    "5": {
+     "id": "mmr-barracks-5",
+     "file": "assets/meshes/mmr-barracks-5.json"
+    },
+    "6": {
+     "id": "mmr-barracks-6",
+     "file": "assets/meshes/mmr-barracks-6.json"
+    }
+   }
+  },
+  "wall": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-wall-1",
+     "file": "assets/meshes/mmr-wall-1.json"
+    },
+    "2": {
+     "id": "mmr-wall-2",
+     "file": "assets/meshes/mmr-wall-2.json"
+    },
+    "3": {
+     "id": "mmr-wall-3",
+     "file": "assets/meshes/mmr-wall-3.json"
+    },
+    "4": {
+     "id": "mmr-wall-4",
+     "file": "assets/meshes/mmr-wall-4.json"
+    },
+    "5": {
+     "id": "mmr-wall-5",
+     "file": "assets/meshes/mmr-wall-5.json"
+    },
+    "6": {
+     "id": "mmr-wall-6",
+     "file": "assets/meshes/mmr-wall-6.json"
+    }
+   }
+  },
+  "stonewall": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-stonewall-1",
+     "file": "assets/meshes/mmr-stonewall-1.json"
+    },
+    "2": {
+     "id": "mmr-stonewall-2",
+     "file": "assets/meshes/mmr-stonewall-2.json"
+    },
+    "3": {
+     "id": "mmr-stonewall-3",
+     "file": "assets/meshes/mmr-stonewall-3.json"
+    },
+    "4": {
+     "id": "mmr-stonewall-4",
+     "file": "assets/meshes/mmr-stonewall-4.json"
+    },
+    "5": {
+     "id": "mmr-stonewall-5",
+     "file": "assets/meshes/mmr-stonewall-5.json"
+    },
+    "6": {
+     "id": "mmr-stonewall-6",
+     "file": "assets/meshes/mmr-stonewall-6.json"
+    }
+   }
+  },
+  "gate": {
+   "enabled": false,
+   "tiers": {
+    "1": {
+     "id": "mmr-gate-1",
+     "file": "assets/meshes/mmr-gate-1.json"
+    },
+    "2": {
+     "id": "mmr-gate-2",
+     "file": "assets/meshes/mmr-gate-2.json"
+    },
+    "3": {
+     "id": "mmr-gate-3",
+     "file": "assets/meshes/mmr-gate-3.json"
+    },
+    "4": {
+     "id": "mmr-gate-4",
+     "file": "assets/meshes/mmr-gate-4.json"
+    },
+    "5": {
+     "id": "mmr-gate-5",
+     "file": "assets/meshes/mmr-gate-5.json"
+    },
+    "6": {
+     "id": "mmr-gate-6",
+     "file": "assets/meshes/mmr-gate-6.json"
+    }
+   },
+   "holdReason": "Native orientation/defense state retained until source parts and pivots are mapped"
+  },
+  "rampart": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-rampart-1",
+     "file": "assets/meshes/mmr-rampart-1.json"
+    },
+    "2": {
+     "id": "mmr-rampart-2",
+     "file": "assets/meshes/mmr-rampart-2.json"
+    },
+    "3": {
+     "id": "mmr-rampart-3",
+     "file": "assets/meshes/mmr-rampart-3.json"
+    },
+    "4": {
+     "id": "mmr-rampart-4",
+     "file": "assets/meshes/mmr-rampart-4.json"
+    },
+    "5": {
+     "id": "mmr-rampart-5",
+     "file": "assets/meshes/mmr-rampart-5.json"
+    },
+    "6": {
+     "id": "mmr-rampart-6",
+     "file": "assets/meshes/mmr-rampart-6.json"
+    }
+   }
+  },
+  "tower": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-tower-1",
+     "file": "assets/meshes/mmr-tower-1.json"
+    },
+    "2": {
+     "id": "mmr-tower-2",
+     "file": "assets/meshes/mmr-tower-2.json"
+    },
+    "3": {
+     "id": "mmr-tower-3",
+     "file": "assets/meshes/mmr-tower-3.json"
+    },
+    "4": {
+     "id": "mmr-tower-4",
+     "file": "assets/meshes/mmr-tower-4.json"
+    },
+    "5": {
+     "id": "mmr-tower-5",
+     "file": "assets/meshes/mmr-tower-5.json"
+    },
+    "6": {
+     "id": "mmr-tower-6",
+     "file": "assets/meshes/mmr-tower-6.json"
+    }
+   }
+  },
+  "archer_tower": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-archer_tower-1",
+     "file": "assets/meshes/mmr-archer_tower-1.json"
+    },
+    "2": {
+     "id": "mmr-archer_tower-2",
+     "file": "assets/meshes/mmr-archer_tower-2.json"
+    },
+    "3": {
+     "id": "mmr-archer_tower-3",
+     "file": "assets/meshes/mmr-archer_tower-3.json"
+    },
+    "4": {
+     "id": "mmr-archer_tower-4",
+     "file": "assets/meshes/mmr-archer_tower-4.json"
+    },
+    "5": {
+     "id": "mmr-archer_tower-5",
+     "file": "assets/meshes/mmr-archer_tower-5.json"
+    },
+    "6": {
+     "id": "mmr-archer_tower-6",
+     "file": "assets/meshes/mmr-archer_tower-6.json"
+    }
+   }
+  },
+  "ballista": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-ballista-1",
+     "file": "assets/meshes/mmr-ballista-1.json"
+    },
+    "2": {
+     "id": "mmr-ballista-2",
+     "file": "assets/meshes/mmr-ballista-2.json"
+    },
+    "3": {
+     "id": "mmr-ballista-3",
+     "file": "assets/meshes/mmr-ballista-3.json"
+    },
+    "4": {
+     "id": "mmr-ballista-4",
+     "file": "assets/meshes/mmr-ballista-4.json"
+    },
+    "5": {
+     "id": "mmr-ballista-5",
+     "file": "assets/meshes/mmr-ballista-5.json"
+    },
+    "6": {
+     "id": "mmr-ballista-6",
+     "file": "assets/meshes/mmr-ballista-6.json"
+    }
+   }
+  },
+  "bastion": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-bastion-1",
+     "file": "assets/meshes/mmr-bastion-1.json"
+    },
+    "2": {
+     "id": "mmr-bastion-2",
+     "file": "assets/meshes/mmr-bastion-2.json"
+    },
+    "3": {
+     "id": "mmr-bastion-3",
+     "file": "assets/meshes/mmr-bastion-3.json"
+    },
+    "4": {
+     "id": "mmr-bastion-4",
+     "file": "assets/meshes/mmr-bastion-4.json"
+    },
+    "5": {
+     "id": "mmr-bastion-5",
+     "file": "assets/meshes/mmr-bastion-5.json"
+    },
+    "6": {
+     "id": "mmr-bastion-6",
+     "file": "assets/meshes/mmr-bastion-6.json"
+    }
+   }
+  },
+  "trap": {
+   "enabled": false,
+   "tiers": {
+    "1": {
+     "id": "mmr-trap-1",
+     "file": "assets/meshes/mmr-trap-1.json"
+    },
+    "2": {
+     "id": "mmr-trap-2",
+     "file": "assets/meshes/mmr-trap-2.json"
+    },
+    "3": {
+     "id": "mmr-trap-3",
+     "file": "assets/meshes/mmr-trap-3.json"
+    }
+   },
+   "holdReason": "Native orientation/defense state retained until source parts and pivots are mapped"
+  },
+  "cottage": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-cottage-1",
+     "file": "assets/meshes/mmr-cottage-1.json"
+    },
+    "2": {
+     "id": "mmr-cottage-2",
+     "file": "assets/meshes/mmr-cottage-2.json"
+    },
+    "3": {
+     "id": "mmr-cottage-3",
+     "file": "assets/meshes/mmr-cottage-3.json"
+    },
+    "4": {
+     "id": "mmr-cottage-4",
+     "file": "assets/meshes/mmr-cottage-4.json"
+    },
+    "5": {
+     "id": "mmr-cottage-5",
+     "file": "assets/meshes/mmr-cottage-5.json"
+    },
+    "6": {
+     "id": "mmr-cottage-6",
+     "file": "assets/meshes/mmr-cottage-6.json"
+    }
+   }
+  },
+  "longhouse": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-longhouse-1",
+     "file": "assets/meshes/mmr-longhouse-1.json"
+    },
+    "2": {
+     "id": "mmr-longhouse-2",
+     "file": "assets/meshes/mmr-longhouse-2.json"
+    },
+    "3": {
+     "id": "mmr-longhouse-3",
+     "file": "assets/meshes/mmr-longhouse-3.json"
+    },
+    "4": {
+     "id": "mmr-longhouse-4",
+     "file": "assets/meshes/mmr-longhouse-4.json"
+    },
+    "5": {
+     "id": "mmr-longhouse-5",
+     "file": "assets/meshes/mmr-longhouse-5.json"
+    },
+    "6": {
+     "id": "mmr-longhouse-6",
+     "file": "assets/meshes/mmr-longhouse-6.json"
+    }
+   }
+  },
+  "pond": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-pond-1",
+     "file": "assets/meshes/mmr-pond-1.json"
+    },
+    "2": {
+     "id": "mmr-pond-2",
+     "file": "assets/meshes/mmr-pond-2.json"
+    },
+    "3": {
+     "id": "mmr-pond-3",
+     "file": "assets/meshes/mmr-pond-3.json"
+    },
+    "4": {
+     "id": "mmr-pond-4",
+     "file": "assets/meshes/mmr-pond-4.json"
+    },
+    "5": {
+     "id": "mmr-pond-5",
+     "file": "assets/meshes/mmr-pond-5.json"
+    },
+    "6": {
+     "id": "mmr-pond-6",
+     "file": "assets/meshes/mmr-pond-6.json"
+    }
+   }
+  },
+  "pasture": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-pasture-1",
+     "file": "assets/meshes/mmr-pasture-1.json"
+    },
+    "2": {
+     "id": "mmr-pasture-2",
+     "file": "assets/meshes/mmr-pasture-2.json"
+    },
+    "3": {
+     "id": "mmr-pasture-3",
+     "file": "assets/meshes/mmr-pasture-3.json"
+    },
+    "4": {
+     "id": "mmr-pasture-4",
+     "file": "assets/meshes/mmr-pasture-4.json"
+    },
+    "5": {
+     "id": "mmr-pasture-5",
+     "file": "assets/meshes/mmr-pasture-5.json"
+    },
+    "6": {
+     "id": "mmr-pasture-6",
+     "file": "assets/meshes/mmr-pasture-6.json"
+    }
+   }
+  },
+  "butchery": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-butchery-1",
+     "file": "assets/meshes/mmr-butchery-1.json"
+    },
+    "2": {
+     "id": "mmr-butchery-2",
+     "file": "assets/meshes/mmr-butchery-2.json"
+    },
+    "3": {
+     "id": "mmr-butchery-3",
+     "file": "assets/meshes/mmr-butchery-3.json"
+    },
+    "4": {
+     "id": "mmr-butchery-4",
+     "file": "assets/meshes/mmr-butchery-4.json"
+    },
+    "5": {
+     "id": "mmr-butchery-5",
+     "file": "assets/meshes/mmr-butchery-5.json"
+    },
+    "6": {
+     "id": "mmr-butchery-6",
+     "file": "assets/meshes/mmr-butchery-6.json"
+    }
+   }
+  },
+  "scriptorium": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-scriptorium-1",
+     "file": "assets/meshes/mmr-scriptorium-1.json"
+    },
+    "2": {
+     "id": "mmr-scriptorium-2",
+     "file": "assets/meshes/mmr-scriptorium-2.json"
+    },
+    "3": {
+     "id": "mmr-scriptorium-3",
+     "file": "assets/meshes/mmr-scriptorium-3.json"
+    },
+    "4": {
+     "id": "mmr-scriptorium-4",
+     "file": "assets/meshes/mmr-scriptorium-4.json"
+    },
+    "5": {
+     "id": "mmr-scriptorium-5",
+     "file": "assets/meshes/mmr-scriptorium-5.json"
+    },
+    "6": {
+     "id": "mmr-scriptorium-6",
+     "file": "assets/meshes/mmr-scriptorium-6.json"
+    }
+   }
+  },
+  "scout_post": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-scout_post-1",
+     "file": "assets/meshes/mmr-scout_post-1.json"
+    },
+    "2": {
+     "id": "mmr-scout_post-2",
+     "file": "assets/meshes/mmr-scout_post-2.json"
+    },
+    "3": {
+     "id": "mmr-scout_post-3",
+     "file": "assets/meshes/mmr-scout_post-3.json"
+    },
+    "4": {
+     "id": "mmr-scout_post-4",
+     "file": "assets/meshes/mmr-scout_post-4.json"
+    },
+    "5": {
+     "id": "mmr-scout_post-5",
+     "file": "assets/meshes/mmr-scout_post-5.json"
+    },
+    "6": {
+     "id": "mmr-scout_post-6",
+     "file": "assets/meshes/mmr-scout_post-6.json"
+    }
+   }
+  },
+  "chapel": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-chapel-1",
+     "file": "assets/meshes/mmr-chapel-1.json"
+    },
+    "2": {
+     "id": "mmr-chapel-2",
+     "file": "assets/meshes/mmr-chapel-2.json"
+    },
+    "3": {
+     "id": "mmr-chapel-3",
+     "file": "assets/meshes/mmr-chapel-3.json"
+    },
+    "4": {
+     "id": "mmr-chapel-4",
+     "file": "assets/meshes/mmr-chapel-4.json"
+    },
+    "5": {
+     "id": "mmr-chapel-5",
+     "file": "assets/meshes/mmr-chapel-5.json"
+    },
+    "6": {
+     "id": "mmr-chapel-6",
+     "file": "assets/meshes/mmr-chapel-6.json"
+    }
+   }
+  },
+  "forge": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-forge-1",
+     "file": "assets/meshes/mmr-forge-1.json"
+    },
+    "2": {
+     "id": "mmr-forge-2",
+     "file": "assets/meshes/mmr-forge-2.json"
+    },
+    "3": {
+     "id": "mmr-forge-3",
+     "file": "assets/meshes/mmr-forge-3.json"
+    },
+    "4": {
+     "id": "mmr-forge-4",
+     "file": "assets/meshes/mmr-forge-4.json"
+    },
+    "5": {
+     "id": "mmr-forge-5",
+     "file": "assets/meshes/mmr-forge-5.json"
+    },
+    "6": {
+     "id": "mmr-forge-6",
+     "file": "assets/meshes/mmr-forge-6.json"
+    }
+   }
+  },
+  "armory": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-armory-1",
+     "file": "assets/meshes/mmr-armory-1.json"
+    },
+    "2": {
+     "id": "mmr-armory-2",
+     "file": "assets/meshes/mmr-armory-2.json"
+    },
+    "3": {
+     "id": "mmr-armory-3",
+     "file": "assets/meshes/mmr-armory-3.json"
+    },
+    "4": {
+     "id": "mmr-armory-4",
+     "file": "assets/meshes/mmr-armory-4.json"
+    },
+    "5": {
+     "id": "mmr-armory-5",
+     "file": "assets/meshes/mmr-armory-5.json"
+    },
+    "6": {
+     "id": "mmr-armory-6",
+     "file": "assets/meshes/mmr-armory-6.json"
+    }
+   }
+  },
+  "workshop": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-workshop-1",
+     "file": "assets/meshes/mmr-workshop-1.json"
+    },
+    "2": {
+     "id": "mmr-workshop-2",
+     "file": "assets/meshes/mmr-workshop-2.json"
+    },
+    "3": {
+     "id": "mmr-workshop-3",
+     "file": "assets/meshes/mmr-workshop-3.json"
+    },
+    "4": {
+     "id": "mmr-workshop-4",
+     "file": "assets/meshes/mmr-workshop-4.json"
+    },
+    "5": {
+     "id": "mmr-workshop-5",
+     "file": "assets/meshes/mmr-workshop-5.json"
+    },
+    "6": {
+     "id": "mmr-workshop-6",
+     "file": "assets/meshes/mmr-workshop-6.json"
+    }
+   }
+  },
+  "tannery": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-tannery-1",
+     "file": "assets/meshes/mmr-tannery-1.json"
+    },
+    "2": {
+     "id": "mmr-tannery-2",
+     "file": "assets/meshes/mmr-tannery-2.json"
+    },
+    "3": {
+     "id": "mmr-tannery-3",
+     "file": "assets/meshes/mmr-tannery-3.json"
+    },
+    "4": {
+     "id": "mmr-tannery-4",
+     "file": "assets/meshes/mmr-tannery-4.json"
+    },
+    "5": {
+     "id": "mmr-tannery-5",
+     "file": "assets/meshes/mmr-tannery-5.json"
+    },
+    "6": {
+     "id": "mmr-tannery-6",
+     "file": "assets/meshes/mmr-tannery-6.json"
+    }
+   }
+  },
+  "grove": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-grove-1",
+     "file": "assets/meshes/mmr-grove-1.json"
+    },
+    "2": {
+     "id": "mmr-grove-2",
+     "file": "assets/meshes/mmr-grove-2.json"
+    },
+    "3": {
+     "id": "mmr-grove-3",
+     "file": "assets/meshes/mmr-grove-3.json"
+    },
+    "4": {
+     "id": "mmr-grove-4",
+     "file": "assets/meshes/mmr-grove-4.json"
+    },
+    "5": {
+     "id": "mmr-grove-5",
+     "file": "assets/meshes/mmr-grove-5.json"
+    },
+    "6": {
+     "id": "mmr-grove-6",
+     "file": "assets/meshes/mmr-grove-6.json"
+    }
+   }
+  },
+  "whisper-grove": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-whisper-grove-1",
+     "file": "assets/meshes/mmr-whisper-grove-1.json"
+    },
+    "2": {
+     "id": "mmr-whisper-grove-2",
+     "file": "assets/meshes/mmr-whisper-grove-2.json"
+    },
+    "3": {
+     "id": "mmr-whisper-grove-3",
+     "file": "assets/meshes/mmr-whisper-grove-3.json"
+    },
+    "4": {
+     "id": "mmr-whisper-grove-4",
+     "file": "assets/meshes/mmr-whisper-grove-4.json"
+    },
+    "5": {
+     "id": "mmr-whisper-grove-5",
+     "file": "assets/meshes/mmr-whisper-grove-5.json"
+    },
+    "6": {
+     "id": "mmr-whisper-grove-6",
+     "file": "assets/meshes/mmr-whisper-grove-6.json"
+    }
+   }
+  },
+  "watchfire": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-watchfire-1",
+     "file": "assets/meshes/mmr-watchfire-1.json"
+    },
+    "2": {
+     "id": "mmr-watchfire-2",
+     "file": "assets/meshes/mmr-watchfire-2.json"
+    },
+    "3": {
+     "id": "mmr-watchfire-3",
+     "file": "assets/meshes/mmr-watchfire-3.json"
+    },
+    "4": {
+     "id": "mmr-watchfire-4",
+     "file": "assets/meshes/mmr-watchfire-4.json"
+    },
+    "5": {
+     "id": "mmr-watchfire-5",
+     "file": "assets/meshes/mmr-watchfire-5.json"
+    },
+    "6": {
+     "id": "mmr-watchfire-6",
+     "file": "assets/meshes/mmr-watchfire-6.json"
+    }
+   }
+  },
+  "mason_yard": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-mason_yard-1",
+     "file": "assets/meshes/mmr-mason_yard-1.json"
+    },
+    "2": {
+     "id": "mmr-mason_yard-2",
+     "file": "assets/meshes/mmr-mason_yard-2.json"
+    },
+    "3": {
+     "id": "mmr-mason_yard-3",
+     "file": "assets/meshes/mmr-mason_yard-3.json"
+    },
+    "4": {
+     "id": "mmr-mason_yard-4",
+     "file": "assets/meshes/mmr-mason_yard-4.json"
+    },
+    "5": {
+     "id": "mmr-mason_yard-5",
+     "file": "assets/meshes/mmr-mason_yard-5.json"
+    },
+    "6": {
+     "id": "mmr-mason_yard-6",
+     "file": "assets/meshes/mmr-mason_yard-6.json"
+    }
+   }
+  },
+  "frostgrove": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-frostgrove-1",
+     "file": "assets/meshes/mmr-frostgrove-1.json"
+    },
+    "2": {
+     "id": "mmr-frostgrove-2",
+     "file": "assets/meshes/mmr-frostgrove-2.json"
+    },
+    "3": {
+     "id": "mmr-frostgrove-3",
+     "file": "assets/meshes/mmr-frostgrove-3.json"
+    },
+    "4": {
+     "id": "mmr-frostgrove-4",
+     "file": "assets/meshes/mmr-frostgrove-4.json"
+    },
+    "5": {
+     "id": "mmr-frostgrove-5",
+     "file": "assets/meshes/mmr-frostgrove-5.json"
+    },
+    "6": {
+     "id": "mmr-frostgrove-6",
+     "file": "assets/meshes/mmr-frostgrove-6.json"
+    }
+   }
+  },
+  "smeltery": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-smeltery-1",
+     "file": "assets/meshes/mmr-smeltery-1.json"
+    },
+    "2": {
+     "id": "mmr-smeltery-2",
+     "file": "assets/meshes/mmr-smeltery-2.json"
+    },
+    "3": {
+     "id": "mmr-smeltery-3",
+     "file": "assets/meshes/mmr-smeltery-3.json"
+    },
+    "4": {
+     "id": "mmr-smeltery-4",
+     "file": "assets/meshes/mmr-smeltery-4.json"
+    },
+    "5": {
+     "id": "mmr-smeltery-5",
+     "file": "assets/meshes/mmr-smeltery-5.json"
+    },
+    "6": {
+     "id": "mmr-smeltery-6",
+     "file": "assets/meshes/mmr-smeltery-6.json"
+    }
+   }
+  },
+  "deephole": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-deephole-1",
+     "file": "assets/meshes/mmr-deephole-1.json"
+    },
+    "2": {
+     "id": "mmr-deephole-2",
+     "file": "assets/meshes/mmr-deephole-2.json"
+    },
+    "3": {
+     "id": "mmr-deephole-3",
+     "file": "assets/meshes/mmr-deephole-3.json"
+    },
+    "4": {
+     "id": "mmr-deephole-4",
+     "file": "assets/meshes/mmr-deephole-4.json"
+    },
+    "5": {
+     "id": "mmr-deephole-5",
+     "file": "assets/meshes/mmr-deephole-5.json"
+    },
+    "6": {
+     "id": "mmr-deephole-6",
+     "file": "assets/meshes/mmr-deephole-6.json"
+    }
+   }
+  },
+  "blackwater-weir": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-blackwater-weir-1",
+     "file": "assets/meshes/mmr-blackwater-weir-1.json"
+    },
+    "2": {
+     "id": "mmr-blackwater-weir-2",
+     "file": "assets/meshes/mmr-blackwater-weir-2.json"
+    },
+    "3": {
+     "id": "mmr-blackwater-weir-3",
+     "file": "assets/meshes/mmr-blackwater-weir-3.json"
+    },
+    "4": {
+     "id": "mmr-blackwater-weir-4",
+     "file": "assets/meshes/mmr-blackwater-weir-4.json"
+    },
+    "5": {
+     "id": "mmr-blackwater-weir-5",
+     "file": "assets/meshes/mmr-blackwater-weir-5.json"
+    },
+    "6": {
+     "id": "mmr-blackwater-weir-6",
+     "file": "assets/meshes/mmr-blackwater-weir-6.json"
+    }
+   }
+  },
+  "emberglass": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-emberglass-1",
+     "file": "assets/meshes/mmr-emberglass-1.json"
+    },
+    "2": {
+     "id": "mmr-emberglass-2",
+     "file": "assets/meshes/mmr-emberglass-2.json"
+    },
+    "3": {
+     "id": "mmr-emberglass-3",
+     "file": "assets/meshes/mmr-emberglass-3.json"
+    },
+    "4": {
+     "id": "mmr-emberglass-4",
+     "file": "assets/meshes/mmr-emberglass-4.json"
+    },
+    "5": {
+     "id": "mmr-emberglass-5",
+     "file": "assets/meshes/mmr-emberglass-5.json"
+    },
+    "6": {
+     "id": "mmr-emberglass-6",
+     "file": "assets/meshes/mmr-emberglass-6.json"
+    }
+   }
+  },
+  "market": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-market-1",
+     "file": "assets/meshes/mmr-market-1.json"
+    },
+    "2": {
+     "id": "mmr-market-2",
+     "file": "assets/meshes/mmr-market-2.json"
+    },
+    "3": {
+     "id": "mmr-market-3",
+     "file": "assets/meshes/mmr-market-3.json"
+    },
+    "4": {
+     "id": "mmr-market-4",
+     "file": "assets/meshes/mmr-market-4.json"
+    },
+    "5": {
+     "id": "mmr-market-5",
+     "file": "assets/meshes/mmr-market-5.json"
+    },
+    "6": {
+     "id": "mmr-market-6",
+     "file": "assets/meshes/mmr-market-6.json"
+    }
+   }
+  },
+  "oathstone": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-oathstone-1",
+     "file": "assets/meshes/mmr-oathstone-1.json"
+    }
+   }
+  },
+  "fire-trap": {
+   "enabled": false,
+   "tiers": {
+    "1": {
+     "id": "mmr-fire-trap-1",
+     "file": "assets/meshes/mmr-fire-trap-1.json"
+    }
+   },
+   "holdReason": "Native orientation/defense state retained until source parts and pivots are mapped"
+  },
+  "bellcote": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-bellcote-1",
+     "file": "assets/meshes/mmr-bellcote-1.json"
+    }
+   }
+  },
+  "schoolroom": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-schoolroom-1",
+     "file": "assets/meshes/mmr-schoolroom-1.json"
+    },
+    "2": {
+     "id": "mmr-schoolroom-2",
+     "file": "assets/meshes/mmr-schoolroom-2.json"
+    },
+    "3": {
+     "id": "mmr-schoolroom-3",
+     "file": "assets/meshes/mmr-schoolroom-3.json"
+    },
+    "4": {
+     "id": "mmr-schoolroom-4",
+     "file": "assets/meshes/mmr-schoolroom-4.json"
+    },
+    "5": {
+     "id": "mmr-schoolroom-5",
+     "file": "assets/meshes/mmr-schoolroom-5.json"
+    },
+    "6": {
+     "id": "mmr-schoolroom-6",
+     "file": "assets/meshes/mmr-schoolroom-6.json"
+    }
+   }
+  },
+  "fletcher": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-fletcher-1",
+     "file": "assets/meshes/mmr-fletcher-1.json"
+    },
+    "2": {
+     "id": "mmr-fletcher-2",
+     "file": "assets/meshes/mmr-fletcher-2.json"
+    },
+    "3": {
+     "id": "mmr-fletcher-3",
+     "file": "assets/meshes/mmr-fletcher-3.json"
+    },
+    "4": {
+     "id": "mmr-fletcher-4",
+     "file": "assets/meshes/mmr-fletcher-4.json"
+    },
+    "5": {
+     "id": "mmr-fletcher-5",
+     "file": "assets/meshes/mmr-fletcher-5.json"
+    },
+    "6": {
+     "id": "mmr-fletcher-6",
+     "file": "assets/meshes/mmr-fletcher-6.json"
+    }
+   }
+  },
+  "shieldwall-yard": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-shieldwall-yard-1",
+     "file": "assets/meshes/mmr-shieldwall-yard-1.json"
+    },
+    "2": {
+     "id": "mmr-shieldwall-yard-2",
+     "file": "assets/meshes/mmr-shieldwall-yard-2.json"
+    },
+    "3": {
+     "id": "mmr-shieldwall-yard-3",
+     "file": "assets/meshes/mmr-shieldwall-yard-3.json"
+    },
+    "4": {
+     "id": "mmr-shieldwall-yard-4",
+     "file": "assets/meshes/mmr-shieldwall-yard-4.json"
+    },
+    "5": {
+     "id": "mmr-shieldwall-yard-5",
+     "file": "assets/meshes/mmr-shieldwall-yard-5.json"
+    },
+    "6": {
+     "id": "mmr-shieldwall-yard-6",
+     "file": "assets/meshes/mmr-shieldwall-yard-6.json"
+    }
+   }
+  },
+  "moon-dial": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-moon-dial-1",
+     "file": "assets/meshes/mmr-moon-dial-1.json"
+    }
+   }
+  },
+  "bell-tower": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-bell-tower-1",
+     "file": "assets/meshes/mmr-bell-tower-1.json"
+    },
+    "2": {
+     "id": "mmr-bell-tower-2",
+     "file": "assets/meshes/mmr-bell-tower-2.json"
+    },
+    "3": {
+     "id": "mmr-bell-tower-3",
+     "file": "assets/meshes/mmr-bell-tower-3.json"
+    },
+    "4": {
+     "id": "mmr-bell-tower-4",
+     "file": "assets/meshes/mmr-bell-tower-4.json"
+    },
+    "5": {
+     "id": "mmr-bell-tower-5",
+     "file": "assets/meshes/mmr-bell-tower-5.json"
+    },
+    "6": {
+     "id": "mmr-bell-tower-6",
+     "file": "assets/meshes/mmr-bell-tower-6.json"
+    }
+   }
+  },
+  "sunken-chapel": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-sunken-chapel-1",
+     "file": "assets/meshes/mmr-sunken-chapel-1.json"
+    },
+    "2": {
+     "id": "mmr-sunken-chapel-2",
+     "file": "assets/meshes/mmr-sunken-chapel-2.json"
+    },
+    "3": {
+     "id": "mmr-sunken-chapel-3",
+     "file": "assets/meshes/mmr-sunken-chapel-3.json"
+    },
+    "4": {
+     "id": "mmr-sunken-chapel-4",
+     "file": "assets/meshes/mmr-sunken-chapel-4.json"
+    },
+    "5": {
+     "id": "mmr-sunken-chapel-5",
+     "file": "assets/meshes/mmr-sunken-chapel-5.json"
+    },
+    "6": {
+     "id": "mmr-sunken-chapel-6",
+     "file": "assets/meshes/mmr-sunken-chapel-6.json"
+    }
+   }
+  },
+  "cairnfield": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-cairnfield-1",
+     "file": "assets/meshes/mmr-cairnfield-1.json"
+    }
+   }
+  },
+  "dawn-gate": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-dawn-gate-1",
+     "file": "assets/meshes/mmr-dawn-gate-1.json"
+    }
+   }
+  },
+  "sawmill": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-sawmill-1",
+     "file": "assets/meshes/mmr-sawmill-1.json"
+    },
+    "2": {
+     "id": "mmr-sawmill-2",
+     "file": "assets/meshes/mmr-sawmill-2.json"
+    },
+    "3": {
+     "id": "mmr-sawmill-3",
+     "file": "assets/meshes/mmr-sawmill-3.json"
+    },
+    "4": {
+     "id": "mmr-sawmill-4",
+     "file": "assets/meshes/mmr-sawmill-4.json"
+    },
+    "5": {
+     "id": "mmr-sawmill-5",
+     "file": "assets/meshes/mmr-sawmill-5.json"
+    },
+    "6": {
+     "id": "mmr-sawmill-6",
+     "file": "assets/meshes/mmr-sawmill-6.json"
+    }
+   }
+  },
+  "storehouse": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-storehouse-1",
+     "file": "assets/meshes/mmr-storehouse-1.json"
+    },
+    "2": {
+     "id": "mmr-storehouse-2",
+     "file": "assets/meshes/mmr-storehouse-2.json"
+    },
+    "3": {
+     "id": "mmr-storehouse-3",
+     "file": "assets/meshes/mmr-storehouse-3.json"
+    },
+    "4": {
+     "id": "mmr-storehouse-4",
+     "file": "assets/meshes/mmr-storehouse-4.json"
+    },
+    "5": {
+     "id": "mmr-storehouse-5",
+     "file": "assets/meshes/mmr-storehouse-5.json"
+    },
+    "6": {
+     "id": "mmr-storehouse-6",
+     "file": "assets/meshes/mmr-storehouse-6.json"
+    }
+   }
+  },
+  "mill": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-mill-1",
+     "file": "assets/meshes/mmr-mill-1.json"
+    },
+    "2": {
+     "id": "mmr-mill-2",
+     "file": "assets/meshes/mmr-mill-2.json"
+    },
+    "3": {
+     "id": "mmr-mill-3",
+     "file": "assets/meshes/mmr-mill-3.json"
+    },
+    "4": {
+     "id": "mmr-mill-4",
+     "file": "assets/meshes/mmr-mill-4.json"
+    },
+    "5": {
+     "id": "mmr-mill-5",
+     "file": "assets/meshes/mmr-mill-5.json"
+    },
+    "6": {
+     "id": "mmr-mill-6",
+     "file": "assets/meshes/mmr-mill-6.json"
+    }
+   }
+  },
+  "bakery": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-bakery-1",
+     "file": "assets/meshes/mmr-bakery-1.json"
+    },
+    "2": {
+     "id": "mmr-bakery-2",
+     "file": "assets/meshes/mmr-bakery-2.json"
+    },
+    "3": {
+     "id": "mmr-bakery-3",
+     "file": "assets/meshes/mmr-bakery-3.json"
+    },
+    "4": {
+     "id": "mmr-bakery-4",
+     "file": "assets/meshes/mmr-bakery-4.json"
+    },
+    "5": {
+     "id": "mmr-bakery-5",
+     "file": "assets/meshes/mmr-bakery-5.json"
+    },
+    "6": {
+     "id": "mmr-bakery-6",
+     "file": "assets/meshes/mmr-bakery-6.json"
+    }
+   }
+  },
+  "market-square": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-market-square-1",
+     "file": "assets/meshes/mmr-market-square-1.json"
+    },
+    "2": {
+     "id": "mmr-market-square-2",
+     "file": "assets/meshes/mmr-market-square-2.json"
+    },
+    "3": {
+     "id": "mmr-market-square-3",
+     "file": "assets/meshes/mmr-market-square-3.json"
+    },
+    "4": {
+     "id": "mmr-market-square-4",
+     "file": "assets/meshes/mmr-market-square-4.json"
+    },
+    "5": {
+     "id": "mmr-market-square-5",
+     "file": "assets/meshes/mmr-market-square-5.json"
+    },
+    "6": {
+     "id": "mmr-market-square-6",
+     "file": "assets/meshes/mmr-market-square-6.json"
+    }
+   }
+  },
+  "grand-granary": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-grand-granary-1",
+     "file": "assets/meshes/mmr-grand-granary-1.json"
+    },
+    "2": {
+     "id": "mmr-grand-granary-2",
+     "file": "assets/meshes/mmr-grand-granary-2.json"
+    },
+    "3": {
+     "id": "mmr-grand-granary-3",
+     "file": "assets/meshes/mmr-grand-granary-3.json"
+    },
+    "4": {
+     "id": "mmr-grand-granary-4",
+     "file": "assets/meshes/mmr-grand-granary-4.json"
+    },
+    "5": {
+     "id": "mmr-grand-granary-5",
+     "file": "assets/meshes/mmr-grand-granary-5.json"
+    },
+    "6": {
+     "id": "mmr-grand-granary-6",
+     "file": "assets/meshes/mmr-grand-granary-6.json"
+    }
+   }
+  },
+  "manor-gardens": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-manor-gardens-1",
+     "file": "assets/meshes/mmr-manor-gardens-1.json"
+    },
+    "2": {
+     "id": "mmr-manor-gardens-2",
+     "file": "assets/meshes/mmr-manor-gardens-2.json"
+    },
+    "3": {
+     "id": "mmr-manor-gardens-3",
+     "file": "assets/meshes/mmr-manor-gardens-3.json"
+    },
+    "4": {
+     "id": "mmr-manor-gardens-4",
+     "file": "assets/meshes/mmr-manor-gardens-4.json"
+    },
+    "5": {
+     "id": "mmr-manor-gardens-5",
+     "file": "assets/meshes/mmr-manor-gardens-5.json"
+    },
+    "6": {
+     "id": "mmr-manor-gardens-6",
+     "file": "assets/meshes/mmr-manor-gardens-6.json"
+    }
+   }
+  },
+  "stone-road": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-stone-road-1",
+     "file": "assets/meshes/mmr-stone-road-1.json"
+    },
+    "2": {
+     "id": "mmr-stone-road-2",
+     "file": "assets/meshes/mmr-stone-road-2.json"
+    },
+    "3": {
+     "id": "mmr-stone-road-3",
+     "file": "assets/meshes/mmr-stone-road-3.json"
+    },
+    "4": {
+     "id": "mmr-stone-road-4",
+     "file": "assets/meshes/mmr-stone-road-4.json"
+    },
+    "5": {
+     "id": "mmr-stone-road-5",
+     "file": "assets/meshes/mmr-stone-road-5.json"
+    },
+    "6": {
+     "id": "mmr-stone-road-6",
+     "file": "assets/meshes/mmr-stone-road-6.json"
+    }
+   }
+  },
+  "city-wall": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-city-wall-1",
+     "file": "assets/meshes/mmr-city-wall-1.json"
+    },
+    "2": {
+     "id": "mmr-city-wall-2",
+     "file": "assets/meshes/mmr-city-wall-2.json"
+    },
+    "3": {
+     "id": "mmr-city-wall-3",
+     "file": "assets/meshes/mmr-city-wall-3.json"
+    },
+    "4": {
+     "id": "mmr-city-wall-4",
+     "file": "assets/meshes/mmr-city-wall-4.json"
+    },
+    "5": {
+     "id": "mmr-city-wall-5",
+     "file": "assets/meshes/mmr-city-wall-5.json"
+    },
+    "6": {
+     "id": "mmr-city-wall-6",
+     "file": "assets/meshes/mmr-city-wall-6.json"
+    }
+   }
+  },
+  "forge-quarter": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-forge-quarter-1",
+     "file": "assets/meshes/mmr-forge-quarter-1.json"
+    },
+    "2": {
+     "id": "mmr-forge-quarter-2",
+     "file": "assets/meshes/mmr-forge-quarter-2.json"
+    },
+    "3": {
+     "id": "mmr-forge-quarter-3",
+     "file": "assets/meshes/mmr-forge-quarter-3.json"
+    },
+    "4": {
+     "id": "mmr-forge-quarter-4",
+     "file": "assets/meshes/mmr-forge-quarter-4.json"
+    },
+    "5": {
+     "id": "mmr-forge-quarter-5",
+     "file": "assets/meshes/mmr-forge-quarter-5.json"
+    },
+    "6": {
+     "id": "mmr-forge-quarter-6",
+     "file": "assets/meshes/mmr-forge-quarter-6.json"
+    }
+   }
+  },
+  "lantern-rows": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-lantern-rows-1",
+     "file": "assets/meshes/mmr-lantern-rows-1.json"
+    },
+    "2": {
+     "id": "mmr-lantern-rows-2",
+     "file": "assets/meshes/mmr-lantern-rows-2.json"
+    },
+    "3": {
+     "id": "mmr-lantern-rows-3",
+     "file": "assets/meshes/mmr-lantern-rows-3.json"
+    },
+    "4": {
+     "id": "mmr-lantern-rows-4",
+     "file": "assets/meshes/mmr-lantern-rows-4.json"
+    },
+    "5": {
+     "id": "mmr-lantern-rows-5",
+     "file": "assets/meshes/mmr-lantern-rows-5.json"
+    },
+    "6": {
+     "id": "mmr-lantern-rows-6",
+     "file": "assets/meshes/mmr-lantern-rows-6.json"
+    }
+   }
+  },
+  "monument": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-monument-1",
+     "file": "assets/meshes/mmr-monument-1.json"
+    },
+    "2": {
+     "id": "mmr-monument-2",
+     "file": "assets/meshes/mmr-monument-2.json"
+    },
+    "3": {
+     "id": "mmr-monument-3",
+     "file": "assets/meshes/mmr-monument-3.json"
+    },
+    "4": {
+     "id": "mmr-monument-4",
+     "file": "assets/meshes/mmr-monument-4.json"
+    },
+    "5": {
+     "id": "mmr-monument-5",
+     "file": "assets/meshes/mmr-monument-5.json"
+    },
+    "6": {
+     "id": "mmr-monument-6",
+     "file": "assets/meshes/mmr-monument-6.json"
+    }
+   }
+  },
+  "manner-citadel": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-manner-citadel-1",
+     "file": "assets/meshes/mmr-manner-citadel-1.json"
+    },
+    "2": {
+     "id": "mmr-manner-citadel-2",
+     "file": "assets/meshes/mmr-manner-citadel-2.json"
+    },
+    "3": {
+     "id": "mmr-manner-citadel-3",
+     "file": "assets/meshes/mmr-manner-citadel-3.json"
+    },
+    "4": {
+     "id": "mmr-manner-citadel-4",
+     "file": "assets/meshes/mmr-manner-citadel-4.json"
+    }
+   }
+  },
+  "grand-watchtower": {
+   "enabled": true,
+   "tiers": {
+    "1": {
+     "id": "mmr-grand-watchtower-1",
+     "file": "assets/meshes/mmr-grand-watchtower-1.json"
+    },
+    "2": {
+     "id": "mmr-grand-watchtower-2",
+     "file": "assets/meshes/mmr-grand-watchtower-2.json"
+    },
+    "3": {
+     "id": "mmr-grand-watchtower-3",
+     "file": "assets/meshes/mmr-grand-watchtower-3.json"
+    }
+   }
+  }
+ },
+ "note": "Converted flat-face mesh registry. Per-entry phase and rights records govern rollout; disabled, missing, or invalid meshes retain procedural fallbacks. Unverified user-catalog derivatives are local-only. Source archives stay outside assets/.",
  "licenses": {
   "CC0": "https://creativecommons.org/publicdomain/zero/1.0/"
  },
@@ -26,6 +1677,226 @@
    "sourceObj": "Models/OBJ format/tree_simple.obj",
    "file": "assets/meshes/tree-simple.json",
    "use": "Forest scenery sample proving the conversion path"
+  },
+  "catalog-tree-single-a": {
+   "enabled": true,
+   "domain": "environment",
+   "phase": "R5-local",
+   "pack": "Game Assets.mixar / Midnights Manner - Reference Redesign",
+   "creator": "User-declared owner of the entire catalog",
+   "license": "User-owned; public redistribution authorized",
+   "releaseStatus": "approved-public",
+   "source": "User-provided Mixar catalog",
+   "sourceGlb": "mmr-single-tree-pilot.glb",
+   "sourceObject": "tree_single_A.008",
+   "sourceSHA256": "9de36983c230e97da993ac798f8593ee36390f88bd131fecfd675cfbde966488",
+   "textureSHA256": "5301a06866ba3be68dcc14cc429bd6d0f69004b72884283715d7e233f2e9782e",
+   "file": "assets/meshes/catalog/tree-single-a.json",
+   "use": "Deterministic close-view pine variant in forest scenery",
+   "modifications": [
+    "GLB node transform baked",
+    "Y-up to Z-up",
+    "ground-centered pivot and uniform target height",
+    "atlas sampled to existing flat palette",
+    "full source geometry retained; convex coplanar faces merged, no QEM or grid clustering"
+   ],
+   "rightsEvidence": "game-assets-mixar"
+  },
+  "catalog-tree-a-small": {
+   "enabled": true,
+   "domain": "environment",
+   "phase": "R5-local",
+   "pack": "Game Assets.mixar / Midnights Manner - Reference Redesign",
+   "creator": "User-declared owner of the entire catalog",
+   "license": "User-owned; public redistribution authorized",
+   "releaseStatus": "approved-public",
+   "source": "User-provided Mixar catalog",
+   "sourceGlb": "mmr-nature-tree-variants.glb",
+   "sourceObject": "trees_A_small.001",
+   "sourceSHA256": "e2fd31bcd1beb01b352f42adddd28fdb83da2d0e711e531ed5677ed272814648",
+   "textureSHA256": "5301a06866ba3be68dcc14cc429bd6d0f69004b72884283715d7e233f2e9782e",
+   "file": "assets/meshes/catalog/tree-a-small.json",
+   "use": "Deterministic forest shrub variant",
+   "modifications": [
+    "GLB node transform baked",
+    "Y-up to Z-up",
+    "ground-centered pivot and uniform target height",
+    "atlas sampled to existing flat palette",
+    "full source geometry retained; convex coplanar faces merged, no QEM or grid clustering"
+   ],
+   "rightsEvidence": "game-assets-mixar"
+  },
+  "catalog-tree-a-medium": {
+   "enabled": true,
+   "domain": "environment",
+   "phase": "R5-local",
+   "pack": "Game Assets.mixar / Midnights Manner - Reference Redesign",
+   "creator": "User-declared owner of the entire catalog",
+   "license": "User-owned; public redistribution authorized",
+   "releaseStatus": "approved-public",
+   "source": "User-provided Mixar catalog",
+   "sourceGlb": "mmr-nature-tree-variants.glb",
+   "sourceObject": "trees_A_medium.001",
+   "sourceSHA256": "e2fd31bcd1beb01b352f42adddd28fdb83da2d0e711e531ed5677ed272814648",
+   "textureSHA256": "5301a06866ba3be68dcc14cc429bd6d0f69004b72884283715d7e233f2e9782e",
+   "file": "assets/meshes/catalog/tree-a-medium.json",
+   "use": "Deterministic forest shrub variant",
+   "modifications": [
+    "GLB node transform baked",
+    "Y-up to Z-up",
+    "ground-centered pivot and uniform target height",
+    "atlas sampled to existing flat palette",
+    "full source geometry retained; convex coplanar faces merged, no QEM or grid clustering"
+   ],
+   "rightsEvidence": "game-assets-mixar"
+  },
+  "catalog-tree-a-large": {
+   "enabled": false,
+   "domain": "environment",
+   "phase": "R5-local",
+   "pack": "Game Assets.mixar / Midnights Manner - Reference Redesign",
+   "creator": "User-declared owner of the entire catalog",
+   "license": "User-owned; public redistribution authorized",
+   "releaseStatus": "approved-public",
+   "source": "User-provided Mixar catalog",
+   "sourceGlb": "mmr-nature-tree-variants.glb",
+   "sourceObject": "trees_A_large.001",
+   "sourceSHA256": "e2fd31bcd1beb01b352f42adddd28fdb83da2d0e711e531ed5677ed272814648",
+   "textureSHA256": "5301a06866ba3be68dcc14cc429bd6d0f69004b72884283715d7e233f2e9782e",
+   "file": "assets/meshes/catalog/tree-a-large.json",
+   "use": "Deterministic forest shrub variant",
+   "modifications": [
+    "GLB node transform baked",
+    "Y-up to Z-up",
+    "ground-centered pivot and uniform target height",
+    "atlas sampled to existing flat palette",
+    "full source geometry retained; convex coplanar faces merged, no QEM or grid clustering"
+   ],
+   "holdReason": "Complete source silhouette exceeds the existing per-model nature budget; procedural fallback retained",
+   "rightsEvidence": "game-assets-mixar"
+  },
+  "catalog-tree-b-small": {
+   "enabled": false,
+   "domain": "environment",
+   "phase": "R5-local",
+   "pack": "Game Assets.mixar / Midnights Manner - Reference Redesign",
+   "creator": "User-declared owner of the entire catalog",
+   "license": "User-owned; public redistribution authorized",
+   "releaseStatus": "approved-public",
+   "source": "User-provided Mixar catalog",
+   "sourceGlb": "mmr-nature-tree-variants.glb",
+   "sourceObject": "trees_B_small.001",
+   "sourceSHA256": "e2fd31bcd1beb01b352f42adddd28fdb83da2d0e711e531ed5677ed272814648",
+   "textureSHA256": "5301a06866ba3be68dcc14cc429bd6d0f69004b72884283715d7e233f2e9782e",
+   "file": "assets/meshes/catalog/tree-b-small.json",
+   "use": "Deterministic forest shrub variant",
+   "modifications": [
+    "GLB node transform baked",
+    "Y-up to Z-up",
+    "ground-centered pivot and uniform target height",
+    "atlas sampled to existing flat palette",
+    "full source geometry retained; convex coplanar faces merged, no QEM or grid clustering"
+   ],
+   "holdReason": "Complete source silhouette exceeds the existing per-model nature budget; procedural fallback retained",
+   "rightsEvidence": "game-assets-mixar"
+  },
+  "catalog-tree-b-medium": {
+   "enabled": false,
+   "domain": "environment",
+   "phase": "R5-local",
+   "pack": "Game Assets.mixar / Midnights Manner - Reference Redesign",
+   "creator": "User-declared owner of the entire catalog",
+   "license": "User-owned; public redistribution authorized",
+   "releaseStatus": "approved-public",
+   "source": "User-provided Mixar catalog",
+   "sourceGlb": "mmr-nature-tree-variants.glb",
+   "sourceObject": "trees_B_medium.001",
+   "sourceSHA256": "e2fd31bcd1beb01b352f42adddd28fdb83da2d0e711e531ed5677ed272814648",
+   "textureSHA256": "5301a06866ba3be68dcc14cc429bd6d0f69004b72884283715d7e233f2e9782e",
+   "file": "assets/meshes/catalog/tree-b-medium.json",
+   "use": "Deterministic forest shrub variant",
+   "modifications": [
+    "GLB node transform baked",
+    "Y-up to Z-up",
+    "ground-centered pivot and uniform target height",
+    "atlas sampled to existing flat palette",
+    "full source geometry retained; convex coplanar faces merged, no QEM or grid clustering"
+   ],
+   "holdReason": "Complete source silhouette exceeds the existing per-model nature budget; procedural fallback retained",
+   "rightsEvidence": "game-assets-mixar"
+  },
+  "catalog-tree-b-large": {
+   "enabled": false,
+   "domain": "environment",
+   "phase": "R5-local",
+   "pack": "Game Assets.mixar / Midnights Manner - Reference Redesign",
+   "creator": "User-declared owner of the entire catalog",
+   "license": "User-owned; public redistribution authorized",
+   "releaseStatus": "approved-public",
+   "source": "User-provided Mixar catalog",
+   "sourceGlb": "mmr-nature-tree-variants.glb",
+   "sourceObject": "trees_B_large.001",
+   "sourceSHA256": "e2fd31bcd1beb01b352f42adddd28fdb83da2d0e711e531ed5677ed272814648",
+   "textureSHA256": "5301a06866ba3be68dcc14cc429bd6d0f69004b72884283715d7e233f2e9782e",
+   "file": "assets/meshes/catalog/tree-b-large.json",
+   "use": "Deterministic forest shrub variant",
+   "modifications": [
+    "GLB node transform baked",
+    "Y-up to Z-up",
+    "ground-centered pivot and uniform target height",
+    "atlas sampled to existing flat palette",
+    "full source geometry retained; convex coplanar faces merged, no QEM or grid clustering"
+   ],
+   "holdReason": "Complete source silhouette exceeds the existing per-model nature budget; procedural fallback retained",
+   "rightsEvidence": "game-assets-mixar"
+  },
+  "catalog-resource-lumber": {
+   "enabled": true,
+   "domain": "production",
+   "phase": "R5-local",
+   "pack": "Game Assets.mixar / Midnights Manner - Reference Redesign",
+   "creator": "User-declared owner of the entire catalog",
+   "license": "User-owned; public redistribution authorized",
+   "releaseStatus": "approved-public",
+   "source": "User-provided Mixar catalog",
+   "sourceGlb": "mmr-resource-prop-pilot.glb",
+   "sourceObject": "resource_lumber.009",
+   "sourceSHA256": "17c2fa166ae5d5475414057bc606c547442e49f2f3102666df0b91456646704e",
+   "textureSHA256": "5301a06866ba3be68dcc14cc429bd6d0f69004b72884283715d7e233f2e9782e",
+   "file": "assets/meshes/catalog/resource-lumber.json",
+   "use": "Sawmill on-site lumber reserve stage piles",
+   "modifications": [
+    "GLB node transform baked",
+    "Y-up to Z-up",
+    "ground-centered pivot and uniform target height",
+    "atlas sampled to existing flat palette",
+    "full source geometry retained; convex coplanar faces merged, no QEM or grid clustering"
+   ],
+   "rightsEvidence": "game-assets-mixar"
+  },
+  "catalog-resource-stone": {
+   "enabled": true,
+   "domain": "environment",
+   "phase": "R5-local",
+   "pack": "Game Assets.mixar / Midnights Manner - Reference Redesign",
+   "creator": "User-declared owner of the entire catalog",
+   "license": "User-owned; public redistribution authorized",
+   "releaseStatus": "approved-public",
+   "source": "User-provided Mixar catalog",
+   "sourceGlb": "mmr-resource-prop-pilot.glb",
+   "sourceObject": "resource_stone.005",
+   "sourceSHA256": "17c2fa166ae5d5475414057bc606c547442e49f2f3102666df0b91456646704e",
+   "textureSHA256": "5301a06866ba3be68dcc14cc429bd6d0f69004b72884283715d7e233f2e9782e",
+   "file": "assets/meshes/catalog/resource-stone.json",
+   "use": "Deterministic shore/path stone pile variant",
+   "modifications": [
+    "GLB node transform baked",
+    "Y-up to Z-up",
+    "ground-centered pivot and uniform target height",
+    "atlas sampled to existing flat palette",
+    "full source geometry retained; convex coplanar faces merged, no QEM or grid clustering"
+   ],
+   "rightsEvidence": "game-assets-mixar"
   },
   "lily-small": {
    "enabled": true,
@@ -969,5 +2840,18 @@
    "file": "assets/meshes/gear/shield.json",
    "use": "Attached arm-shield sub-mesh at the baked back anchor"
   }
+ },
+ "catalogSource": {
+  "name": "Game Assets.mixar / Midnights Manner - Reference Redesign",
+  "sourceSHA256": "3b9376e86a747414e3feded5d30b7e3a1e9e8446e3b8c832080f86b08e7b9e92",
+  "exportSHA256": [
+   "5e1e012633baa01b22b53cff6b8a47d9b7e42ca452f9a6b7c070eff0ca8f7968",
+   "63bb7560a7e1765a412aab0e84fa6b8ea37c64aa99a59c33bc7e1f54c4bb290e"
+  ],
+  "creator": "User-declared owner of the entire catalog",
+  "license": "User-owned; public redistribution authorized",
+  "releaseStatus": "approved-public",
+  "rightsEvidence": "game-assets-mixar",
+  "note": "Public redistribution authorized by user ownership attestation; not independently verified as CC0."
  }
 }

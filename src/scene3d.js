@@ -1,5 +1,5 @@
 import {addLogisticsMeshes,addRoadGeometry,drawLogisticsOverlay} from './logistics-art.js';
-import {addConvertedAccents,addConvertedBuildingTiers,artEnabled,drawMesh,meshBounds} from './asset-art.js';
+import {addConvertedAccents,addConvertedBuildingTiers,artEnabled,drawMesh,meshBounds,drawCatalogBuilding,validFlatMesh} from './asset-art.js';
 import {roadRevision} from './systems/roads.js';
 import {addLivingMechanisms} from './mechanical-art.js';
 import {addLivingProps} from './living-props.js';
@@ -47,13 +47,14 @@ export class MeshScene {
  source(position,direction=null,radius=1.25,power=.7,profile='generic'){
   if(this.alpha===1){const source={position,direction,radius,power,profile,owner:this.owner};source.phase=sourcePhase(source);this.sources.push(source);}
  }
- face(vertices,color,split=true){
+  face(vertices,color,split=true,doubleSided=false){
   // Split broad roof/wall planes so chimneys and neighboring meshes occlude
   // correctly even at low camera angles (painter ordering uses face centers).
-  if(split&&vertices.length===4){const [a,b,c,d]=vertices,dist=(u,v)=>Math.hypot(...u.map((n,i)=>n-v[i])),nx=Math.ceil(dist(a,b)/this.subdivision),ny=Math.ceil(dist(a,d)/this.subdivision);if(nx*ny>1){const point=(u,v)=>a.map((n,i)=>(1-v)*((1-u)*n+u*b[i])+v*((1-u)*d[i]+u*c[i]));for(let i=0;i<nx;i++)for(let j=0;j<ny;j++)this.face([point(i/nx,j/ny),point((i+1)/nx,j/ny),point((i+1)/nx,(j+1)/ny),point(i/nx,(j+1)/ny)],color,false);return;}}
+   if(split&&vertices.length===4){const [a,b,c,d]=vertices,dist=(u,v)=>Math.hypot(...u.map((n,i)=>n-v[i])),nx=Math.ceil(dist(a,b)/this.subdivision),ny=Math.ceil(dist(a,d)/this.subdivision);if(nx*ny>1){const point=(u,v)=>a.map((n,i)=>(1-v)*((1-u)*n+u*b[i])+v*((1-u)*d[i]+u*c[i]));for(let i=0;i<nx;i++)for(let j=0;j<ny;j++)this.face([point(i/nx,j/ny),point((i+1)/nx,j/ny),point((i+1)/nx,(j+1)/ny),point(i/nx,(j+1)/ny)],color,false,doubleSided);return;}}
 
   const a=vertices[0],b=vertices[1],c=vertices[2],u=b.map((v,i)=>v-a[i]),v=c.map((v,i)=>v-a[i]);let n=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];const len=Math.hypot(...n);if(len<1e-8)return;n=n.map(x=>x/len);
-  const B=this.basis;if(n[0]*B.s*B.v+n[1]*B.c*B.v+n[2]*B.p<=.00001)return;
+   const B=this.basis,facing=n[0]*B.s*B.v+n[1]*B.c*B.v+n[2]*B.p;
+   if(facing<=.00001){if(doubleSided&&facing<-.00001)this.face([...vertices].reverse(),color,false);return;}
   const points=vertices.map(p=>this.r.project(...p));if(points.every(p=>p.x<-60)||points.every(p=>p.x>this.r.width+60)||points.every(p=>p.y<-80)||points.every(p=>p.y>this.r.height+60))return;
   const zAvg=vertices.reduce((sum,p)=>sum+p[2],0)/vertices.length;
   this.faces.push({points,vertices,bounds:[Math.min(...points.map(p=>p.x)),Math.min(...points.map(p=>p.y)),Math.max(...points.map(p=>p.x)),Math.max(...points.map(p=>p.y))],color,center:vertices[0].map((_,i)=>vertices.reduce((sum,p)=>sum+p[i],0)/vertices.length),normal:n,emissive:this.emissive,fixture:this.fixture,ao:Math.min(1,AO_MIN+(1-AO_MIN)*Math.max(0,zAvg/AO_HEIGHT)),depth:vertices.reduce((sum,p)=>sum+this.r.depth(...p),0)/vertices.length+this.depthBias,owner:this.owner,alpha:this.alpha});
@@ -1923,7 +1924,8 @@ if(['mason_yard','shieldwall-yard'].includes(t)){for(let i=0;i<3;i++)s.box(x+.25
   if(t==='scriptorium')scriptoriumProps(s,b,n,l);
  }
 export function buildingModel(s,b,spec,world,time=0){
- buildingShape(s,b,spec,world,time);
+  if(drawCatalogBuilding(s,b,spec)){productionPile(s,b,spec);return;}
+  buildingShape(s,b,spec,world,time);
  if(b.id==null)return; // placement previews already have a clear ghost treatment
  buildingDetailLayer(s,b,spec);
  addLivingProps(s,b,spec);
@@ -1968,9 +1970,16 @@ const PILES={
 };
 function productionPile(s,b,spec){
  const stage=productionStage(b,spec);
- if(stage<=0)return;
- const n=spec.size,px=b.x+n*.78,py=b.y+n*.82,pile=PILES[spec.production||Object.keys(spec.refine?.[0]?.out||{})[0]]||PILES.food;
- if(pile){const {a,b:c}=pile;
+  if(stage<=0)return;
+   const n=spec.size,resource=spec.production||Object.keys(spec.refine?.[0]?.out||{})[0],px=b.x+n*.78,py=b.y+n*.82,pile=PILES[resource]||PILES.food;
+   const point=s.r.project(px,py,.1);
+   if(point.x<-80||point.x>s.r.width+80||point.y<-100||point.y>s.r.height+80)return;
+  const assetId=resource==='lumber'?'catalog-resource-lumber':null,asset=assetId&&s.r?.meshes?.[assetId];
+   const cost=(asset?.faces?.length||0)*stage,budget=s.r.width<600?800:1400;
+   if(s.r.cam.zoom>=1.2&&validFlatMesh(asset)&&artEnabled(s.r?.data,assetId)&&(s.externalPropFaces||0)+cost<=budget){
+    s.externalPropFaces=(s.externalPropFaces||0)+cost;
+   for(const [dx,dy]of[[-.1,-.08],[.12,-.08],[0,.12]].slice(0,stage))drawMesh(s,asset,px+dx,py+dy,{scale:.72,dz:.06});
+  }else if(pile){const {a,b:c}=pile;
   if(pile.kind==='timber'){
    for(let i=0;i<stage;i++)s.box(px-.26+i*.16,py-.2,.1,.13,.4,.12,i%2?c:a);
    if(stage>=3)s.box(px-.24,py-.08,.22,.42,.16,.1,c);
@@ -2004,7 +2013,7 @@ export function drawVillage3D(r,world,time,light,visibleUnits){const s=new MeshS
   // carries both (expedition-only; home mesh unchanged).
   let scorchedFlag=0;try{scorchedFlag=isScorchedRidge(world,r.data)?1:0;}catch{scorchedFlag=0;}
   const key=JSON.stringify([r.width,r.height,r.cx,r.cy,r.cam,W,H,s.subdivision,r.claimedTileCount??-1,roadRevision(world),world.wave||0,(world.clearedCamps||[]).join(','),world.biomeSeed??-1,Array.isArray(world.tiles)?world.tiles.length:-1,scorchedFlag,world.buildings.map(b=>{const spec=r.data.buildings[b.type];return [b.id,b.type,b.x,b.y,b.level,b.hp<=0,b.remaining>0,productionStage(b,spec),spec?.production&&reserveReady(b,spec)?1:0,b.type==='gate'?gateLiftStage(r,b,world,time):0,b.type.includes('trap')?(trapArmed(b)?1:0):0];})]);
-  if(r._meshStatic?.world===world&&r._meshStatic.key===key){s.faces=r._meshStatic.faces.slice();s.sources=r._meshStatic.sources;s.chimneys=r._meshStatic.chimneys;s.doors=r._meshStatic.doors||[];}else{
+   if(r._meshStatic?.world===world&&r._meshStatic.key===key){s.faces=r._meshStatic.faces.slice();s.sources=r._meshStatic.sources;s.chimneys=r._meshStatic.chimneys;s.doors=r._meshStatic.doors||[];s.catalogOwners=r._meshStatic.catalogOwners;}else{
  // Border trees share depth sorting with the village, including reverse views.
  for(let i=-1;i<W+2;i++){s.owner=null;if(i%2)pine(s,i,-1.5,1.4+(i%3)*.22);if(i%3===0)pine(s,-1.5,((i%H)+H)%H,1.5);if(i%3===1)pine(s,W+1,i%H,1.6);if(i%4===0)pine(s,i,H+3,1.5);}
   addRoadGeometry(s,world);
@@ -2013,7 +2022,7 @@ export function drawVillage3D(r,world,time,light,visibleUnits){const s=new MeshS
  prepareSourceLighting(s);
  prepareNearbyLight(s,world);
  s.faces.sort((a,b)=>a.depth-b.depth);
- r._meshStatic={world,key,faces:s.faces.slice(),sources:s.sources,chimneys:s.chimneys,doors:s.doors};
+  r._meshStatic={world,key,faces:s.faces.slice(),sources:s.sources,chimneys:s.chimneys,doors:s.doors,catalogOwners:s.catalogOwners};
  }
 
  // Trail growth rebuilds only its sparse ground layer, rather than every

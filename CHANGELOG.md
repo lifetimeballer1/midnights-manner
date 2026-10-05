@@ -1,3 +1,12 @@
+## Actual Mixar Building Catalog - 2026-10-05
+
+- Convert all **62 game building families / 334 existing tiers** and enable **324 tiers across 59 families**. Gate, trap, and fire-trap families retain native orientation/state visuals pending source pivot mapping. Preserve the Canvas renderer, source colors/emission, game IDs, footprints, collisions, gameplay, saves, and procedural fallback.
+- Fetch only a placed type/tier, deduplicate in-flight loads, retain fallback on failure, and keep the large model files out of the service-worker install precache.
+- Preserve complete near/low meshes, two-sided roof sheets, and source-light anchors; suppress unmapped native machinery on imported bodies and duplicated legacy forge props. Source-specific mechanism animation remains deferred. Clamp simplified low-LOD vertices to source bounds.
+- Enable one complete pine, two tree-cluster forms, and stone/lumber piles. Hold four oversized clusters without fragmenting their silhouettes, and retain the verified shared labor body for farmers.
+- Record the user's ownership and public-redistribution attestation, without claiming independent CC0 verification. Gate release builds on matching permission evidence and hash all deployed content, including on-demand meshes.
+- Add catalog-wide provenance/geometry coverage checks and representative real-browser captures. Remaining characters, equipment, terrain, flora, props, resource stages, camps, landmarks, and source animation remain queued or partial. This is not a full-catalog release or a physical-mobile performance certification.
+
 ## Free low-poly asset integration — 2026-10-01
 
 - Integrate seven reviewed Quaternius CC0 props into storage, resource workplaces, Longhouse/settlement seating and frontier rocks through the existing Canvas renderer.

@@ -18,6 +18,7 @@ import {VERSION} from '../src/storage.js';
 // node exits. Kill the whole tree so the harness always returns promptly.
 function killBrowser(proc){try{if(process.platform==='win32')spawnSync('taskkill',['/pid',String(proc.pid),'/T','/F'],{stdio:'ignore'});else proc.kill();}catch{}}
 const root=resolve('dist'),world=JSON.parse(await readFile(new URL('../data/world.json',import.meta.url))),profile=await mkdtemp(join(tmpdir(),'midnight-look-'));
+const mixarLabel=(process.env.MIXAR_LABEL||'pilot').replace(/[^a-z0-9-]/gi,'-');let mixarTier=null,mixarTypes=[];
 const server=createServer(async(req,res)=>{try{let path=decodeURIComponent(new URL(req.url,'http://localhost').pathname).replace(/^\/midnights-manner\//,'');if(!path||path==='/')path='index.html';const file=resolve(root,path),rel=relative(root,file);if(rel.startsWith('..')||isAbsolute(rel))throw Error('Invalid path');res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.json':'application/json','.css':'text/css','.png':'image/png','.svg':'image/svg+xml'})[extname(file)]||'application/octet-stream');res.end(await readFile(file));}catch{res.writeHead(404);res.end('Not found');}});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const port=server.address().port;
@@ -35,7 +36,7 @@ try{
  const evaluate=async expression=>{const r=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(r.exceptionDetails.exception?.description||'Browser evaluation failed');return r.result.value;};
  const waitFor=async (expression,tries=100)=>{for(let i=0;i<tries;i++){if(await evaluate(expression))return;await new Promise(r=>setTimeout(r,100));}throw Error('Timed out: '+expression);};
  await call('Runtime.enable');await call('Page.enable');
- if(process.env.FRONTIER_CAPTURE==='1'||process.env.POLISH_CAPTURE==='1'){
+  if(process.env.FRONTIER_CAPTURE==='1'||process.env.POLISH_CAPTURE==='1'||process.env.MIXAR_CAPTURE==='1'){
   const data=Object.fromEntries(await Promise.all(['world','troops','items','abilities','buildings','quests','expansion','biomes'].map(async name=>[name,JSON.parse(await readFile(new URL(`../data/${name}.json`,import.meta.url)))])));
   const village=createWorld(data);
   village.nextRaidAt=1e9;village.nextFrontierEventAt=1e9;
@@ -44,7 +45,7 @@ try{
    b.remaining=0;b.harvestBonus=160;u.workplace=b.id;u.x=x+1;u.y=y+1;u.armor=profession==='heartwarden'?'whisper-coat':'mire-coat';u.armorOwned=[u.armor];
    village.buildings.push(b);village.troops.push(u);
   }
-  if(process.env.POLISH_CAPTURE==='1'){
+   if(process.env.POLISH_CAPTURE==='1'){
    village.buildings=[];
    const types=['hall','cottage','mine','farm','lumber','market','watchfire','storehouse'];
    for(let i=0;i<56;i++){
@@ -55,8 +56,23 @@ try{
    village.troops=Array.from({length:150},(_,i)=>{
     const u=makeUnit(i%2?'warrior':'archer',data);u.x=5+(i%15)*1.4;u.y=5+Math.floor(i/15)*1.4;u.order={kind:'hold'};return u;
    });
-   for(const key of Object.keys(village.resources))village.resources[key]=0;
-  }
+    for(const key of Object.keys(village.resources))village.resources[key]=0;
+   }
+   if(process.env.MIXAR_CAPTURE==='1'){
+    const tier=Number(process.env.MIXAR_TIER||6);
+    assert.ok(Number.isInteger(tier)&&tier>=1&&tier<=6,'existing pilot tiers only');
+    const types=(process.env.MIXAR_TYPES||'cottage,hall,forge').split(',').map(type=>type.trim()).filter(Boolean);
+    assert.ok(types.length>0&&types.length<=3,'capture at most three catalog families at once');
+    assert.ok(types.every(type=>data.buildings[type]),'unknown catalog building family');
+    mixarTier=tier;mixarTypes=types;
+    village.buildings=types.map((type,index)=>makeBuilding(type,6+index*4,7,data,Math.min(tier,data.buildings[type].tiers.length)));
+    village.troops=[];
+    if(process.env.MIXAR_CHARACTER){
+     const type=process.env.MIXAR_CHARACTER;assert.ok(data.troops[type],`unknown character ${type}`);
+     const unit=makeUnit(type,data);unit.x=8.5;unit.y=9.5;unit.order={kind:'hold'};village.troops=[unit];
+    }
+    village.resources.food=5000;village.resources.bread=500;
+   }
   const state={version:VERSION,world:village,home:null,mission:null,completed:[],unlocks:data.world.locked,xp:2640,vlevel:11,questsCompleted:data.quests.map(q=>q.id)};
   await call('Page.addScriptToEvaluateOnNewDocument',{source:`localStorage.setItem('midnights-manner-v2',${JSON.stringify(JSON.stringify(state))});localStorage.setItem('midnights-manner-guide-v1','{"done":true}');`});
  }
@@ -70,14 +86,64 @@ try{
  if(process.env.FRONTIER_CAPTURE==='1')assert.ok(await evaluate(`['whisper-grove','blackwater-weir'].every(type=>window.midnightsManner.snapshot().world.buildings.filter(b=>b.type===type).length===2)`),'frontier save fixture loaded');
  // Dismiss the first-run notice board if this build shows one.
  await new Promise(r=>setTimeout(r,600));await evaluate('document.querySelector("#news-close")?.click()');
- const hall=await evaluate('(()=>{const b=window.midnightsManner.snapshot().world.buildings.find(b=>b.type==="hall");return {x:b.x+1,y:b.y+1};})()');
- const camera=zoom=>`window.midnightsManner.setCamera({yaw:${DEFAULT_YAW},pitch:${DEFAULT_PITCH},zoom:${zoom},x:${hall.x},y:${hall.y}})`;
- await evaluate(camera(1.8));
+  const hall=await evaluate('(()=>{const a=window.midnightsManner.snapshot().world.buildings,b=a.find(b=>b.type==="hall")||a[0];return {x:b.x+1,y:b.y+1};})()');
+  const camera=zoom=>`window.midnightsManner.setCamera({yaw:${DEFAULT_YAW},pitch:${DEFAULT_PITCH},zoom:${zoom},x:${hall.x},y:${hall.y}})`;
+  await evaluate(camera(process.env.MIXAR_CAPTURE==='1'?2.5:1.8));
  const clearAt=fraction=>{for(let day=0;day<60;day++){const t=day*DAY_LENGTH+DAY_LENGTH*fraction;if(weatherAt(t,{world}).id==='clear')return t;}return DAY_LENGTH*fraction;};
  const setSky=async t=>{await evaluate(`window.midnightsManner.setElapsed(${t})`);await new Promise(r=>setTimeout(r,300));};
  await mkdir('artifacts',{recursive:true});
  const shot=async name=>{const {data}=await call('Page.captureScreenshot',{format:'png',captureBeyondViewport:true});await writeFile(`artifacts/${name}.png`,Buffer.from(data,'base64'));};
- const summary={views:[],errors:[]};
+  const summary={views:[],errors:[]};
+  if(process.env.MIXAR_CAPTURE==='1'){
+   const live=await evaluate('window.midnightsManner.snapshot().world.buildings');
+    assert.equal(live.length,mixarTypes.length,'actual model fixture loaded');
+    assert.equal(await evaluate('typeof window.midnightsManner.catalogBuildingRenders'),'function','catalog draw admission API exists');
+    // Optional explicit non-admissions, never an automatic success downgrade:
+    // MIXAR_EXPECT_FALLBACKS='{"phone":{"forge":"offscreen"}}'
+    const fallbacks=JSON.parse(process.env.MIXAR_EXPECT_FALLBACKS||'{}'),catalogViews=[];
+    assert.ok(fallbacks&&typeof fallbacks==='object'&&!Array.isArray(fallbacks),'fallback expectations must be a view/family/reason object');
+    for(const [view,types] of Object.entries(fallbacks)){
+     assert.ok(['day','night','yaw0','yaw90','yaw180','yaw270','phone'].includes(view),`unknown catalog view ${view}`);
+     assert.ok(types&&typeof types==='object'&&!Array.isArray(types),`invalid fallback families for ${view}`);
+     for(const [type,reason] of Object.entries(types))assert.ok(mixarTypes.includes(type)&&typeof reason==='string'&&reason.trim(),`explicit fallback family/reason required for ${view}/${type}`);
+    }
+    const catalogShot=async(view,name)=>{
+     const deadline=Date.now()+15000;
+     let renders=[];
+     do{
+      renders=await evaluate('window.midnightsManner.catalogBuildingRenders()');
+      if(live.every(b=>fallbacks[view]?.[b.type]||renders.some(r=>r.buildingId===b.id&&r.meshId===`mmr-${b.type}-${b.level}`&&r.faces>0)))break;
+      await new Promise(r=>setTimeout(r,50));
+     }while(Date.now()<deadline);
+     const buildings=[];
+     for(const b of live){
+      const meshId=`mmr-${b.type}-${b.level}`,render=renders.find(r=>r.buildingId===b.id),reason=fallbacks[view]?.[b.type];
+      const selectable=await evaluate(`window.midnightsManner.modelPoints(${JSON.stringify(b.id)}).length>0`);
+      if(reason){
+       assert.ok(!render,`${view}/${meshId} expected non-admission (${reason}), but catalog faces were drawn`);
+       buildings.push({type:b.type,tier:b.level,status:'expected-non-admission',reason,selectable});
+      }else{
+       assert.ok(render?.meshId===meshId&&render.faces>0,`${view}/${meshId} must draw valid, budget-admitted catalog faces in the viewport; cache/picking alone is not proof`);
+       assert.ok(selectable,`${view}/${meshId} drawn body selectable`);
+       buildings.push({type:b.type,tier:b.level,status:'catalog-drawn',faces:render.faces,selectable});
+      }
+     }
+     await shot(name);catalogViews.push({view,file:`artifacts/${name}.png`,buildings});
+    };
+    const tier=mixarTier||live[0].level,tag=`mixar-${mixarLabel}-t${tier}`;
+    for(const [label,fraction] of [['day',.3],['night',.8]]){
+      await setSky(clearAt(fraction));await catalogShot(label,`${tag}-${label}`);
+   }
+   for(const yaw of [0,Math.PI/2,Math.PI,Math.PI*1.5]){
+      const view=`yaw${Math.round(yaw*180/Math.PI)}`;
+      await evaluate(`window.midnightsManner.setCamera({yaw:${yaw}})`);await setSky(clearAt(.3));await catalogShot(view,`${tag}-${view}`);
+   }
+   await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:2,mobile:true});
+     await evaluate(camera(1.65));await setSky(clearAt(.8));await catalogShot('phone',`${tag}-phone`);
+   await call('Emulation.setDeviceMetricsOverride',{width:1280,height:900,deviceScaleFactor:1,mobile:false});
+   await evaluate(camera(2.5));await setSky(clearAt(.3));
+     summary.actualMixarCatalog={requestedTier:tier,views:catalogViews};
+  }
  // GUI title proof (env-gated): the title screen shows before begin, so
  // capture it from a second load after the main pass leaves saves warm.
  if(process.env.GUI_CAPTURE==='1'){
