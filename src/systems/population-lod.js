@@ -2,11 +2,13 @@
 // Every villager remains in simulation; this only decides which bodies are
 // worth building into the Canvas mesh for the current frame.
 
+const scoreCache=new Map();
 function stableIdScore(id){
  const s=String(id??'');
+ const cached=scoreCache.get(s);if(cached!==undefined)return cached;
  let h=2166136261;
  for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}
- return h>>>0;
+ const score=h>>>0;if(scoreCache.size>4096)scoreCache.clear();scoreCache.set(s,score);return score;
 }
 
 export function populationRenderBudget(width,zoom,count){

@@ -67,9 +67,9 @@ function footprints(r,item,time){
  for(const mark of state.marks){c.globalAlpha=(1-(time-mark.time)/1600)*.34;c.beginPath();for(let i=0;i<=8;i++){const a=i*Math.PI/4,p=r.project(mark.x+Math.cos(a)*.035,mark.y+Math.sin(a)*.018,.017);i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y);}c.fill();}c.globalAlpha=1;
  if(pool.size>96)for(const [id,s] of pool)if(!s.marks.length&&id!==key)pool.delete(id);
 }
-function rainSplashes(r,time){
+function rainSplashes(r,time,count=ATMOSPHERE_LIMITS.rainSplashes){
  const c=r.ctx;c.strokeStyle='#a9ced8';c.lineWidth=Math.max(.7,r.cam.zoom*.45);c.globalAlpha=.22;
- for(let i=0;i<ATMOSPHERE_LIMITS.rainSplashes;i++){
+ for(let i=0;i<count;i++){
   const x=(i*37.17+(time*.00035*(i%3+1)))%(r.data.world.width||52),y=(i*19.43+7)%(r.data.world.height||44),p=r.project(x+.5,y+.5,.014);
   if(p.x<0||p.x>r.width||p.y<0||p.y>r.height)continue;
   c.beginPath();c.ellipse(p.x,p.y,2.2*r.cam.zoom,.8*r.cam.zoom,0,0,Math.PI*2);c.stroke();
@@ -78,11 +78,13 @@ function rainSplashes(r,time){
 }
 export function drawAtmosphere(r,world,time,weather,opts={}){
  if(!r||!world||r.calm||r.cam.zoom<.9)return {smoke:0,trails:0,rain:0};
- const smokeList=smokeSources(world,r.data).filter(s=>!opts.sceneChimneys||s.type!=='building'),trails=trailActors(world,r.data);
+ const smokeCap=Math.min(ATMOSPHERE_LIMITS.smokeSources,r.qualityCfg?.smokeCap??ATMOSPHERE_LIMITS.smokeSources);
+ const trailCap=Math.min(ATMOSPHERE_LIMITS.trailActors,r.qualityCfg?.trailCap??ATMOSPHERE_LIMITS.trailActors);
+ const smokeList=smokeSources(world,r.data).filter(s=>!opts.sceneChimneys||s.type!=='building').slice(0,smokeCap),trails=trailActors(world,r.data).slice(0,trailCap);
  for(const source of smokeList)smoke(r,source,time,!!weather?.streaks);
  const seen=new Set(trails.map(t=>t.actor.id));
- for(const actor of world.troops||[])if(trails.length<ATMOSPHERE_LIMITS.trailActors&&actor.hp>0&&!seen.has(actor.id))trails.push({actor});
+ for(const actor of world.troops||[])if(trails.length<trailCap&&actor.hp>0&&!seen.has(actor.id))trails.push({actor});
  for(const item of trails)footprints(r,item,time);
- const rain=weather?.streaks?ATMOSPHERE_LIMITS.rainSplashes:0;if(rain)rainSplashes(r,time);
+ const rain=weather?.streaks?Math.min(ATMOSPHERE_LIMITS.rainSplashes,r.qualityCfg?.rainCap??ATMOSPHERE_LIMITS.rainSplashes):0;if(rain)rainSplashes(r,time,rain);
  return {smoke:smokeList.length,trails:trails.length,rain};
 }

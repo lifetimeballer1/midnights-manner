@@ -51,7 +51,9 @@ export function drawCelestialShadows(scene){
  const stats=r.lightingStats??={};stats.shadows=0;stats.shadowCulled=0;
  if(!mesh||sky.keyI<=0)return 0;
  if(!mesh.casters)mesh.casters=shadowCasters(mesh.faces);
- const cache=r._shadowHullCache??=new Map(),passes=r.cam.zoom>=1.5?3:2;
+ const cache=r._shadowHullCache??=new Map();
+ const basePasses=r.cam.zoom>=1.5?3:2,passes=Math.max(1,Math.min(basePasses,r.qualityCfg?.shadowPasses??basePasses));
+ const shadowCap=Math.min(CINEMATIC_LIMITS.casters,r.qualityCfg?.shadowCap??CINEMATIC_LIMITS.casters);
  stats.penumbraPasses=passes;
  const dir=sky.keyDir.map(v=>Math.round(v*24)/24),alt=Math.max(.28,dir[2]),stretch=Math.min(2.4,1/alt);
  c.save();
@@ -61,7 +63,7 @@ export function drawCelestialShadows(scene){
   const ground=caster.points.map(([x,y,z])=>({x:x-dir[0]*z*stretch,y:y-dir[1]*z*stretch}));
   const projected=ground.map(p=>r.project(p.x,p.y,.018));
   if(!inViewport(r,projected)){stats.shadowCulled++;continue;}
-  if(stats.shadows>=CINEMATIC_LIMITS.casters)continue;
+  if(stats.shadows>=shadowCap)continue;
   const key=shadowCacheKey(caster,sky);let shape=cache.get(key);
   if(!shape){shape=hull(ground);cache.set(key,shape);while(cache.size>CINEMATIC_LIMITS.shadowCache)cache.delete(cache.keys().next().value);}
   else{cache.delete(key);cache.set(key,shape);}
@@ -84,7 +86,7 @@ export function drawGroundMist(scene,time){
  c.save();
  // Grade only the ground; mesh faces retain the celestial directional model.
  c.fillStyle=night>.7?'rgba(26,49,89,.12)':'rgba(244,195,113,.025)';c.fillRect(0,0,r.width,r.height);
- const banks=Math.min(r.width,r.height)<=700?4:5;
+ const baseBanks=Math.min(r.width,r.height)<=700?4:5,banks=Math.min(baseBanks,r.qualityCfg?.mistCap??baseBanks);
  for(let i=0;i<banks;i++){
   // Camera-local tile coordinates: a fixed budget even on the 52x44 frontier.
   const dx=(i%2-.5)*6,dy=(Math.floor(i/2)-.5)*6;
@@ -126,7 +128,8 @@ export function drawPracticalBloom(scene,time){
   const alpha=(window?.12:.18)*strength*flicker;
   g.addColorStop(0,`rgba(${profile.inner},${alpha})`);g.addColorStop(.3,`rgba(${profile.mid},${alpha*.5})`);g.addColorStop(1,`rgba(${profile.edge},0)`);
   c.fillStyle=g;c.fillRect(p.x-radius,p.y-radius,radius*2,radius*2);count++;
-  if(!r.calm&&r.cam.zoom>=1.25&&['torch','fire','trap'].includes(source.profile)&&embers<CINEMATIC_LIMITS.embers){
+  const emberCap=Math.min(CINEMATIC_LIMITS.embers,r.qualityCfg?.emberCap??CINEMATIC_LIMITS.embers);
+  if(!r.calm&&r.cam.zoom>=1.25&&['torch','fire','trap'].includes(source.profile)&&embers<emberCap){
    const age=((Number.isFinite(time)?time:0)*.00035+sourcePhase(source)/6.283)%1;
    // Embers remain tight to their visible fire; no persistent particle pool.
    c.globalAlpha=(1-age)*.48*strength;c.fillStyle='#ffd58b';
@@ -146,7 +149,7 @@ export function drawCelestialAir(r,sky){
 export function drawGodRays(r,sky,time=0){
  const stats=r.lightingStats??={};stats.rays=0;
  if(sky.weatherId!=='clear'||(sky.fog||0)>.02||sky.phase?.id==='night')return 0;
- const count=Math.min(r.width,r.height)<=700?3:5,c=r.ctx,t=r.calm?0:time*.00004;
+ const baseCount=Math.min(r.width,r.height)<=700?3:5,count=Math.min(baseCount,r.qualityCfg?.rayCap??baseCount),c=r.ctx,t=r.calm?0:time*.00004;
  const direction=sky.keyDir?.[0]||0,origin=r.width*(direction>0?.8:.2);
  c.save();
  for(let i=0;i<count;i++){
@@ -209,8 +212,9 @@ export function prepareNearbyLight(scene,world){
 export function drawChimneyWisps(scene,time){
  const r=scene.r,c=r.ctx;if(r.cam.zoom<1.15)return 0;
  let count=0;c.save();
+ const chimneyCap=Math.min(8,r.qualityCfg?.chimneyCap??8);
  for(const chimney of scene.chimneys||[]){
-  if(count>=8)break;
+  if(count>=chimneyCap)break;
   const [x,y,z]=chimney.position,phase=sourcePhase(chimney)/6.283;
   const base=r.calm?phase:((Number.isFinite(time)?time:0)*.00012+phase)%1;
   const origin=r.project(x,y,z);

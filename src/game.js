@@ -42,6 +42,7 @@ import {beginFestival} from './systems/festivals.js';
 import {beginScout,scoutReason,assaultReason,applyAnnex,conquestLimitBonus,tribeOf} from './systems/conquest.js';
 import {sfx} from './systems/audio.js';
 import {rallyLabel} from './automation-ui.js';
+import {takeCadence} from './systems/performance.js';
 // Scheduled home raids: all timing and ceremony lines come from
 // data.world.homeRaids so balance and voice stay in JSON, not logic.
 function raidConfig(data) {
@@ -744,10 +745,32 @@ export class Game {
     else if(patrol)this.notify(`${patrol.name} patrol from ${patrol.region} — defend the manor!`);
     else this.notify(scheduled?fillLine(pickLine(cfg.attackLines,this.world.wave),{count,wave:this.world.wave}):`Wave ${this.world.wave} — ${count} raiders! Defend the manor!`);}}}
   const raided=!this.state.mission&&(this.world.enemies.length>0||this.world.raidPending);
+  // Battery cadence: movement/combat/economy stay on the 20 Hz fixed step.
+  // Bookkeeping systems consume accumulated time at lower rates, preserving
+  // totals while avoiding repeated full-settlement scans.
+  const slowDt=takeCadence(this,'settlement',dt,.25),identityDt=takeCadence(this,'identity',dt,1),titleDt=takeCadence(this,'titles',dt,1);
   // Phase 7 identity backfill: old saves and mission rosters gain names,
   // traits and job ledgers lazily — additive defaults, never a wipe.
-  for(const w of [this.world,this.state.home]){if(!w)continue;for(const u of w.troops||[])ensureIdentity(u,this.data,w.troops);}
-  this.world.elapsed+=dt;tickTrails(this.world);this.tickClock();if(!this.state.mission){tickTownMeal(this.world,this.data,m=>this.notify(m));tickTownSupply(this.world,this.data,m=>this.notify(m));}if(!this.state.mission)tickFrontierEvents(this.state,this.data,m=>this.notify(m));tickResearch(this.state,this.data,dt,m=>this.notify(m));if(!this.state.mission){tickSiege(this.world,this.data,dt);tickDefensePosts(this.world,this.data,dt);}if(!this.state.mission)tickSteward(this,dt);tickEmergency(this.world,this.data,dt);tickVillagerJobs(this.world,this.data,dt);tickTitles(this.world,this.data,m=>this.notify(m));const filled=autoFillTick(this.world,this.data,dt);if(filled&&(this.world.elapsed-(this.world.lastAutoFillNote||0)>60)){this.world.lastAutoFillNote=this.world.elapsed;this.notify(`${filled} jobless worker${filled>1?'s':''} took ${filled>1?'open posts':'an open post'} on their own — traits matched, locks respected.`);}tickEconomy(this.world,this.data,dt);if(!this.state.mission)tickAutomation(this,dt);if(!this.state.mission)tickLogistics(this.world,this.data,dt);tickRefine(this.world,this.data,dt,!this.state.mission,!this.state.mission&&this.world.steward?.enabled?(refinePolicy(this)||((k)=>spendingAvailable(this,k,{purpose:'refine'}))):null);for(const c of tickCraft(this.world,this.data,dt)){const name=this.data.items[c.item]?.name||c.item;this.notify(`${name} finished — fit it from the People panel.`);}tickExpeditions(this.world,this.data,dt,Math.random,{state:this.state,notify:m=>this.notify(m)});tickCombat(this.world,this.data,dt);tickVillage(this.state,this.data,dt,m=>this.notify(m));const before=this.state.mission?.status;tickMission(this.state,this.data);if(this.state.mission?.herald){this.notify(this.state.mission.herald);this.state.mission.herald=null;}
+  if(identityDt)for(const w of [this.world,this.state.home]){if(!w)continue;for(const u of w.troops||[])ensureIdentity(u,this.data,w.troops);}
+  this.world.elapsed+=dt;tickTrails(this.world);this.tickClock();
+  if(slowDt&&!this.state.mission){tickTownMeal(this.world,this.data,m=>this.notify(m));tickTownSupply(this.world,this.data,m=>this.notify(m));tickFrontierEvents(this.state,this.data,m=>this.notify(m));}
+  if(slowDt)tickResearch(this.state,this.data,slowDt,m=>this.notify(m));
+  if(!this.state.mission){tickSiege(this.world,this.data,dt);tickDefensePosts(this.world,this.data,dt);}
+  if(!this.state.mission)tickSteward(this,dt);
+  tickEmergency(this.world,this.data,dt);
+  if(slowDt)tickVillagerJobs(this.world,this.data,slowDt);
+  if(titleDt)tickTitles(this.world,this.data,m=>this.notify(m));
+  const filled=autoFillTick(this.world,this.data,dt);if(filled&&(this.world.elapsed-(this.world.lastAutoFillNote||0)>60)){this.world.lastAutoFillNote=this.world.elapsed;this.notify(filled+' jobless worker'+(filled>1?'s':'')+' took '+(filled>1?'open posts':'an open post')+' on their own — traits matched, locks respected.');}
+  tickEconomy(this.world,this.data,dt);
+  if(!this.state.mission)tickAutomation(this,dt);
+  if(!this.state.mission)tickLogistics(this.world,this.data,dt);
+  if(slowDt){tickRefine(this.world,this.data,slowDt,!this.state.mission,!this.state.mission&&this.world.steward?.enabled?(refinePolicy(this)||((k)=>spendingAvailable(this,k,{purpose:'refine'}))):null);for(const c of tickCraft(this.world,this.data,slowDt)){const name=this.data.items[c.item]?.name||c.item;this.notify(name+' finished — fit it from the People panel.');}}
+  tickExpeditions(this.world,this.data,dt,Math.random,{state:this.state,notify:m=>this.notify(m)});
+  tickCombat(this.world,this.data,dt);
+  // Quest/level progression stays tick-synchronous because commands/tests can
+  // complete a task and expect the next progression state immediately.
+  tickVillage(this.state,this.data,dt,m=>this.notify(m));
+  const before=this.state.mission?.status;tickMission(this.state,this.data);if(this.state.mission?.herald){this.notify(this.state.mission.herald);this.state.mission.herald=null;}
   if(raided&&!this.world.enemies.length&&!this.world.raidPending&&this.world.buildings.some(b=>b.type==='hall'&&b.hp>0)){const recovered=warChestRecovery(this.world,this.data);spendWarChest(this.world);const kills=this.world.raidKills??0,loot=this.world.raidLoot??0;
    const damaged=this.world.buildings.filter(b=>b.hp<buildingMaxHp(b,this.data));
    const repairWood=damaged.reduce((n,b)=>n+Math.ceil((buildingMaxHp(b,this.data)-b.hp)/15),0);
