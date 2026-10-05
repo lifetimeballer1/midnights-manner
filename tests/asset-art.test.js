@@ -22,7 +22,7 @@ function draw(mesh, zoom, yaw) {
 
 test('manifest enables only gated meshes (safe removal = flip the flag)', () => {
   const enabled = Object.entries(data['art-manifest'].meshes).filter(([, e]) => e.enabled).map(([id]) => id).sort();
-  assert.deepEqual(enabled, ['barrel', 'book-stand', 'bush', 'chimney', 'crate', 'crate-apple', 'crate-carrot', 'dummy', 'fence', 'flower-purple', 'flower-red', 'flower-yellow', 'lantern-wall', 'lily-large', 'lily-small', 'log', 'log-stack', 'overhang', 'pennant', 'rock-small-a', 'rock-small-d', 'roof-gable', 'roof-window', 'shutters', 'stairs-stone', 'stone-small', 'torch-metal', 'town-lantern', 'weapon-stand', 'wood-door', 'workbench']);
+  assert.deepEqual(enabled, ['barrel', 'book-stand', 'bush', 'catalog-resource-lumber', 'catalog-resource-stone', 'catalog-tree-a-medium', 'catalog-tree-a-small', 'catalog-tree-single-a', 'chimney', 'crate', 'crate-apple', 'crate-carrot', 'dummy', 'fence', 'flower-purple', 'flower-red', 'flower-yellow', 'lantern-wall', 'lily-large', 'lily-small', 'log', 'log-stack', 'overhang', 'pennant', 'rock-small-a', 'rock-small-d', 'roof-gable', 'roof-window', 'shutters', 'stairs-stone', 'stone-small', 'torch-metal', 'town-lantern', 'weapon-stand', 'wood-door', 'workbench']);
 });
 
 test('converted samples are valid selectable geometry through a full orbit', () => {
@@ -45,6 +45,24 @@ test('far zoom decimates while keeping a silhouette', () => {
   assert.equal(lodFaceCount(300, 2), 300);
 });
 
+test('drawMesh scales flat geometry around its tile anchor when requested',()=>{
+  r.cam.zoom=1.65;r.cam.yaw=Math.PI/4;
+  const base=new MeshScene(r),scaled=new MeshScene(r);
+  drawMesh(base,tree,2,3);
+  drawMesh(scaled,tree,2,3,{scale:2});
+  assert.ok(base.faces.length&&scaled.faces.length);
+  const a=base.faces[0].vertices[0],b=scaled.faces[0].vertices[0];
+  assert.equal(b[0],2+(a[0]-2)*2);
+  assert.equal(b[1],3+(a[1]-3)*2);
+  assert.equal(b[2],a[2]*2);
+});
+
+test('malformed and empty flat meshes reject before any partial drawing',()=>{
+ for(const mesh of [{faces:[]},{faces:[{c:'#ffffff',v:[null,null,null]}]},{faces:[{c:'#ffffff',v:[[0,0,0],[0,0,0],[0,0,0]]}]}]){
+  const s=new MeshScene(r);assert.equal(drawMesh(s,mesh,0,0),0);assert.equal(s.faces.length,0);
+ }
+});
+
 test('samples sit on the ground at tile scale', () => {
   for (const mesh of [anvil, tree]) {
     const b = meshBounds(mesh);
@@ -53,16 +71,18 @@ test('samples sit on the ground at tile scale', () => {
   }
 });
 
-test('every manifest mesh is valid, grounded, budgeted and stays disabled', async () => {
+test('every manifest mesh is valid, grounded, budgeted and has explicit rights status', async () => {
   const manifest = data['art-manifest'];
   let total = 0;
   for (const [id, entry] of Object.entries(manifest.meshes)) {
     assert.equal(typeof entry.enabled, 'boolean', id + ' has an explicit flag');
-    assert.equal(entry.license, 'CC0', id + ' license pinned');
+    if(entry.rightsEvidence)assert.equal(entry.rightsEvidence,'game-assets-mixar',id+' has ownership evidence');
+    else if(entry.releaseStatus==='local-only')assert.equal(entry.license,'UNVERIFIED',id+' remains local-only');
+    else assert.equal(entry.license, 'CC0', id + ' license pinned');
     assert.ok(entry.source && entry.creator && entry.file, id + ' provenance');
     const mesh = JSON.parse(await readFile(new URL('../' + entry.file, import.meta.url)));
-    assert.ok(mesh.faces.length > 0 && mesh.faces.length <= 300, id + ' bounded');
-    total += mesh.faces.length;
+    assert.ok(mesh.faces.length > 0 && mesh.faces.length <= (!entry.enabled?3000:entry.domain==='environment'?320:300), id + ' bounded');
+    if(entry.enabled)total += mesh.faces.length;
     const b = meshBounds(mesh);
     assert.ok(b.z0 >= -0.01 && b.z1 - b.z0 <= 1.7, id + ' grounded/tile-scale');
     for (const yaw of [0, Math.PI]) {

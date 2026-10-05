@@ -3,6 +3,7 @@ import {Game} from './game.js';
 import {PatchNotes} from './patchnotes.js';
 import {GameUpdates} from './updates.js';
 import {Renderer} from './renderer.js';
+import {createCatalogBuildingLoader,catalogBuildingRenders} from './asset-art.js';
 import {UI} from './ui.js';
 import {MapInput} from './input.js';
 import {unlock, isMuted} from './systems/audio.js';
@@ -31,7 +32,7 @@ async function boot(){
     if(!entry?.enabled)continue;
     try{const res=await fetch(new URL('../'+entry.file,import.meta.url));if(res.ok)meshes[id]=await res.json();}catch{}
    }
-   // Baked hand-gear sub-meshes preload the same way, keyed gear-<name>.
+    // Baked hand-gear sub-meshes preload the same way, keyed gear-<name>.
    if(manifest)for(const [id,entry] of Object.entries(manifest.gear||{})){
     if(!entry?.enabled)continue;
     try{const res=await fetch(new URL('../'+entry.file,import.meta.url));if(res.ok)meshes[`gear-${id}`]=await res.json();}catch{}
@@ -45,8 +46,10 @@ async function boot(){
    }
   }catch{}
  const images=Object.fromEntries(await Promise.all([...new Set(sprites)].map(name=>new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve([name,image]);image.onerror=()=>reject(Error(`Missing sprite: ${name}`));image.src=new URL(`../assets/sprites/${name}`,import.meta.url).href;}))));
-  const canvas=document.querySelector('#world'),game=new Game(data),renderer=new Renderer(canvas,data,images);
-  renderer.meshes=meshes;
+   const canvas=document.querySelector('#world'),game=new Game(data),renderer=new Renderer(canvas,data,images);
+   renderer.meshes=meshes;
+   const loadCatalogBuilding=createCatalogBuildingLoader(renderer,data['art-manifest'],import.meta.url,fetch,(id,error)=>console.warn(`Building art ${id} unavailable; using procedural fallback.`,error.message));
+   renderer.requestCatalogBuilding=loadCatalogBuilding;renderer.touchCatalogBuilding=loadCatalogBuilding.touch;
   attachQuality(renderer);
   const resize=()=>{const rect=canvas.getBoundingClientRect();renderer.resize(rect.width,rect.height,window.devicePixelRatio||1);};resize();renderer.fitVillage(game.world);
 
@@ -161,6 +164,6 @@ async function boot(){
  }
  requestAnimationFrame(frame);
 
- window.midnightsManner={snapshot:()=>structuredClone(game.state),modelPoints:id=>(renderer.sceneFaces||[]).filter(f=>f.owner?.id===id).map(f=>({x:f.points.reduce((n,p)=>n+p.x,0)/f.points.length,y:f.points.reduce((n,p)=>n+p.y,0)/f.points.length})).filter(p=>renderer.pick(p.x,p.y)?.id===id),pick:(x,y)=>{const hit=renderer.pick(x,y);return hit?{...hit}:null;},collectionBubbles:()=>renderer.hitAreas.filter(h=>h.kind==='harvest').map(h=>({...h})),project:(x,y)=>renderer.project(x,y),camera:()=>({...renderer.cam}),frameReport:()=>renderer.frameReport(),get paused(){return game.paused;},get ready(){return ui.started;},setElapsed:seconds=>{const t=Number(seconds);if(Number.isFinite(t)&&t>=0)game.world.elapsed=t;},setCamera:({yaw,pitch,zoom,x,y}={})=>{const cam=renderer.cam;if(Number.isFinite(yaw))cam.yaw=yaw;if(Number.isFinite(pitch))cam.pitch=pitch;if(Number.isFinite(zoom)&&zoom>0)renderer.zoomBy(zoom/cam.zoom);if(Number.isFinite(x))cam.x=x;if(Number.isFinite(y))cam.y=y;},ambientTrack:()=>ambient.currentTrackKey,usingAmbient:()=>usingAmbient};
+  window.midnightsManner={snapshot:()=>structuredClone(game.state),modelPoints:id=>(renderer.sceneFaces||[]).filter(f=>f.owner?.id===id).map(f=>({x:f.points.reduce((n,p)=>n+p.x,0)/f.points.length,y:f.points.reduce((n,p)=>n+p.y,0)/f.points.length})).filter(p=>renderer.pick(p.x,p.y)?.id===id),pick:(x,y)=>{const hit=renderer.pick(x,y);return hit?{...hit}:null;},collectionBubbles:()=>renderer.hitAreas.filter(h=>h.kind==='harvest').map(h=>({...h})),catalogBuildingMeshes:()=>[...new Set(catalogBuildingRenders(renderer).map(b=>b.meshId))],catalogBuildingRenders:()=>catalogBuildingRenders(renderer),project:(x,y)=>renderer.project(x,y),camera:()=>({...renderer.cam}),frameReport:()=>renderer.frameReport(),get paused(){return game.paused;},get ready(){return ui.started;},setElapsed:seconds=>{const t=Number(seconds);if(Number.isFinite(t)&&t>=0)game.world.elapsed=t;},setCamera:({yaw,pitch,zoom,x,y}={})=>{const cam=renderer.cam;if(Number.isFinite(yaw))cam.yaw=yaw;if(Number.isFinite(pitch))cam.pitch=pitch;if(Number.isFinite(zoom)&&zoom>0)renderer.zoomBy(zoom/cam.zoom);if(Number.isFinite(x))cam.x=x;if(Number.isFinite(y))cam.y=y;},ambientTrack:()=>ambient.currentTrackKey,usingAmbient:()=>usingAmbient};
 }
 boot().catch(error=>{console.error(error);document.querySelector('#fatal').hidden=false;document.querySelector('#fatal').textContent=`The village could not load: ${error.message}. Refresh to retry. If running locally, serve the game over HTTP.`;});

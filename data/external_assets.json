@@ -1,5 +1,25 @@
 {
   "schemaVersion": 1,
+  "catalogSources": {
+    "game-assets-mixar": {
+      "name": "Game Assets.mixar / Reference Redesign",
+       "sourceSHA256": "3b9376e86a747414e3feded5d30b7e3a1e9e8446e3b8c832080f86b08e7b9e92",
+       "exportSHA256": [
+         "5e1e012633baa01b22b53cff6b8a47d9b7e42ca452f9a6b7c070eff0ca8f7968",
+         "63bb7560a7e1765a412aab0e84fa6b8ea37c64aa99a59c33bc7e1f54c4bb290e",
+         "9de36983c230e97da993ac798f8593ee36390f88bd131fecfd675cfbde966488",
+         "e2fd31bcd1beb01b352f42adddd28fdb83da2d0e711e531ed5677ed272814648",
+         "17c2fa166ae5d5475414057bc606c547442e49f2f3102666df0b91456646704e"
+       ],
+      "creator": "User-declared owner of the entire catalog",
+      "license": "User-owned; public redistribution authorized",
+      "publicRedistributionPermitted": true,
+      "evidenceType": "user-attestation",
+      "attestedDate": "2026-10-05",
+      "attestation": "The user selected 'I Own the Entire Catalog' when asked to confirm ownership of all geometry, textures, and modifications and grant public-repository redistribution, identifying any third-party parts.",
+      "note": "Permission is based on the user's ownership assertion, not independent CC0 verification. A matching KayKit atlas hash alone is not the rights evidence."
+    }
+  },
   "assets": [
     {
       "id": "barrel",

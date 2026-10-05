@@ -1,11 +1,13 @@
 import {hash2} from './systems/biomes.js';
 import {regionById,isRegionClaimed} from './systems/expansion.js';
-import {artEnabled,drawMesh} from './asset-art.js';
+import {artEnabled,drawMesh,validFlatMesh} from './asset-art.js';
 import {addExternalProp} from './external-art.js';
 // Converted CC0 meshes replace or alternate with procedural props when their
 // manifest entry is enabled and the mesh doc was preloaded (renderer.meshes).
 // Missing/disabled meshes fall back to the original procedural geometry.
-const NATIVE_MESH={shrub:'bush',log:'log',rock:'rock-small-a',stone:'stone-small'};
+const NATIVE_MESH={pine:'catalog-tree-single-a',log:'log',rock:'rock-small-a'};
+const SHRUB_MESHES=['bush','catalog-tree-a-small','catalog-tree-a-medium','catalog-tree-a-large','catalog-tree-b-small','catalog-tree-b-medium','catalog-tree-b-large'];
+const STONE_MESHES=['stone-small','catalog-resource-stone'];
 const FLOWERS=['flower-red','flower-yellow','flower-purple'],LILIES=['lily-small','lily-large'],ROCKS=['rock-small-a','rock-small-d'];
 export function convertedId(s,item){
  const meshes=s.r?.meshes;
@@ -13,11 +15,20 @@ export function convertedId(s,item){
  let id=null;
  if(item.kind==='flowers')id=FLOWERS[hash2(item.x,item.y,7)%FLOWERS.length];
  else if(item.kind==='lilies')id=LILIES[hash2(item.x,item.y,13)%LILIES.length];
- else if(NATIVE_MESH[item.kind]){
+ else if(item.kind==='stone'){
+  if(hash2(item.x,item.y,41)%2===0)return null;
+  id=STONE_MESHES[hash2(item.x,item.y,73)%STONE_MESHES.length];
+ }
+ else if(item.kind==='shrub'){
+  if(hash2(item.x,item.y,41)%2===0)return null;
+  id=SHRUB_MESHES[hash2(item.x,item.y,61)%SHRUB_MESHES.length];
+ }else if(NATIVE_MESH[item.kind]){
   if(hash2(item.x,item.y,41)%2===0)return null; // alternate for variety
   id=item.kind==='rock'?ROCKS[hash2(item.x,item.y,53)%ROCKS.length]:NATIVE_MESH[item.kind];
  }
- return id&&meshes[id]?.faces?.length&&artEnabled(s.r?.data,id)?id:null;
+  if(id&&validFlatMesh(meshes[id])&&artEnabled(s.r?.data,id))return id;
+  const fallback=item.kind==='shrub'?'bush':item.kind==='stone'?'stone-small':null;
+  return fallback&&validFlatMesh(meshes[fallback])&&artEnabled(s.r?.data,fallback)?fallback:null;
 }
 
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -301,18 +312,23 @@ export function drawProp(s,item,seed,scorched=false,zoom=1.8){
   if(ash&&zoom>=1.2&&(item.kind==='shrub'||item.kind==='rock')&&(hash2(item.x-7,item.y+11,seed+813)%4===0))charShard(s,x,y,scale);
   return;
  }
- // Keep full procedural silhouettes at distance and preserve biome palettes.
- const conv=zoom>=1.2&&!ash?convertedId(s,item):null;
- if(conv){
-  const mesh=s.r.meshes[conv],drift=item.kind==='flowers'||item.kind==='lilies';
-  if(drift){
-   const k=item.kind==='lilies'?.42:.8;
-   const doc={faces:mesh.faces.map(f=>({...f,v:f.v.map(([vx,vy,vz])=>[vx*k,vy*k,vz*k]),
-    c:item.kind==='lilies'?(f.c==='#29c9ab'?'#3f7a50':f.c==='#2ba6aa'?'#589a68':f.c):f.c}))};
-   for(const [dx,dy]of[[-.17,-.08],[.14,.1],[-.02,.19]])drawMesh(s,doc,x+dx,y+dy);
-  }else drawMesh(s,mesh,x,y);
-  return;
- }
+  // Keep full procedural silhouettes at distance and preserve biome palettes.
+  const conv=zoom>=1.2&&!ash?convertedId(s,item):null;
+  if(conv){
+   const mesh=s.r.meshes[conv],drift=item.kind==='flowers'||item.kind==='lilies';
+   const localNature=(s.r?.data?.artManifest??s.r?.data?.['art-manifest'])?.meshes?.[conv]?.domain==='environment';
+   const cost=mesh.faces.length*(drift?3:1),cap=s.r.width<600?156:320;
+   if(!localNature||(s.externalNatureFaces||0)+cost<=cap){
+    if(localNature)s.externalNatureFaces=(s.externalNatureFaces||0)+cost;
+    if(drift){
+     const k=item.kind==='lilies'?.42:.8;
+     const doc={faces:mesh.faces.map(f=>({...f,v:f.v.map(([vx,vy,vz])=>[vx*k,vy*k,vz*k]),
+      c:item.kind==='lilies'?(f.c==='#29c9ab'?'#3f7a50':f.c==='#2ba6aa'?'#589a68':f.c):f.c}))};
+     for(const [dx,dy]of[[-.17,-.08],[.14,.1],[-.02,.19]])drawMesh(s,doc,x+dx,y+dy);
+    }else drawMesh(s,mesh,x,y);
+    return;
+   }
+  }
  // Missing P5 meshes still fall back to biome reads: flowers as wildflower
  // drifts, lilies as flat pads (not reeds).
  if(item.kind==='flowers'){flowers(s,x,y,scale,cold,dark);return;}

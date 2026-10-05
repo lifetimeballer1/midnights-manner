@@ -52,8 +52,9 @@ export function addLivingMechanisms(s,world,time){
   const proxy=Object.create(s),co=Math.cos(angle),si=Math.sin(angle);proxy.face=(vertices,color,split)=>s.face(vertices.map(([x,y,z])=>{const dx=x-door.x,dy=y-door.y;return [door.x+dx*co-dy*si,door.y+dx*si+dy*co,z];}),color,split);
   s.owner=door.owner;proxy.box(door.x,door.y,door.z,door.w,.026,door.h,'#5b4735');proxy.box(door.x+door.w*.78,door.y+.028,door.z+.2,.025,.018,.03,'#c5a06a');if(allowed)doorMoves++;
  }
- for(const b of world.buildings){
-  if(count>=48)break;if(b.hp<=0||b.remaining>0)continue;
+  for(const b of world.buildings){
+     if(s.catalogOwners?.has(b.id))continue;
+   if(count>=48)break;if(b.hp<=0||b.remaining>0)continue;
   const spec=s.r.data.buildings[b.type],n=spec.size,p=s.r.project(b.x+n/2,b.y+n/2);if(p.x<-80||p.y<-100||p.x>s.r.width+80||p.y>s.r.height+100)continue;
   const state=buildingActivityState(b,spec,world,crew),active=state.active&&!s.r.calm,t=active?time:0,x=b.x,y=b.y,type=b.type,phase=ch=>active?workPhase(b,ch,t):0;
   s.owner={kind:'building',id:b.id};

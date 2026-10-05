@@ -3,13 +3,19 @@ import assert from 'node:assert/strict';
 import {readFile, readdir, stat} from 'node:fs/promises';
 import {Renderer} from '../src/renderer.js';
 import {MeshScene, shade} from '../src/scene3d.js';
-import {characterModel, bakedPoseFor} from '../src/character-art.js';
+import {characterModel, bakedPoseFor, bakedSetId} from '../src/character-art.js';
 import {DAY_LENGTH, skyLightAt} from '../src/systems/daynight.js';
 
 const root = new URL('../', import.meta.url);
 const files = (await readdir(new URL('assets/meshes/baked/', root))).filter(f => f.endsWith('.json'));
 const meshes = Object.fromEntries(await Promise.all(files.map(async f => [f.slice(0, -5), JSON.parse(await readFile(new URL('assets/meshes/baked/' + f, root)))])));
 const data = Object.fromEntries(await Promise.all(['world', 'troops', 'items', 'buildings', 'art-manifest'].map(async n => [n, JSON.parse(await readFile(new URL(`data/${n}.json`, root)))])));
+
+test('the farmer keeps its shared labor body until a skinned source export is verified',()=>{
+  assert.equal(bakedSetId({type:'farmer'},data.troops.farmer,false),'monk');
+  assert.equal(bakedSetId({type:'lumberjack'},data.troops.lumberjack,false),'monk');
+  assert.equal(data['art-manifest'].baked.farmer,undefined);
+});
 
 test('r4 flat colors meet the cloth floor without arbitrary dark-face exemptions', () => {
   for (const [id, mesh] of Object.entries(meshes)) for (const face of mesh.faces) {
