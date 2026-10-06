@@ -13,6 +13,7 @@ export const HELPS_PER_DAY = 3;
 export const SPEEDUP_SECONDS = 60;
 export const FEED_CAP = 30;
 export const FRIEND_CAP = 50;
+export const RENAME_COOLDOWN_MS = 30 * 24 * 60 * 60 * 1000; // Jesce privacy rule: one rename per 30 days
 
 export function normalizeUsername(name) {
   return String(name || '').trim();
@@ -26,6 +27,70 @@ export function validateUsername(name) {
   if (clean.includes('@')) return { ok: false, error: 'Usernames only — never an email. Villages know names, not inboxes.' };
   if (!USERNAME_RE.test(clean)) return { ok: false, error: 'Use 3–16 letters, numbers, _ or -. No spaces, no emails.' };
   return { ok: true, name: clean };
+}
+
+// Collision helper (pure): when a username is taken (UNIQUE in the
+// villages table, or already on the local friend list), suggest the
+// nearest free alternative — base plus a number, kept within 3–16
+// letters/digits/_/-. Returns a valid, untaken name.
+export function suggestUsername(base, takenList = []) {
+  const stripped = normalizeUsername(base).replace(/[^A-Za-z0-9_-]/g, '');
+  const stem = (stripped || 'Villager').slice(0, 12) || 'Villager';
+  const taken = new Set(
+    (Array.isArray(takenList) ? takenList : []).map(s => String(s ?? '').toLowerCase())
+  );
+  const fits = c => USERNAME_RE.test(c) && !taken.has(c.toLowerCase());
+  const fullBase = stripped.slice(0, 16);
+  if (fullBase && fits(fullBase)) return fullBase;
+  for (let n = 1; n <= 999; n++) {
+    const suf = String(n);
+    const cand = stem.slice(0, 16 - suf.length) + suf;
+    if (fits(cand)) return cand;
+  }
+  // Deterministic fallback (no randomness — pure function of inputs).
+  for (let n = taken.size + 1; n < taken.size + 1001; n++) {
+    const suf = String(n);
+    const cand = stem.slice(0, 16 - suf.length) + suf;
+    if (fits(cand)) return cand;
+  }
+  return stem;
+}
+
+// Rename rule (Jesce privacy requirement): a village name can change at
+// most once per 30 days. First-ever naming (no username yet) is always
+// allowed. Reuses normalize/validateUsername; returns {ok, name} or
+// {ok:false, error, daysLeft?[, suggestion]}. Local friend-list collisions
+// also surface a suggestion; global (cloud UNIQUE) collisions are handled
+// by the caller via suggestUsername(base, takenUsernames).
+export function renameUsername(mp, newName, now = Date.now()) {
+  const vu = validateUsername(newName);
+  if (!vu.ok) return vu;
+  const t = Number(now) || Date.now();
+  if (mp.username && vu.name.toLowerCase() === String(mp.username).toLowerCase()) {
+    return { ok: false, error: `You are already known as ${mp.username} — pick a different name to rename.` };
+  }
+  const clash = (mp.friends || []).some(
+    f => String(f?.username || '').toLowerCase() === vu.name.toLowerCase()
+  );
+  if (clash) {
+    const suggestion = suggestUsername(vu.name, (mp.friends || []).map(f => f?.username));
+    return { ok: false, error: `${vu.name} is already on your friend list. Try ${suggestion}.`, suggestion };
+  }
+  const last = Number(mp.lastRenamedAt) || 0;
+  if (last && t - last < RENAME_COOLDOWN_MS) {
+    const daysLeft = Math.ceil((RENAME_COOLDOWN_MS - (t - last)) / 864e5);
+    const dayWord = daysLeft === 1 ? 'day' : 'days';
+    return {
+      ok: false,
+      error: `Village names rest for 30 days — ${daysLeft} ${dayWord} left before ${mp.username || 'your village'} can be renamed.`,
+      daysLeft,
+    };
+  }
+  const first = !mp.username;
+  mp.username = vu.name;
+  mp.lastRenamedAt = t;
+  pushActivity(mp, first ? `${vu.name} raised their banner — welcome to the roads.` : `Now known as ${vu.name}.`);
+  return { ok: true, name: vu.name, renamedAt: t };
 }
 
 const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // no I/L/O/0/1 — readable over voice
@@ -55,6 +120,7 @@ export function blankMultiplayer() {
     username: null,
     friendCode: null,
     friends: [], // [{username, code, addedAt}]
+    lastRenamedAt: null, // ms epoch of last rename; enforces the 30-day rule
     inbox: [],   // incoming help awaiting pickup [{id, kind, from, ...}]
     outbox: [],  // sent help awaiting sync (cloud lights this up)
     activity: [],// newest-first feed strings with timestamps
@@ -111,7 +177,15 @@ export function addFriend(mp, username, code) {
   }
   const dup = mp.friends.some(f =>
     String(f.username || '').toLowerCase() === vu.name.toLowerCase() || sameCode(f.code, vc.code));
-  if (dup) return { ok: false, error: `${vu.name} is already on your friend list.` };
+  if (dup) {
+    const nameClash = mp.friends.some(f =>
+      String(f.username || '').toLowerCase() === vu.name.toLowerCase());
+    if (nameClash) {
+      const suggestion = suggestUsername(vu.name, mp.friends.map(f => f.username));
+      return { ok: false, error: `${vu.name} is already on your friend list. Try ${suggestion}.`, suggestion };
+    }
+    return { ok: false, error: `${vu.name} is already on your friend list.` };
+  }
   if (mp.friends.length >= FRIEND_CAP) return { ok: false, error: `Friend list is full (${FRIEND_CAP}). Remove someone first.` };
   mp.friends.push({ username: vu.name, code: vc.code, addedAt: Date.now() });
   pushActivity(mp, `Befriended ${vu.name}.`);

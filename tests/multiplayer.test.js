@@ -7,6 +7,7 @@ import {
   blankMultiplayer, ensureMultiplayer, addFriend, removeFriend,
   giftReason, makeGift, speedupReason, makeSpeedup, applyInbox,
   publicSnapshot, rankVillages, pushActivity, mergeCloudSave, stampCloud,
+  renameUsername, suggestUsername, RENAME_COOLDOWN_MS,
   GIFT_MAX, GIFTS_PER_DAY, HELPS_PER_DAY, FEED_CAP,
 } from '../src/multiplayer.js';
 
@@ -228,4 +229,67 @@ test('activity feed caps at 30, newest first', () => {
   for (let i = 0; i < FEED_CAP + 5; i++) pushActivity(mp, `event ${i}`);
   assert.equal(mp.activity.length, FEED_CAP);
   assert.equal(mp.activity[0].text, `event ${FEED_CAP + 4}`);
+});
+
+// --- rename rule: once per 30 days (Jesce privacy requirement) ---
+
+test('rename allowed after 30 days (and first naming always allowed)', () => {
+  const fresh = blankMultiplayer();
+  const first = renameUsername(fresh, 'Bram');
+  assert.equal(first.ok, true);
+  assert.equal(fresh.username, 'Bram');
+  assert.ok(Number.isFinite(fresh.lastRenamedAt));
+
+  const mp = blankMultiplayer();
+  mp.username = 'Bram';
+  mp.lastRenamedAt = Date.now() - RENAME_COOLDOWN_MS - 864e5; // 31 days ago
+  const r = renameUsername(mp, 'Cinder');
+  assert.equal(r.ok, true);
+  assert.equal(r.name, 'Cinder');
+  assert.equal(mp.username, 'Cinder');
+  assert.ok(Date.now() - mp.lastRenamedAt < 5000); // stamp refreshed
+});
+
+test('rename blocked within 30 days with days-left error', () => {
+  const mp = blankMultiplayer();
+  mp.username = 'Bram';
+  mp.lastRenamedAt = Date.now() - 5 * 864e5; // 5 days ago → ~25 left
+  const before = mp.lastRenamedAt;
+  const r = renameUsername(mp, 'Cinder');
+  assert.equal(r.ok, false);
+  assert.match(r.error, /30 days/);
+  assert.match(r.error, /left/);
+  assert.ok(r.daysLeft >= 24 && r.daysLeft <= 26);
+  assert.equal(mp.username, 'Bram'); // unchanged
+  assert.equal(mp.lastRenamedAt, before); // stamp untouched
+});
+
+test('rename reuses validation; same-name is a no-op error', () => {
+  const mp = blankMultiplayer();
+  mp.username = 'Bram';
+  mp.lastRenamedAt = Date.now() - RENAME_COOLDOWN_MS - 864e5;
+  assert.equal(renameUsername(mp, 'ash@example.com').ok, false); // emails never
+  assert.equal(renameUsername(mp, 'ab').ok, false); // too short
+  const same = renameUsername(mp, 'bram'); // case-insensitive same
+  assert.equal(same.ok, false);
+  assert.match(same.error, /already known/);
+});
+
+// --- collision suggestions ---
+
+test('suggestUsername offers base+number past taken names', () => {
+  assert.equal(suggestUsername('Ash', []), 'Ash'); // free base returned as-is
+  assert.equal(suggestUsername('Ash', ['Ash', 'Ash1', 'Ash2']), 'Ash3');
+  assert.equal(suggestUsername('Ash', ['ash']), 'Ash1'); // case-insensitive
+  const s = suggestUsername('Ash', ['Ash', 'Ash1']);
+  assert.match(s, /^[A-Za-z0-9_-]{3,16}$/); // always a valid username
+});
+
+test('friend-add dupe carries a free suggestion', () => {
+  const mp = mpWithFriend('Ash');
+  const r = addFriend(mp, 'Ash', 'CCCC-3333');
+  assert.equal(r.ok, false);
+  assert.ok(r.suggestion);
+  assert.match(r.error, new RegExp(r.suggestion));
+  assert.equal(validateUsername(r.suggestion).ok, true);
 });
